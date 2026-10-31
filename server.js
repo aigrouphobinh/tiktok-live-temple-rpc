@@ -612,6 +612,11 @@ const Rituals = {
       giftType,
       giftId: params.giftId == null ? '' : String(params.giftId).slice(0, 80),
       giftName,
+      giftGroupId: params.giftGroupId ? String(params.giftGroupId).slice(0, 180) : '',
+      giftComboDelta: Math.max(1, Number(params.giftComboDelta) || 1),
+      giftRepeatCount: Math.max(1, Number(params.giftRepeatCount) || 1),
+      giftRepeatEnd: Boolean(params.giftRepeatEnd),
+      giftStreakable: Boolean(params.giftStreakable),
       coins,
       merit,
       wish,
@@ -964,6 +969,11 @@ async function connectTikTokLive(usernameOrUrl) {
       giftId,
       coins: totalCoins,
       giftName: displayGiftName,
+      giftGroupId: groupId,
+      giftComboDelta: deltaCount,
+      giftRepeatCount: repeatCount,
+      giftRepeatEnd: repeatEnd,
+      giftStreakable: giftPayload.streakable,
       wish: `Thành tâm dâng ${displayGiftName || 'lễ vật'} kính lễ Đức Phật A Di Đà`
     });
   });
