@@ -1177,3 +1177,35 @@ body.obs-mode .stage-wrapper {
 
 .gift-dragon { font-size: 190px; filter: drop-shadow(0 8px 18px rgba(255, 174, 66, 0.45)); }
 .gift-dragon-wind { font-size: 150px; }
+
+
+/* Procedural Rocket exhaust and impact layers. */
+.gift-rocket-trail {
+  width: 44px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,250,190,.98) 0%, rgba(255,143,35,.88) 38%, rgba(214,45,12,.35) 72%, transparent 100%);
+  filter: blur(2px);
+  box-shadow: 0 0 18px rgba(255,115,24,.75);
+}
+.gift-impact-flash {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,240,1) 0%, rgba(255,216,110,.92) 24%, rgba(255,105,22,.55) 48%, transparent 74%);
+  mix-blend-mode: screen;
+}
+.gift-blast-smoke {
+  width: 76px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(76,65,57,.56) 0%, rgba(111,82,58,.34) 48%, transparent 76%);
+  filter: blur(5px);
+}
+.gift-blast-debris {
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #fff0a1, #f28a27 60%, #8b2c12);
+  box-shadow: 0 0 9px rgba(255,169,54,.8);
+}
