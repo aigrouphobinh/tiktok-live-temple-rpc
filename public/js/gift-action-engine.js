@@ -180,7 +180,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     }, 620);
   }
 
-  function playDragon() {
+  function playDragon(token) {
     playGiftSound('dragon-whoosh');
     const dragon = createEffect('gift-dragon', '🐉', 65, 820);
     const flight = dragon.animate([
@@ -197,6 +197,16 @@ import { CharacterStateMachine } from './character-state-machine.js';
       { transform: 'translate3d(340px,-80px,0) scale(2.2)', opacity: 0 }
     ], { duration: 1700, delay: 650, easing: 'ease-out', fill: 'forwards' });
     removeAfter(wind, gust);
+    window.setTimeout(() => {
+      if (token !== effectToken) return;
+      playGiftSound('dragon-roar');
+      const impact = createEffect('gift-dragon-impact', '', 540, 955);
+      const impactAnim = impact.animate([
+        { transform: 'scale(.25)', opacity: .9 },
+        { transform: 'scale(5.2)', opacity: 0 }
+      ], { duration: 780, easing: 'ease-out', fill: 'forwards' });
+      removeAfter(impact, impactAnim);
+    }, 850);
     animateCharacter([
       { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' },
       { transform: 'translate3d(175px,-85px,0) rotate(14deg) scale(.9)', offset: .38 },
@@ -300,7 +310,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     clearActiveEffects();
     showActionLabel(action);
     if (action === 'rocket') playRocket(token);
-    else if (action === 'dragon') playDragon();
+    else if (action === 'dragon') playDragon(token);
     else if (action === 'donut') playDonut();
     else if (action === 'rose') playRose();
 
