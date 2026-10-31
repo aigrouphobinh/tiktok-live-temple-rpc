@@ -159,3 +159,13 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added Bun tests for both payload shapes, missing IDs, fallback combo keys, cumulative streak deltas, final-frame cleanup and non-streakable gifts.
 - Validation still pending on the actual LIVE room; do not map numeric IDs until observed payloads confirm them.
 - GitHub Actions run `41252880599` on commit `4e5e37f` completed successfully: all 12 Bun tests passed (7 character-state-machine + 5 gift payload/streak tests). Added server/helper `node --check` to CI so the next run also validates CommonJS syntax.
+
+
+### Main integration checkpoint — 2026-11-01
+- PR #1 was changed from draft to ready and squash-merged into `main` at merge commit `f74f9e0284df19a0bc27d2373c809e6f5681d8ab`.
+- Feature head merged: `386acf6913c9f44f151ec7a429ccbc2a0f0c2f91`.
+- The feature-head GitHub Actions run `41252916384` completed with conclusion `success`; the workflow ran Bun tests and server/helper syntax checks. This is the 12-test CI validation before merge.
+- No Actions run was returned for the squash merge commit at the time of this update; do not claim post-merge CI passed until a run is observed.
+- Remaining release blockers: run the app in a browser with 3D off/on; verify camera/character/gift visuals and 1080x1920 OBS crop; measure FPS/memory and WebGL fallback; connect to an actual TikTok LIVE room and inspect sanitized gift payload logs for Rocket/Dragon/Donut names/IDs and combo frames.
+- Do not invent gift IDs or expand aliases before live payload evidence. Gift interruptions remain visual-only and must not be described as rolling back server merit/donation/leaderboard accounting.
+- Project status: **MERGED, VALIDATION INCOMPLETE — NOT DONE**. Continue from `main`; record each manual test result here before marking the project done.
