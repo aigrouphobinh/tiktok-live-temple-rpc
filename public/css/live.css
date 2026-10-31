@@ -1174,3 +1174,6 @@ body.obs-mode .stage-wrapper {
 .gift-rocket { font-size: 128px; }
 .gift-blast { font-size: 170px; }
 .gift-donut { font-size: 118px; }
+
+.gift-dragon { font-size: 190px; filter: drop-shadow(0 8px 18px rgba(255, 174, 66, 0.45)); }
+.gift-dragon-wind { font-size: 150px; }
