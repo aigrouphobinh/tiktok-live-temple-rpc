@@ -9,10 +9,17 @@ const stage = document.getElementById('stage9x16');
 if (enabled && stage) {
   let rig = stage.querySelector(':scope > .temple-camera-rig');
   if (!rig) {
+    // Keep UI overlays pinned to the 1080x1920 output; only the temple scene
+    // layers move together beneath them.
+    const fixedSelectors = '.minimal-top-bar, .bottom-hud-bar, #grandCeremonyBanner, #fortuneModal';
+    const fixedNodes = Array.from(stage.children).filter((node) => node.matches(fixedSelectors));
+    fixedNodes.forEach((node) => node.remove());
+
     rig = document.createElement('div');
     rig.className = 'temple-camera-rig';
     while (stage.firstChild) rig.appendChild(stage.firstChild);
     stage.appendChild(rig);
+    fixedNodes.forEach((node) => stage.appendChild(node));
   }
 
   const presets = [
