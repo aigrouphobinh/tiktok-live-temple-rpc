@@ -90,3 +90,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - No source files changed during the initial review.
 - GitHub write operation was previously rejected with HTTP 403; user has now updated GitHub app permissions. Re-test write access before proceeding.
 - Next task: verify script order, exact ritual/gift event payloads and current branch state, then implement Phase 1 only.
+
+### Camera direction requirements — user confirmed
+- Added `docs/CAMERA_DIRECTION_SPEC.md` based on the upstream OBS 9:16 demo reference.
+- Camera identity must remain one continuous elevated view looking down into the main temple hall. No cuts, no switching to individual viewer/character cameras, and no gift-driven reframing.
+- At the start of an incense ritual, select at most one subtle composition-safe variation at random and lock it for that ritual. Multiple viewers/gifts must not reroll or switch the camera.
+- Keep the altar/incense zone visible and preserve the 1080x1920 / 9:16 OBS composition. Ease back to the master view after ritual completion/interruption.
+- Gift effects animate characters/props in the same scene; camera is not the gameplay target.
+- Implementation is a specification only; camera movement has not yet been coded or OBS-tested.
