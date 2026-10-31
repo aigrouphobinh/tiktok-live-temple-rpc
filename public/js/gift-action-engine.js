@@ -97,7 +97,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     // Procedural exhaust trail: warm flame cores with soft smoke tails.
     for (let i = 0; i < 10; i++) {
       const trail = createEffect('gift-rocket-trail', '', 82 + i * 12, 1005 + (Math.random() - 0.5) * 24);
-      const drift = 170 + Math.random() * 150;
+      const drift = -90 - Math.random() * 120;
       const rise = -22 - Math.random() * 52;
       const trailAnim = trail.animate([
         { transform: 'translate3d(0,0,0) scale(.55)', opacity: .92 },
