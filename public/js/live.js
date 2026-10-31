@@ -532,7 +532,9 @@
         particles.spawnGrandCeremonyRain();
         pulseHallBowing();
         showGrandCeremonyBanner(ev.user, ev.giftName, ev.merit);
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🐉 ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        if (!giftActionResult.interruptsRitual) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🐉 ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
