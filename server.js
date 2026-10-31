@@ -931,37 +931,30 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   tiktokConn.on(WebcastEvent.GIFT, (data) => {
+    const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
-    const giftObj = data?.gift || data?.giftDetails || {};
-    const rawGiftId = data?.giftId ?? giftObj?.id;
-    const giftId = rawGiftId == null ? '' : String(rawGiftId);
-    const groupId = String(data?.groupId || `${uniqueId}_${giftId}`);
-    const repeatCount = Math.max(1, Number(data?.repeatCount || data?.comboCount || 1));
+    const giftPayload = normalizeGiftPayload(data, uniqueId);
+    const {
+      giftId, giftName: rawGiftName, diamondCount, repeatCount, repeatEnd, groupId
+    } = giftPayload;
 
-    const prevCount = giftComboTracker.get(groupId) || 0;
-    if (repeatCount <= prevCount && data?.repeatEnd) {
-      giftComboTracker.delete(groupId);
-      return;
-    }
-    const deltaCount = Math.max(1, repeatCount - prevCount);
-    giftComboTracker.set(groupId, repeatCount);
-    if (giftComboTracker.size > 500) {
-      const firstKey = giftComboTracker.keys().next().value;
-      giftComboTracker.delete(firstKey);
-    }
+    const deltaCount = getGiftComboDelta(giftComboTracker, giftPayload);
+    if (deltaCount <= 0) return;
 
-    const diamondCount = Math.max(1, Number(giftObj?.diamondCount || data?.diamondCount || 1));
     const totalCoins = diamondCount * deltaCount;
-    const rawGiftName = giftObj?.name || data?.giftName || giftObj?.describe || 'Hoa Hồng Tâm Thành';
-    const displayGiftName = deltaCount > 1 ? `${deltaCount}x ${rawGiftName}` : rawGiftName;
+    const displayGiftName = rawGiftName
+      ? (deltaCount > 1 ? `${deltaCount}x ${rawGiftName}` : rawGiftName)
+      : '';
 
-    console.log(`[TikTok Gift] ${user} gửi ${displayGiftName} (${totalCoins} xu)`);
+    console.log(`[TikTok Gift] ${user} gửi ${displayGiftName || 'quà chưa rõ tên'} (${totalCoins} xu)`);
     console.log('[TikTok Gift Payload]', {
       giftId: giftId || null,
-      giftName: rawGiftName,
+      giftName: rawGiftName || null,
       diamondCount,
-      repeatCount: deltaCount,
-      totalCoins
+      repeatCount,
+      repeatEnd,
+      comboDelta: deltaCount,
+      groupId
     });
 
     Rituals.offerGift({
@@ -971,7 +964,7 @@ async function connectTikTokLive(usernameOrUrl) {
       giftId,
       coins: totalCoins,
       giftName: displayGiftName,
-      wish: `Thành tâm dâng ${displayGiftName} kính lễ Đức Phật A Di Đà`
+      wish: `Thành tâm dâng ${displayGiftName || 'lễ vật'} kính lễ Đức Phật A Di Đà`
     });
   });
 
