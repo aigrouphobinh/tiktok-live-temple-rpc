@@ -136,3 +136,12 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - An interrupted incense ritual eases back to the master overview but retains its selected preset; when that same devotee resumes, the same preset is reused. On successful completion, the preset is cleared so the next incense ritual can select a new variation.
 - Top/bottom HUD, ceremony banner and fortune modal remain outside the transformed scene rig. The camera rig is below those fixed overlays in the stage stacking order.
 - The scene camera hold is aligned with the 7.6-second standard character slot; character completion/interruption events drive the return rather than per-frame rerolls.
+
+### Final integration pass — event ownership and priority VFX
+- Immediate and queued character starts now use the same `temple:character-start` event. The engine dispatches it only after acquiring the single-character slot; `live.js` owns the corresponding animation.
+- Camera variation now listens to this ownership event, so queued incense events cannot prematurely move the camera. Interrupted incense returns to master and resumes with its original locked preset; completed incense clears the preset.
+- Added active-effect cleanup so a stronger gift cancels the weaker gift's running DOM animations before taking over.
+- Added Dragon/Rồng fly-through and wind-knockback VFX. Active priority is Rocket > Dragon/Rồng > Donut/Doughnut.
+- Serialized bell and fortune character actions through the same queue; fortune uses an 18-second slot for narration/modal playback.
+- Added GitHub Actions workflow `.github/workflows/tests.yml` to run `bun test` on branch pushes and pull requests.
+- Remaining validation: confirm real gift display names/IDs from a live TikTok room; run Bun CI; test visual alignment, 9:16 crop and FPS in browser/OBS.
