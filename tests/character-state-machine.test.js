@@ -16,6 +16,16 @@ describe('CharacterStateMachine', () => {
     expect(machine.snapshot().state).toBe('IDLE');
   });
 
+  it('tracks the approach, offering and bow phases in order', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    expect(machine.snapshot().state).toBe('APPROACHING');
+    expect(machine.transition('OFFERING')).toBe(true);
+    expect(machine.transition('BOWING')).toBe(true);
+    expect(machine.transition('OFFERING')).toBe(false);
+    expect(machine.snapshot().state).toBe('BOWING');
+  });
+
   it('interrupts the active devotee and puts that same devotee at the front of the queue', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
