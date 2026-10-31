@@ -14,7 +14,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
   rig.appendChild(layer);
 
   const machine = new CharacterStateMachine({ maxQueue: 40 });
-  const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony']);
+  const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune']);
   const EFFECT_DURATION = { rocket: 4050, donut: 3650 };
   let activeTimer = 0;
   let phaseTimers = [];
@@ -116,7 +116,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
       : '🍩 Bị chiếc bánh donut dụ chạy khỏi lư hương!';
   }
 
-  function startCharacterTimer() {
+  function startCharacterTimer(event) {
     clearTimeout(activeTimer);
     phaseTimers.forEach(clearTimeout);
     phaseTimers = [
@@ -129,9 +129,9 @@ import { CharacterStateMachine } from './character-state-machine.js';
       const next = machine.completeActive();
       if (next.started) {
         window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
-        startCharacterTimer();
+        startCharacterTimer(next.event);
       }
-    }, 7600);
+    }, event?.type === 'drawFortune' ? 18000 : 7600);
   }
 
   function beginEffect(action) {
@@ -158,7 +158,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
         const next = machine.finishCooldown();
         if (next.started) {
           window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
-          startCharacterTimer();
+          startCharacterTimer(next.event);
         }
       }, 650);
     }, EFFECT_DURATION[action] || 3500);
@@ -183,7 +183,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     if (!WALK_EVENTS.has(event.type)) return { allowWalker: false, state: machine.snapshot() };
     const result = machine.request(event);
     if (!result.accepted) return { allowWalker: false, dropped: true, state: machine.snapshot() };
-    if (result.started) startCharacterTimer();
+    if (result.started) startCharacterTimer(event);
     return { allowWalker: Boolean(result.started), queued: Boolean(result.queued), state: machine.snapshot() };
   }
 
