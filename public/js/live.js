@@ -37,6 +37,7 @@
     else if (type === 'explosion') audio.playExplosion(1);
     else if (type === 'dragon-whoosh') audio.playDragonWhoosh();
     else if (type === 'donut-chime') audio.playDonutChime();
+    else if (type === 'rose-chime') audio.playRoseChime();
   });
 
   function unlockAudioOnce() {
