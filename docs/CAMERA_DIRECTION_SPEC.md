@@ -1,7 +1,7 @@
 # Camera Direction Specification — Temple Live 9:16
 
 ## Visual reference
-Use the existing OBS demo frame as the composition reference:
+Use the existing 9:16 demo frame as the composition reference:
 https://github.com/zane-tv/tiktok-live-temple-rpc/blob/main/docs/demo/demo-obs-9x16.png
 
 ## Non-negotiable camera rules
@@ -9,7 +9,7 @@ https://github.com/zane-tv/tiktok-live-temple-rpc/blob/main/docs/demo/demo-obs-9
 2. The default/master view is the existing elevated view looking down into the main temple hall. The Buddha altar, central incense burner, carpet and congregation remain part of the same 9:16 composition.
 3. Never cut/switch between separate cameras, character cameras, close-up feeds or per-viewer shots.
 4. Never automatically reframe to whichever viewer sent a gift. A gift targets the in-scene character/action only; it must not change camera ownership or jump the frame to another person.
-5. Preserve the 1080x1920 logical stage, 9:16 aspect ratio, OBS Browser Source crop and existing stage scaling. No layout resize, portrait crop drift, black bars or off-stage camera movement.
+5. Preserve the 1080x1920 logical stage, 9:16 aspect ratio and existing stage scaling. No layout resize, portrait crop drift, black bars or off-stage camera movement.
 6. Camera motion must be restrained and deterministic. No rapid cuts, shaking that loses the composition, large zooms, or rotation that makes the temple layout hard to recognize.
 
 ## Incense interaction camera behavior
@@ -44,7 +44,7 @@ These are variations of one camera, not separate camera shots. Exact amplitudes 
 - [ ] All characters and gift effects remain within the same 9:16 composition.
 - [ ] Altar and incense area remain visible throughout.
 - [ ] Ritual completion/interruption smoothly restores the master view.
-- [ ] OBS Browser Source remains 1080x1920 / 9:16 with no crop drift.
+- [ ] The in-game 1080x1920 stage remains 9:16 with no layout drift.
 - [ ] With 3D disabled or unavailable, the original static view is unchanged.
 
 ## Runtime camera ownership integration
