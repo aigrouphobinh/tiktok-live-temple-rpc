@@ -933,7 +933,8 @@ async function connectTikTokLive(usernameOrUrl) {
   tiktokConn.on(WebcastEvent.GIFT, (data) => {
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const giftObj = data?.gift || data?.giftDetails || {};
-    const giftId = String(data?.giftId || giftObj?.id || 'rose');
+    const rawGiftId = data?.giftId ?? giftObj?.id;
+    const giftId = rawGiftId == null ? '' : String(rawGiftId);
     const groupId = String(data?.groupId || `${uniqueId}_${giftId}`);
     const repeatCount = Math.max(1, Number(data?.repeatCount || data?.comboCount || 1));
 
