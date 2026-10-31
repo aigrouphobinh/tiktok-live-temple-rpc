@@ -9,6 +9,8 @@ const canvas = document.getElementById('temple3dCanvas');
 if (ENABLED && canvas) {
   boot().catch((error) => {
     console.warn('[Temple3D] Disabled; keeping the original 2D renderer:', error);
+    window.__TEMPLE_3D_READY__ = false;
+    window.dispatchEvent(new Event('temple:3d-unavailable'));
     canvas.hidden = true;
   });
 }
@@ -192,6 +194,8 @@ async function boot() {
 
   window.addEventListener('temple:ritual', (event) => onRitual(event.detail));
   canvas.hidden = false;
+  window.__TEMPLE_3D_READY__ = true;
+  window.dispatchEvent(new Event('temple:3d-ready'));
 
   function animate(now) {
     if (disposed || document.hidden) return;
@@ -232,6 +236,8 @@ async function boot() {
     event.preventDefault();
     stop();
     canvas.hidden = true;
+    window.__TEMPLE_3D_READY__ = false;
+    window.dispatchEvent(new Event('temple:3d-unavailable'));
     console.warn('[Temple3D] WebGL context lost; 2D mode remains active.');
   });
   window.addEventListener('pagehide', () => {
