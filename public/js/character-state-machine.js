@@ -14,6 +14,20 @@ export class CharacterStateMachine {
     this.effectQueue = [];
   }
 
+  transition(nextState) {
+    const allowed = {
+      APPROACHING: ['OFFERING', 'INTERRUPTED'],
+      OFFERING: ['BOWING', 'INTERRUPTED'],
+      BOWING: ['RETURNING', 'INTERRUPTED'],
+      RETURNING: ['IDLE'],
+      INTERRUPTED: ['COOLDOWN'],
+      COOLDOWN: ['IDLE']
+    };
+    if (!allowed[this.state]?.includes(nextState)) return false;
+    this.state = nextState;
+    return true;
+  }
+
   request(event) {
     if (!event || typeof event !== 'object') return { accepted: false };
     if (!this.active && !this.effect && this.state === 'IDLE') {
