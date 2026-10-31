@@ -521,7 +521,7 @@
       setCentralPose('walk1');
     }
 
-    if (ev.ttsText && ev.type !== 'drawFortune') {
+    if (ev.ttsText && ev.type !== 'drawFortune' && !giftActionResult.coalescedCombo) {
       audio.enqueueTts(ev.ttsText, { voice: ev.ttsVoice || 'maichi' });
     }
 
