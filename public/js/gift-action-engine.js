@@ -1,7 +1,8 @@
+import { CharacterStateMachine } from './character-state-machine.js';
+
 /**
- * Lightweight gift actions for the existing central devotee.
- * Only verified gift-name aliases are used here; gift IDs are carried through
- * from TikTok for later configuration but are not guessed.
+ * Single-owner visual controller for the central devotee.
+ * Server rewards remain event-driven and are deliberately not changed here.
  */
 (() => {
   const stage = document.getElementById('stage9x16');
@@ -12,7 +13,12 @@
   const rig = stage.querySelector(':scope > .temple-camera-rig') || stage;
   rig.appendChild(layer);
 
-  let activeIncenseUntil = 0;
+  const machine = new CharacterStateMachine({ maxQueue: 40 });
+  const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony']);
+  const EFFECT_DURATION = { rocket: 4050, donut: 3650 };
+  let activeTimer = 0;
+  let effectTimer = 0;
+  let cooldownTimer = 0;
   let effectToken = 0;
   let characterAnimation = null;
 
@@ -20,6 +26,13 @@
     return String(event?.giftName || '').normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
+  }
+
+  function giftAction(event) {
+    const name = normalizedName(event);
+    if (/\b(rocket|ten lua)\b/.test(name)) return 'rocket';
+    if (/\b(donut|doughnut)\b/.test(name)) return 'donut';
+    return null;
   }
 
   function createEffect(className, symbol, x, y) {
@@ -47,8 +60,7 @@
     });
   }
 
-  function rocketInterrupt() {
-    const token = ++effectToken;
+  function playRocket(token) {
     const rocket = createEffect('gift-rocket', '🚀', 95, 1010);
     const flight = rocket.animate([
       { transform: 'translate3d(0, 0, 0) rotate(-24deg) scale(.65)', opacity: 0 },
@@ -56,7 +68,7 @@
       { transform: 'translate3d(430px, -20px, 0) rotate(8deg) scale(1.25)', opacity: 1 },
       { transform: 'translate3d(500px, 0, 0) rotate(14deg) scale(.4)', opacity: 0 }
     ], { duration: 850, easing: 'ease-in', fill: 'forwards' });
-    removeAfter(rocket, flight, token);
+    removeAfter(rocket, flight);
 
     window.setTimeout(() => {
       if (token !== effectToken) return;
@@ -66,7 +78,7 @@
         { transform: 'translate3d(0,0,0) scale(1.55)', opacity: 1, offset: .35 },
         { transform: 'translate3d(0,0,0) scale(2.1)', opacity: 0 }
       ], { duration: 760, easing: 'ease-out', fill: 'forwards' });
-      removeAfter(blast, pop, token);
+      removeAfter(blast, pop);
       animateCharacter([
         { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' },
         { transform: 'translate3d(310px,-170px,0) rotate(28deg) scale(.82)', offset: .42 },
@@ -76,8 +88,7 @@
     }, 620);
   }
 
-  function donutTemptation() {
-    const token = ++effectToken;
+  function playDonut() {
     const donut = createEffect('gift-donut', '🍩', 95, 850);
     const fly = donut.animate([
       { transform: 'translate3d(0,0,0) rotate(0deg) scale(.55)', opacity: 0 },
@@ -85,7 +96,7 @@
       { transform: 'translate3d(600px,20px,0) rotate(-260deg) scale(1)', opacity: 1, offset: .68 },
       { transform: 'translate3d(900px,-10px,0) rotate(-430deg) scale(.7)', opacity: 0 }
     ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
-    removeAfter(donut, fly, token);
+    removeAfter(donut, fly);
     animateCharacter([
       { transform: 'translate3d(0,0,0) scale(1)' },
       { transform: 'translate3d(160px,-12px,0) rotate(8deg) scale(1.02)', offset: .25 },
@@ -94,38 +105,80 @@
     ], 3600);
   }
 
-  function handle(event) {
-    if (!event || typeof event.type !== 'string') return { interruptsRitual: false };
-    if (event.type === 'burnIncense') {
-      activeIncenseUntil = Date.now() + 6800;
-      return { interruptsRitual: false };
-    }
-
-    if (Date.now() > activeIncenseUntil || !['offerGift', 'grandCeremony'].includes(event.type)) {
-      return { interruptsRitual: false };
-    }
-
-    const name = normalizedName(event);
-    const isRocket = /\b(rocket|ten lua)\b/.test(name);
-    const isDonut = /\b(donut|doughnut)\b/.test(name);
-    if (!isRocket && !isDonut) return { interruptsRitual: false };
-
-    activeIncenseUntil = 0;
+  function showActionLabel(action) {
     const central = document.getElementById('centralWorshipper');
-    if (central) {
-      central.classList.remove('walking-up');
-      const action = document.getElementById('centralAction');
-      if (action) action.textContent = isRocket
-        ? '🚀 Bị tên lửa đánh bật khỏi lư hương!'
-        : '🍩 Bị chiếc bánh donut dụ chạy khỏi lư hương!';
-      const nameTag = document.getElementById('centralName');
-      if (nameTag) nameTag.textContent = nameTag.textContent || 'Thí chủ';
-    }
-
-    if (isRocket) rocketInterrupt();
-    else donutTemptation();
-    return { interruptsRitual: true, action: isRocket ? 'rocket' : 'donut' };
+    if (!central) return;
+    central.classList.remove('walking-up');
+    const label = document.getElementById('centralAction');
+    if (label) label.textContent = action === 'rocket'
+      ? '🚀 Bị tên lửa đánh bật khỏi lư hương!'
+      : '🍩 Bị chiếc bánh donut dụ chạy khỏi lư hương!';
   }
 
-  window.TempleGiftActionEngine = { handle };
+  function startCharacterTimer() {
+    clearTimeout(activeTimer);
+    activeTimer = window.setTimeout(() => {
+      const next = machine.completeActive();
+      if (next.started) {
+        window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
+        startCharacterTimer();
+      }
+    }, 7600);
+  }
+
+  function beginEffect(action) {
+    clearTimeout(activeTimer);
+    clearTimeout(effectTimer);
+    clearTimeout(cooldownTimer);
+    const token = ++effectToken;
+    showActionLabel(action);
+    if (action === 'rocket') playRocket(token);
+    else if (action === 'donut') playDonut();
+
+    effectTimer = window.setTimeout(() => {
+      if (token !== effectToken) return;
+      characterAnimation?.cancel();
+      characterAnimation = null;
+      const result = machine.finishEffect();
+      if (result.nextEffect) {
+        beginEffect(result.nextEffect.action);
+        return;
+      }
+      cooldownTimer = window.setTimeout(() => {
+        const next = machine.finishCooldown();
+        if (next.started) {
+          window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
+          startCharacterTimer();
+        }
+      }, 650);
+    }, EFFECT_DURATION[action] || 3500);
+  }
+
+  function handle(event) {
+    if (!event || typeof event.type !== 'string') return { allowWalker: false };
+    const action = ['offerGift', 'grandCeremony'].includes(event.type) ? giftAction(event) : null;
+
+    if (action) {
+      const result = machine.interrupt(action, event);
+      if (result.interrupted) {
+        beginEffect(action);
+        return { allowWalker: false, interruptsRitual: true, action, state: machine.snapshot() };
+      }
+      if (result.queuedEffect) {
+        return { allowWalker: false, queuedEffect: true, action, state: machine.snapshot() };
+      }
+      // No character is currently at the altar: treat this gift as an ordinary visit.
+    }
+
+    if (!WALK_EVENTS.has(event.type)) return { allowWalker: false, state: machine.snapshot() };
+    const result = machine.request(event);
+    if (!result.accepted) return { allowWalker: false, dropped: true, state: machine.snapshot() };
+    if (result.started) startCharacterTimer();
+    return { allowWalker: Boolean(result.started), queued: Boolean(result.queued), state: machine.snapshot() };
+  }
+
+  window.TempleGiftActionEngine = {
+    handle,
+    snapshot: () => machine.snapshot()
+  };
 })();
