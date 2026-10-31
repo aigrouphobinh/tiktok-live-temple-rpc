@@ -567,8 +567,10 @@
 
       case 'offerGift': {
         if (!giftActionResult.coalescedCombo) {
-          audio.playIncenseChime();
-          audio.playTempleBell(0.85);
+          if (!giftActionResult.action) {
+            audio.playIncenseChime();
+            audio.playTempleBell(0.85);
+          }
           particles.spawnIncenseBurst(540, 895);
         }
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 840, '#fff3b0');
