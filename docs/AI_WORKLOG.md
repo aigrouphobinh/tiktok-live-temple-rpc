@@ -207,3 +207,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a priority test for Rose < Donut < Dragon < Rocket.
 - Parsed the updated server, audio, live, gift-action, character-state-machine and test JavaScript sources with V8 syntax compilation successfully. This is a syntax check only, not an execution of Bun tests or a browser runtime test.
 - Validation still required: execute CI, inspect audio mix and visuals in a browser, and validate actual connector combo payloads.
+
+
+### Dragon roar and impact cue — 2026-11-01
+- Added a synthesized low-register Dragon roar layered after the fly-through begins, routed through the independent SFX gain control.
+- Added a same-scene expanding impact ring at the Dragon gust/knockback beat. A stale delayed callback is ignored if a higher-priority gift supersedes the Dragon before impact.
+- Sound is procedural and still requires listening/mix verification in a real browser.
