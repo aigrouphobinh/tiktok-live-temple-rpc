@@ -51,6 +51,16 @@ describe('CharacterStateMachine', () => {
     expect(machine.snapshot().effect).toBe('rocket');
   });
 
+  it('keeps Dragon above Donut and Rocket above Dragon', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.interrupt('donut', { giftName: 'Donut' });
+    expect(machine.interrupt('dragon', { giftName: 'Dragon' }).superseded).toBe(true);
+    expect(machine.snapshot().effect).toBe('dragon');
+    expect(machine.interrupt('rocket', { giftName: 'Rocket' }).superseded).toBe(true);
+    expect(machine.snapshot().effect).toBe('rocket');
+  });
+
   it('queues lower-priority effects behind the current higher-priority effect', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
