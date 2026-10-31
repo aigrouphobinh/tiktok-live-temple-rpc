@@ -107,3 +107,12 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added `temple:3d-ready` / `temple:3d-unavailable` signals in `temple-3d.js`; added fixed-size camera rig styling and perspective to `live.css`.
 - Camera implementation is an intentionally restrained framing/orientation variation of the same scene, not a cut to another camera. Visual judgement and OBS crop/FPS testing remain outstanding.
 - Verified source changes were committed to the existing feature branch through GitHub; no merge was performed.
+
+### Gift interruption prototype — implementation checkpoint
+- Added `public/js/gift-action-engine.js` for Rocket and Donut/Doughnut display-name aliases. It only interrupts while an incense animation is active, targets the existing central devotee, and leaves the camera untouched.
+- Rocket: same-scene projectile + impact cue + short knockback animation. Donut: same-scene moving prop + devotee chase animation.
+- Updated `live.js` so these two actions cancel the current prostration pose timers and do not immediately restart the default gift walk animation.
+- Updated `server.js` to preserve the TikTok connector's original `giftId` in the `temple.event` payload. The ID is not guessed or mapped yet; actual live payloads must verify names and IDs.
+- Added `docs/GIFT_GAMEPLAY_DESIGN.md` with tier priorities, timing targets, target identity rules, queue/state-machine plan and acceptance checks.
+- Important limitation: current Rocket/Donut handling is **visual-only**. Server merit, incense totals, leaderboard accounting and real cooldown/requeue logic are unchanged. Do not represent this prototype as cancelling server rewards.
+- No browser, TikTok LIVE or OBS runtime test has been performed. Syntax/integration checks and real gift-name verification remain required.
