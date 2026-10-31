@@ -565,9 +565,11 @@
       }
 
       case 'offerGift': {
-        audio.playIncenseChime();
-        audio.playTempleBell(0.85);
-        particles.spawnIncenseBurst(540, 895);
+        if (!giftActionResult.coalescedCombo) {
+          audio.playIncenseChime();
+          audio.playTempleBell(0.85);
+          particles.spawnIncenseBurst(540, 895);
+        }
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 840, '#fff3b0');
         if (giftActionResult.allowWalker) {
           animateWalkerOnCarpet(ev.user, ev.avatar, `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
@@ -576,11 +578,13 @@
       }
 
       case 'grandCeremony': {
-        audio.playTempleBell(1.2);
-        setTimeout(() => audio.playTempleBell(1.1), 900);
-        particles.spawnGrandCeremonyRain();
-        pulseHallBowing();
-        showGrandCeremonyBanner(ev.user, ev.giftName, ev.merit);
+        if (!giftActionResult.coalescedCombo) {
+          audio.playTempleBell(1.2);
+          setTimeout(() => audio.playTempleBell(1.1), 900);
+          particles.spawnGrandCeremonyRain();
+          pulseHallBowing();
+          showGrandCeremonyBanner(ev.user, ev.giftName, ev.merit);
+        }
         if (giftActionResult.allowWalker) {
           animateWalkerOnCarpet(ev.user, ev.avatar, `🐉 ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
         }
