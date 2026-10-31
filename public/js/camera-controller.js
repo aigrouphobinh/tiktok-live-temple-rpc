@@ -65,7 +65,7 @@ if (enabled && stage) {
     }
     // Further devotees extend the same shot; they never select another angle.
     clearTimeout(returnTimer);
-    returnTimer = window.setTimeout(returnToMaster, RITUAL_HOLD_MS);
+    returnTimer = window.setTimeout(() => returnToMaster(true), RITUAL_HOLD_MS);
   }
 
   window.addEventListener('temple:3d-ready', () => {
