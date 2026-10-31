@@ -66,6 +66,8 @@ body.obs-mode .stage-wrapper {
 
 .stage-9x16 {
   position: absolute;
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
   top: 0;
   left: 0;
   width: 1080px;
@@ -1132,4 +1134,19 @@ body.obs-mode .stage-wrapper {
   background: rgba(255, 255, 255, 0.04);
   border-left: 3px solid var(--gold-main);
   color: #f3e5cf;
+}
+
+
+/* One shared virtual camera rig: preserves the fixed 1080x1920 stage. */
+.temple-camera-rig {
+  position: absolute;
+  inset: 0;
+  width: 1080px;
+  height: 1920px;
+  transform-origin: 50% 50%;
+  transform: translate3d(0, 0, 0) scale(1);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .temple-camera-rig { will-change: auto; }
 }
