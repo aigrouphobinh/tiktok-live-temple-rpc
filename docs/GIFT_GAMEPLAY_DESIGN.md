@@ -60,7 +60,7 @@ Never assume the gift sender is the character being interrupted.
 3. Equal-tier effects are queued in arrival order rather than stacked on the same character.
 4. Only one effect may animate the central character at a time.
 5. An interrupted incense ritual reuses its locked camera preset when the same devotee resumes; a completed new ritual may select a fresh preset.
-6. Gift effects never change camera position, camera identity, stage size or OBS crop.
+6. Gift effects never change camera position, camera identity, stage size or 9:16 stage bounds.
 
 ## Character controller implementation
 - A single state machine owns the central character. New incense, prayer, bell, fortune and gift visits queue instead of replacing the active character.
@@ -78,9 +78,19 @@ Never assume the gift sender is the character being interrupted.
 - [x] Implement a dedicated character state machine with one active devotee, FIFO queue (max 40), and priority-sorted interruption effects.
 - [ ] Decide server-side reward/cooldown behavior explicitly before changing merit accounting.
 - [x] Add deterministic tests for FIFO ownership, interruption/requeue, Rocket-over-Donut priority, effect queue and bounded capacity.
-- [ ] Validate all effects in OBS at 1080x1920 and measure FPS.
+- [ ] Validate all effects in the browser at 1080x1920 and measure FPS.
 
 ## Safety and compatibility
 - No paid assets or external models are required; use procedural or emoji/DOM effects until free licensed models are verified.
 - Keep the original 2D ritual flow as fallback.
 - Do not change existing RPC method names or server reward semantics as part of a visual-only release.
+
+
+## Audio and impact VFX implementation update — 2026-11-01
+- Rocket now has synthesized launch/flight audio and a synthesized low-frequency explosion impact.
+- Rocket impact visual now includes an expanding ring shockwave and outward sparks, in addition to the existing 💥 impact cue and devotee knockback.
+- Dragon has a synthesized wind/flight whoosh; Donut has a short playful three-note chime.
+- Sound is routed through the shared TempleAudioEngine and remains subject to its SFX enabled guard and browser audio unlock.
+- These sounds are procedural prototypes. They still need listening/mix validation; they are not final recorded sound assets.
+- Remaining VFX polish: rocket flame/smoke trail, impact flash and debris/smoke layering; replace emoji placeholders with consistent game art; refine Dragon and Donut animations.
+- External capture software is not part of game acceptance or completion criteria.
