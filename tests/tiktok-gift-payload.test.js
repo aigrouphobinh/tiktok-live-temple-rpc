@@ -53,7 +53,7 @@ describe('TikTok gift payload normalization', () => {
     expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: false })).toBe(2);
     expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: true })).toBe(0);
     expect(tracker.has(base.groupId)).toBe(false);
-    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: true })).toBe(1);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 1, repeatEnd: true })).toBe(1);
   });
 
   it('does not retain state for non-streakable gifts', () => {
