@@ -15,7 +15,8 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   const machine = new CharacterStateMachine({ maxQueue: 40 });
   const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune']);
-  const EFFECT_DURATION = { rocket: 4050, dragon: 4200, donut: 3650 };
+  const EFFECT_DURATION = { rocket: 4050, dragon: 4200, donut: 3650, rose: 2600 };
+  const recentStreakEffects = new Map();
   let activeTimer = 0;
   let phaseTimers = [];
   let effectTimer = 0;
@@ -36,6 +37,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     if (/\b(rocket|ten lua)\b/.test(name)) return 'rocket';
     if (/\b(dragon|rong)\b/.test(name)) return 'dragon';
     if (/\b(donut|doughnut)\b/.test(name)) return 'donut';
+    if (/\b(rose|hoa hong)\b/.test(name)) return 'rose';
     return null;
   }
 
@@ -107,17 +109,17 @@ import { CharacterStateMachine } from './character-state-machine.js';
     window.setTimeout(() => {
       if (token !== effectToken) return;
       playGiftSound('explosion');
-      const blast = createEffect('gift-blast', '💥', 490, 900);
+      const blast = createEffect('gift-blast', '💥', 595, 1010);
       blast.style.fontSize = '112px';
       blast.style.filter = 'drop-shadow(0 0 18px rgba(255,190,55,.95))';
-      const flash = createEffect('gift-impact-flash', '', 490, 900);
+      const flash = createEffect('gift-impact-flash', '', 595, 1010);
       const flashAnim = flash.animate([
         { transform: 'scale(.2)', opacity: .95 },
         { transform: 'scale(3.8)', opacity: 0 }
       ], { duration: 430, easing: 'ease-out', fill: 'forwards' });
       removeAfter(flash, flashAnim);
 
-      const shockwave = createEffect('gift-shockwave', '', 490, 900);
+      const shockwave = createEffect('gift-shockwave', '', 595, 1010);
       Object.assign(shockwave.style, {
         width: '34px', height: '34px', margin: '-17px 0 0 -17px',
         border: '9px solid rgba(255,220,120,.95)', borderRadius: '50%',
@@ -131,7 +133,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
       // Soft smoke puffs and small debris add depth to the impact without a heavy texture.
       for (let i = 0; i < 7; i++) {
-        const smoke = createEffect('gift-blast-smoke', '', 490 + (Math.random() - .5) * 70, 900 + (Math.random() - .5) * 55);
+        const smoke = createEffect('gift-blast-smoke', '', 595 + (Math.random() - .5) * 70, 1010 + (Math.random() - .5) * 55);
         const smokeAnim = smoke.animate([
           { transform: 'scale(.35)', opacity: .48 },
           { transform: `translate3d(${(Math.random() - .5) * 120}px,-${70 + Math.random() * 90}px,0) scale(2.4)`, opacity: 0 }
@@ -139,7 +141,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
         removeAfter(smoke, smokeAnim);
       }
       for (let i = 0; i < 8; i++) {
-        const debris = createEffect('gift-blast-debris', '', 490, 900);
+        const debris = createEffect('gift-blast-debris', '', 595, 1010);
         const angle = (Math.PI * 2 * i) / 8;
         const distance = 110 + Math.random() * 90;
         const debrisAnim = debris.animate([
@@ -150,7 +152,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
       }
 
       for (let i = 0; i < 18; i++) {
-        const spark = createEffect('gift-blast-spark', i % 3 === 0 ? '✦' : '•', 490, 900);
+        const spark = createEffect('gift-blast-spark', i % 3 === 0 ? '✦' : '•', 595, 1010);
         spark.style.color = i % 2 ? '#fff1a8' : '#ff8b35';
         spark.style.fontSize = i % 3 ? '28px' : '42px';
         const angle = (Math.PI * 2 * i) / 18;
@@ -203,6 +205,39 @@ import { CharacterStateMachine } from './character-state-machine.js';
     ], 3200);
   }
 
+  function playRose() {
+    playGiftSound('rose-chime');
+    const rose = createEffect('gift-rose-main', '🌹', 540, 850);
+    const main = rose.animate([
+      { transform: 'translate3d(0,35px,0) scale(.35) rotate(-18deg)', opacity: 0 },
+      { transform: 'translate3d(0,-35px,0) scale(1.12) rotate(8deg)', opacity: 1, offset: .45 },
+      { transform: 'translate3d(0,-130px,0) scale(.78) rotate(18deg)', opacity: 0 }
+    ], { duration: 1900, easing: 'ease-out', fill: 'forwards' });
+    removeAfter(rose, main);
+    for (let i = 0; i < 9; i++) {
+      const petal = createEffect('gift-rose-petal', i % 2 ? '🌸' : '🌺', 540, 860);
+      const dx = (Math.random() - .5) * 330;
+      const dy = -90 - Math.random() * 240;
+      const spin = (Math.random() - .5) * 100;
+      const anim = petal.animate([
+        { transform: 'translate3d(0,0,0) rotate(0deg) scale(.35)', opacity: 0 },
+        { transform: `translate3d(${dx * .45}px,${dy * .45}px,0) rotate(${spin}deg) scale(.8)`, opacity: .95, offset: .4 },
+        { transform: `translate3d(${dx}px,${dy}px,0) rotate(${spin * 2}deg) scale(.45)`, opacity: 0 }
+      ], { duration: 1800 + Math.random() * 500, delay: i * 35, easing: 'ease-out', fill: 'forwards' });
+      removeAfter(petal, anim);
+    }
+  }
+
+  function showComboPulse(count) {
+    const pulse = createEffect('gift-combo-pulse', `COMBO ×${Math.max(1, count)}`, 540, 760);
+    const anim = pulse.animate([
+      { transform: 'translate3d(0,12px,0) scale(.65)', opacity: 0 },
+      { transform: 'translate3d(0,-18px,0) scale(1.08)', opacity: 1, offset: .35 },
+      { transform: 'translate3d(0,-58px,0) scale(.9)', opacity: 0 }
+    ], { duration: 850, easing: 'ease-out', fill: 'forwards' });
+    removeAfter(pulse, anim);
+  }
+
   function playDonut() {
     playGiftSound('donut-chime');
     const donut = createEffect('gift-donut', '🍩', 95, 850);
@@ -230,6 +265,8 @@ import { CharacterStateMachine } from './character-state-machine.js';
       ? '🚀 Bị tên lửa đánh bật khỏi lư hương!'
       : action === 'dragon'
         ? '🐉 Long khí cuộn tới, thí chủ bị đẩy lùi!'
+        : action === 'rose'
+        ? '🌹 Hương hoa hồng bay quanh thí chủ!'
         : '🍩 Bị chiếc bánh donut dụ chạy khỏi lư hương!';
   }
 
@@ -265,6 +302,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     if (action === 'rocket') playRocket(token);
     else if (action === 'dragon') playDragon();
     else if (action === 'donut') playDonut();
+    else if (action === 'rose') playRose();
 
     effectTimer = window.setTimeout(() => {
       if (token !== effectToken) return;
@@ -290,6 +328,21 @@ import { CharacterStateMachine } from './character-state-machine.js';
     const action = ['offerGift', 'grandCeremony'].includes(event.type) ? giftAction(event) : null;
 
     if (action) {
+      // Coalesce cumulative connector frames for a single streakable gift.
+      const streakKey = event.giftStreakable && event.giftGroupId ? String(event.giftGroupId) : '';
+      if (streakKey) {
+        const now = Date.now();
+        for (const [key, timestamp] of recentStreakEffects) {
+          if (now - timestamp > 5000) recentStreakEffects.delete(key);
+        }
+        const previous = recentStreakEffects.get(streakKey);
+        recentStreakEffects.set(streakKey, now);
+        while (recentStreakEffects.size > 200) recentStreakEffects.delete(recentStreakEffects.keys().next().value);
+        if (previous && now - previous <= 5000) {
+          showComboPulse(event.giftComboDelta || 1);
+          return { allowWalker: false, coalescedCombo: true, action, state: machine.snapshot() };
+        }
+      }
       const interruptedEvent = machine.snapshot().active;
       const result = machine.interrupt(action, event);
       if (result.interrupted) {
