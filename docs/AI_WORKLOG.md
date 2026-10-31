@@ -183,15 +183,26 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - No syntax/unit/browser runtime validation has yet been run for these three latest commits.
 
 ### Remaining game implementation backlog
-- [ ] Add a dedicated SFX master toggle and SFX volume control; current UI exposes music and TTS controls, while SFX is only guarded internally.
-- [ ] Improve Rocket VFX beyond emoji/DOM prototype: continuous flame/smoke trail, brighter impact flash, layered shockwave, smoke/debris fade, and impact timing aligned to projectile position.
+- [x] Add a persisted SFX master toggle and independent SFX volume control routed through a shared Web Audio gain node.
+- [x] Improve Rocket VFX with a procedural exhaust trail, impact flash, shockwave, smoke puffs and debris; align impact origin to the projectile's final stage position.
 - [ ] Replace emoji placeholders for Rocket, Dragon and Donut with consistent free/licensed or procedural game-style assets.
 - [ ] Add Dragon impact/roar layer and Donut movement/chase polish; verify no effects overlap the altar, Buddha, HUD, or central devotee incorrectly.
-- [ ] Implement lower-tier gift behaviors (Rose/Heart/other gifts) only after gift identity and connector payloads are confirmed.
-- [ ] Review gift combo behavior so repeated gifts do not replay a full cinematic on every incremental streak frame; define combo escalation and anti-spam limits.
+- [x] Add display-name based Rose/hoa hồng action with petal VFX and a soft chime; numeric gift ID remains unassigned pending real LIVE evidence.
+- [ ] Add Heart/Butterfly and other lower-tier behaviors only after exact display names are observed.
+- [x] Forward TikTok combo metadata into game events and coalesce repeated streak frames into one cinematic with lightweight combo pulses.
+- [ ] Validate streak coalescing against real TikTok LIVE combo frames and verify a new streak can trigger a fresh effect.
 - [ ] Add tests for gift action selection, priority replacement, effect cleanup, SFX dispatch, and queue recovery after supersession.
 - [ ] Validate audio unlock, SFX/music/TTS mixing, clipping, sound overlap, and browser autoplay behavior.
 - [ ] Validate 2D fallback, optional 3D overlay, stage layering, resize behavior, FPS, memory, and long-running stability in an actual browser.
 - [ ] Validate real TikTok LIVE Rocket/Dragon/Donut IDs, names, diamond values, repeatCount/repeatEnd, and reconnect behavior using sanitized logs.
 - [ ] Audit all remaining game flows: comments, likes, follows, shares, fortune, bell, wooden fish, prayer, grand ceremony, admin controls, TTS queue, and reconnect recovery.
 - Project remains **IN PROGRESS — NOT DONE** until code checks and game runtime checks above are completed.
+
+
+### Gameplay controls, rocket polish, Rose and combo handling — 2026-11-01
+- Added persistent SFX enable/disable and independent SFX volume (default 80%) in the quick dock. All synthesized ritual and gift SFX now route through a shared Web Audio gain node; music and TTS remain independently controlled.
+- Rocket exhaust now emits lightweight procedural flame particles; impact uses a flash, expanding shockwave, smoke puffs, debris and sparks. Impact coordinates now match the projectile's final position in the 1080×1920 stage.
+- Added Rose/hoa hồng gameplay action with a soft three-note chime, rose bloom and floating petals. It uses the existing lowest gift priority; no numeric gift ID is invented.
+- TikTok combo group, delta, repeat count/end and streakable metadata now pass through the game event. Incremental streak frames for the same streakable gift group are coalesced into one cinematic and represented by a small combo pulse, avoiding repeated full explosions.
+- Added a priority test for Rose < Donut < Dragon < Rocket.
+- Validation still required: execute CI, browser syntax/runtime, inspect audio mix and visuals, and validate actual connector combo payloads. No runtime test is claimed from source updates alone.
