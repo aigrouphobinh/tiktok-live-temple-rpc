@@ -116,3 +116,12 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added `docs/GIFT_GAMEPLAY_DESIGN.md` with tier priorities, timing targets, target identity rules, queue/state-machine plan and acceptance checks.
 - Important limitation: current Rocket/Donut handling is **visual-only**. Server merit, incense totals, leaderboard accounting and real cooldown/requeue logic are unchanged. Do not represent this prototype as cancelling server rewards.
 - No browser, TikTok LIVE or OBS runtime test has been performed. Syntax/integration checks and real gift-name verification remain required.
+
+### Character state machine + priority queue — implementation checkpoint
+- Added `public/js/character-state-machine.js`: deterministic state transitions, one active central devotee, FIFO queue capped at 40, interrupted devotee reinserted at the front, and priority-sorted gift effect queue.
+- Added `tests/character-state-machine.test.js` with coverage for exclusive ownership/FIFO, APPROACHING → OFFERING → BOWING transitions, interruption/requeue, Rocket superseding Donut, lower-priority effect queue and queue capacity.
+- Updated `public/js/gift-action-engine.js` to serialize incense, prayer, gift, grand ceremony, bell and fortune visits through one character owner. It schedules the existing 7.6-second bow flow and a longer 18-second fortune slot; Rocket/Donut interruptions cancel current pose timers, run the effect, apply a short cooldown, then resume the interrupted devotee.
+- Updated `live.js` so queued events start only when the controller dispatches `temple:character-start`; bell and fortune no longer replace an active devotee's identity.
+- Camera rig now excludes the top HUD, bottom HUD, grand-ceremony banner and fortune modal. The shared scene layers transform together beneath those fixed overlays.
+- Added `bun test` script. The state-machine logic was also exercised with Node's built-in test runner in this environment: 5 transition/queue scenarios passed; Bun itself is not installed in this runtime, so the repository's exact `bun test` command has not been executed here.
+- Scope remains visual-only: server merit, donation totals and leaderboard values are not cancelled or rolled back by gift interruptions. Real TikTok LIVE/OBS/browser tests are still outstanding.
