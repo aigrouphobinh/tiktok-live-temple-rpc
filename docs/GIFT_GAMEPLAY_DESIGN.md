@@ -94,3 +94,10 @@ Never assume the gift sender is the character being interrupted.
 - These sounds are procedural prototypes. They still need listening/mix validation; they are not final recorded sound assets.
 - Remaining VFX polish: rocket flame/smoke trail, impact flash and debris/smoke layering; replace emoji placeholders with consistent game art; refine Dragon and Donut animations.
 - External capture software is not part of game acceptance or completion criteria.
+
+
+## Expanded gift and audio behavior — 2026-11-01
+- Rose/hoa hồng is now a low-priority visual action: rose bloom, drifting petals and a soft chime. The display-name match is a provisional alias; confirm the exact LIVE gift name before numeric ID mapping.
+- Rocket includes an exhaust trail, flash, shockwave, smoke, debris and sparks. Impact is placed at the rocket's end position in the game stage.
+- SFX now has a persisted master toggle and independent volume control, separate from background music and TTS.
+- TikTok combo metadata is forwarded into the browser event. Streakable frames sharing one group are coalesced into one cinematic with small combo pulses; real-room validation is pending.
