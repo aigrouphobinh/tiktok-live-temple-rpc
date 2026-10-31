@@ -32,10 +32,8 @@
     return el;
   }
 
-  function removeAfter(el, animation, token) {
-    animation.finished.catch(() => {}).finally(() => {
-      if (token === effectToken) el.remove();
-    });
+  function removeAfter(el, animation) {
+    animation.finished.catch(() => {}).finally(() => el.remove());
   }
 
   function animateCharacter(keyframes, duration) {
@@ -80,12 +78,12 @@
 
   function donutTemptation() {
     const token = ++effectToken;
-    const donut = createEffect('gift-donut', '🍩', 920, 850);
+    const donut = createEffect('gift-donut', '🍩', 95, 850);
     const fly = donut.animate([
       { transform: 'translate3d(0,0,0) rotate(0deg) scale(.55)', opacity: 0 },
-      { transform: 'translate3d(-360px,-55px,0) rotate(-130deg) scale(1.15)', opacity: 1, offset: .38 },
-      { transform: 'translate3d(-600px,20px,0) rotate(-260deg) scale(1)', opacity: 1, offset: .68 },
-      { transform: 'translate3d(-920px,-10px,0) rotate(-430deg) scale(.7)', opacity: 0 }
+      { transform: 'translate3d(330px,-55px,0) rotate(-130deg) scale(1.15)', opacity: 1, offset: .38 },
+      { transform: 'translate3d(600px,20px,0) rotate(-260deg) scale(1)', opacity: 1, offset: .68 },
+      { transform: 'translate3d(900px,-10px,0) rotate(-430deg) scale(.7)', opacity: 0 }
     ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
     removeAfter(donut, fly, token);
     animateCharacter([
