@@ -472,7 +472,7 @@
     if (!ev) return;
     // Optional 3D layer listens independently; existing 2D/audio flow remains unchanged.
     window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
-    const giftActionResult = window.TempleGiftActionEngine?.handle(ev) || { interruptsRitual: false };
+    const giftActionResult = window.TempleGiftActionEngine?.handle(ev) || { allowWalker: ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony'].includes(ev.type), interruptsRitual: false };
     if (giftActionResult.interruptsRitual) {
       clearProstrationTimers();
       setCentralPose('walk1');
@@ -487,7 +487,9 @@
         audio.playIncenseChime();
         particles.spawnIncenseBurst(540, 895);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 860, '#ffe082');
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -511,7 +513,9 @@
         audio.playIncenseChime();
         spawnSkyLantern(ev.user, ev.wish);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 920, '#ffb74d');
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🏮 Cầu phúc (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🏮 Cầu phúc (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -520,7 +524,7 @@
         audio.playTempleBell(0.85);
         particles.spawnIncenseBurst(540, 895);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 840, '#fff3b0');
-        if (!giftActionResult.interruptsRitual) {
+        if (giftActionResult.allowWalker) {
           animateWalkerOnCarpet(ev.user, ev.avatar, `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
         }
         break;
@@ -532,7 +536,7 @@
         particles.spawnGrandCeremonyRain();
         pulseHallBowing();
         showGrandCeremonyBanner(ev.user, ev.giftName, ev.merit);
-        if (!giftActionResult.interruptsRitual) {
+        if (giftActionResult.allowWalker) {
           animateWalkerOnCarpet(ev.user, ev.avatar, `🐉 ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
         }
         break;
@@ -572,6 +576,21 @@
       }
     }
   }
+
+
+  // Queued devotees take ownership of the same central character after the
+  // current bow sequence or gift interruption cooldown finishes.
+  window.addEventListener('temple:character-start', (event) => {
+    const ev = event.detail;
+    if (!ev) return;
+    const labels = {
+      burnIncense: `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`,
+      sendPrayer: `🏮 Cầu phúc (+${ev.merit} CĐ)`,
+      offerGift: `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`,
+      grandCeremony: `🐉 ${ev.giftName} (+${ev.merit} CĐ)`
+    };
+    animateWalkerOnCarpet(ev.user, ev.avatar, labels[ev.type] || '✨ Tham gia nghi lễ', ev.wish);
+  });
 
   function spawnSkyLantern(user, wish) {
     const layer = document.getElementById('skyLanternsLayer');
