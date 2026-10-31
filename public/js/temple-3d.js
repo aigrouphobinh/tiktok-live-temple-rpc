@@ -66,6 +66,7 @@ async function boot() {
     }
     scene.add(object);
     active.push({ object, update, elapsed: 0, duration });
+    start();
   }
 
   function disposeObject(object) {
@@ -144,7 +145,7 @@ async function boot() {
     for (let i = 0; i < Math.min(count, 24); i++) {
       const petal = new THREE.Mesh(
         new THREE.TetrahedronGeometry(7 + Math.random() * 5, 0),
-        i % 3 ? gold : paleGold
+        (i % 3 ? gold : paleGold).clone()
       );
       petal.position.set(130 + Math.random() * 820, -40 - Math.random() * 300, 120);
       addEffect(petal, (obj, t, p) => {
@@ -208,7 +209,8 @@ async function boot() {
       }
     }
     renderer.render(scene, camera);
-    raf = requestAnimationFrame(animate);
+    if (active.length) raf = requestAnimationFrame(animate);
+    else raf = 0;
   }
 
   function start() {
