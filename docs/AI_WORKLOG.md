@@ -213,3 +213,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a synthesized low-register Dragon roar layered after the fly-through begins, routed through the independent SFX gain control.
 - Added a same-scene expanding impact ring at the Dragon gust/knockback beat. A stale delayed callback is ignored if a higher-priority gift supersedes the Dragon before impact.
 - Sound is procedural and still requires listening/mix verification in a real browser.
+
+
+### Latest source verification — 2026-11-01
+- V8 syntax compilation passed for `server.js`, `public/js/audio.js`, `public/js/live.js`, `public/js/gift-action-engine.js`, and the character state machine/test source.
+- Executed focused in-memory assertions for gift priority (Rose < Donut < Dragon < Rocket) and TikTok combo delta normalization; assertions passed.
+- Added Dragon roar/impact and avoided stacking the generic bell/chime on top of special gift-action SFX.
+- GitHub combined status currently reports no check runs for the latest direct-to-main commits. Do not describe CI as passed; the Bun test workflow has not been confirmed on this commit.
+- Browser gameplay, actual audio listening/mix, WebGL performance and real TikTok LIVE payload validation remain outstanding.
