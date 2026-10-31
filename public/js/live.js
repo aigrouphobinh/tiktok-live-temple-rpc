@@ -36,6 +36,7 @@
     if (type === 'rocket-launch') audio.playRocketLaunch();
     else if (type === 'explosion') audio.playExplosion(1);
     else if (type === 'dragon-whoosh') audio.playDragonWhoosh();
+    else if (type === 'dragon-roar') audio.playDragonRoar();
     else if (type === 'donut-chime') audio.playDonutChime();
     else if (type === 'rose-chime') audio.playRoseChime();
   });
