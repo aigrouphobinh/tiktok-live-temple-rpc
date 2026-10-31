@@ -73,6 +73,16 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 7. Do not claim code was pushed or tests passed unless confirmed.
 
 ## Session log — 2026-11-01
+
+### Optional Three.js layer — initial implementation
+- Created branch `feat/optional-threejs-ritual-layer` from `main`.
+- Added `public/js/temple-3d.js`: opt-in Three.js 0.180 procedural overlay loaded from jsDelivr only when `?3d=1`; procedural lotus, incense smoke, bell waves and gift/ceremony particles; bounded effect count; visibility pause; WebGL context-loss fallback.
+- Added isolated `#temple3dCanvas` at z-index 16 above the existing 2D canvas (z-index 15), below HUD (z-index 20).
+- Added a `temple:ritual` browser event bridge from `triggerRitualVisuals`; no server/RPC contract changes.
+- Existing 2D mode remains default. No external models, textures or paid assets added.
+- Not yet browser/OBS tested; CDN availability and actual rendering/performance remain to be verified.
+- Next: run syntax checks and browser tests; refine gift effects only against confirmed payload fields.
+
 - Confirmed the user fork: `aigrouphobinh/tiktok-live-temple-rpc`.
 - Reviewed README, package manifest, frontend HTML/CSS/JS and server entry points.
 - No source files changed during the initial review.
