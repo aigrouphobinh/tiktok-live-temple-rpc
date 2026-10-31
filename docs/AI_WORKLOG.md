@@ -125,3 +125,8 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Camera rig now excludes the top HUD, bottom HUD, grand-ceremony banner and fortune modal. The shared scene layers transform together beneath those fixed overlays.
 - Added `bun test` script. The state-machine logic was also exercised with Node's built-in test runner in this environment: 5 transition/queue scenarios passed; Bun itself is not installed in this runtime, so the repository's exact `bun test` command has not been executed here.
 - Scope remains visual-only: server merit, donation totals and leaderboard values are not cancelled or rolled back by gift interruptions. Real TikTok LIVE/OBS/browser tests are still outstanding.
+
+### Dragon tier visual action
+- Added a same-scene Dragon/Rồng fly-through with wind gust and a short devotee knockback animation.
+- Gift effect priority now follows Rocket (100) > Dragon (80) > Donut (60); a stronger incoming effect supersedes a weaker active effect, while weaker effects wait in the bounded priority queue.
+- Display-name matching includes Rocket/Tên Lửa, Dragon/Rồng and Donut/Doughnut. These aliases still require confirmation against actual TikTok LIVE gift payloads; no numeric gift IDs are hardcoded.
