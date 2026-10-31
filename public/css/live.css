@@ -1150,3 +1150,26 @@ body.obs-mode .stage-wrapper {
 @media (prefers-reduced-motion: reduce) {
   .temple-camera-rig { will-change: auto; }
 }
+
+/* Gift gameplay props stay inside the same fixed 9:16 scene. */
+.gift-action-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gift-action-fx {
+  position: absolute;
+  display: block;
+  font-size: 112px;
+  line-height: 1;
+  transform: translate3d(-50%, -50%, 0);
+  user-select: none;
+  white-space: nowrap;
+  text-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+  will-change: transform, opacity;
+}
+.gift-rocket { font-size: 128px; }
+.gift-blast { font-size: 170px; }
+.gift-donut { font-size: 118px; }
