@@ -9,7 +9,9 @@ class TempleAudioEngine {
   constructor() {
     this.ctx = null;
     this.unlocked = false;
-    this.sfxEnabled = true;
+    this.sfxEnabled = localStorage.getItem('temple_sfx_enabled') !== 'false';
+    this.sfxVolume = Math.max(0, Math.min(1, Number(localStorage.getItem('temple_sfx_vol') ?? 0.8) || 0));
+    this.sfxGain = null;
     this.bgMusicEnabled = true;
     this.ttsEnabled = true;
     this.ttsVoice = 'maichi';
@@ -43,6 +45,11 @@ class TempleAudioEngine {
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+    if (!this.sfxGain) {
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.connect(this.ctx.destination);
+    }
+    this.sfxGain.gain.setTargetAtTime(this.sfxEnabled ? this.sfxVolume : 0, this.ctx.currentTime, 0.025);
     this.unlocked = true;
     if (this.bgMusicEnabled) {
       this.startZenAmbience();
@@ -66,6 +73,24 @@ class TempleAudioEngine {
     } catch (_) {}
     if (this.bgAudio && !this.useSynthMusicFallback) {
       this.bgAudio.volume = this.ttsPlaying ? this.getDuckedVolume() : this.bgBaseVolume;
+    }
+  }
+
+  setSfxEnabled(enabled) {
+    this.sfxEnabled = Boolean(enabled);
+    try { localStorage.setItem('temple_sfx_enabled', String(this.sfxEnabled)); } catch (_) {}
+    if (this.ctx && this.sfxGain) {
+      this.sfxGain.gain.setTargetAtTime(this.sfxEnabled ? this.sfxVolume : 0, this.ctx.currentTime, 0.025);
+    }
+  }
+
+  setSfxVolume(vol) {
+    const value = Number(vol);
+    if (!Number.isFinite(value)) return;
+    this.sfxVolume = Math.max(0, Math.min(1, value));
+    try { localStorage.setItem('temple_sfx_vol', String(this.sfxVolume)); } catch (_) {}
+    if (this.ctx && this.sfxGain) {
+      this.sfxGain.gain.setTargetAtTime(this.sfxEnabled ? this.sfxVolume : 0, this.ctx.currentTime, 0.025);
     }
   }
 
@@ -190,7 +215,7 @@ class TempleAudioEngine {
 
       osc1.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.sfxGain || ctx.destination);
 
       osc1.onended = () => {
         osc1.disconnect();
@@ -222,7 +247,7 @@ class TempleAudioEngine {
 
       const master = ctx.createGain();
       master.gain.setValueAtTime(0.28 * Math.min(1.0, intensity), now);
-      master.connect(ctx.destination);
+      master.connect(this.sfxGain || ctx.destination);
 
       partials.forEach((p, idx) => {
         const osc = ctx.createOscillator();
@@ -279,7 +304,7 @@ class TempleAudioEngine {
         gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.1 + 1.1);
 
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.sfxGain || ctx.destination);
         osc.onended = () => {
           osc.disconnect();
           gain.disconnect();
@@ -319,7 +344,7 @@ class TempleAudioEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.sfxGain || ctx.destination);
       noise.onended = () => { noise.disconnect(); filter.disconnect(); gain.disconnect(); };
       noise.start(now);
       noise.stop(now + 0.74);
@@ -344,7 +369,7 @@ class TempleAudioEngine {
       noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.88);
       noise.connect(lowpass);
       lowpass.connect(noiseGain);
-      noiseGain.connect(ctx.destination);
+      noiseGain.connect(this.sfxGain || ctx.destination);
 
       const sub = ctx.createOscillator();
       const subGain = ctx.createGain();
@@ -355,7 +380,7 @@ class TempleAudioEngine {
       subGain.gain.linearRampToValueAtTime(0.34 * amount, now + 0.012);
       subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
       sub.connect(subGain);
-      subGain.connect(ctx.destination);
+      subGain.connect(this.sfxGain || ctx.destination);
 
       noise.onended = () => { noise.disconnect(); lowpass.disconnect(); noiseGain.disconnect(); };
       sub.onended = () => { sub.disconnect(); subGain.disconnect(); };
@@ -385,7 +410,7 @@ class TempleAudioEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
       source.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.sfxGain || ctx.destination);
       source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
       source.start(now);
       source.stop(now + 1.12);
@@ -407,7 +432,7 @@ class TempleAudioEngine {
         gain.gain.linearRampToValueAtTime(0.075, start + 0.012);
         gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.42);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.sfxGain || ctx.destination);
         osc.onended = () => { osc.disconnect(); gain.disconnect(); };
         osc.start(start);
         osc.stop(start + 0.45);
