@@ -17,6 +17,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
   const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony']);
   const EFFECT_DURATION = { rocket: 4050, donut: 3650 };
   let activeTimer = 0;
+  let phaseTimers = [];
   let effectTimer = 0;
   let cooldownTimer = 0;
   let effectToken = 0;
@@ -117,7 +118,14 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   function startCharacterTimer() {
     clearTimeout(activeTimer);
+    phaseTimers.forEach(clearTimeout);
+    phaseTimers = [
+      window.setTimeout(() => machine.transition('OFFERING'), 2100),
+      window.setTimeout(() => machine.transition('BOWING'), 2370)
+    ];
     activeTimer = window.setTimeout(() => {
+      phaseTimers.forEach(clearTimeout);
+      phaseTimers = [];
       const next = machine.completeActive();
       if (next.started) {
         window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
@@ -128,6 +136,8 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   function beginEffect(action) {
     clearTimeout(activeTimer);
+    phaseTimers.forEach(clearTimeout);
+    phaseTimers = [];
     clearTimeout(effectTimer);
     clearTimeout(cooldownTimer);
     const token = ++effectToken;
