@@ -117,7 +117,10 @@
         <!-- 8. ĐÈN HOA ĐĂNG / SỚ CẦU NGUYỆN BAY LÊN -->
         <div class="sky-lanterns-layer" id="skyLanternsLayer"></div>
 
-        <!-- 9. LỚP CANVAS HIỆU ỨNG KHÓI HƯƠNG, HOA SEN RƠI & SÓNG ÂM -->
+        <!-- 9. LỚP 3D TÙY CHỌN (BẬT BẰNG ?3d=1), KHÔNG THAY THẾ CANVAS 2D -->
+        <canvas id="temple3dCanvas" hidden aria-hidden="true"></canvas>
+
+        <!-- 10. LỚP CANVAS HIỆU ỨNG KHÓI HƯƠNG, HOA SEN RƠI & SÓNG ÂM -->
         <canvas id="templeCanvas"></canvas>
 
         <!-- 10. THANH HUD GỌN GÀNG DƯỚI ĐÁY (GIỐNG MẪU THAM CHIẾU) -->
@@ -258,5 +261,6 @@
   <script src="/js/audio.js"></script>
   <script src="/js/particles.js"></script>
   <script src="/js/live.js"></script>
+  <script type="module" src="/js/temple-3d.js"></script>
 </body>
 </html>
