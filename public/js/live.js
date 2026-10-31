@@ -29,6 +29,16 @@
   const particles = new window.TempleParticleEngine(canvas);
   const audio = new window.TempleAudioEngine();
 
+  // Gift-specific SFX are routed through the shared audio engine so the
+  // browser's user-gesture unlock and master SFX toggle remain authoritative.
+  window.addEventListener('temple:gift-sfx', (event) => {
+    const type = event.detail?.type;
+    if (type === 'rocket-launch') audio.playRocketLaunch();
+    else if (type === 'explosion') audio.playExplosion(1);
+    else if (type === 'dragon-whoosh') audio.playDragonWhoosh();
+    else if (type === 'donut-chime') audio.playDonutChime();
+  });
+
   function unlockAudioOnce() {
     audio.ensureContext();
     const btnUnlock = document.getElementById('btnUnlockAudio');
