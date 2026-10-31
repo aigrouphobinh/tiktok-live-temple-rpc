@@ -84,13 +84,13 @@ async function boot() {
     const petalGeo = new THREE.SphereGeometry(1, 12, 8);
     for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2;
-      const petal = new THREE.Mesh(petalGeo, i % 2 ? gold : paleGold);
+      const petal = new THREE.Mesh(petalGeo, (i % 2 ? gold : paleGold).clone());
       petal.position.set(Math.cos(angle) * 17, Math.sin(angle) * 17, 0);
       petal.scale.set(9 * scale, 22 * scale, 3.2 * scale);
       petal.rotation.z = angle - Math.PI / 2;
       group.add(petal);
     }
-    const heart = new THREE.Mesh(new THREE.SphereGeometry(8 * scale, 12, 10), gold);
+    const heart = new THREE.Mesh(new THREE.SphereGeometry(8 * scale, 12, 10), gold.clone());
     heart.position.z = 5;
     group.add(heart);
     return group;
@@ -105,7 +105,6 @@ async function boot() {
         obj.rotation.z += 0.0007 * t;
         obj.scale.setScalar(Math.max(0.05, 1 - p * 0.55));
         obj.children.forEach((child) => {
-          child.material = child.material;
           child.material.opacity = Math.max(0, 0.92 * (1 - p));
         });
       }, 2100);
