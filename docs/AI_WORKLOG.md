@@ -221,3 +221,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added Dragon roar/impact and avoided stacking the generic bell/chime on top of special gift-action SFX.
 - GitHub combined status currently reports no check runs for the latest direct-to-main commits. Do not describe CI as passed; the Bun test workflow has not been confirmed on this commit.
 - Browser gameplay, actual audio listening/mix, WebGL performance and real TikTok LIVE payload validation remain outstanding.
+
+
+### Combo final-frame deduplication fix — 2026-11-01
+- Fixed the browser gift-action coalescer to clear a streak key when the connector marks its final frame with `giftRepeatEnd`.
+- The final frame still contributes its incremental gift/reward on the server (the server already ignores zero-delta duplicate final frames); only its repeated cinematic is coalesced.
+- Clearing the key on the final frame prevents a new streak that reuses the same group identity within five seconds from being incorrectly swallowed as a duplicate of the previous streak.
+- Added a payload-helper regression test for a final frame that adds one last gift, clears tracker state, and then starts a fresh streak from count 1.
+- Code and test are committed directly to `main`. CI/browser runtime validation is still pending; project remains **IN PROGRESS — NOT DONE**.
