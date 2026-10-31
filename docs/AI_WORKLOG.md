@@ -237,3 +237,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Existing Web Animations still move/rotate/scale the same sprite elements, so gift timing, priority and server reward accounting are unchanged.
 - Dragon remains an emoji placeholder and is still on the asset-polish backlog.
 - Committed directly to `main`. Browser visual inspection, mobile crop and performance checks have not yet been run.
+
+
+### Procedural Dragon sprite — 2026-11-01
+- Replaced the Dragon/Rồng emoji placeholder with a lightweight CSS-drawn eastern dragon sprite: curved scaled body, green/gold palette, head and crest details.
+- Kept the existing fly-through Web Animation, 3.1-second duration, wind gust, delayed roar/impact cue, character knockback, gift priority and server reward handling unchanged.
+- Sprite uses CSS pseudo-elements only; no external image, model, font or dependency was added.
+- Source-level checks confirmed the Dragon action no longer injects the emoji, both sprite pseudo-elements exist, Rocket/Donut procedural styles remain, and the existing Dragon impact/timing hooks remain present. JavaScript parsed successfully with V8 syntax compilation.
+- Not yet visually/browser verified; confirm silhouette quality, orientation, layering, stage clipping, mobile crop and performance in the actual game before marking the sprite task complete.
