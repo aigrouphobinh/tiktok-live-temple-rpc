@@ -470,6 +470,8 @@
 
   function triggerRitualVisuals(ev) {
     if (!ev) return;
+    // Optional 3D layer listens independently; existing 2D/audio flow remains unchanged.
+    window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
 
     if (ev.ttsText && ev.type !== 'drawFortune') {
       audio.enqueueTts(ev.ttsText, { voice: ev.ttsVoice || 'maichi' });
