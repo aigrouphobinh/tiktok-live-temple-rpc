@@ -229,3 +229,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Clearing the key on the final frame prevents a new streak that reuses the same group identity within five seconds from being incorrectly swallowed as a duplicate of the previous streak.
 - Added a payload-helper regression test for a final frame that adds one last gift, clears tracker state, and then starts a fresh streak from count 1.
 - Code and test are committed directly to `main`. CI/browser runtime validation is still pending; project remains **IN PROGRESS — NOT DONE**.
+
+
+### Procedural Rocket and Donut sprites — 2026-11-01
+- Replaced the Rocket and Donut emoji glyphs in the gift-action engine with CSS-drawn sprites. Rocket now has a shaded body, cockpit and fins; Donut uses a frosted ring, baked edge and sprinkle details.
+- Kept both sprites lightweight and self-contained in `public/css/live.css`; no image downloads, external assets, paid resources or new dependencies.
+- Existing Web Animations still move/rotate/scale the same sprite elements, so gift timing, priority and server reward accounting are unchanged.
+- Dragon remains an emoji placeholder and is still on the asset-polish backlog.
+- Committed directly to `main`. Browser visual inspection, mobile crop and performance checks have not yet been run.
