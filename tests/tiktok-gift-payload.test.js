@@ -63,4 +63,14 @@ describe('TikTok gift payload normalization', () => {
     })).toBe(1);
     expect(tracker.size).toBe(0);
   });
+
+  it('counts the final incremental frame and allows a fresh streak after repeatEnd', () => {
+    const tracker = new Map();
+    const base = { groupId: 'viewer|5655', streakable: true };
+
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: false })).toBe(3);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 4, repeatEnd: true })).toBe(1);
+    expect(tracker.has(base.groupId)).toBe(false);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 1, repeatEnd: false })).toBe(1);
+  });
 });
