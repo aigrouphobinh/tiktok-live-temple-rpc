@@ -4,7 +4,7 @@
 This document defines the intended interaction rules. The current frontend implementation adds **visual-only** Rocket and Donut interruptions during the active incense animation. Server-side merit, incense totals and leaderboard updates are unchanged. Do not describe the current version as cancelling server rewards or enforcing cooldowns.
 
 ## Core rules
-- The main temple scene remains one continuous elevated 9:16 camera view.
+- The main temple scene remains one continuous elevated 9:16 camera view. Camera variation begins only when the queued character actually takes ownership, not when the event first arrives.
 - Gifts target the active in-scene devotee, never the camera and never a separate viewer shot.
 - One active character/action controller owns the central devotee at a time.
 - A higher-priority effect may replace a lower-priority visual action. Lower-priority effects must not interrupt a higher-priority one.
@@ -55,7 +55,7 @@ The target state model must be implemented in a dedicated character controller b
 Never assume the gift sender is the character being interrupted.
 
 ## Queue and priority policy
-1. Rocket (S) supersedes any lower tier.
+1. Rocket (S) supersedes any lower tier. Dragon (A) supersedes Donut (B), but cannot supersede Rocket (S).
 2. A higher tier can replace a lower tier; a lower tier cannot replace a higher tier.
 3. Equal-tier effects are queued and coalesced for a short window rather than stacked on the same character.
 4. Only one effect may animate the central character at a time.
