@@ -158,3 +158,4 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Combo delta handling now distinguishes streakable gifts (`giftType/type === 1`) from non-streakable gifts. Cumulative streak updates are converted to deltas, and final `repeatEnd` frames clear tracker state so the next combo starts from zero.
 - Added Bun tests for both payload shapes, missing IDs, fallback combo keys, cumulative streak deltas, final-frame cleanup and non-streakable gifts.
 - Validation still pending on the actual LIVE room; do not map numeric IDs until observed payloads confirm them.
+- GitHub Actions run `41252880599` on commit `4e5e37f` completed successfully: all 12 Bun tests passed (7 character-state-machine + 5 gift payload/streak tests). Added server/helper `node --check` to CI so the next run also validates CommonJS syntax.
