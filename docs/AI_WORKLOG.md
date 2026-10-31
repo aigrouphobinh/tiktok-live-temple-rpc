@@ -145,3 +145,8 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Serialized bell and fortune character actions through the same queue; fortune uses an 18-second slot for narration/modal playback.
 - Added GitHub Actions workflow `.github/workflows/tests.yml` to run `bun test` on branch pushes and pull requests.
 - Remaining validation: confirm real gift display names/IDs from a live TikTok room; run Bun CI; test visual alignment, 9:16 crop and FPS in browser/OBS.
+
+### Gift payload integrity correction
+- Removed the synthetic `'rose'` fallback from TikTok `giftId` extraction. The connector's top-level `giftId` or nested `gift.id` is preserved when present; when neither exists, the payload now carries an empty string instead of a fabricated identifier.
+- This is a data-integrity correction only; it does not change gift-name matching, coin/merit calculation, or visual priority behavior.
+- Real TikTok LIVE payload verification is still required before assigning production gift IDs or broadening display-name aliases.
