@@ -6,6 +6,7 @@ const { spawn } = require('child_process');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
+const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -931,7 +932,6 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   tiktokConn.on(WebcastEvent.GIFT, (data) => {
-    const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const giftPayload = normalizeGiftPayload(data, uniqueId);
     const {
