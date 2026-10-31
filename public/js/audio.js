@@ -417,6 +417,42 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
+  playDragonRoar() {
+    if (!this.sfxEnabled) return;
+    try {
+      const ctx = this.ensureContext();
+      const now = ctx.currentTime;
+      const filter = ctx.createBiquadFilter();
+      const master = ctx.createGain();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(520, now);
+      filter.frequency.exponentialRampToValueAtTime(155, now + 0.92);
+      master.gain.setValueAtTime(0.0001, now);
+      master.gain.linearRampToValueAtTime(0.11, now + 0.09);
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.98);
+      filter.connect(master);
+      master.connect(this.sfxGain || ctx.destination);
+      [
+        { type: 'sawtooth', start: 118, end: 54, level: 0.55 },
+        { type: 'triangle', start: 174, end: 82, level: 0.28 }
+      ].forEach((part) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = part.type;
+        osc.frequency.setValueAtTime(part.start, now);
+        osc.frequency.exponentialRampToValueAtTime(part.end, now + 0.88);
+        gain.gain.setValueAtTime(part.level, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+        osc.connect(gain);
+        gain.connect(filter);
+        osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        osc.start(now);
+        osc.stop(now + 1.0);
+      });
+      setTimeout(() => { try { filter.disconnect(); master.disconnect(); } catch (_) {} }, 1150);
+    } catch (_) {}
+  }
+
   playRoseChime() {
     if (!this.sfxEnabled) return;
     try {
