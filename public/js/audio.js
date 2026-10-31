@@ -291,7 +291,132 @@ class TempleAudioEngine {
   }
 
   // --------------------------------------------------------------------------
-  // 6. ZEROTTS VOICE QUEUE & PREFETCHER
+  // 6. GIFT GAMEPLAY SOUND EFFECTS (Web Audio synthesis; no external assets)
+  // --------------------------------------------------------------------------
+  createNoiseBuffer(seconds = 0.5) {
+    const ctx = this.ensureContext();
+    const length = Math.max(1, Math.floor(ctx.sampleRate * seconds));
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length * 0.18);
+    return buffer;
+  }
+
+  playRocketLaunch() {
+    if (!this.sfxEnabled) return;
+    try {
+      const ctx = this.ensureContext();
+      const now = ctx.currentTime;
+      const noise = ctx.createBufferSource();
+      noise.buffer = this.createNoiseBuffer(0.72);
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1800, now);
+      filter.frequency.exponentialRampToValueAtTime(520, now + 0.68);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.16, now + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.onended = () => { noise.disconnect(); filter.disconnect(); gain.disconnect(); };
+      noise.start(now);
+      noise.stop(now + 0.74);
+    } catch (_) {}
+  }
+
+  playExplosion(intensity = 1) {
+    if (!this.sfxEnabled) return;
+    try {
+      const ctx = this.ensureContext();
+      const now = ctx.currentTime;
+      const amount = Math.max(0.35, Math.min(1.25, Number(intensity) || 1));
+      const noise = ctx.createBufferSource();
+      noise.buffer = this.createNoiseBuffer(0.95);
+      const lowpass = ctx.createBiquadFilter();
+      const noiseGain = ctx.createGain();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.setValueAtTime(1450, now);
+      lowpass.frequency.exponentialRampToValueAtTime(95, now + 0.82);
+      noiseGain.gain.setValueAtTime(0.0001, now);
+      noiseGain.gain.linearRampToValueAtTime(0.42 * amount, now + 0.018);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.88);
+      noise.connect(lowpass);
+      lowpass.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+
+      const sub = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(92, now);
+      sub.frequency.exponentialRampToValueAtTime(34, now + 0.42);
+      subGain.gain.setValueAtTime(0.0001, now);
+      subGain.gain.linearRampToValueAtTime(0.34 * amount, now + 0.012);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+      sub.connect(subGain);
+      subGain.connect(ctx.destination);
+
+      noise.onended = () => { noise.disconnect(); lowpass.disconnect(); noiseGain.disconnect(); };
+      sub.onended = () => { sub.disconnect(); subGain.disconnect(); };
+      noise.start(now);
+      noise.stop(now + 0.92);
+      sub.start(now);
+      sub.stop(now + 0.54);
+    } catch (_) {}
+  }
+
+  playDragonWhoosh() {
+    if (!this.sfxEnabled) return;
+    try {
+      const ctx = this.ensureContext();
+      const now = ctx.currentTime;
+      const source = ctx.createBufferSource();
+      source.buffer = this.createNoiseBuffer(1.15);
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(0.7, now);
+      filter.frequency.setValueAtTime(260, now);
+      filter.frequency.exponentialRampToValueAtTime(1250, now + 0.42);
+      filter.frequency.exponentialRampToValueAtTime(180, now + 1.08);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.22, now + 0.24);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+      source.start(now);
+      source.stop(now + 1.12);
+    } catch (_) {}
+  }
+
+  playDonutChime() {
+    if (!this.sfxEnabled) return;
+    try {
+      const ctx = this.ensureContext();
+      const now = ctx.currentTime;
+      [784, 988, 1175].forEach((freq, index) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = now + index * 0.09;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(0.075, start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.42);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        osc.start(start);
+        osc.stop(start + 0.45);
+      });
+    } catch (_) {}
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. ZEROTTS VOICE QUEUE & PREFETCHER
   // --------------------------------------------------------------------------
   enqueueTts(text, options = {}) {
     const onStart = typeof options.onStart === 'function' ? options.onStart : null;
