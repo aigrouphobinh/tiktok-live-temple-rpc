@@ -22,6 +22,8 @@ import { CharacterStateMachine } from './character-state-machine.js';
   let cooldownTimer = 0;
   let effectToken = 0;
   let characterAnimation = null;
+  const effectAnimations = new Set();
+  const effectElements = new Set();
 
   function normalizedName(event) {
     return String(event?.giftName || '').normalize('NFD')
@@ -44,11 +46,24 @@ import { CharacterStateMachine } from './character-state-machine.js';
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
     layer.appendChild(el);
+    effectElements.add(el);
     return el;
   }
 
   function removeAfter(el, animation) {
-    animation.finished.catch(() => {}).finally(() => el.remove());
+    effectAnimations.add(animation);
+    animation.finished.catch(() => {}).finally(() => {
+      effectAnimations.delete(animation);
+      effectElements.delete(el);
+      el.remove();
+    });
+  }
+
+  function clearActiveEffects() {
+    effectAnimations.forEach((animation) => animation.cancel());
+    effectAnimations.clear();
+    effectElements.forEach((element) => element.remove());
+    effectElements.clear();
   }
 
   function animateCharacter(keyframes, duration) {
@@ -153,7 +168,9 @@ import { CharacterStateMachine } from './character-state-machine.js';
     activeTimer = window.setTimeout(() => {
       phaseTimers.forEach(clearTimeout);
       phaseTimers = [];
+      const completedEvent = machine.snapshot().active;
       const next = machine.completeActive();
+      if (completedEvent) window.dispatchEvent(new CustomEvent('temple:character-complete', { detail: completedEvent }));
       if (next.started) {
         window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
         startCharacterTimer(next.event);
@@ -168,6 +185,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     clearTimeout(effectTimer);
     clearTimeout(cooldownTimer);
     const token = ++effectToken;
+    clearActiveEffects();
     showActionLabel(action);
     if (action === 'rocket') playRocket(token);
     else if (action === 'dragon') playDragon();
@@ -199,6 +217,10 @@ import { CharacterStateMachine } from './character-state-machine.js';
     if (action) {
       const result = machine.interrupt(action, event);
       if (result.interrupted) {
+        if (!result.superseded) {
+          const interruptedEvent = machine.snapshot().queue[0];
+          window.dispatchEvent(new CustomEvent('temple:character-interrupted', { detail: { event: interruptedEvent, action } }));
+        }
         beginEffect(action);
         return { allowWalker: false, interruptsRitual: true, action, state: machine.snapshot() };
       }
@@ -211,8 +233,11 @@ import { CharacterStateMachine } from './character-state-machine.js';
     if (!WALK_EVENTS.has(event.type)) return { allowWalker: false, state: machine.snapshot() };
     const result = machine.request(event);
     if (!result.accepted) return { allowWalker: false, dropped: true, state: machine.snapshot() };
-    if (result.started) startCharacterTimer(event);
-    return { allowWalker: Boolean(result.started), queued: Boolean(result.queued), state: machine.snapshot() };
+    if (result.started) {
+      startCharacterTimer(event);
+      window.dispatchEvent(new CustomEvent('temple:character-start', { detail: event }));
+    }
+    return { allowWalker: false, started: Boolean(result.started), queued: Boolean(result.queued), state: machine.snapshot() };
   }
 
   window.TempleGiftActionEngine = {
