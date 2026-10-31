@@ -66,7 +66,7 @@ Never assume the gift sender is the character being interrupted.
 - A single state machine owns the central character. New incense, prayer, bell, fortune and gift visits queue instead of replacing the active character.
 - Current phases: `IDLE` → `APPROACHING` → `OFFERING` → `BOWING`; interruption enters `INTERRUPTED` → `COOLDOWN` before the active devotee is resumed.
 - An interruption puts the interrupted devotee at the front of the character queue. Priority is Rocket > Dragon/Rồng > Donut/Doughnut; stronger effects supersede weaker active effects and weaker effects wait in a priority-sorted queue.
-- Character queue is bounded to 40 entries; excess new visits are rejected from the visual queue only. Server-side event, merit and leaderboard accounting remain untouched.
+- Character queue is bounded to 40 entries; excess new visits are rejected from the visual queue only. If an active devotee is interrupted while the queue is full, the newest queued visual request is evicted so the interrupted devotee can resume first. Server-side event, merit and leaderboard accounting remain untouched.
 - Ring-bell and fortune actions are serialized through the same character owner. Fortune receives a longer visual slot to allow its narration/modal sequence.
 - The camera and fixed HUD are independent: the shared scene rig moves together, while top/bottom HUD, ceremony banner and fortune modal remain pinned to the 9:16 stage.
 
