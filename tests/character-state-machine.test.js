@@ -79,6 +79,53 @@ describe('CharacterStateMachine', () => {
     expect(machine.request(devotee('C'))).toMatchObject({ accepted: false, reason: 'queue_full' });
     expect(machine.snapshot().queueLength).toBe(1);
   });
+
+  it('recovers the interrupted devotee after a chain of effect supersessions', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.request(devotee('B'));
+    machine.interrupt('donut', { giftName: 'Donut' });
+    machine.interrupt('dragon', { giftName: 'Dragon' });
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+    expect(machine.snapshot()).toMatchObject({
+      state: 'INTERRUPTED',
+      active: null,
+      effect: 'rocket',
+      queueLength: 2
+    });
+    machine.finishEffect();
+    expect(machine.finishCooldown().event.user).toBe('A');
+    expect(machine.snapshot().active.user).toBe('A');
+  });
+
+  it('bounds the queued gift effects and reports overflow without losing the active effect', () => {
+    const machine = new CharacterStateMachine({ maxQueue: 1 });
+    machine.request(devotee('A'));
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+    expect(machine.interrupt('donut', { giftName: 'Donut' }).queuedEffect).toBe(true);
+    expect(machine.interrupt('rose', { giftName: 'Rose' })).toMatchObject({
+      interrupted: false,
+      reason: 'effect_queue_full'
+    });
+    expect(machine.snapshot()).toMatchObject({
+      effect: 'rocket',
+      queuedEffects: ['donut']
+    });
+  });
+
+  it('does not mutate character ownership for an unknown gift action', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    expect(machine.interrupt('unknown', { giftName: 'Mystery' })).toMatchObject({
+      interrupted: false,
+      reason: 'unknown_action'
+    });
+    expect(machine.snapshot()).toMatchObject({
+      state: 'APPROACHING',
+      active: { user: 'A' },
+      effect: null
+    });
+  });
 });
 
 
