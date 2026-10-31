@@ -80,3 +80,18 @@ describe('CharacterStateMachine', () => {
     expect(machine.snapshot().queueLength).toBe(1);
   });
 });
+
+
+describe('gift priority tiers', () => {
+  it('keeps Rose below Donut, Dragon and Rocket', () => {
+    const machine = new CharacterStateMachine();
+    machine.request({ type: 'burnIncense', user: 'A' });
+    expect(machine.interrupt('rose', { giftName: 'Rose' }).interrupted).toBe(true);
+    expect(machine.interrupt('donut', { giftName: 'Donut' }).superseded).toBe(true);
+    expect(machine.interrupt('rose', { giftName: 'Rose' }).queuedEffect).toBe(true);
+    expect(machine.interrupt('dragon', { giftName: 'Dragon' }).superseded).toBe(true);
+    expect(machine.interrupt('rocket', { giftName: 'Rocket' }).superseded).toBe(true);
+    expect(machine.snapshot().effect).toBe('rocket');
+    expect(machine.snapshot().queuedEffects).toContain('rose');
+  });
+});
