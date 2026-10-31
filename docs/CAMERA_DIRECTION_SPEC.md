@@ -46,3 +46,9 @@ These are variations of one camera, not separate camera shots. Exact amplitudes 
 - [ ] Ritual completion/interruption smoothly restores the master view.
 - [ ] OBS Browser Source remains 1080x1920 / 9:16 with no crop drift.
 - [ ] With 3D disabled or unavailable, the original static view is unchanged.
+
+## Runtime camera ownership integration
+- The controller listens to `temple:character-start`, not raw `temple:ritual`, so queued incense requests cannot move the camera before the devotee starts.
+- `temple:character-interrupted` returns to the master overview but retains the chosen preset; resuming the interrupted devotee reuses that same preset.
+- `temple:character-complete` returns to master and clears the preset, allowing a fresh random choice for the next completed incense ritual.
+- Fixed top/bottom HUD, grand-ceremony banner and fortune modal remain outside the scene rig.
