@@ -836,6 +836,13 @@
     btn.classList.toggle('active-toggle', audio.ttsEnabled);
   });
 
+  document.getElementById('btnToggleSfx')?.addEventListener('click', (e) => {
+    audio.setSfxEnabled(!audio.sfxEnabled);
+    const btn = e.currentTarget;
+    btn.textContent = `✨ Hiệu Ứng: ${audio.sfxEnabled ? 'BẬT' : 'TẮT'}`;
+    btn.classList.toggle('active-toggle', audio.sfxEnabled);
+  });
+
   document.getElementById('btnToggleMusic')?.addEventListener('click', (e) => {
     audio.bgMusicEnabled = !audio.bgMusicEnabled;
     if (audio.bgMusicEnabled) {
@@ -881,6 +888,25 @@
     sliderTtsVol.addEventListener('change', (e) => {
       const pct = Number(e.target.value);
       callRpc('temple.updateSettings', { ttsVolume: +(pct / 100).toFixed(2) });
+    });
+  }
+
+  const btnToggleSfx = document.getElementById('btnToggleSfx');
+  if (btnToggleSfx) {
+    btnToggleSfx.textContent = `✨ Hiệu Ứng: ${audio.sfxEnabled ? 'BẬT' : 'TẮT'}`;
+    btnToggleSfx.classList.toggle('active-toggle', audio.sfxEnabled);
+  }
+
+  const sliderSfxVol = document.getElementById('sliderSfxVol');
+  const valSfxVol = document.getElementById('valSfxVol');
+  if (sliderSfxVol && valSfxVol) {
+    const initialSfxPct = Math.round(audio.sfxVolume * 100);
+    sliderSfxVol.value = String(initialSfxPct);
+    valSfxVol.textContent = `${initialSfxPct}%`;
+    sliderSfxVol.addEventListener('input', (e) => {
+      const pct = Number(e.target.value);
+      valSfxVol.textContent = `${pct}%`;
+      audio.setSfxVolume(pct / 100);
     });
   }
 
