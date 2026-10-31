@@ -205,4 +205,5 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added Rose/hoa hồng gameplay action with a soft three-note chime, rose bloom and floating petals. It uses the existing lowest gift priority; no numeric gift ID is invented.
 - TikTok combo group, delta, repeat count/end and streakable metadata now pass through the game event. Incremental streak frames for the same streakable gift group are coalesced into one cinematic and represented by a small combo pulse, avoiding repeated full explosions.
 - Added a priority test for Rose < Donut < Dragon < Rocket.
-- Validation still required: execute CI, browser syntax/runtime, inspect audio mix and visuals, and validate actual connector combo payloads. No runtime test is claimed from source updates alone.
+- Parsed the updated server, audio, live, gift-action, character-state-machine and test JavaScript sources with V8 syntax compilation successfully. This is a syntax check only, not an execution of Bun tests or a browser runtime test.
+- Validation still required: execute CI, inspect audio mix and visuals in a browser, and validate actual connector combo payloads.
