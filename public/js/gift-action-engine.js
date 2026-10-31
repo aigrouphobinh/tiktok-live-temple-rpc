@@ -182,7 +182,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   function playDragon(token) {
     playGiftSound('dragon-whoosh');
-    const dragon = createEffect('gift-dragon', '🐉', 65, 820);
+    const dragon = createEffect('gift-dragon', '', 65, 820);
     const flight = dragon.animate([
       { transform: 'translate3d(0,0,0) scale(.35) rotate(-12deg)', opacity: 0 },
       { transform: 'translate3d(240px,-90px,0) scale(1.05) rotate(8deg)', opacity: 1, offset: .35 },
