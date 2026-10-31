@@ -956,6 +956,13 @@ async function connectTikTokLive(usernameOrUrl) {
     const displayGiftName = deltaCount > 1 ? `${deltaCount}x ${rawGiftName}` : rawGiftName;
 
     console.log(`[TikTok Gift] ${user} gửi ${displayGiftName} (${totalCoins} xu)`);
+    console.log('[TikTok Gift Payload]', {
+      giftId: giftId || null,
+      giftName: rawGiftName,
+      diamondCount,
+      repeatCount: deltaCount,
+      totalCoins
+    });
 
     Rituals.offerGift({
       user,
