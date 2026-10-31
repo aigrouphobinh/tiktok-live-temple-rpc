@@ -215,10 +215,10 @@ import { CharacterStateMachine } from './character-state-machine.js';
     const action = ['offerGift', 'grandCeremony'].includes(event.type) ? giftAction(event) : null;
 
     if (action) {
+      const interruptedEvent = machine.snapshot().active;
       const result = machine.interrupt(action, event);
       if (result.interrupted) {
         if (!result.superseded) {
-          const interruptedEvent = machine.snapshot().queue[0];
           window.dispatchEvent(new CustomEvent('temple:character-interrupted', { detail: { event: interruptedEvent, action } }));
         }
         beginEffect(action);
