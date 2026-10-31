@@ -101,3 +101,6 @@ Never assume the gift sender is the character being interrupted.
 - Rocket includes an exhaust trail, flash, shockwave, smoke, debris and sparks. Impact is placed at the rocket's end position in the game stage.
 - SFX now has a persisted master toggle and independent volume control, separate from background music and TTS.
 - TikTok combo metadata is forwarded into the browser event. Streakable frames sharing one group are coalesced into one cinematic with small combo pulses; real-room validation is pending.
+
+
+- Dragon now layers a low synthesized roar and an expanding impact ring into the existing fly-through/wind knockback. The delayed impact checks the active effect token so superseded Dragon callbacks do not fire.
