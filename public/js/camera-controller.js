@@ -1,0 +1,83 @@
+/**
+ * Single-camera director for the 9:16 temple scene.
+ * Runs only after the optional Three.js layer reports that WebGL is ready.
+ * It transforms one shared scene wrapper; it never cuts or follows a viewer.
+ */
+const enabled = new URLSearchParams(location.search).get('3d') === '1';
+const stage = document.getElementById('stage9x16');
+
+if (enabled && stage) {
+  let rig = stage.querySelector(':scope > .temple-camera-rig');
+  if (!rig) {
+    rig = document.createElement('div');
+    rig.className = 'temple-camera-rig';
+    while (stage.firstChild) rig.appendChild(stage.firstChild);
+    stage.appendChild(rig);
+  }
+
+  const presets = [
+    { x: -3, y: 2, scale: 1.012, tiltX: 0.07, tiltY: -0.08 },
+    { x: 3, y: -2, scale: 1.012, tiltX: -0.06, tiltY: 0.08 },
+    { x: 0, y: 3, scale: 1.01, tiltX: 0.08, tiltY: 0.02 }
+  ];
+  const MASTER = 'translate3d(0, 0, 0) scale(1) rotateX(0deg) rotateY(0deg)';
+  const RITUAL_HOLD_MS = 6800;
+  let webglReady = false;
+  let active = false;
+  let returnTimer = 0;
+  let currentPreset = null;
+
+  function apply(transform, duration = 1100) {
+    rig.style.transition = `transform ${duration}ms cubic-bezier(0.22, 0.75, 0.25, 1)`;
+    rig.style.transform = transform;
+  }
+
+  function transformFor(preset) {
+    return `translate3d(${preset.x}px, ${preset.y}px, 0) scale(${preset.scale}) rotateX(${preset.tiltX}deg) rotateY(${preset.tiltY}deg)`;
+  }
+
+  function returnToMaster() {
+    if (!active) return;
+    active = false;
+    currentPreset = null;
+    apply(MASTER, 1250);
+  }
+
+  function startOrExtendRitual() {
+    if (!webglReady) return;
+    if (!active) {
+      active = true;
+      currentPreset = presets[Math.floor(Math.random() * presets.length)];
+      apply(transformFor(currentPreset), 1250);
+    }
+    // Further devotees extend the same shot; they never select another angle.
+    clearTimeout(returnTimer);
+    returnTimer = window.setTimeout(returnToMaster, RITUAL_HOLD_MS);
+  }
+
+  window.addEventListener('temple:3d-ready', () => {
+    webglReady = true;
+  }, { once: true });
+
+  window.addEventListener('temple:3d-unavailable', () => {
+    webglReady = false;
+    clearTimeout(returnTimer);
+    active = false;
+    currentPreset = null;
+    rig.style.transition = 'none';
+    rig.style.transform = MASTER;
+  });
+
+  window.addEventListener('temple:ritual', (event) => {
+    if (event.detail?.type === 'burnIncense') startOrExtendRitual();
+  });
+
+  window.addEventListener('pagehide', () => {
+    clearTimeout(returnTimer);
+  }, { once: true });
+
+  // A module may finish booting before this listener is installed.
+  if (window.__TEMPLE_3D_READY__ === true) {
+    webglReady = true;
+  }
+}
