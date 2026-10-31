@@ -92,12 +92,31 @@ import { CharacterStateMachine } from './character-state-machine.js';
     ], { duration: 850, easing: 'ease-in', fill: 'forwards' });
     removeAfter(rocket, flight);
 
+    // Procedural exhaust trail: warm flame cores with soft smoke tails.
+    for (let i = 0; i < 10; i++) {
+      const trail = createEffect('gift-rocket-trail', '', 82 + i * 12, 1005 + (Math.random() - 0.5) * 24);
+      const drift = 170 + Math.random() * 150;
+      const rise = -22 - Math.random() * 52;
+      const trailAnim = trail.animate([
+        { transform: 'translate3d(0,0,0) scale(.55)', opacity: .92 },
+        { transform: `translate3d(${drift}px,${rise}px,0) scale(1.6)`, opacity: 0 }
+      ], { duration: 520 + Math.random() * 240, delay: i * 28, easing: 'ease-out', fill: 'forwards' });
+      removeAfter(trail, trailAnim);
+    }
+
     window.setTimeout(() => {
       if (token !== effectToken) return;
       playGiftSound('explosion');
       const blast = createEffect('gift-blast', '💥', 490, 900);
       blast.style.fontSize = '112px';
       blast.style.filter = 'drop-shadow(0 0 18px rgba(255,190,55,.95))';
+      const flash = createEffect('gift-impact-flash', '', 490, 900);
+      const flashAnim = flash.animate([
+        { transform: 'scale(.2)', opacity: .95 },
+        { transform: 'scale(3.8)', opacity: 0 }
+      ], { duration: 430, easing: 'ease-out', fill: 'forwards' });
+      removeAfter(flash, flashAnim);
+
       const shockwave = createEffect('gift-shockwave', '', 490, 900);
       Object.assign(shockwave.style, {
         width: '34px', height: '34px', margin: '-17px 0 0 -17px',
@@ -109,6 +128,26 @@ import { CharacterStateMachine } from './character-state-machine.js';
         { transform: 'scale(8)', opacity: 0, borderWidth: '1px' }
       ], { duration: 820, easing: 'cubic-bezier(.12,.72,.24,1)', fill: 'forwards' });
       removeAfter(shockwave, wave);
+
+      // Soft smoke puffs and small debris add depth to the impact without a heavy texture.
+      for (let i = 0; i < 7; i++) {
+        const smoke = createEffect('gift-blast-smoke', '', 490 + (Math.random() - .5) * 70, 900 + (Math.random() - .5) * 55);
+        const smokeAnim = smoke.animate([
+          { transform: 'scale(.35)', opacity: .48 },
+          { transform: `translate3d(${(Math.random() - .5) * 120}px,-${70 + Math.random() * 90}px,0) scale(2.4)`, opacity: 0 }
+        ], { duration: 1050 + Math.random() * 350, easing: 'ease-out', fill: 'forwards' });
+        removeAfter(smoke, smokeAnim);
+      }
+      for (let i = 0; i < 8; i++) {
+        const debris = createEffect('gift-blast-debris', '', 490, 900);
+        const angle = (Math.PI * 2 * i) / 8;
+        const distance = 110 + Math.random() * 90;
+        const debrisAnim = debris.animate([
+          { transform: 'scale(.4) rotate(0deg)', opacity: 1 },
+          { transform: `translate3d(${Math.cos(angle) * distance}px,${Math.sin(angle) * distance}px,0) scale(.2) rotate(220deg)`, opacity: 0 }
+        ], { duration: 720 + Math.random() * 260, easing: 'ease-out', fill: 'forwards' });
+        removeAfter(debris, debrisAnim);
+      }
 
       for (let i = 0; i < 18; i++) {
         const spark = createEffect('gift-blast-spark', i % 3 === 0 ? '✦' : '•', 490, 900);
