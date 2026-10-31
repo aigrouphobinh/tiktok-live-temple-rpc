@@ -730,6 +730,19 @@ body.obs-mode .stage-wrapper {
   100% { transform: translate3d(0, -1180px, 0) scale(0.92); opacity: 0; }
 }
 
+#temple3dCanvas {
+  position: absolute;
+  inset: 0;
+  width: 1080px;
+  height: 1920px;
+  pointer-events: none;
+  z-index: 16;
+}
+
+#temple3dCanvas[hidden] {
+  display: none !important;
+}
+
 #templeCanvas {
   position: absolute;
   inset: 0;
