@@ -346,12 +346,16 @@ import { CharacterStateMachine } from './character-state-machine.js';
           if (now - timestamp > 5000) recentStreakEffects.delete(key);
         }
         const previous = recentStreakEffects.get(streakKey);
-        recentStreakEffects.set(streakKey, now);
-        while (recentStreakEffects.size > 200) recentStreakEffects.delete(recentStreakEffects.keys().next().value);
+        const isFinalFrame = event.giftRepeatEnd === true;
         if (previous && now - previous <= 5000) {
+          if (isFinalFrame) recentStreakEffects.delete(streakKey);
+          else recentStreakEffects.set(streakKey, now);
           showComboPulse(event.giftComboDelta || 1);
           return { allowWalker: false, coalescedCombo: true, action, state: machine.snapshot() };
         }
+        if (isFinalFrame) recentStreakEffects.delete(streakKey);
+        else recentStreakEffects.set(streakKey, now);
+        while (recentStreakEffects.size > 200) recentStreakEffects.delete(recentStreakEffects.keys().next().value);
       }
       const interruptedEvent = machine.snapshot().active;
       const result = machine.interrupt(action, event);
