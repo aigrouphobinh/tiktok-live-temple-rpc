@@ -98,3 +98,12 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Keep the altar/incense zone visible and preserve the 1080x1920 / 9:16 OBS composition. Ease back to the master view after ritual completion/interruption.
 - Gift effects animate characters/props in the same scene; camera is not the gameplay target.
 - Implementation is a specification only; camera movement has not yet been coded or OBS-tested.
+
+### Single-camera ritual director — implementation checkpoint
+- Added `public/js/camera-controller.js` and loaded it after the optional Three.js module.
+- The controller creates one shared `.temple-camera-rig` around the existing 9:16 stage content; the outer 1080x1920 stage and OBS crop remain fixed.
+- It activates only with `?3d=1` and only after Three.js signals WebGL readiness. If Three.js import/boot fails or the WebGL context is lost, the rig returns to the original static transform.
+- On the first `burnIncense` event, it randomly selects one of three very small pan/tilt framing presets and locks that same preset. Further incense events extend the shot duration without selecting another angle. No gift event changes the camera and no per-viewer camera is created.
+- Added `temple:3d-ready` / `temple:3d-unavailable` signals in `temple-3d.js`; added fixed-size camera rig styling and perspective to `live.css`.
+- Camera implementation is an intentionally restrained framing/orientation variation of the same scene, not a cut to another camera. Visual judgement and OBS crop/FPS testing remain outstanding.
+- Verified source changes were committed to the existing feature branch through GitHub; no merge was performed.
