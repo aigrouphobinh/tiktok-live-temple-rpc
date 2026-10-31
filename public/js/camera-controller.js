@@ -33,6 +33,7 @@ if (enabled && stage) {
   let active = false;
   let returnTimer = 0;
   let currentPreset = null;
+  let pendingIncense = false;
 
   function apply(transform, duration = 1100) {
     rig.style.transition = `transform ${duration}ms cubic-bezier(0.22, 0.75, 0.25, 1)`;
@@ -52,7 +53,11 @@ if (enabled && stage) {
   }
 
   function startOrExtendRitual() {
-    if (!webglReady) return;
+    if (!webglReady) {
+      pendingIncense = true;
+      return;
+    }
+    pendingIncense = false;
     if (!active) {
       active = true;
       if (!currentPreset) currentPreset = presets[Math.floor(Math.random() * presets.length)];
@@ -65,10 +70,12 @@ if (enabled && stage) {
 
   window.addEventListener('temple:3d-ready', () => {
     webglReady = true;
+    if (pendingIncense) startOrExtendRitual();
   }, { once: true });
 
   window.addEventListener('temple:3d-unavailable', () => {
     webglReady = false;
+    pendingIncense = false;
     clearTimeout(returnTimer);
     active = false;
     currentPreset = null;
@@ -81,11 +88,17 @@ if (enabled && stage) {
   });
 
   window.addEventListener('temple:character-interrupted', (event) => {
-    if (event.detail?.event?.type === 'burnIncense') returnToMaster(false);
+    if (event.detail?.event?.type === 'burnIncense') {
+      pendingIncense = false;
+      returnToMaster(false);
+    }
   });
 
   window.addEventListener('temple:character-complete', (event) => {
-    if (event.detail?.type === 'burnIncense') returnToMaster(true);
+    if (event.detail?.type === 'burnIncense') {
+      pendingIncense = false;
+      returnToMaster(true);
+    }
   });
 
   window.addEventListener('pagehide', () => {
