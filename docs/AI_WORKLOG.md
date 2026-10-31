@@ -9,7 +9,7 @@
 Add an optional free stylized 3D visual layer that stays close to the existing temple game's visual identity. Preserve the current 2D/Canvas implementation as the default and fallback.
 
 ## Non-regression requirements
-- Preserve the 9:16 stage and 1080×1920 OBS Browser Source target.
+- Preserve the 9:16 stage and 1080×1920 logical game stage target.
 - Retain the warm gold, red, bronze and wood palette, Buddhist temple atmosphere and lotus motifs.
 - Do not redesign the game or alter existing RPC contracts.
 - Preserve TikTok Live Connector, WebSocket behavior, TTS/audio, Canvas particles and admin panel.
@@ -52,7 +52,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 
 ### Phase 4 — Assets, performance and release
 - Use only free assets with verified compatible licenses; record attribution.
-- Test OBS Browser Source at 1080×1920 and mobile/browser fallback.
+- Test the 1080×1920 game stage in desktop and mobile browsers.
 - Measure FPS, memory, reconnect behavior and WebGL recovery.
 - Document enabling/disabling 3D and troubleshooting.
 
@@ -82,7 +82,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Existing 2D mode remains default. No external models, textures or paid assets added.
 - Renderer now stops its animation loop when no effects are active; individual effect materials are cloned before disposal/fading.
 - Opened draft PR #1: https://github.com/aigrouphobinh/tiktok-live-temple-rpc/pull/1 (not merged).
-- Not yet browser/OBS tested; CDN availability and actual rendering/performance remain to be verified.
+- Not yet browser tested; CDN availability and actual rendering/performance remain to be verified.
 - Next: run syntax checks and browser tests; refine gift effects only against confirmed payload fields.
 
 - Confirmed the user fork: `aigrouphobinh/tiktok-live-temple-rpc`.
@@ -92,20 +92,20 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Next task: verify script order, exact ritual/gift event payloads and current branch state, then implement Phase 1 only.
 
 ### Camera direction requirements — user confirmed
-- Added `docs/CAMERA_DIRECTION_SPEC.md` based on the upstream OBS 9:16 demo reference.
+- Added `docs/CAMERA_DIRECTION_SPEC.md` based on the upstream 9:16 demo reference.
 - Camera identity must remain one continuous elevated view looking down into the main temple hall. No cuts, no switching to individual viewer/character cameras, and no gift-driven reframing.
 - At the start of an incense ritual, select at most one subtle composition-safe variation at random and lock it for that ritual. Multiple viewers/gifts must not reroll or switch the camera.
-- Keep the altar/incense zone visible and preserve the 1080x1920 / 9:16 OBS composition. Ease back to the master view after ritual completion/interruption.
+- Keep the altar/incense zone visible and preserve the 1080x1920 / 9:16 9:16 composition. Ease back to the master view after ritual completion/interruption.
 - Gift effects animate characters/props in the same scene; camera is not the gameplay target.
-- Implementation is a specification only; camera movement has not yet been coded or OBS-tested.
+- Implementation is a specification only; camera movement has not yet been coded or runtime-tested.
 
 ### Single-camera ritual director — implementation checkpoint
 - Added `public/js/camera-controller.js` and loaded it after the optional Three.js module.
-- The controller creates one shared `.temple-camera-rig` around the existing 9:16 stage content; the outer 1080x1920 stage and OBS crop remain fixed.
+- The controller creates one shared `.temple-camera-rig` around the existing 9:16 stage content; the outer 1080x1920 stage and stage bounds remain fixed.
 - It activates only with `?3d=1` and only after Three.js signals WebGL readiness. If Three.js import/boot fails or the WebGL context is lost, the rig returns to the original static transform.
 - On the first `burnIncense` event, it randomly selects one of three very small pan/tilt framing presets and locks that same preset. Further incense events extend the shot duration without selecting another angle. No gift event changes the camera and no per-viewer camera is created.
 - Added `temple:3d-ready` / `temple:3d-unavailable` signals in `temple-3d.js`; added fixed-size camera rig styling and perspective to `live.css`.
-- Camera implementation is an intentionally restrained framing/orientation variation of the same scene, not a cut to another camera. Visual judgement and OBS crop/FPS testing remain outstanding.
+- Camera implementation is an intentionally restrained framing/orientation variation of the same scene, not a cut to another camera. Visual judgement and stage bounds/FPS testing remain outstanding.
 - Verified source changes were committed to the existing feature branch through GitHub; no merge was performed.
 
 ### Gift interruption prototype — implementation checkpoint
@@ -115,7 +115,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Updated `server.js` to preserve the TikTok connector's original `giftId` in the `temple.event` payload. The ID is not guessed or mapped yet; actual live payloads must verify names and IDs.
 - Added `docs/GIFT_GAMEPLAY_DESIGN.md` with tier priorities, timing targets, target identity rules, queue/state-machine plan and acceptance checks.
 - Important limitation: current Rocket/Donut handling is **visual-only**. Server merit, incense totals, leaderboard accounting and real cooldown/requeue logic are unchanged. Do not represent this prototype as cancelling server rewards.
-- No browser, TikTok LIVE or OBS runtime test has been performed. Syntax/integration checks and real gift-name verification remain required.
+- No browser, TikTok LIVE or runtime test has been performed. Syntax/integration checks and real gift-name verification remain required.
 
 ### Character state machine + priority queue — implementation checkpoint
 - Added `public/js/character-state-machine.js`: deterministic state transitions, one active central devotee, FIFO queue capped at 40, interrupted devotee reinserted at the front, and priority-sorted gift effect queue.
@@ -144,7 +144,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added Dragon/Rồng fly-through and wind-knockback VFX. Active priority is Rocket > Dragon/Rồng > Donut/Doughnut.
 - Serialized bell and fortune character actions through the same queue; fortune uses an 18-second slot for narration/modal playback.
 - Added GitHub Actions workflow `.github/workflows/tests.yml` to run `bun test` on branch pushes and pull requests.
-- Remaining validation: confirm real gift display names/IDs from a live TikTok room; run Bun CI; test visual alignment, 9:16 crop and FPS in browser/OBS.
+- Remaining validation: confirm real gift display names/IDs from a live TikTok room; run Bun CI; test visual alignment, 9:16 crop and FPS in browser.
 
 ### Gift payload integrity correction
 - Removed the synthetic `'rose'` fallback from TikTok `giftId` extraction. The connector's top-level `giftId` or nested `gift.id` is preserved when present; when neither exists, the payload now carries an empty string instead of a fabricated identifier.
@@ -166,6 +166,32 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Feature head merged: `386acf6913c9f44f151ec7a429ccbc2a0f0c2f91`.
 - The feature-head GitHub Actions run `41252916384` completed with conclusion `success`; the workflow ran Bun tests and server/helper syntax checks. This is the 12-test CI validation before merge.
 - No Actions run was returned for the squash merge commit at the time of this update; do not claim post-merge CI passed until a run is observed.
-- Remaining release blockers: run the app in a browser with 3D off/on; verify camera/character/gift visuals and 1080x1920 OBS crop; measure FPS/memory and WebGL fallback; connect to an actual TikTok LIVE room and inspect sanitized gift payload logs for Rocket/Dragon/Donut names/IDs and combo frames.
+- Remaining release blockers: run the app in a browser with 3D off/on; verify camera/character/gift visuals and 1080x1920 stage bounds; measure FPS/memory and WebGL fallback; connect to an actual TikTok LIVE room and inspect sanitized gift payload logs for Rocket/Dragon/Donut names/IDs and combo frames.
 - Do not invent gift IDs or expand aliases before live payload evidence. Gift interruptions remain visual-only and must not be described as rolling back server merit/donation/leaderboard accounting.
 - Project status: **MERGED, VALIDATION INCOMPLETE — NOT DONE**. Continue from `main`; record each manual test result here before marking the project done.
+
+
+### Game-only scope clarification — 2026-11-01
+- External broadcast/capture software is outside this repository's acceptance criteria. Do not create, run, or block game tasks on OBS setup or validation.
+- Acceptance scope is the game itself: browser rendering, character/ritual logic, gift interactions, camera behavior inside the game, audio, VFX, TikTok payload handling, queue correctness, performance, and 2D/3D fallback.
+
+### Gift audio + rocket impact VFX — implementation checkpoint
+- Updated `public/js/audio.js` with synthesized Web Audio effects: rocket launch/flight, low-frequency explosion impact, dragon whoosh, and a three-note playful donut cue. No external sound files or paid assets were added.
+- Updated `public/js/gift-action-engine.js` to emit a dedicated `temple:gift-sfx` event, trigger rocket launch and impact sounds at their animation beats, and add an expanding shockwave ring plus 18 outward sparks to the rocket impact. Existing character knockback remains in place.
+- Updated `public/js/live.js` to route gift sound events through the shared audio engine, preserving the browser audio-unlock path and `sfxEnabled` guard.
+- These are synthesized prototype SFX, not recorded cinematic sound assets. They have not yet been listened to in a browser; balance, clipping, overlap, and mobile autoplay behavior remain unverified.
+- No syntax/unit/browser runtime validation has yet been run for these three latest commits.
+
+### Remaining game implementation backlog
+- [ ] Add a dedicated SFX master toggle and SFX volume control; current UI exposes music and TTS controls, while SFX is only guarded internally.
+- [ ] Improve Rocket VFX beyond emoji/DOM prototype: continuous flame/smoke trail, brighter impact flash, layered shockwave, smoke/debris fade, and impact timing aligned to projectile position.
+- [ ] Replace emoji placeholders for Rocket, Dragon and Donut with consistent free/licensed or procedural game-style assets.
+- [ ] Add Dragon impact/roar layer and Donut movement/chase polish; verify no effects overlap the altar, Buddha, HUD, or central devotee incorrectly.
+- [ ] Implement lower-tier gift behaviors (Rose/Heart/other gifts) only after gift identity and connector payloads are confirmed.
+- [ ] Review gift combo behavior so repeated gifts do not replay a full cinematic on every incremental streak frame; define combo escalation and anti-spam limits.
+- [ ] Add tests for gift action selection, priority replacement, effect cleanup, SFX dispatch, and queue recovery after supersession.
+- [ ] Validate audio unlock, SFX/music/TTS mixing, clipping, sound overlap, and browser autoplay behavior.
+- [ ] Validate 2D fallback, optional 3D overlay, stage layering, resize behavior, FPS, memory, and long-running stability in an actual browser.
+- [ ] Validate real TikTok LIVE Rocket/Dragon/Donut IDs, names, diamond values, repeatCount/repeatEnd, and reconnect behavior using sanitized logs.
+- [ ] Audit all remaining game flows: comments, likes, follows, shares, fortune, bell, wooden fish, prayer, grand ceremony, admin controls, TTS queue, and reconnect recovery.
+- Project remains **IN PROGRESS — NOT DONE** until code checks and game runtime checks above are completed.
