@@ -1209,3 +1209,15 @@ body.obs-mode .stage-wrapper {
   background: linear-gradient(135deg, #fff0a1, #f28a27 60%, #8b2c12);
   box-shadow: 0 0 9px rgba(255,169,54,.8);
 }
+
+
+/* Rose gift and combo feedback remain light and non-blocking. */
+.gift-rose-main { font-size: 112px; filter: drop-shadow(0 8px 18px rgba(255,90,125,.5)); }
+.gift-rose-petal { font-size: 42px; filter: drop-shadow(0 3px 8px rgba(255,180,190,.45)); }
+.gift-combo-pulse {
+  color: #fff1a8;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 0 3px 0 #7a250d, 0 0 18px rgba(255,190,70,.95);
+}
