@@ -465,11 +465,50 @@
   }
 
   // 7. Xử lý hiệu ứng khi có Nghi Thức mới
+
+  function playFortuneSequence(ev) {
+    audio.playFortuneShake();
+    updateCentralWorshipper(
+      ev.user,
+      ev.avatar,
+      '🎋 Đang xin xăm...',
+      `Thí chủ ${ev.user} đang thành tâm xin quẻ...`,
+      false
+    );
+    audio.enqueueTts(ev.ttsText || '', {
+      voice: ev.ttsVoice || 'maichi',
+      onStart: () => {
+        audio.playIncenseChime();
+        showFortuneModal(ev.user, ev.fortune);
+        updateCentralWorshipper(
+          ev.user,
+          ev.avatar,
+          `🎋 Quẻ số ${ev.fortune?.number} (${ev.fortune?.rank})`,
+          ev.fortune?.meaning || '',
+          true
+        );
+      },
+      onEnd: () => {
+        clearTimeout(fortuneTimer);
+        fortuneTimer = setTimeout(() => {
+          document.getElementById('fortuneModal')?.classList.remove('visible');
+        }, 1800);
+      }
+    });
+  }
+
   let fortuneTimer = null;
   let grandTimer = null;
 
   function triggerRitualVisuals(ev) {
     if (!ev) return;
+    // Optional 3D layer listens independently; existing 2D/audio flow remains unchanged.
+    window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
+    const giftActionResult = window.TempleGiftActionEngine?.handle(ev) || { allowWalker: ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune'].includes(ev.type), interruptsRitual: false };
+    if (giftActionResult.interruptsRitual) {
+      clearProstrationTimers();
+      setCentralPose('walk1');
+    }
 
     if (ev.ttsText && ev.type !== 'drawFortune') {
       audio.enqueueTts(ev.ttsText, { voice: ev.ttsVoice || 'maichi' });
@@ -480,7 +519,9 @@
         audio.playIncenseChime();
         particles.spawnIncenseBurst(540, 895);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 860, '#ffe082');
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -496,7 +537,9 @@
         pulseHallBowing();
         particles.spawnBellWave(540, 510, 4);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 190, 935, '#fff3b0');
-        updateCentralWorshipper(ev.user, ev.avatar, `🔔 Thỉnh Đại Hồng Chung (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          updateCentralWorshipper(ev.user, ev.avatar, `🔔 Thỉnh Đại Hồng Chung (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -504,7 +547,9 @@
         audio.playIncenseChime();
         spawnSkyLantern(ev.user, ev.wish);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 920, '#ffb74d');
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🏮 Cầu phúc (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🏮 Cầu phúc (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -513,7 +558,9 @@
         audio.playTempleBell(0.85);
         particles.spawnIncenseBurst(540, 895);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 840, '#fff3b0');
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -523,44 +570,41 @@
         particles.spawnGrandCeremonyRain();
         pulseHallBowing();
         showGrandCeremonyBanner(ev.user, ev.giftName, ev.merit);
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🐉 ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🐉 ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
       case 'drawFortune': {
-        audio.playFortuneShake();
-        updateCentralWorshipper(
-          ev.user,
-          ev.avatar,
-          `🎋 Đang xin xăm...`,
-          `Thí chủ ${ev.user} đang thành tâm xin quẻ...`,
-          false
-        );
-        // Chỉ hiển thị tờ Quẻ Xăm đúng thời điểm giọng đọc bắt đầu vang lên!
-        audio.enqueueTts(ev.ttsText || '', {
-          voice: ev.ttsVoice || 'maichi',
-          onStart: () => {
-            audio.playIncenseChime();
-            showFortuneModal(ev.user, ev.fortune);
-            updateCentralWorshipper(
-              ev.user,
-              ev.avatar,
-              `🎋 Quẻ số ${ev.fortune?.number} (${ev.fortune?.rank})`,
-              ev.fortune?.meaning || '',
-              true
-            );
-          },
-          onEnd: () => {
-            clearTimeout(fortuneTimer);
-            fortuneTimer = setTimeout(() => {
-              document.getElementById('fortuneModal')?.classList.remove('visible');
-            }, 1800);
-          }
-        });
+        if (giftActionResult.allowWalker) playFortuneSequence(ev);
         break;
       }
     }
   }
+
+
+  // Queued devotees take ownership of the same central character after the
+  // current bow sequence or gift interruption cooldown finishes.
+  window.addEventListener('temple:character-start', (event) => {
+    const ev = event.detail;
+    if (!ev) return;
+    if (ev.type === 'ringBell') {
+      updateCentralWorshipper(ev.user, ev.avatar, `🔔 Thỉnh Đại Hồng Chung (+${ev.merit} CĐ)`, ev.wish);
+      return;
+    }
+    if (ev.type === 'drawFortune') {
+      playFortuneSequence(ev);
+      return;
+    }
+    const labels = {
+      burnIncense: `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`,
+      sendPrayer: `🏮 Cầu phúc (+${ev.merit} CĐ)`,
+      offerGift: `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`,
+      grandCeremony: `🐉 ${ev.giftName} (+${ev.merit} CĐ)`
+    };
+    animateWalkerOnCarpet(ev.user, ev.avatar, labels[ev.type] || '✨ Tham gia nghi lễ', ev.wish);
+  });
 
   function spawnSkyLantern(user, wish) {
     const layer = document.getElementById('skyLanternsLayer');

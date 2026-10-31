@@ -66,6 +66,8 @@ body.obs-mode .stage-wrapper {
 
 .stage-9x16 {
   position: absolute;
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
   top: 0;
   left: 0;
   width: 1080px;
@@ -730,6 +732,19 @@ body.obs-mode .stage-wrapper {
   100% { transform: translate3d(0, -1180px, 0) scale(0.92); opacity: 0; }
 }
 
+#temple3dCanvas {
+  position: absolute;
+  inset: 0;
+  width: 1080px;
+  height: 1920px;
+  pointer-events: none;
+  z-index: 16;
+}
+
+#temple3dCanvas[hidden] {
+  display: none !important;
+}
+
 #templeCanvas {
   position: absolute;
   inset: 0;
@@ -1120,3 +1135,45 @@ body.obs-mode .stage-wrapper {
   border-left: 3px solid var(--gold-main);
   color: #f3e5cf;
 }
+
+
+/* One shared virtual camera rig: preserves the fixed 1080x1920 stage. */
+.temple-camera-rig {
+  position: absolute;
+  inset: 0;
+  width: 1080px;
+  height: 1920px;
+  transform-origin: 50% 50%;
+  z-index: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .temple-camera-rig { will-change: auto; }
+}
+
+/* Gift gameplay props stay inside the same fixed 9:16 scene. */
+.gift-action-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gift-action-fx {
+  position: absolute;
+  display: block;
+  font-size: 112px;
+  line-height: 1;
+  transform: translate3d(-50%, -50%, 0);
+  user-select: none;
+  white-space: nowrap;
+  text-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+  will-change: transform, opacity;
+}
+.gift-rocket { font-size: 128px; }
+.gift-blast { font-size: 170px; }
+.gift-donut { font-size: 118px; }
+
+.gift-dragon { font-size: 190px; filter: drop-shadow(0 8px 18px rgba(255, 174, 66, 0.45)); }
+.gift-dragon-wind { font-size: 150px; }

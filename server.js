@@ -6,6 +6,7 @@ const { spawn } = require('child_process');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
+const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -609,6 +610,7 @@ const Rituals = {
       uniqueId: devotee.uniqueId,
       avatar: devotee.avatar,
       giftType,
+      giftId: params.giftId == null ? '' : String(params.giftId).slice(0, 80),
       giftName,
       coins,
       merit,
@@ -931,37 +933,38 @@ async function connectTikTokLive(usernameOrUrl) {
 
   tiktokConn.on(WebcastEvent.GIFT, (data) => {
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
-    const giftObj = data?.gift || data?.giftDetails || {};
-    const giftId = String(data?.giftId || giftObj?.id || 'rose');
-    const groupId = String(data?.groupId || `${uniqueId}_${giftId}`);
-    const repeatCount = Math.max(1, Number(data?.repeatCount || data?.comboCount || 1));
+    const giftPayload = normalizeGiftPayload(data, uniqueId);
+    const {
+      giftId, giftName: rawGiftName, diamondCount, repeatCount, repeatEnd, groupId
+    } = giftPayload;
 
-    const prevCount = giftComboTracker.get(groupId) || 0;
-    if (repeatCount <= prevCount && data?.repeatEnd) {
-      giftComboTracker.delete(groupId);
-      return;
-    }
-    const deltaCount = Math.max(1, repeatCount - prevCount);
-    giftComboTracker.set(groupId, repeatCount);
-    if (giftComboTracker.size > 500) {
-      const firstKey = giftComboTracker.keys().next().value;
-      giftComboTracker.delete(firstKey);
-    }
+    const deltaCount = getGiftComboDelta(giftComboTracker, giftPayload);
+    if (deltaCount <= 0) return;
 
-    const diamondCount = Math.max(1, Number(giftObj?.diamondCount || data?.diamondCount || 1));
     const totalCoins = diamondCount * deltaCount;
-    const rawGiftName = giftObj?.name || data?.giftName || giftObj?.describe || 'Hoa Hồng Tâm Thành';
-    const displayGiftName = deltaCount > 1 ? `${deltaCount}x ${rawGiftName}` : rawGiftName;
+    const displayGiftName = rawGiftName
+      ? (deltaCount > 1 ? `${deltaCount}x ${rawGiftName}` : rawGiftName)
+      : '';
 
-    console.log(`[TikTok Gift] ${user} gửi ${displayGiftName} (${totalCoins} xu)`);
+    console.log(`[TikTok Gift] ${user} gửi ${displayGiftName || 'quà chưa rõ tên'} (${totalCoins} xu)`);
+    console.log('[TikTok Gift Payload]', {
+      giftId: giftId || null,
+      giftName: rawGiftName || null,
+      diamondCount,
+      repeatCount,
+      repeatEnd,
+      comboDelta: deltaCount,
+      groupId
+    });
 
     Rituals.offerGift({
       user,
       uniqueId,
       avatar,
+      giftId,
       coins: totalCoins,
       giftName: displayGiftName,
-      wish: `Thành tâm dâng ${displayGiftName} kính lễ Đức Phật A Di Đà`
+      wish: `Thành tâm dâng ${displayGiftName || 'lễ vật'} kính lễ Đức Phật A Di Đà`
     });
   });
 
