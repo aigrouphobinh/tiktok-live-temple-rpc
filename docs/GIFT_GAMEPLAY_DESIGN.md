@@ -27,7 +27,7 @@ Durations are design targets, not currently enforced game cooldowns. Do not acti
 - Keep the existing WebSocket `temple.event` contract.
 - `offerGift` event fields include `giftId`, `giftName`, `giftType`, `coins`, `user`, `uniqueId` and `avatar`.
 - `giftId` is forwarded from the TikTok connector without inventing or remapping IDs.
-- Initial frontend matching supports the observed display-name aliases `Rocket`, `Tên Lửa`, `Donut`, and `Doughnut`. Confirm actual names/IDs from a real LIVE event before broadening the map.
+- Initial frontend matching supports display-name aliases `Rocket`, `Tên Lửa`, `Dragon`, `Rồng`, `Donut`, and `Doughnut`; verify exact production gift names/IDs from real LIVE payloads before relying on them. Confirm actual names/IDs from a real LIVE event before broadening the map.
 - Non-matching gifts retain the existing gift visual behavior.
 
 ## Character state model (target)
@@ -72,7 +72,7 @@ Never assume the gift sender is the character being interrupted.
 
 ## Implementation status
 - [x] Forward TikTok giftId into `offerGift` event for later verified mapping.
-- [x] Add visual-only Rocket and Donut interruptions during active incense.
+- [x] Add visual-only Rocket, Dragon and Donut interruptions during active incense.
 - [x] Preserve the single-camera composition; gift effects do not change camera.
 - [ ] Verify actual Rocket/Donut gift IDs and display names from real connector events.
 - [x] Implement a dedicated character state machine with one active devotee, FIFO queue (max 40), and priority-sorted interruption effects.
