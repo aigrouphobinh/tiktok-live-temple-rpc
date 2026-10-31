@@ -123,10 +123,16 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Updated `public/js/gift-action-engine.js` to serialize incense, prayer, gift, grand ceremony, bell and fortune visits through one character owner. It schedules the existing 7.6-second bow flow and a longer 18-second fortune slot; Rocket/Donut interruptions cancel current pose timers, run the effect, apply a short cooldown, then resume the interrupted devotee.
 - Updated `live.js` so queued events start only when the controller dispatches `temple:character-start`; bell and fortune no longer replace an active devotee's identity.
 - Camera rig now excludes the top HUD, bottom HUD, grand-ceremony banner and fortune modal. The shared scene layers transform together beneath those fixed overlays.
-- Added `bun test` script. The state-machine logic was also exercised with Node's built-in test runner in this environment: 5 transition/queue scenarios passed; Bun itself is not installed in this runtime, so the repository's exact `bun test` command has not been executed here.
+- Added `bun test` script. The state-machine logic was also exercised with Node's built-in test runner in this environment: 7 transition/queue/priority scenarios passed; Bun itself is not installed in this runtime, so the repository's exact `bun test` command has not been executed here.
 - Scope remains visual-only: server merit, donation totals and leaderboard values are not cancelled or rolled back by gift interruptions. Real TikTok LIVE/OBS/browser tests are still outstanding.
 
 ### Dragon tier visual action
 - Added a same-scene Dragon/Rồng fly-through with wind gust and a short devotee knockback animation.
 - Gift effect priority now follows Rocket (100) > Dragon (80) > Donut (60); a stronger incoming effect supersedes a weaker active effect, while weaker effects wait in the bounded priority queue.
 - Display-name matching includes Rocket/Tên Lửa, Dragon/Rồng and Donut/Doughnut. These aliases still require confirmation against actual TikTok LIVE gift payloads; no numeric gift IDs are hardcoded.
+
+### Camera lifecycle integration correction
+- Camera variation now begins on `temple:character-start`, not the raw incoming event. A queued incense visitor therefore cannot move the camera before taking ownership of the central character.
+- An interrupted incense ritual eases back to the master overview but retains its selected preset; when that same devotee resumes, the same preset is reused. On successful completion, the preset is cleared so the next incense ritual can select a new variation.
+- Top/bottom HUD, ceremony banner and fortune modal remain outside the transformed scene rig. The camera rig is below those fixed overlays in the stage stacking order.
+- The scene camera hold is aligned with the 7.6-second standard character slot; character completion/interruption events drive the return rather than per-frame rerolls.
