@@ -32,6 +32,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
   function giftAction(event) {
     const name = normalizedName(event);
     if (/\b(rocket|ten lua)\b/.test(name)) return 'rocket';
+    if (/\b(dragon|rong)\b/.test(name)) return 'dragon';
     if (/\b(donut|doughnut)\b/.test(name)) return 'donut';
     return null;
   }
