@@ -39,6 +39,10 @@ import { CharacterStateMachine } from './character-state-machine.js';
     return null;
   }
 
+  function playGiftSound(type) {
+    window.dispatchEvent(new CustomEvent('temple:gift-sfx', { detail: { type } }));
+  }
+
   function createEffect(className, symbol, x, y) {
     const el = document.createElement('div');
     el.className = `gift-action-fx ${className}`;
@@ -78,6 +82,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
   }
 
   function playRocket(token) {
+    playGiftSound('rocket-launch');
     const rocket = createEffect('gift-rocket', '🚀', 95, 1010);
     const flight = rocket.animate([
       { transform: 'translate3d(0, 0, 0) rotate(-24deg) scale(.65)', opacity: 0 },
@@ -89,7 +94,36 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
     window.setTimeout(() => {
       if (token !== effectToken) return;
+      playGiftSound('explosion');
       const blast = createEffect('gift-blast', '💥', 490, 900);
+      blast.style.fontSize = '112px';
+      blast.style.filter = 'drop-shadow(0 0 18px rgba(255,190,55,.95))';
+      const shockwave = createEffect('gift-shockwave', '', 490, 900);
+      Object.assign(shockwave.style, {
+        width: '34px', height: '34px', margin: '-17px 0 0 -17px',
+        border: '9px solid rgba(255,220,120,.95)', borderRadius: '50%',
+        boxSizing: 'border-box', boxShadow: '0 0 30px rgba(255,110,25,.9)'
+      });
+      const wave = shockwave.animate([
+        { transform: 'scale(.25)', opacity: .95, borderWidth: '9px' },
+        { transform: 'scale(8)', opacity: 0, borderWidth: '1px' }
+      ], { duration: 820, easing: 'cubic-bezier(.12,.72,.24,1)', fill: 'forwards' });
+      removeAfter(shockwave, wave);
+
+      for (let i = 0; i < 18; i++) {
+        const spark = createEffect('gift-blast-spark', i % 3 === 0 ? '✦' : '•', 490, 900);
+        spark.style.color = i % 2 ? '#fff1a8' : '#ff8b35';
+        spark.style.fontSize = i % 3 ? '28px' : '42px';
+        const angle = (Math.PI * 2 * i) / 18;
+        const distance = 90 + Math.random() * 170;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        const sparkAnim = spark.animate([
+          { transform: 'translate3d(0,0,0) scale(.3)', opacity: 1 },
+          { transform: `translate3d(${dx}px,${dy}px,0) scale(1.15)`, opacity: 0 }
+        ], { duration: 650 + Math.random() * 260, easing: 'ease-out', fill: 'forwards' });
+        removeAfter(spark, sparkAnim);
+      }
       const pop = blast.animate([
         { transform: 'translate3d(0,0,0) scale(.2)', opacity: 0 },
         { transform: 'translate3d(0,0,0) scale(1.55)', opacity: 1, offset: .35 },
@@ -106,6 +140,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
   }
 
   function playDragon() {
+    playGiftSound('dragon-whoosh');
     const dragon = createEffect('gift-dragon', '🐉', 65, 820);
     const flight = dragon.animate([
       { transform: 'translate3d(0,0,0) scale(.35) rotate(-12deg)', opacity: 0 },
@@ -130,6 +165,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
   }
 
   function playDonut() {
+    playGiftSound('donut-chime');
     const donut = createEffect('gift-donut', '🍩', 95, 850);
     const fly = donut.animate([
       { transform: 'translate3d(0,0,0) rotate(0deg) scale(.55)', opacity: 0 },
