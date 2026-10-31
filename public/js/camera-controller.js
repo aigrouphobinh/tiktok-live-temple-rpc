@@ -28,7 +28,7 @@ if (enabled && stage) {
     { x: 0, y: 3, scale: 1.01, tiltX: 0.08, tiltY: 0.02 }
   ];
   const MASTER = 'translate3d(0, 0, 0) scale(1) rotateX(0deg) rotateY(0deg)';
-  const RITUAL_HOLD_MS = 6800;
+  const RITUAL_HOLD_MS = 7800;
   let webglReady = false;
   let active = false;
   let returnTimer = 0;
@@ -43,10 +43,11 @@ if (enabled && stage) {
     return `translate3d(${preset.x}px, ${preset.y}px, 0) scale(${preset.scale}) rotateX(${preset.tiltX}deg) rotateY(${preset.tiltY}deg)`;
   }
 
-  function returnToMaster() {
-    if (!active) return;
+  function returnToMaster(clearPreset = false) {
+    clearTimeout(returnTimer);
+    if (!active && !currentPreset) return;
     active = false;
-    currentPreset = null;
+    if (clearPreset) currentPreset = null;
     apply(MASTER, 1250);
   }
 
@@ -54,7 +55,7 @@ if (enabled && stage) {
     if (!webglReady) return;
     if (!active) {
       active = true;
-      currentPreset = presets[Math.floor(Math.random() * presets.length)];
+      if (!currentPreset) currentPreset = presets[Math.floor(Math.random() * presets.length)];
       apply(transformFor(currentPreset), 1250);
     }
     // Further devotees extend the same shot; they never select another angle.
@@ -75,8 +76,16 @@ if (enabled && stage) {
     rig.style.transform = MASTER;
   });
 
-  window.addEventListener('temple:ritual', (event) => {
+  window.addEventListener('temple:character-start', (event) => {
     if (event.detail?.type === 'burnIncense') startOrExtendRitual();
+  });
+
+  window.addEventListener('temple:character-interrupted', (event) => {
+    if (event.detail?.event?.type === 'burnIncense') returnToMaster(false);
+  });
+
+  window.addEventListener('temple:character-complete', (event) => {
+    if (event.detail?.type === 'burnIncense') returnToMaster(true);
   });
 
   window.addEventListener('pagehide', () => {
