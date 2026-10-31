@@ -609,6 +609,7 @@ const Rituals = {
       uniqueId: devotee.uniqueId,
       avatar: devotee.avatar,
       giftType,
+      giftId: params.giftId == null ? '' : String(params.giftId).slice(0, 80),
       giftName,
       coins,
       merit,
@@ -959,6 +960,7 @@ async function connectTikTokLive(usernameOrUrl) {
       user,
       uniqueId,
       avatar,
+      giftId,
       coins: totalCoins,
       giftName: displayGiftName,
       wish: `Thành tâm dâng ${displayGiftName} kính lễ Đức Phật A Di Đà`
