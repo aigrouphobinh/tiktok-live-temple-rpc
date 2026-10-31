@@ -472,6 +472,11 @@
     if (!ev) return;
     // Optional 3D layer listens independently; existing 2D/audio flow remains unchanged.
     window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
+    const giftActionResult = window.TempleGiftActionEngine?.handle(ev) || { interruptsRitual: false };
+    if (giftActionResult.interruptsRitual) {
+      clearProstrationTimers();
+      setCentralPose('walk1');
+    }
 
     if (ev.ttsText && ev.type !== 'drawFortune') {
       audio.enqueueTts(ev.ttsText, { voice: ev.ttsVoice || 'maichi' });
@@ -515,7 +520,9 @@
         audio.playTempleBell(0.85);
         particles.spawnIncenseBurst(540, 895);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 540, 840, '#fff3b0');
-        animateWalkerOnCarpet(ev.user, ev.avatar, `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        if (!giftActionResult.interruptsRitual) {
+          animateWalkerOnCarpet(ev.user, ev.avatar, `🪷 Dâng ${ev.giftName} (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
