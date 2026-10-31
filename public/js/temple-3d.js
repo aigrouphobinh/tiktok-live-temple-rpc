@@ -1,0 +1,244 @@
+/**
+ * Optional Three.js ritual overlay.
+ * Enable with ?3d=1. The existing DOM/Canvas scene remains the source of truth.
+ * Procedural geometry only; no external models or paid assets.
+ */
+const ENABLED = new URLSearchParams(location.search).get('3d') === '1';
+const canvas = document.getElementById('temple3dCanvas');
+
+if (ENABLED && canvas) {
+  boot().catch((error) => {
+    console.warn('[Temple3D] Disabled; keeping the original 2D renderer:', error);
+    canvas.hidden = true;
+  });
+}
+
+async function boot() {
+  // Load Three.js only when the opt-in flag is present.
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: false,
+    powerPreference: 'low-power',
+    premultipliedAlpha: true
+  });
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setSize(1080, 1920, false);
+  renderer.setClearColor(0x000000, 0);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(0, 1080, 0, 1920, 0.1, 3000);
+  camera.position.z = 1200;
+
+  const gold = new THREE.MeshStandardMaterial({
+    color: 0xffd56a, metalness: 0.72, roughness: 0.28,
+    transparent: true, opacity: 0.92
+  });
+  const paleGold = new THREE.MeshStandardMaterial({
+    color: 0xffefb0, metalness: 0.45, roughness: 0.3,
+    transparent: true, opacity: 0.82
+  });
+  const smokeMat = new THREE.MeshBasicMaterial({
+    color: 0xd9cbb8, transparent: true, opacity: 0.17,
+    depthWrite: false
+  });
+
+  const ambient = new THREE.AmbientLight(0xffdca0, 1.5);
+  scene.add(ambient);
+  const keyLight = new THREE.PointLight(0xffc45c, 2.2, 900);
+  keyLight.position.set(540, 700, 450);
+  scene.add(keyLight);
+
+  const active = [];
+  const MAX_EFFECTS = 80;
+  let raf = 0;
+  let lastTime = 0;
+  let disposed = false;
+
+  function addEffect(object, update, duration = 1800) {
+    if (active.length >= MAX_EFFECTS) {
+      const oldest = active.shift();
+      scene.remove(oldest.object);
+      disposeObject(oldest.object);
+    }
+    scene.add(object);
+    active.push({ object, update, elapsed: 0, duration });
+  }
+
+  function disposeObject(object) {
+    object.traverse?.((node) => {
+      if (node.geometry) node.geometry.dispose();
+      if (node.material) {
+        const materials = Array.isArray(node.material) ? node.material : [node.material];
+        materials.forEach((material) => material.dispose());
+      }
+    });
+  }
+
+  function makeLotus(x, y, scale = 1) {
+    const group = new THREE.Group();
+    group.position.set(x, y, 80);
+    const petalGeo = new THREE.SphereGeometry(1, 12, 8);
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const petal = new THREE.Mesh(petalGeo, i % 2 ? gold : paleGold);
+      petal.position.set(Math.cos(angle) * 17, Math.sin(angle) * 17, 0);
+      petal.scale.set(9 * scale, 22 * scale, 3.2 * scale);
+      petal.rotation.z = angle - Math.PI / 2;
+      group.add(petal);
+    }
+    const heart = new THREE.Mesh(new THREE.SphereGeometry(8 * scale, 12, 10), gold);
+    heart.position.z = 5;
+    group.add(heart);
+    return group;
+  }
+
+  function burstLotus(x, y, count = 1, scale = 1) {
+    for (let i = 0; i < Math.min(count, 8); i++) {
+      const lotus = makeLotus(x + (i - (Math.min(count, 8) - 1) / 2) * 34, y, scale);
+      lotus.rotation.z = (Math.random() - 0.5) * 0.5;
+      addEffect(lotus, (obj, t, p) => {
+        obj.position.y -= 0.24 * t;
+        obj.rotation.z += 0.0007 * t;
+        obj.scale.setScalar(Math.max(0.05, 1 - p * 0.55));
+        obj.children.forEach((child) => {
+          child.material = child.material;
+          child.material.opacity = Math.max(0, 0.92 * (1 - p));
+        });
+      }, 2100);
+    }
+  }
+
+  function bellWave(x, y, count = 3) {
+    for (let i = 0; i < count; i++) {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(22 + i * 12, 1.8, 6, 48),
+        new THREE.MeshBasicMaterial({ color: 0xffdf85, transparent: true, opacity: 0.75 })
+      );
+      ring.position.set(x, y, 100 + i);
+      addEffect(ring, (obj, _t, p) => {
+        const s = 1 + p * 7;
+        obj.scale.set(s, s, 1);
+        obj.material.opacity = 0.75 * (1 - p);
+      }, 1300 + i * 180);
+    }
+  }
+
+  function incenseSmoke(x, y) {
+    for (let i = 0; i < 7; i++) {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(12 + Math.random() * 8, 8, 7), smokeMat.clone());
+      puff.position.set(x + (Math.random() - 0.5) * 36, y - Math.random() * 24, 40 + i);
+      puff.scale.set(0.8, 1.25, 0.6);
+      addEffect(puff, (obj, t, p) => {
+        obj.position.y -= 0.11 * t;
+        obj.position.x += Math.sin((p * 7) + i) * 0.025 * t;
+        obj.scale.multiplyScalar(1 + 0.00012 * t);
+        obj.material.opacity = 0.2 * (1 - p);
+      }, 3200);
+    }
+  }
+
+  function giftRain(count = 12) {
+    for (let i = 0; i < Math.min(count, 24); i++) {
+      const petal = new THREE.Mesh(
+        new THREE.TetrahedronGeometry(7 + Math.random() * 5, 0),
+        i % 3 ? gold : paleGold
+      );
+      petal.position.set(130 + Math.random() * 820, -40 - Math.random() * 300, 120);
+      addEffect(petal, (obj, t, p) => {
+        obj.position.y += 0.32 * t;
+        obj.position.x += Math.sin(p * 10 + i) * 0.12 * t;
+        obj.rotation.x += 0.001 * t;
+        obj.rotation.y += 0.0014 * t;
+        obj.material.opacity = 0.9 * (1 - p);
+      }, 3600);
+    }
+  }
+
+  function onRitual(event) {
+    if (!event || typeof event.type !== 'string') return;
+    switch (event.type) {
+      case 'burnIncense':
+        incenseSmoke(540, 900);
+        burstLotus(540, 850, 1, 0.9);
+        break;
+      case 'ringBell':
+        bellWave(540, 510, 4);
+        break;
+      case 'strikeWoodenFish':
+        bellWave(890, 935, 2);
+        break;
+      case 'sendPrayer':
+        burstLotus(540, 900, 2, 0.75);
+        giftRain(5);
+        break;
+      case 'offerGift':
+        burstLotus(540, 860, Math.min(5, Math.ceil((event.coins || 10) / 20)), 1.15);
+        giftRain(Math.min(18, 5 + Math.ceil((event.coins || 1) / 10)));
+        break;
+      case 'grandCeremony':
+        burstLotus(540, 820, 8, 1.45);
+        bellWave(540, 510, 5);
+        giftRain(24);
+        break;
+      case 'drawFortune':
+        burstLotus(540, 880, 3, 0.8);
+        break;
+    }
+  }
+
+  window.addEventListener('temple:ritual', (event) => onRitual(event.detail));
+  canvas.hidden = false;
+
+  function animate(now) {
+    if (disposed || document.hidden) return;
+    const delta = Math.min(40, lastTime ? now - lastTime : 16);
+    lastTime = now;
+    for (let i = active.length - 1; i >= 0; i--) {
+      const effect = active[i];
+      effect.elapsed += delta;
+      const progress = Math.min(1, effect.elapsed / effect.duration);
+      effect.update(effect.object, delta, progress);
+      if (progress >= 1) {
+        scene.remove(effect.object);
+        disposeObject(effect.object);
+        active.splice(i, 1);
+      }
+    }
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(animate);
+  }
+
+  function start() {
+    if (!disposed && !document.hidden && !raf) {
+      lastTime = 0;
+      raf = requestAnimationFrame(animate);
+    }
+  }
+  function stop() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else start();
+  });
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    stop();
+    canvas.hidden = true;
+    console.warn('[Temple3D] WebGL context lost; 2D mode remains active.');
+  });
+  window.addEventListener('pagehide', () => {
+    disposed = true;
+    stop();
+    renderer.dispose();
+  }, { once: true });
+
+  start();
+  console.info('[Temple3D] Optional 3D ritual layer ready (?3d=1).');
+}
