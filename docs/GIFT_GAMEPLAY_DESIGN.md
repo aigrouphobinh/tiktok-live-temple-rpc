@@ -62,14 +62,22 @@ Never assume the gift sender is the character being interrupted.
 5. Multiple incense events extend the current camera shot without rerolling the camera preset.
 6. Gift effects never change camera position, camera identity, stage size or OBS crop.
 
+## Character controller implementation
+- A single state machine owns the central character. New incense, prayer, bell, fortune and gift visits queue instead of replacing the active character.
+- Current phases: `IDLE` → `APPROACHING` → `OFFERING` → `BOWING`; interruption enters `INTERRUPTED` → `COOLDOWN` before the active devotee is resumed.
+- A Rocket interruption puts the interrupted devotee at the front of the character queue. Rocket can supersede a lower-priority Donut; lower-priority effects wait in a priority-sorted queue.
+- Character queue is bounded to 40 entries; excess new visits are rejected from the visual queue only. Server-side event, merit and leaderboard accounting remain untouched.
+- Ring-bell and fortune actions are serialized through the same character owner. Fortune receives a longer visual slot to allow its narration/modal sequence.
+- The camera and fixed HUD are independent: the shared scene rig moves together, while top/bottom HUD, ceremony banner and fortune modal remain pinned to the 9:16 stage.
+
 ## Implementation status
 - [x] Forward TikTok giftId into `offerGift` event for later verified mapping.
 - [x] Add visual-only Rocket and Donut interruptions during active incense.
 - [x] Preserve the single-camera composition; gift effects do not change camera.
 - [ ] Verify actual Rocket/Donut gift IDs and display names from real connector events.
-- [ ] Implement a dedicated character state machine and priority queue.
+- [x] Implement a dedicated character state machine with one active devotee, FIFO queue (max 40), and priority-sorted interruption effects.
 - [ ] Decide server-side reward/cooldown behavior explicitly before changing merit accounting.
-- [ ] Add deterministic tests for repeated combos, simultaneous gifts, priority and stale animation callbacks.
+- [x] Add deterministic tests for FIFO ownership, interruption/requeue, Rocket-over-Donut priority, effect queue and bounded capacity.
 - [ ] Validate all effects in OBS at 1080x1920 and measure FPS.
 
 ## Safety and compatibility
