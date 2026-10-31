@@ -155,6 +155,6 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 ### TikTok gift payload compatibility + streak accounting
 - Added `lib/tiktok-gift-payload.cjs` to normalize both documented `giftDetails.giftName/giftType` payloads and newer `gift.name/type` plus `extendedGiftInfo` metadata. Missing gift IDs remain empty; no synthetic ID/name is assigned.
 - Added a stable fallback combo key using sender + gift ID or gift name when TikTok omits `groupId`, preventing unrelated gifts from the same sender from sharing one empty-ID tracker key.
-- Combo delta handling now distinguishes streakable gifts (`giftType/type === 1`) from non-streakable gifts. Cumulative streak updates are converted to deltas, and final `repeatEnd` frames clear tracker state, including duplicate final frames.
+- Combo delta handling now distinguishes streakable gifts (`giftType/type === 1`) from non-streakable gifts. Cumulative streak updates are converted to deltas, and final `repeatEnd` frames clear tracker state so the next combo starts from zero.
 - Added Bun tests for both payload shapes, missing IDs, fallback combo keys, cumulative streak deltas, final-frame cleanup and non-streakable gifts.
 - Validation still pending on the actual LIVE room; do not map numeric IDs until observed payloads confirm them.
