@@ -245,3 +245,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Sprite uses CSS pseudo-elements only; no external image, model, font or dependency was added.
 - Source-level checks confirmed the Dragon action no longer injects the emoji, both sprite pseudo-elements exist, Rocket/Donut procedural styles remain, and the existing Dragon impact/timing hooks remain present. JavaScript parsed successfully with V8 syntax compilation.
 - Not yet visually/browser verified; confirm silhouette quality, orientation, layering, stage clipping, mobile crop and performance in the actual game before marking the sprite task complete.
+
+
+### Gift effect queue regression coverage — 2026-11-01
+- Added state-machine tests for recovery of the interrupted devotee after multiple gift supersessions (Donut → Dragon → Rocket), bounded gift-effect queue overflow, and rejection of unknown gift actions without changing character ownership.
+- These tests cover state-machine behavior only; they do not yet exercise DOM animation cancellation, SFX event dispatch or real TikTok payload delivery.
+- The test source is committed directly to `main`. Await/inspect the GitHub Actions run before claiming the expanded suite passes.
+- Dragon procedural sprite source is in place, but actual browser appearance, layer overlap and mobile crop remain unverified.
