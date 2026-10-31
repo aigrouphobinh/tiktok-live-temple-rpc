@@ -80,6 +80,8 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added isolated `#temple3dCanvas` at z-index 16 above the existing 2D canvas (z-index 15), below HUD (z-index 20).
 - Added a `temple:ritual` browser event bridge from `triggerRitualVisuals`; no server/RPC contract changes.
 - Existing 2D mode remains default. No external models, textures or paid assets added.
+- Renderer now stops its animation loop when no effects are active; individual effect materials are cloned before disposal/fading.
+- Opened draft PR #1: https://github.com/aigrouphobinh/tiktok-live-temple-rpc/pull/1 (not merged).
 - Not yet browser/OBS tested; CDN availability and actual rendering/performance remain to be verified.
 - Next: run syntax checks and browser tests; refine gift effects only against confirmed payload fields.
 
