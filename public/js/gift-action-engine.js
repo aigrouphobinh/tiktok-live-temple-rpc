@@ -15,7 +15,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   const machine = new CharacterStateMachine({ maxQueue: 40 });
   const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune']);
-  const EFFECT_DURATION = { rocket: 4050, donut: 3650 };
+  const EFFECT_DURATION = { rocket: 4050, dragon: 4200, donut: 3650 };
   let activeTimer = 0;
   let phaseTimers = [];
   let effectTimer = 0;
@@ -89,6 +89,30 @@ import { CharacterStateMachine } from './character-state-machine.js';
     }, 620);
   }
 
+  function playDragon() {
+    const dragon = createEffect('gift-dragon', '🐉', 65, 820);
+    const flight = dragon.animate([
+      { transform: 'translate3d(0,0,0) scale(.35) rotate(-12deg)', opacity: 0 },
+      { transform: 'translate3d(240px,-90px,0) scale(1.05) rotate(8deg)', opacity: 1, offset: .35 },
+      { transform: 'translate3d(610px,-35px,0) scale(1.2) rotate(18deg)', opacity: 1, offset: .72 },
+      { transform: 'translate3d(970px,25px,0) scale(.65) rotate(28deg)', opacity: 0 }
+    ], { duration: 3100, easing: 'ease-in-out', fill: 'forwards' });
+    removeAfter(dragon, flight);
+    const wind = createEffect('gift-dragon-wind', '💨', 470, 930);
+    const gust = wind.animate([
+      { transform: 'translate3d(0,0,0) scale(.25)', opacity: 0 },
+      { transform: 'translate3d(80px,-35px,0) scale(1.5)', opacity: .9, offset: .35 },
+      { transform: 'translate3d(340px,-80px,0) scale(2.2)', opacity: 0 }
+    ], { duration: 1700, delay: 650, easing: 'ease-out', fill: 'forwards' });
+    removeAfter(wind, gust);
+    animateCharacter([
+      { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' },
+      { transform: 'translate3d(175px,-85px,0) rotate(14deg) scale(.9)', offset: .38 },
+      { transform: 'translate3d(175px,-85px,0) rotate(14deg) scale(.9)', offset: .65 },
+      { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' }
+    ], 3200);
+  }
+
   function playDonut() {
     const donut = createEffect('gift-donut', '🍩', 95, 850);
     const fly = donut.animate([
@@ -113,7 +137,9 @@ import { CharacterStateMachine } from './character-state-machine.js';
     const label = document.getElementById('centralAction');
     if (label) label.textContent = action === 'rocket'
       ? '🚀 Bị tên lửa đánh bật khỏi lư hương!'
-      : '🍩 Bị chiếc bánh donut dụ chạy khỏi lư hương!';
+      : action === 'dragon'
+        ? '🐉 Long khí cuộn tới, thí chủ bị đẩy lùi!'
+        : '🍩 Bị chiếc bánh donut dụ chạy khỏi lư hương!';
   }
 
   function startCharacterTimer(event) {
@@ -143,6 +169,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
     const token = ++effectToken;
     showActionLabel(action);
     if (action === 'rocket') playRocket(token);
+    else if (action === 'dragon') playDragon();
     else if (action === 'donut') playDonut();
 
     effectTimer = window.setTimeout(() => {
