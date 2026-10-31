@@ -85,7 +85,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   function playRocket(token) {
     playGiftSound('rocket-launch');
-    const rocket = createEffect('gift-rocket', '🚀', 95, 1010);
+    const rocket = createEffect('gift-rocket', '', 95, 1010);
     const flight = rocket.animate([
       { transform: 'translate3d(0, 0, 0) rotate(-24deg) scale(.65)', opacity: 0 },
       { transform: 'translate3d(180px, -40px, 0) rotate(-10deg) scale(1)', opacity: 1, offset: .3 },
@@ -250,7 +250,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   function playDonut() {
     playGiftSound('donut-chime');
-    const donut = createEffect('gift-donut', '🍩', 95, 850);
+    const donut = createEffect('gift-donut', '', 95, 850);
     const fly = donut.animate([
       { transform: 'translate3d(0,0,0) rotate(0deg) scale(.55)', opacity: 0 },
       { transform: 'translate3d(330px,-55px,0) rotate(-130deg) scale(1.15)', opacity: 1, offset: .38 },
