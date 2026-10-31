@@ -465,6 +465,38 @@
   }
 
   // 7. Xử lý hiệu ứng khi có Nghi Thức mới
+
+  function playFortuneSequence(ev) {
+    audio.playFortuneShake();
+    updateCentralWorshipper(
+      ev.user,
+      ev.avatar,
+      '🎋 Đang xin xăm...',
+      `Thí chủ ${ev.user} đang thành tâm xin quẻ...`,
+      false
+    );
+    audio.enqueueTts(ev.ttsText || '', {
+      voice: ev.ttsVoice || 'maichi',
+      onStart: () => {
+        audio.playIncenseChime();
+        showFortuneModal(ev.user, ev.fortune);
+        updateCentralWorshipper(
+          ev.user,
+          ev.avatar,
+          `🎋 Quẻ số ${ev.fortune?.number} (${ev.fortune?.rank})`,
+          ev.fortune?.meaning || '',
+          true
+        );
+      },
+      onEnd: () => {
+        clearTimeout(fortuneTimer);
+        fortuneTimer = setTimeout(() => {
+          document.getElementById('fortuneModal')?.classList.remove('visible');
+        }, 1800);
+      }
+    });
+  }
+
   let fortuneTimer = null;
   let grandTimer = null;
 
@@ -505,7 +537,9 @@
         pulseHallBowing();
         particles.spawnBellWave(540, 510, 4);
         particles.spawnFloatingMerit(`+${ev.merit} Công Đức`, 190, 935, '#fff3b0');
-        updateCentralWorshipper(ev.user, ev.avatar, `🔔 Thỉnh Đại Hồng Chung (+${ev.merit} CĐ)`, ev.wish);
+        if (giftActionResult.allowWalker) {
+          updateCentralWorshipper(ev.user, ev.avatar, `🔔 Thỉnh Đại Hồng Chung (+${ev.merit} CĐ)`, ev.wish);
+        }
         break;
       }
 
@@ -543,35 +577,7 @@
       }
 
       case 'drawFortune': {
-        audio.playFortuneShake();
-        updateCentralWorshipper(
-          ev.user,
-          ev.avatar,
-          `🎋 Đang xin xăm...`,
-          `Thí chủ ${ev.user} đang thành tâm xin quẻ...`,
-          false
-        );
-        // Chỉ hiển thị tờ Quẻ Xăm đúng thời điểm giọng đọc bắt đầu vang lên!
-        audio.enqueueTts(ev.ttsText || '', {
-          voice: ev.ttsVoice || 'maichi',
-          onStart: () => {
-            audio.playIncenseChime();
-            showFortuneModal(ev.user, ev.fortune);
-            updateCentralWorshipper(
-              ev.user,
-              ev.avatar,
-              `🎋 Quẻ số ${ev.fortune?.number} (${ev.fortune?.rank})`,
-              ev.fortune?.meaning || '',
-              true
-            );
-          },
-          onEnd: () => {
-            clearTimeout(fortuneTimer);
-            fortuneTimer = setTimeout(() => {
-              document.getElementById('fortuneModal')?.classList.remove('visible');
-            }, 1800);
-          }
-        });
+        if (giftActionResult.allowWalker) playFortuneSequence(ev);
         break;
       }
     }
@@ -583,6 +589,14 @@
   window.addEventListener('temple:character-start', (event) => {
     const ev = event.detail;
     if (!ev) return;
+    if (ev.type === 'ringBell') {
+      updateCentralWorshipper(ev.user, ev.avatar, `🔔 Thỉnh Đại Hồng Chung (+${ev.merit} CĐ)`, ev.wish);
+      return;
+    }
+    if (ev.type === 'drawFortune') {
+      playFortuneSequence(ev);
+      return;
+    }
     const labels = {
       burnIncense: `🔥 Dâng ${ev.count} nén hương (+${ev.merit} CĐ)`,
       sendPrayer: `🏮 Cầu phúc (+${ev.merit} CĐ)`,
