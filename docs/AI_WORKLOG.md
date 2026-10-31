@@ -150,3 +150,4 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Removed the synthetic `'rose'` fallback from TikTok `giftId` extraction. The connector's top-level `giftId` or nested `gift.id` is preserved when present; when neither exists, the payload now carries an empty string instead of a fabricated identifier.
 - This is a data-integrity correction only; it does not change gift-name matching, coin/merit calculation, or visual priority behavior.
 - Real TikTok LIVE payload verification is still required before assigning production gift IDs or broadening display-name aliases.
+- Added a structured `[TikTok Gift Payload]` server log with the received gift ID (or `null` when absent), raw display name, diamond count, combo delta and calculated total coins. Use these observed LIVE values to verify Rocket/Dragon/Donut aliases before any production mapping; do not share session cookies or credentials when providing logs.
