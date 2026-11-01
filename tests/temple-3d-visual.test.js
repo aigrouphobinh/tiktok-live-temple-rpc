@@ -344,6 +344,20 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const statue = new THREE.Group()');
   });
 
+  it('tries the selected Kenny Hsieh model before the bundled CC0 gilt-bronze fallback', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    const start = scene.indexOf('async function upgradeBuddhaFromGLB()');
+    const end = scene.indexOf('function addEffect', start);
+    const loader = scene.slice(start, end);
+    const selectedIndex = loader.indexOf("loadGLTFAsset('/assets/models/buddha-selected.glb'");
+    const fallbackIndex = loader.indexOf("loadGLTFAsset('/assets/models/buddha-cc0-fallback.glb'");
+    expect(selectedIndex).toBeGreaterThanOrEqual(0);
+    expect(fallbackIndex).toBeGreaterThan(selectedIndex);
+    expect(loader).toContain('Selected Kenny Hsieh Buddha unavailable; trying the CC0 gilt-bronze scan');
+    expect(loader).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
+    expect(loader).toContain('statue.add(asset.root)');
+  });
+
   it('normalizes bundled GLB assets and keeps GLTFLoader lazy-loaded', () => {
     const loader = readFileSync(new URL('../public/js/three-model-loader.js', import.meta.url), 'utf8');
     expect(loader).toContain("url.startsWith('/assets/models/')");
