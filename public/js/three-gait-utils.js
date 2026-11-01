@@ -7,7 +7,9 @@ export function getFootPlantingPose(phase) {
       step: -1 + 2 * (progress / stance),
       kneeFlex: 0.035,
       footLift: 0,
-      swingProgress: 0
+      swingProgress: 0,
+      stanceProgress: progress / stance,
+      isStance: true
     };
   }
   const swingProgress = (progress - stance) / (1 - stance);
@@ -16,7 +18,9 @@ export function getFootPlantingPose(phase) {
     step: 1 - 2 * eased,
     kneeFlex: Math.sin(Math.PI * swingProgress) * 0.72,
     footLift: Math.sin(Math.PI * swingProgress) * 0.13,
-    swingProgress
+    swingProgress,
+    stanceProgress: 0,
+    isStance: false
   };
 }
 
@@ -78,5 +82,51 @@ export function solveTwoBoneIK({ root, target, pole, upperLength, lowerLength })
     requestedTarget: [...target],
     distance,
     reachable: Math.abs(distance - rawDistance) < 1e-7
+  };
+}
+
+/**
+ * Produce a world-space foot target and immutable stance-lock state.
+ * hip, strideDirection and targets use [x, y, z] world coordinates.
+ */
+export function getFootPlantingWorldTarget({
+  phase, hip, strideDirection, strideLength, groundY, lockState = null
+}) {
+  const validVector = (value) => Array.isArray(value) && value.length === 3
+    && value.every(Number.isFinite);
+  if (!Number.isFinite(phase) || !validVector(hip) || !validVector(strideDirection)
+    || !Number.isFinite(strideLength) || strideLength < 0 || !Number.isFinite(groundY)) return null;
+
+  const horizontal = [strideDirection[0], 0, strideDirection[2]];
+  const magnitude = Math.hypot(horizontal[0], horizontal[2]);
+  if (magnitude <= 1e-8) return null;
+  const direction = [horizontal[0] / magnitude, 0, horizontal[2] / magnitude];
+  const pose = getFootPlantingPose(phase);
+  const offset = pose.step * strideLength * 0.5;
+  const swingTarget = [
+    hip[0] + direction[0] * offset,
+    groundY + pose.footLift,
+    hip[2] + direction[2] * offset
+  ];
+
+  if (pose.isStance) {
+    const canKeepLock = lockState?.wasStance === true
+      && validVector(lockState.lockedTarget);
+    const lockedTarget = canKeepLock ? [...lockState.lockedTarget] : [
+      swingTarget[0], groundY, swingTarget[2]
+    ];
+    return {
+      target: lockedTarget,
+      planted: true,
+      pose,
+      lockState: { wasStance: true, lockedTarget }
+    };
+  }
+
+  return {
+    target: swingTarget,
+    planted: false,
+    pose,
+    lockState: { wasStance: false, lockedTarget: null }
   };
 }
