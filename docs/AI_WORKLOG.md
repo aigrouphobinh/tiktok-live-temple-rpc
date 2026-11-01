@@ -617,3 +617,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Reused the existing statueLine helper and statue materials; the pose and hand silhouettes remain unchanged.
 - Added a source regression test for the finger and thumb details.
 - Local browser inspection is still required to confirm the fine lines remain legible at the fixed camera distance.
+
+
+
+### 2026-11-01 — Refine the Buddha facial expression
+- Added fine lower-eyelid lines, subtle cheek transitions and a restrained lower-lip crease using the existing statueLine helper and stone materials.
+- Preserved the existing eye, brow, nose and mouth placement; no camera, lighting or animation changes.
+- Added source regression coverage for the new facial contours.
+- Browser/render review remains necessary to judge visibility and proportions at the fixed camera distance.
