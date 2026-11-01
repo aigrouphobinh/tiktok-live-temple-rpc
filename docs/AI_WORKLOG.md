@@ -1,3 +1,9 @@
+### 2026-11-01 — Validate GLB leg-chain hierarchy before IK
+- Hardened the Three.js IK adapter so the lower-leg bone must descend from the upper-leg bone and the foot/ankle bone must descend from the lower-leg bone. Name matches alone can no longer make unrelated joints look like a valid chain.
+- Added load-time diagnostics for each mapped GLB leg: ordered hierarchy validity, resolved bone names, and measured world-space upper/lower segment lengths after ancestor transforms are updated.
+- Added regression coverage for unrelated bone rejection and scene-level leg-chain diagnostics.
+- Diagnostics only; live GLB IK remains disabled until the selected model's actual rest pose, bend direction, and bone axes are visually verified.
+
 ### 2026-11-01 — Add Three.js bone-chain IK application
 - Added a Three.js adapter that measures upper/lower segment lengths from live world-space joint positions, solves the two-bone chain, then rotates the upper and lower bones toward the solved knee and ankle targets.
 - Bone aiming uses world-space direction deltas converted back through each parent world quaternion, preserving the rig's existing twist and parent transforms rather than assuming a particular local X/Y/Z bone axis.
