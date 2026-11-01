@@ -1714,21 +1714,27 @@ async function boot() {
   function onTempleRitual(event) { handleRitual(event.detail); }
   // A gift can arrive while the altar is empty; listen to the effect lifecycle,
   // not the character-interruption signal, so every started gift renders once.
+  function applyGiftReactionProfile(profile) {
+    const resolved = profile || { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };
+    const reactionUntil = performance.now() + resolved.durationMs;
+    for (const avatar of allHumanAvatars) {
+      avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);
+      if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;
+    }
+  }
   function onTempleGiftAction(event) {
     const action = event.detail?.action;
     if (!['rocket', 'dragon', 'donut', 'rose'].includes(action)) return;
     playWorldGiftAction(action);
-    // Acknowledge the gift with a small shared glance and appreciative head tilt.
-    // Repeated gifts extend the response instead of stacking extra animation state.
-    const profile = event.detail?.reactionProfile || { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };
-    const reactionUntil = performance.now() + profile.durationMs;
-    for (const avatar of allHumanAvatars) {
-      avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);
-      if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;
-    }
+    applyGiftReactionProfile(event.detail?.reactionProfile);
+  }
+  function onTempleGiftReaction(event) {
+    // Combo frames update gratitude intensity without replaying the 3D gift effect.
+    applyGiftReactionProfile(event.detail?.reactionProfile);
   }
   window.addEventListener('temple:ritual', onTempleRitual);
   window.addEventListener('temple:gift-action', onTempleGiftAction);
+  window.addEventListener('temple:gift-reaction', onTempleGiftReaction);
 
   function frame(now) {
     if (disposed || document.hidden) { raf = 0; return; }
