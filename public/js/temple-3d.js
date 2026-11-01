@@ -1,3 +1,4 @@
+import { disposeThreeObjectTree } from './three-resource-utils.js';
 /**
  * Optional Three.js ritual overlay.
  * Enable with ?3d=1. The existing DOM/Canvas scene remains the source of truth.
@@ -72,13 +73,7 @@ async function boot() {
   }
 
   function disposeObject(object) {
-    object.traverse?.((node) => {
-      if (node.geometry) node.geometry.dispose();
-      if (node.material) {
-        const materials = Array.isArray(node.material) ? node.material : [node.material];
-        materials.forEach((material) => material.dispose());
-      }
-    });
+    disposeThreeObjectTree(object);
   }
 
   function disposeActiveEffects() {
