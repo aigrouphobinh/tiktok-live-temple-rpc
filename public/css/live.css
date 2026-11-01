@@ -2288,3 +2288,194 @@ body.obs-mode .stage-wrapper {
     font-size: 8px;
   }
 }
+
+
+/* 3D RITUAL CONSOLE — distinct ceremonial modules, 3D mode only. */
+.stage-9x16.temple-3d-mode .bottom-hud-bar {
+  height: 232px;
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  gap: 13px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.stage-9x16.temple-3d-mode .hud-left-col,
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(239, 196, 119, .58);
+  border-radius: 17px 5px 17px 5px;
+  background:
+    linear-gradient(130deg, rgba(184, 126, 55, .16), transparent 42%),
+    linear-gradient(160deg, rgba(25, 19, 15, .97), rgba(7, 8, 9, .97));
+  box-shadow: 0 18px 42px rgba(0,0,0,.48), inset 0 1px rgba(255,245,218,.16), inset 0 -2px rgba(177,119,48,.16);
+}
+.stage-9x16.temple-3d-mode .hud-left-col::before,
+.stage-9x16.temple-3d-mode .hud-right-leaderboard::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 5px;
+  border: 1px solid rgba(255, 224, 166, .13);
+  border-radius: 11px 3px 11px 3px;
+  pointer-events: none;
+}
+.stage-9x16.temple-3d-mode .hud-left-col {
+  padding: 12px;
+  gap: 10px;
+}
+.stage-9x16.temple-3d-mode .hud-panel-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+  padding: 0 4px 7px;
+  border-bottom: 1px solid rgba(231, 190, 119, .24);
+  color: #eacb91;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.stage-9x16.temple-3d-mode .hud-panel-kicker span:last-child {
+  color: rgba(244, 222, 184, .55);
+  font-size: 8px;
+  letter-spacing: 1.2px;
+}
+.stage-9x16.temple-3d-mode .hud-active-notice {
+  min-height: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 6px;
+  border-left: 3px solid #d9a84e;
+  background: linear-gradient(90deg, rgba(144, 91, 39, .25), rgba(255,240,210,.025));
+  font-size: 13px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-cards { gap: 9px; }
+.stage-9x16.temple-3d-mode .hud-gift-card {
+  position: relative;
+  justify-content: center;
+  border: 1px solid rgba(226, 190, 126, .34);
+  border-radius: 11px 4px 11px 4px;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255,211,132,.12), transparent 58%),
+    linear-gradient(180deg, rgba(55,37,24,.96), rgba(12,11,10,.98));
+  box-shadow: inset 0 1px rgba(255,244,218,.13), inset 0 -3px rgba(0,0,0,.3), 0 8px 18px rgba(0,0,0,.25);
+  cursor: pointer;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 9px;
+  width: 19px;
+  height: 19px;
+  border: 1px solid rgba(239, 202, 137, .42);
+  border-radius: 50%;
+  color: #f3d49a;
+  font-size: 9px;
+  line-height: 17px;
+  text-align: center;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card:nth-child(1)::before { content: '01'; }
+.stage-9x16.temple-3d-mode .hud-gift-card:nth-child(2)::before { content: '02'; }
+.stage-9x16.temple-3d-mode .hud-gift-card:nth-child(3)::before { content: '03'; }
+.stage-9x16.temple-3d-mode .hud-gift-card:hover,
+.stage-9x16.temple-3d-mode .hud-gift-card:focus-visible {
+  transform: translateY(-4px);
+  outline: none;
+  border-color: rgba(255, 226, 166, .9);
+  box-shadow: inset 0 1px rgba(255,244,218,.2), 0 12px 25px rgba(0,0,0,.35), 0 0 20px rgba(218,166,83,.16);
+}
+.stage-9x16.temple-3d-mode .gift-emoji {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border: 1px solid rgba(241, 203, 139, .22);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(237,184,96,.16), rgba(20,14,10,.12) 70%);
+  font-size: 35px;
+}
+.stage-9x16.temple-3d-mode .gift-title {
+  font-size: 14px;
+  letter-spacing: .5px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  padding: 15px 16px;
+}
+.stage-9x16.temple-3d-mode .hud-lb-header {
+  display: flex;
+  align-items: center;
+  min-height: 27px;
+  margin-bottom: 10px;
+  padding: 0 0 9px 28px;
+  border-bottom: 1px solid rgba(231,190,119,.3);
+  color: #ffdfa0;
+  font-size: 13px;
+  letter-spacing: 1.8px;
+}
+.stage-9x16.temple-3d-mode .hud-lb-header::before {
+  content: '✦';
+  position: absolute;
+  left: 16px;
+  color: #e7b85f;
+  font-size: 17px;
+}
+.stage-9x16.temple-3d-mode .hud-lb-list { gap: 7px; }
+.stage-9x16.temple-3d-mode .leader-item {
+  min-height: 28px;
+  padding: 2px 3px;
+  border-bottom: 1px solid rgba(255,226,177,.07);
+}
+.stage-9x16.temple-3d-mode .leader-item:first-child .leader-rank {
+  border-color: rgba(255,220,132,.8);
+  background: linear-gradient(145deg, rgba(236,185,83,.34), rgba(128,78,25,.2));
+  color: #ffe7a7;
+  box-shadow: 0 0 12px rgba(229,174,75,.14);
+}
+.stage-9x16.temple-3d-mode .leader-rank {
+  border-radius: 6px 2px 6px 2px;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .bottom-hud-bar {
+    height: 196px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    gap: 6px;
+  }
+  .stage-9x16.temple-3d-mode .hud-left-col { padding: 7px; gap: 6px; }
+  .stage-9x16.temple-3d-mode .hud-panel-kicker {
+    min-height: 18px;
+    padding-bottom: 4px;
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .stage-9x16.temple-3d-mode .hud-panel-kicker span:last-child { font-size: 6px; }
+  .stage-9x16.temple-3d-mode .hud-active-notice {
+    min-height: 31px;
+    height: 31px;
+    flex-basis: 31px;
+    font-size: 9px;
+  }
+  .stage-9x16.temple-3d-mode .hud-gift-card::before {
+    top: 4px; left: 5px; width: 15px; height: 15px;
+    font-size: 7px; line-height: 13px;
+  }
+  .stage-9x16.temple-3d-mode .gift-emoji { width: 38px; height: 38px; font-size: 23px; }
+  .stage-9x16.temple-3d-mode .gift-title { font-size: 9px; }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard { padding: 8px; }
+  .stage-9x16.temple-3d-mode .hud-lb-header { font-size: 9px; }
+  .stage-9x16.temple-3d-mode .leader-item { min-height: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-9x16.temple-3d-mode .hud-gift-card { transition: none; }
+}
