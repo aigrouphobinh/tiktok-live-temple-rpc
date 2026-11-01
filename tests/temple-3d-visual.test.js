@@ -22,6 +22,19 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('for (const avatar of allHumanAvatars) avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
   });
 
+  it('raises both hands into a restrained thank-you gesture during gift reactions', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('function applyGiftThankYouGesture(avatar, time)');
+    expect(scene).toContain('const thankYouLift = blend * (0.92 + Math.sin(time * 0.007) * 0.025);');
+    expect(scene).toContain('avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;');
+    expect(scene).toContain('avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift;');
+    expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18 - blend * 0.06;');
+    expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.armOpen * 0.18 + blend * 0.06;');
+    expect(scene).toContain('applyGiftThankYouGesture(avatar, time);');
+    expect(scene).toContain('applyGiftThankYouGesture(mainHuman, now);');
+    expect(scene).toContain('if (avatar.gltfRoot) return;');
+  });
+
   it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, smile,');
