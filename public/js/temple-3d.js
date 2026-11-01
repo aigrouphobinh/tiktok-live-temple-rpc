@@ -2021,11 +2021,29 @@ async function boot() {
     let assetSource = 'procedural';
     try {
       const { loadGLTFAsset } = await import('./three-model-loader.js');
+      const customUrl = '/assets/models/buddha.glb';
       const selectedUrl = '/assets/models/buddha-selected.glb';
       const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';
 
-      // The user-selected Kenny Hsieh model has priority when its local file exists.
-      if (await isLocalModelAvailable(selectedUrl)) {
+      // A locally added buddha.glb takes priority over bundled demonstration assets.
+      // Keep the procedural statue visible while the external file is being validated.
+      if (await isLocalModelAvailable(customUrl)) {
+        try {
+          asset = await loadGLTFAsset(customUrl, {
+            targetHeight: 5.88,
+            centerXZ: true
+          });
+          assetSource = 'user-custom';
+          console.info('[Temple3D] User-provided buddha.glb loaded; procedural fallback replaced.');
+        } catch (customError) {
+          console.warn('[Temple3D] User-provided buddha.glb is invalid; trying bundled Buddha assets:', customError);
+        }
+      } else {
+        console.info('[Temple3D] No user-provided buddha.glb found; trying bundled Buddha assets.');
+      }
+
+      // Preserve compatibility with the previously bundled Kenny Hsieh asset.
+      if (!asset && await isLocalModelAvailable(selectedUrl)) {
         try {
           asset = await loadGLTFAsset(selectedUrl, {
             targetHeight: 5.88,
@@ -2036,8 +2054,6 @@ async function boot() {
         } catch (selectedError) {
           console.warn('[Temple3D] Selected Kenny Hsieh Buddha is invalid; trying the CC0 gilt-bronze scan:', selectedError);
         }
-      } else {
-        console.info('[Temple3D] Selected Kenny Hsieh GLB is not vendored yet; skipping its load request.');
       }
 
       if (!asset) {
