@@ -789,3 +789,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a one-time rig summary to the existing model-load diagnostic so the actual resolved bone names can be checked when the selected GLB is deployed; no extra per-frame logging.
 - Added regression assertions for candidate scoring and rig diagnostics.
 - CI and source tests can validate the matching policy, but the deployed GLB still needs a browser run to confirm the real resolved skeleton.
+
+
+### 2026-11-01 — Add GLB animation inventory diagnostics
+- Extended the existing one-time model-load diagnostic to list every imported animation clip with its name, duration, track count and a bounded sample of track targets.
+- Kept runtime overhead low: inventory is generated only after the selected devotee GLB loads, not during the render loop.
+- Added source regression checks for the diagnostic fields.
+- This makes unmatched animation naming inspectable when the real model is deployed; no assumptions are made about clip names before inspecting that asset.
