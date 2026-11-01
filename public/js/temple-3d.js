@@ -500,6 +500,72 @@ async function boot() {
   makeRitualStation(7.1, -0.8, 'woodfish');
   makeRitualStation(7.1, -5.0, 'fortune');
 
+  // Raycast the visible 3D props so the world itself becomes the ritual menu.
+  // The existing ritual event bus remains the single source of action behavior.
+  const ritualActionByKind = {
+    bell: 'ringBell',
+    woodfish: 'strikeWoodenFish',
+    fortune: 'drawFortune'
+  };
+  const ritualHitMeshes = [];
+  for (const station of ritualStations) {
+    const kind = station === ritualStations[0] ? 'bell'
+      : station === ritualStations[1] ? 'woodfish' : 'fortune';
+    station.userData.ritualKind = kind;
+    station.traverse((object) => {
+      if (!object.isMesh) return;
+      object.userData.ritualKind = kind;
+      ritualHitMeshes.push(object);
+    });
+  }
+  const ritualRaycaster = new THREE.Raycaster();
+  const ritualPointer = new THREE.Vector2();
+  let hoveredRitualStation = null;
+
+  function ritualStationAtPointer(event) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    ritualPointer.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    ritualRaycaster.setFromCamera(ritualPointer, camera);
+    const hit = ritualRaycaster.intersectObjects(ritualHitMeshes, false)[0];
+    return hit?.object?.userData?.ritualKind
+      ? ritualStations.find((station) => station.userData.ritualKind === hit.object.userData.ritualKind)
+      : null;
+  }
+
+  function setHoveredRitualStation(station) {
+    if (hoveredRitualStation === station) return;
+    if (hoveredRitualStation) hoveredRitualStation.scale.setScalar(1);
+    hoveredRitualStation = station;
+    if (hoveredRitualStation) hoveredRitualStation.scale.setScalar(1.045);
+    canvas.style.cursor = hoveredRitualStation ? 'pointer' : '';
+  }
+
+  function onWorldPointerMove(event) {
+    if (!event.isPrimary) return;
+    setHoveredRitualStation(ritualStationAtPointer(event));
+  }
+
+  function onWorldPointerUp(event) {
+    if (!event.isPrimary || event.button !== 0) return;
+    const station = ritualStationAtPointer(event);
+    if (!station) return;
+    const action = ritualActionByKind[station.userData.ritualKind];
+    if (action) {
+      window.dispatchEvent(new CustomEvent('temple:ritual', { detail: { type: action } }));
+    }
+  }
+
+  function onWorldPointerLeave() {
+    setHoveredRitualStation(null);
+  }
+  canvas.addEventListener('pointermove', onWorldPointerMove, { passive: true });
+  canvas.addEventListener('pointerup', onWorldPointerUp);
+  canvas.addEventListener('pointerleave', onWorldPointerLeave);
+
   // Stylized human devotees replace the temporary animal crowd.
   // The avatar is deliberately built from lightweight Three.js geometry so it
   // is local, deterministic and does not depend on a third-party model host.
@@ -868,6 +934,10 @@ async function boot() {
     resourcesDisposed = true;
     window.removeEventListener('temple:ritual', onTempleRitual);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
+    canvas.removeEventListener('pointermove', onWorldPointerMove);
+    canvas.removeEventListener('pointerup', onWorldPointerUp);
+    canvas.removeEventListener('pointerleave', onWorldPointerLeave);
+    canvas.style.cursor = '';
     document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('resize', onWindowResize);
     for (const effect of effects.splice(0)) {
