@@ -30,6 +30,7 @@ const templeEnvironment = createTempleEnvironment({
     // columnZs: [-10, -4, 2, 8, 13],
     // galleryScreenXs: [-9.55, 9.55],
     // galleryBayZs: [-6.8, -0.8, 5.2, 11.2],
+    gallerySurfaceY: 0.0825, // top surface of the existing raised side gallery
     enableColumnBases: true,
     enableCapitalBrackets: true,
     enableGalleryScreens: true,
@@ -57,7 +58,7 @@ The returned `group` is attached to the supplied scene. The module never owns or
 
 ## Placement and visual safety
 
-Default coordinates follow the existing main-hall column line at X = ±7.2 and Z = -10, -4, 2, 8, 13. Gallery screens sit near the outer gallery edge (X = ±9.55), outside the central aisle and altar sightline. Floor inlays are restricted to the peripheral gallery zone (X = ±8.15).
+Default coordinates follow the existing main-hall column line at X = ±7.2 and Z = -10, -4, 2, 8, 13. Gallery screens sit near the outer gallery edge (X = ±9.55), outside the central aisle and altar sightline. Floor inlays are restricted to the peripheral gallery zone (X = ±8.15) and sit flush with the existing raised gallery deck (default surface Y = 0.0825).
 
 The module adds no objects in front of the Buddha or altar and does not add a roof or overhead slab. If the Coordinator changes the temple's world scale or column grid, pass matching positions through `config`.
 
