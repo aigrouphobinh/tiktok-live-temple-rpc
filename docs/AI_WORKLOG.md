@@ -641,3 +641,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Tuned roughness to keep the statue matte and reduce the smooth, plastic-like highlight response.
 - No external texture asset, extra light, or per-frame allocation was introduced; texture generation happens once during scene setup.
 - Added source regression coverage. Browser render inspection is still required to confirm grain scale and visual subtlety at runtime.
+
+
+
+### 2026-11-01 — Blend the Buddha neckline into the shoulders
+- Added a shallow curved neckline and a fine raised collar ridge across the upper chest to soften the neck/shoulder transition.
+- Both curves use existing statue stone materials and do not cast shadows, preserving the current lighting and fixed silhouette.
+- Added source regression coverage for the two static curves.
+- Browser render review remains necessary to confirm the contour reads as carved stone rather than a separate collar.
