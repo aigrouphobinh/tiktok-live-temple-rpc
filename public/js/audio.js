@@ -1,6 +1,6 @@
 /**
  * TempleAudioEngine
- * - Nhạc nền: Phát trực tiếp file "Nam Mô A Di Đà Phật.m4a" (/assets/bg_chant.m4a) lặp vô tận êm dịu,
+ * - Nhạc nền: Phát ambience tổng hợp lặp vô tận êm dịu (có thể thay bằng bản thu hợp lệ),
  *   tự động hạ nhỏ âm lượng (ducking) khi có giọng đọc lời khấn để không bị đè tiếng hay rè/xước.
  * - Pháp khí: Tổng hợp tiếng Mõ gỗ, Đại Hồng Chung, Ống xăm nhẹ nhàng, không vượt ngưỡng 0dBFS.
  * - Giọng đọc: Hàng đợi ZeroTTS phát tuần tự mượt mà.
