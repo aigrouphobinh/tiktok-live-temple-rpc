@@ -131,6 +131,33 @@ describe('CharacterStateMachine', () => {
     expect(machine.finishEffect().nextEffect.event.sequence).toBe('donut');
   });
 
+  it('supports a zero-capacity queue without throwing or retaining waiting work', () => {
+    const machine = new CharacterStateMachine({ maxQueue: 0 });
+    machine.request(devotee('A'));
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+    expect(machine.request(devotee('B'))).toMatchObject({
+      accepted: false,
+      reason: 'queue_full'
+    });
+    expect(machine.interrupt('donut', { giftName: 'Donut' })).toMatchObject({
+      interrupted: false,
+      reason: 'effect_queue_full'
+    });
+    expect(machine.snapshot()).toMatchObject({
+      active: null,
+      queueLength: 0,
+      effect: 'rocket',
+      queuedEffects: []
+    });
+  });
+
+  it('falls back to the default queue limit when the configured limit is invalid', () => {
+    const machine = new CharacterStateMachine({ maxQueue: -1 });
+    machine.request(devotee('A'));
+    expect(machine.request(devotee('B'))).toMatchObject({ accepted: true, queued: true });
+    expect(machine.snapshot().queueLength).toBe(1);
+  });
+
   it('does not mutate character ownership for an unknown gift action', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
