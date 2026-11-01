@@ -1,3 +1,9 @@
+### 2026-11-01 — Add world-space foot contact target locking
+- Added a pure world-space foot target helper that captures the foot position at stance entry, keeps that target fixed while the hip moves, and releases it during swing.
+- Swing targets follow the moving hip along a normalized horizontal stride direction and include the existing gait foot-lift arc; stance targets remain on the supplied ground plane.
+- Added tests for planted-target stability, swing release, next-cycle recapture, and invalid directions/coordinates.
+- The target/IK utilities are groundwork and are not yet applied to the live Three.js rig. Bone transforms still require a real GLB hierarchy with verified joint lengths and local axes before integration.
+
 ### 2026-11-01 — Add a reusable world-space two-bone IK solver
 - Added a pure law-of-cosines solver that returns the intermediate knee/elbow point for a root, target, pole direction and two segment lengths.
 - The solver clamps unreachable targets, handles zero-distance and collinear-pole degeneracies, validates vector/length inputs and reports whether the requested target was reachable.
