@@ -26,9 +26,10 @@ The character GLB is expected at `devotee-selected.glb`; the loader normalizes i
 The optional loader normalizes the statue to approximately 5.88 world units high,
 centers it on X/Z and grounds it at local Y=0. The statue wrapper remains at the
 existing altar transform. To preview the optional bundled model, open the 3D
-scene with both query parameters: `?3d=1&models=1`. The loader tries
-`buddha-selected.glb` first, then `buddha-cc0-fallback.glb`; the procedural
-statue remains active if neither file loads or `models=1` is omitted.
+scene with `?3d=1&buddha=1` to preview just the Buddha, or
+`?3d=1&models=1` to load both the Buddha and optional devotee rigs. The loader
+tries `buddha-selected.glb` first, then `buddha-cc0-fallback.glb`; the
+procedural statue remains active if neither file loads or both flags are omitted.
 
 ## Human devotee
 
