@@ -2025,8 +2025,7 @@ async function boot() {
         }
         material.needsUpdate = true;
       }
-      node.castShadow = true;
-      node.receiveShadow = true;
+      // Preserve the loader's triangle-budget shadow policy for scanned models.
     });
   }
 
