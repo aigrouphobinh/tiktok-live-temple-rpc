@@ -870,7 +870,10 @@ async function connectTikTokLive(usernameOrUrl) {
   });
   tiktokConn = connection;
 
+  const isCurrentConnection = () => tiktokConn === connection;
+
   connection.on(ControlEvent.CONNECTED, (roomState) => {
+    if (!isCurrentConnection()) return;
     state.tiktok.connected = true;
     state.tiktok.connecting = false;
     state.tiktok.roomId = roomState?.roomId || tiktokConn?.roomId || null;
@@ -880,7 +883,7 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   connection.on(ControlEvent.DISCONNECTED, () => {
-    if (tiktokConn !== connection) return;
+    if (!isCurrentConnection()) return;
     giftComboTracker.clear();
     state.tiktok.connected = false;
     state.tiktok.connecting = false;
@@ -889,12 +892,14 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   connection.on(ControlEvent.ERROR, (err) => {
+    if (!isCurrentConnection()) return;
     state.tiktok.lastError = err?.message || String(err);
     console.warn('[TikTok Live Warning]', state.tiktok.lastError);
     broadcastNotification('temple.state', getPublicState());
   });
 
   connection.on(WebcastEvent.ROOM_USER, (data) => {
+    if (!isCurrentConnection()) return;
     const viewerCount = Number(data?.total ?? data?.viewerCount ?? 0);
     if (viewerCount > 0) {
       state.tiktok.viewerCount = viewerCount;
@@ -903,12 +908,14 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   connection.on(WebcastEvent.MEMBER, (data) => {
+    if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     recordDevotee(user, uniqueId, avatar, 1, 0, 0, 'Đã vào Chánh Điện lễ Phật');
     broadcastNotification('temple.state', getPublicState());
   });
 
   connection.on(WebcastEvent.CHAT, (data) => {
+    if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const commentText = data?.content || data?.comment || '';
     console.log(`[TikTok Chat] ${user}: ${commentText}`);
@@ -916,12 +923,14 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   connection.on(WebcastEvent.LIKE, (data) => {
+    if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const likeCount = Math.min(15, Math.max(1, Number(data?.count ?? data?.likeCount ?? 1)));
     Rituals.strikeWoodenFish({ user, uniqueId, avatar, count: likeCount });
   });
 
   const handleSocialEvent = (data) => {
+    if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     Rituals.ringBell({
       user,
@@ -935,6 +944,7 @@ async function connectTikTokLive(usernameOrUrl) {
   connection.on(WebcastEvent.FOLLOW, handleSocialEvent);
   connection.on(WebcastEvent.SHARE, handleSocialEvent);
   connection.on(WebcastEvent.SOCIAL, (data) => {
+    if (!isCurrentConnection()) return;
     const action = String(data?.action || '');
     const disp = String(data?.common?.displayText?.displayType || data?.displayType || '').toLowerCase();
     if (action === '1' || action === '3' || disp.includes('follow') || disp.includes('share')) {
@@ -943,6 +953,7 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   connection.on(WebcastEvent.GIFT, (data) => {
+    if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const giftPayload = normalizeGiftPayload(data, uniqueId);
     const {
@@ -986,17 +997,22 @@ async function connectTikTokLive(usernameOrUrl) {
 
   try {
     const roomState = await connection.connect();
+    if (!isCurrentConnection()) return state.tiktok;
     state.tiktok.connected = true;
     state.tiktok.connecting = false;
     state.tiktok.roomId = roomState?.roomId || tiktokConn?.roomId || null;
     broadcastNotification('temple.state', getPublicState());
     return state.tiktok;
   } catch (err) {
-    state.tiktok.connected = false;
-    state.tiktok.connecting = false;
-    state.tiktok.lastError = err?.message || 'Không thể kết nối phòng Live (kiểm tra tài khoản đang phát Live chưa)';
-    broadcastNotification('temple.state', getPublicState());
-    throw new Error(state.tiktok.lastError);
+    const message = err?.message || 'Không thể kết nối phòng Live (kiểm tra tài khoản đang phát Live chưa)';
+    if (isCurrentConnection()) {
+      giftComboTracker.clear();
+      state.tiktok.connected = false;
+      state.tiktok.connecting = false;
+      state.tiktok.lastError = message;
+      broadcastNotification('temple.state', getPublicState());
+    }
+    throw new Error(message);
   }
 }
 
