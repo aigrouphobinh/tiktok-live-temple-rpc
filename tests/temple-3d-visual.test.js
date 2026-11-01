@@ -210,6 +210,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('rig.neck.rotation.x = rig.neckRest.x - amount * 0.12;');
   });
 
+  it('selects the strongest bone alias instead of relying on GLB traversal order', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const boneScores = {};');
+    expect(scene).toContain('const aliasIndex = aliases.findIndex((alias) => name === alias || name.endsWith(alias));');
+    expect(scene).toContain('const exact = name === aliases[aliasIndex];');
+    expect(scene).toContain('const score = (exact ? 20000 : 10000) - aliasIndex * 100 + aliases[aliasIndex].length;');
+    expect(scene).toContain("if (score > (boneScores[slot] || 0))");
+    expect(scene).toContain("'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})");
+  });
+
   it('recognizes more descriptive locomotion, rest and prostration clip names', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('/idle|stand|breath|resting/i');
