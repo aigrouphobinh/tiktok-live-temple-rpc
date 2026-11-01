@@ -1113,7 +1113,7 @@ async function boot() {
     if (!clip) {
       // Do not leave a previous walk/bow action running when this rig has no
       // clip for the requested state and no idle clip to fall back to.
-      avatar.gltfCurrentAction?.fadeOut(0.18);
+      avatar.gltfCurrentAction?.stopFading().fadeOut(0.18);
       avatar.gltfCurrentAction = null;
       avatar.gltfCurrentClip = null;
       avatar.gltfActionName = null;
