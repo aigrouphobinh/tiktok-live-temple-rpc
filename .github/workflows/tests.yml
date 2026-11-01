@@ -86,6 +86,9 @@ jobs:
           grep -Fq 'const pedestalPlaqueXs = [-1.35, -0.9, -0.45, 0, 0.45, 0.9, 1.35]' public/js/temple-3d.js &&
           grep -Fq 'Math.sqrt(1.94 * 1.94 - x * x)' public/js/temple-3d.js &&
           grep -Fq 'world.add(pedestalPlaques, pedestalGems)' public/js/temple-3d.js &&
+          grep -Fq 'const statueBaseBandPoints = []' public/js/temple-3d.js &&
+          grep -Fq 'const statueBaseHighlightPoints = []' public/js/temple-3d.js &&
+          grep -Fq 'statue.add(statueBaseBand, statueBaseHighlight)' public/js/temple-3d.js &&
           grep -Fq 'const lotusVeinGeometry = new THREE.TubeGeometry(lotusVeinCurve, 16, 0.009, 5, false)' public/js/temple-3d.js &&
           grep -Fq 'const petalVeins = new THREE.InstancedMesh(lotusVeinGeometry, mats.goldBright, count)' public/js/temple-3d.js &&
           grep -Fq 'ring.add(redPetals, goldPetals, petalVeins)' public/js/temple-3d.js &&
