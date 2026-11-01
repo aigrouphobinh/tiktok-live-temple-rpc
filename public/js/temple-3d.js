@@ -1220,12 +1220,20 @@ async function boot() {
           leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg', 'jbiplupperleg'],
           rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg', 'jbiprupperleg']
         };
+        const boneScores = {};
         model.traverse((node) => {
           if (!node.isBone) return;
           const name = normalizedBoneName(node.name);
           for (const [slot, aliases] of Object.entries(boneAliases)) {
-            if (!bones[slot] && aliases.some((alias) => name === alias || name.endsWith(alias))) {
+            const aliasIndex = aliases.findIndex((alias) => name === alias || name.endsWith(alias));
+            if (aliasIndex < 0) continue;
+            // Prefer exact, earlier and more specific aliases over broad suffix
+            // matches; traversal order must not decide which joint drives a pose.
+            const exact = name === aliases[aliasIndex];
+            const score = (exact ? 20000 : 10000) - aliasIndex * 100 + aliases[aliasIndex].length;
+            if (score > (boneScores[slot] || 0)) {
               bones[slot] = node;
+              boneScores[slot] = score;
             }
           }
         });
@@ -1247,7 +1255,10 @@ async function boot() {
         };
       }
       console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; clips:`,
-        Object.entries(gltfActions).filter(([, clip]) => clip).map(([name, clip]) => `${name}=${clip.name}`));
+        Object.entries(gltfActions).filter(([, clip]) => clip).map(([name, clip]) => `${name}=${clip.name}`),
+        'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})
+          .filter(([key, value]) => !key.endsWith('Rest') && value?.isBone)
+          .map(([key, value]) => [key, value.name])));
     } catch (error) {
       console.warn('[Temple3D] Optional devotee GLB unavailable; keeping procedural characters:', error);
     }
