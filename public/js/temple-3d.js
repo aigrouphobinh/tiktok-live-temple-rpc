@@ -1988,6 +1988,16 @@ async function boot() {
   const frameIntervals = [];
   const MIN_FRAME_SAMPLES_FOR_PERCENTILES = 30;
 
+  // A hidden tab pauses requestAnimationFrame. Start a fresh diagnostic window
+  // on visibility changes so the pause is not misreported as frame latency.
+  function resetFrameDiagnostics() {
+    if (!statsEnabled) return;
+    frameIntervals.length = 0;
+    lastRenderedFrameAt = 0;
+    frameWindowStartedAt = 0;
+    lastStatsAt = 0;
+  }
+
   // Probe optional same-origin GLBs before the model loader requests them.
   // A missing preferred asset is an expected fallback state.
   async function isLocalModelAvailable(url) {
@@ -2503,7 +2513,11 @@ async function boot() {
     disposeThreeSceneResources(scene);
     renderer.dispose();
   }
-  function onVisibilityChange() { if (document.hidden) stop(); else start(); }
+  function onVisibilityChange() {
+    if (document.hidden) stop();
+    resetFrameDiagnostics();
+    if (!document.hidden) start();
+  }
   function onWindowResize() {
     if (disposed) return;
     camera.aspect = 1080 / 1920; camera.updateProjectionMatrix();
