@@ -1,3 +1,9 @@
+### 2026-11-01 — Add a reusable world-space two-bone IK solver
+- Added a pure law-of-cosines solver that returns the intermediate knee/elbow point for a root, target, pole direction and two segment lengths.
+- The solver clamps unreachable targets, handles zero-distance and collinear-pole degeneracies, validates vector/length inputs and reports whether the requested target was reachable.
+- Added numerical tests for segment lengths, pole-side selection, maximum reach, degenerate inputs and invalid data.
+- This is tested mathematical groundwork only: it is not yet wired into the character rig. Runtime integration needs verified world-space joint positions, actual upper/lower bone lengths, local-axis conventions and a rigged GLB with matching lower-leg/foot joints; no model proportions are guessed.
+
 ### 2026-11-01 — Add articulated knee flex and foot lift to fallback gait
 - Split the procedural avatar legs into upper-leg, knee/lower-leg and foot pivots while preserving the existing leg silhouette and ground-level rest position.
 - Added a gait pose helper that keeps knees nearly straight and feet grounded during stance, then bends the knee and raises the foot through the swing arc.
