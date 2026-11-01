@@ -22,6 +22,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   const streakCoalescer = new GiftStreakCoalescer({ ttlMs: 5000, maxEntries: 200 });
   let activeTimer = 0;
   let phaseTimers = [];
+  // Generation tokens make already-queued callbacks harmless after ownership changes.
+  let ritualToken = 0;
   let effectTimer = 0;
   let cooldownTimer = 0;
   let delayedEffectTimers = [];
@@ -282,11 +284,19 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   function startCharacterTimer(event) {
     clearTimeout(activeTimer);
     phaseTimers.forEach(clearTimeout);
+    const token = ++ritualToken;
     phaseTimers = [
-      window.setTimeout(() => machine.transition('OFFERING'), 2100),
-      window.setTimeout(() => machine.transition('BOWING'), 2370)
+      window.setTimeout(() => {
+        if (token !== ritualToken) return;
+        machine.transition('OFFERING');
+      }, 2100),
+      window.setTimeout(() => {
+        if (token !== ritualToken) return;
+        machine.transition('BOWING');
+      }, 2370)
     ];
     activeTimer = window.setTimeout(() => {
+      if (token !== ritualToken) return;
       phaseTimers.forEach(clearTimeout);
       phaseTimers = [];
       const completedEvent = machine.snapshot().active;
@@ -300,6 +310,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   }
 
   function beginEffect(action) {
+    // Invalidate any ritual callback that may already be queued by the browser.
+    ritualToken++;
     clearTimeout(activeTimer);
     phaseTimers.forEach(clearTimeout);
     phaseTimers = [];
@@ -329,6 +341,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         return;
       }
       cooldownTimer = window.setTimeout(() => {
+        if (token !== effectToken) return;
         const next = machine.finishCooldown();
         if (next.started) {
           window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
