@@ -1271,6 +1271,36 @@ async function boot() {
           leftFootRest: bones.leftFoot?.rotation.clone(),
           rightFootRest: bones.rightFoot?.rotation.clone()
         };
+
+        // Report whether name-matched leg joints form usable ordered chains.
+        // This is diagnostic only: do not enable world-space IK until the
+        // selected asset's rest pose and bend axes have been visually checked.
+        const inspectLegChain = (upper, lower, foot) => {
+          const descendsFrom = (node, ancestor) => {
+            for (let parent = node?.parent; parent; parent = parent.parent) {
+              if (parent === ancestor) return true;
+            }
+            return false;
+          };
+          if (!upper?.isBone || !lower?.isBone || !foot?.isBone
+            || !descendsFrom(lower, upper) || !descendsFrom(foot, lower)) {
+            return { valid: false, upper: upper?.name || null, lower: lower?.name || null, foot: foot?.name || null };
+          }
+          model.updateMatrixWorld(true);
+          const upperPosition = upper.getWorldPosition(new THREE.Vector3());
+          const lowerPosition = lower.getWorldPosition(new THREE.Vector3());
+          const footPosition = foot.getWorldPosition(new THREE.Vector3());
+          return {
+            valid: true,
+            upper: upper.name,
+            lower: lower.name,
+            foot: foot.name,
+            upperLength: Number(upperPosition.distanceTo(lowerPosition).toFixed(4)),
+            lowerLength: Number(lowerPosition.distanceTo(footPosition).toFixed(4))
+          };
+        };
+        avatar.gltfRig.leftLegChain = inspectLegChain(bones.leftLeg, bones.leftKnee, bones.leftFoot);
+        avatar.gltfRig.rightLegChain = inspectLegChain(bones.rightLeg, bones.rightKnee, bones.rightFoot);
       }
       console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; mapped clips:`,
         Object.entries(gltfActions).filter(([, clip]) => clip).map(([name, clip]) => `${name}=${clip.name}`),
@@ -1282,7 +1312,11 @@ async function boot() {
         })),
         'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})
           .filter(([key, value]) => !key.endsWith('Rest') && value?.isBone)
-          .map(([key, value]) => [key, value.name])));
+          .map(([key, value]) => [key, value.name])),
+        'leg chains:', {
+          left: allHumanAvatars[0]?.gltfRig?.leftLegChain || { valid: false },
+          right: allHumanAvatars[0]?.gltfRig?.rightLegChain || { valid: false }
+        });
     } catch (error) {
       console.warn('[Temple3D] Optional devotee GLB unavailable; keeping procedural characters:', error);
     }
