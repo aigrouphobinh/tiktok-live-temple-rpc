@@ -1086,9 +1086,18 @@ async function boot() {
     smile.position.set(0,-0.105,0.235); smile.rotation.z=Math.PI; head.add(smile);
     const leftArm = new THREE.Group(); leftArm.position.set(-0.29,0.57,0); upperBody.add(leftArm);
     const rightArm = new THREE.Group(); rightArm.position.set(0.29,0.57,0); upperBody.add(rightArm);
-    for(const [pivot,side] of [[leftArm,-1],[rightArm,1]]){
+    const leftHand = new THREE.Group(); leftHand.position.set(0,-0.43,0.02); leftArm.add(leftHand);
+    const rightHand = new THREE.Group(); rightHand.position.set(0,-0.43,0.02); rightArm.add(rightHand);
+    for(const [pivot,side,hand] of [[leftArm,-1,leftHand],[rightArm,1,rightHand]]){
       const sleeve=cylinder(0.105,0.12,0.42,pink,0,-0.2,0,pivot,12); sleeve.rotation.z=side*0.18;
-      sphere(0.075,skin,0,-0.43,0.02,0.9,1,0.9,pivot);
+      // Small articulated palms and separated fingers keep the prayer gesture readable at scene scale.
+      sphere(0.064,skin,0,-0.025,0,0.92,1.18,0.48,hand);
+      for(let finger=0;finger<4;finger++){
+        const x=(finger-1.5)*0.027;
+        cylinder(0.011,0.014,0.105,skin,x,0.075,0,hand,8);
+        sphere(0.013,skin,x,0.128,0,0.85,0.9,0.85,hand);
+      }
+      sphere(0.025,skin,side*0.066,-0.005,0.008,0.9,1.2,0.9,hand);
     }
     const leftLeg = new THREE.Group(); leftLeg.position.set(-0.13,0.48,0); root.add(leftLeg);
     const rightLeg = new THREE.Group(); rightLeg.position.set(0.13,0.48,0); root.add(rightLeg);
@@ -1104,7 +1113,7 @@ async function boot() {
     }
     root.scale.setScalar(height/1.72);
     const avatar = {
-      root, upperBody, head, leftArm, rightArm, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
+      root, upperBody, head, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0
@@ -1181,6 +1190,8 @@ async function boot() {
     avatar.rightArm.rotation.x = upperPose.armReach;
     avatar.leftArm.rotation.z = upperPose.armOpen;
     avatar.rightArm.rotation.z = -upperPose.armOpen;
+    avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18;
+    avatar.rightHand.rotation.z = upperPose.armOpen * 0.18;
   }
 
   async function upgradeDevoteesFromGLB() {
