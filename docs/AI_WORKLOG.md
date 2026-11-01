@@ -368,3 +368,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a regression test for a full devotee queue when a gift interrupts the active character.
 - The test asserts the active/interrupted devotee is placed at the front, the newest waiting entry is evicted to preserve the configured capacity, and the original FIFO order of the remaining waiting character is retained.
 - Test source committed directly to `main`. Bun/CI execution and browser behavior are not claimed as verified.
+
+
+### Grand ceremony gift SFX isolation — 2026-11-01
+- Fixed an audio overlap in `grandCeremony`: mapped special gift actions (Rocket/Dragon/Donut/Rose) no longer also trigger the generic double temple-bell cue.
+- Kept the generic double-bell cue for ceremonies that do not resolve to a special gift action; grand-ceremony particles, congregation pulse and banner remain unchanged.
+- This prevents the delayed second generic bell from firing 900 ms into a special action's own SFX sequence. Source-level review only; browser audio mix and real TikTok LIVE payloads remain unverified.
+- Committed directly to `main`; project remains **IN PROGRESS — NOT DONE**.
