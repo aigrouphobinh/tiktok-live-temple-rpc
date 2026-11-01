@@ -56,8 +56,8 @@ async function boot() {
     red: new THREE.MeshPhysicalMaterial({ color: 0x741321, roughness: 0.48, metalness: 0.22, clearcoat: 0.28, clearcoatRoughness: 0.32 }),
     redBright: new THREE.MeshPhysicalMaterial({ color: 0x9d2030, roughness: 0.4, metalness: 0.3, clearcoat: 0.42, clearcoatRoughness: 0.22 }),
     stone: new THREE.MeshStandardMaterial({ color: 0x777a7c, roughness: 0.92 }),
-    statueStone: new THREE.MeshStandardMaterial({ color: 0xa99b84, roughness: 0.94 }),
-    statueShadow: new THREE.MeshStandardMaterial({ color: 0x5e4d3a, roughness: 0.96 }),
+    statueStone: new THREE.MeshStandardMaterial({ color: 0x98866d, roughness: 0.92 }),
+    statueShadow: new THREE.MeshStandardMaterial({ color: 0x493724, roughness: 0.96 }),
     statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 }),
     ivory: new THREE.MeshStandardMaterial({ color: 0xffe0a0, roughness: 0.35, metalness: 0.18 }),
     skin: new THREE.MeshStandardMaterial({ color: 0xe7ad6b, roughness: 0.52 }),
@@ -639,7 +639,7 @@ async function boot() {
   lotusThrone.add(lotusSparks);
 
   // Seated stone Buddha statue: sculpted silhouette, robe folds, calm face and halo.
-  const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); world.add(statue);
+  const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); statue.scale.set(1.08, 1, 1.04); world.add(statue);
   // Cross-legged lotus posture and layered robe silhouette.
   sphere(1.12, mats.statueStone, 0, 1.45, 0.12, 1.35, 0.42, 0.82, statue);
   sphere(0.78, mats.statueStone, 0, 2.18, -0.02, 0.9, 1.15, 0.72, statue);
@@ -668,7 +668,9 @@ async function boot() {
     detail.receiveShadow = false;
   }
   statue.add(statueBaseBand, statueBaseHighlight);
-  sphere(0.68, mats.statueStone, 0, 3.35, 0.02, 0.92, 1.18, 0.82, statue);
+  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);
+  // A continuous shoulder mantle gives the upper body a clear carved silhouette at portrait scale.
+  sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);
   // A shallow curved neckline softens the join between neck, shoulders and chest.
   const necklineCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-0.48, 3.98, 0.43),
@@ -1955,40 +1957,52 @@ async function boot() {
   // default and stays visible until the selected, rights-cleared file loads.
   const modelParams = new URLSearchParams(location.search);
   const modelsRequested = modelParams.get('models') === '1';
+  // Allow the Buddha asset to be previewed independently of optional devotee rigs.
+  const buddhaModelRequested = modelParams.get('buddha') === '1';
   // Diagnostics are opt-in so normal live sessions pay no logging overhead.
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
   async function upgradeBuddhaFromGLB() {
-    const { loadGLTFAsset } = await import('./three-model-loader.js');
     let asset;
+    let assetSource = 'procedural';
     try {
-      // The user-selected Kenny Hsieh model always has priority when present.
-      asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
-        targetHeight: 5.88,
-        centerXZ: true
-      });
-      console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
-    } catch (selectedError) {
-      console.warn('[Temple3D] Selected Kenny Hsieh Buddha unavailable; trying the CC0 gilt-bronze scan:', selectedError);
+      const { loadGLTFAsset } = await import('./three-model-loader.js');
       try {
-        asset = await loadGLTFAsset('/assets/models/buddha-cc0-fallback.glb', {
+        // The user-selected Kenny Hsieh model always has priority when present.
+        asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
           targetHeight: 5.88,
           centerXZ: true
         });
-        console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
-      } catch (fallbackError) {
-        console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', fallbackError);
+        assetSource = 'kenny-hsieh';
+        console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
+      } catch (selectedError) {
+        console.warn('[Temple3D] Selected Kenny Hsieh Buddha unavailable; trying the CC0 gilt-bronze scan:', selectedError);
+        try {
+          asset = await loadGLTFAsset('/assets/models/buddha-cc0-fallback.glb', {
+            targetHeight: 5.88,
+            centerXZ: true
+          });
+          assetSource = 'mia-cc0-gilt-bronze';
+          console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
+        } catch (fallbackError) {
+          window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
+          console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', fallbackError);
+          return;
+        }
+      }
+      if (disposed) {
+        asset.dispose();
         return;
       }
+      // Keep the procedural meshes as a hidden last-resort fallback. Their
+      // cached primitive geometries are shared with the rest of the scene.
+      for (const child of statue.children) child.visible = false;
+      statue.add(asset.root);
+      window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = assetSource;
+    } catch (error) {
+      window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
+      console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', error);
     }
-    if (disposed) {
-      asset.dispose();
-      return;
-    }
-    // Keep the procedural meshes as a hidden last-resort fallback. Their
-    // cached primitive geometries are shared with the rest of the scene.
-    for (const child of statue.children) child.visible = false;
-    statue.add(asset.root);
   }
 
   function addEffect(object, update, duration = 1800) {
@@ -2389,8 +2403,11 @@ async function boot() {
   window.__TEMPLE_3D_READY__ = true;
   window.dispatchEvent(new Event('temple:3d-ready'));
   start();
-  if (modelsRequested) {
+  if (modelsRequested || buddhaModelRequested) {
+    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';
     void upgradeBuddhaFromGLB();
+  }
+  if (modelsRequested) {
     void upgradeDevoteesFromGLB();
   }
   console.info('[Temple3D] Full sanctuary world ready (?3d=1), with human devotees and stone Buddha.');
