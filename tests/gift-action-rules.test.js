@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { normalizeGiftName, resolveGiftAction } from '../public/js/gift-action-rules.js';
+import { normalizeGiftName, resolveGiftAction, resolveGiftReactionProfile } from '../public/js/gift-action-rules.js';
 
 describe('gift action name resolver', () => {
   it.each([
@@ -31,5 +31,24 @@ describe('gift action name resolver', () => {
   it('does not match partial words that merely contain an alias', () => {
     expect(resolveGiftAction({ giftName: 'Rocketship' })).toBeNull();
     expect(resolveGiftAction({ giftName: 'Dragonfruit' })).toBeNull();
+  });
+});
+
+
+describe('gift reaction value tiers', () => {
+  it('maps diamond value to increasingly expressive acknowledgements', () => {
+    expect(resolveGiftReactionProfile({ diamondCount: 1 }).tier).toBe('small');
+    expect(resolveGiftReactionProfile({ diamondCount: 100 }).tier).toBe('medium');
+    expect(resolveGiftReactionProfile({ diamondCount: 500 }).tier).toBe('large');
+    expect(resolveGiftReactionProfile({ diamondCount: 1000 }).tier).toBe('special');
+    expect(resolveGiftReactionProfile({ diamondCount: 1000 }).bowAmount)
+      .toBeGreaterThan(resolveGiftReactionProfile({ diamondCount: 1 }).bowAmount);
+  });
+
+  it('uses incremental streak deltas and safely bounds malformed values', () => {
+    expect(resolveGiftReactionProfile({ diamondCount: 10, giftComboDelta: 50 }).totalDiamonds).toBe(500);
+    expect(resolveGiftReactionProfile({ diamondCount: 10, giftComboDelta: 50 }).tier).toBe('large');
+    expect(resolveGiftReactionProfile({ diamondCount: -2, giftComboDelta: Number.NaN }).totalDiamonds).toBe(1);
+    expect(resolveGiftReactionProfile({ diamondCount: 9999999, giftComboDelta: 9999999 }).totalDiamonds).toBe(1000000);
   });
 });
