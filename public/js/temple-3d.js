@@ -184,7 +184,7 @@ async function boot() {
   key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
   scene.add(key);
   // A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.
-  const buddhaLight = new THREE.PointLight(0xffd1a0, 23, 18, 2);
+  const buddhaLight = new THREE.PointLight(0xffd1a0, 15, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
   // A restrained rear-side rim separates the ivory statue from the dark altar.
@@ -192,7 +192,7 @@ async function boot() {
   const statueRimTarget = new THREE.Object3D();
   statueRimTarget.position.set(0, 4.1, -8.25);
   scene.add(statueRimTarget);
-  const statueRimLight = new THREE.DirectionalLight(0xffc982, 1.05);
+  const statueRimLight = new THREE.DirectionalLight(0xffc982, 0.82);
   statueRimLight.position.set(5.5, 8.5, -12.5);
   statueRimLight.target = statueRimTarget;
   statueRimLight.castShadow = false;
@@ -2376,10 +2376,10 @@ async function boot() {
     haloGlow.intensity = 8 + auraPulse * 13;
     // A warm edge light and restrained material emission make stone reliefs
     // and gilded trim catch the special-gift beat without a full-scene flash.
-    statueRimLight.intensity = 1.05 + auraPulse * 1.35;
+    statueRimLight.intensity = 0.82 + auraPulse * 1.1;
     mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;
     mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;
-    buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;
+    buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;
     altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });

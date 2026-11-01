@@ -91,9 +91,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('lotusSparkMaterial.opacity = auraPulse * 0.88;');
     expect(scene).toContain('lotusSparkGeometry.attributes.position.needsUpdate = true;');
     expect(scene).toContain('lotusSparkPositions[offset + 1] = 0.32 + progress * 3.55;');
-    expect(scene).toContain('const statueRimLight = new THREE.DirectionalLight(0xffc982, 1.05);');
+    expect(scene).toContain('const statueRimLight = new THREE.DirectionalLight(0xffc982, 0.82);');
     expect(scene).toContain('statueRimLight.castShadow = false;');
-    expect(scene).toContain('statueRimLight.intensity = 1.05 + auraPulse * 1.35;');
+    expect(scene).toContain('statueRimLight.intensity = 0.82 + auraPulse * 1.1;');
     expect(scene).toContain('mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;');
     expect(scene).toContain('mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;');
   });
@@ -105,7 +105,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
     expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
     expect(scene).toContain('const congregationGiftGlow = allHumanAvatars.reduce((peak, avatar) => Math.max(');
-    expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
+    expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
     expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
   });
 
@@ -573,7 +573,7 @@ describe('3D sanctuary visual treatment', () => {
   it('softens shadow acne and animates independent warm temple light sources', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;');
-    expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
+    expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
     expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
     expect(scene).toContain('Math.sin(elapsed * 0.007 + i) * 0.35');
   });
@@ -941,8 +941,8 @@ it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
   expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0x98866d, roughness: 0.92 })');
   expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x493724, roughness: 0.96 })');
   expect(scene).toContain('statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 })');
-  expect(scene).toContain('new THREE.PointLight(0xffd1a0, 23, 18, 2)');
-  expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
+  expect(scene).toContain('new THREE.PointLight(0xffd1a0, 15, 18, 2)');
+  expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
   expect(scene).toContain('A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.');
 });
 
