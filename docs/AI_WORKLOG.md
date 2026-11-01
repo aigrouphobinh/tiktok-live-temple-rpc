@@ -1,3 +1,8 @@
+### 2026-11-01 — Verify IK stability across repeated frames and rotated rigs
+- Added regression coverage proving that repeatedly applying the same world-space ankle target does not accumulate rotational drift in the two-bone adapter.
+- Added a rotated-parent rig case to verify world-to-local quaternion conversion and preserved segment lengths under a transformed avatar root.
+- These are adapter-level tests using a Three.js-compatible test double; they do not substitute for visual validation of the selected GLB asset or enable live GLB IK.
+
 ### 2026-11-01 — Guard gait calculations against invalid phase values
 - Made the foot-planting pose helper return a finite neutral grounded pose when phase is NaN or infinite, preventing invalid values from propagating into procedural joint rotations.
 - Added regression coverage for NaN, positive infinity and negative infinity through both pose and step helpers.
