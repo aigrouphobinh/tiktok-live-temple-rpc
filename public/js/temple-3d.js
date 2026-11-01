@@ -305,6 +305,26 @@ async function boot() {
   const haloDisc = new THREE.Mesh(new THREE.CircleGeometry(2.05,64),haloStone); halo.add(haloDisc);
   const haloRim = new THREE.Mesh(new THREE.TorusGeometry(2.05,0.12,12,96),mats.statueLight); halo.add(haloRim);
   const haloInner = new THREE.Mesh(new THREE.TorusGeometry(1.82,0.035,8,96),mats.goldBright); haloInner.position.z=0.03; halo.add(haloInner);
+  // Fine outer filigree gives the aureole a finished ceremonial edge without
+  // adding dozens of independent draw calls.
+  const haloOuter = new THREE.Mesh(new THREE.TorusGeometry(2.3,0.035,8,96),mats.gold);
+  haloOuter.position.z = -0.025;
+  halo.add(haloOuter);
+  const haloBeads = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.045,8,6), mats.goldBright, 32
+  );
+  const haloBeadTransform = new THREE.Object3D();
+  for (let i = 0; i < 32; i++) {
+    const angle = i * Math.PI * 2 / 32;
+    haloBeadTransform.position.set(Math.cos(angle) * 2.3, Math.sin(angle) * 2.3, 0.025);
+    haloBeadTransform.updateMatrix();
+    haloBeads.setMatrixAt(i, haloBeadTransform.matrix);
+  }
+  haloBeads.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  halo.add(haloBeads);
+  const haloGlow = new THREE.PointLight(0xffbd69, 8, 7, 2);
+  haloGlow.position.set(0, 5.25, -8.55);
+  world.add(haloGlow);
   for(let n=0;n<24;n++){
     const a=n*Math.PI/12;
     const ray=new THREE.Mesh(new THREE.ConeGeometry(0.09,0.42,8),mats.statueLight);
