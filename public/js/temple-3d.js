@@ -2035,7 +2035,22 @@ async function boot() {
         return;
       }
       // Preserve Kenny Hsieh's authored materials; only tint the neutral CC0 scan.
-      if (assetSource === 'mia-cc0-gilt-bronze') applyGiltFinish(asset.root);
+      if (assetSource === 'mia-cc0-gilt-bronze') {
+        applyGiltFinish(asset.root);
+        // The museum scan reads slightly narrow in the 9:16 altar composition.
+        // Widen only the horizontal axis; preserve height, ground contact and center.
+        const originalCenter = new THREE.Box3()
+          .setFromObject(asset.root)
+          .getCenter(new THREE.Vector3());
+        asset.root.scale.x *= 1.1;
+        asset.root.updateMatrixWorld(true);
+        const widenedCenter = new THREE.Box3()
+          .setFromObject(asset.root)
+          .getCenter(new THREE.Vector3());
+        asset.root.position.x += originalCenter.x - widenedCenter.x;
+        asset.root.position.z += originalCenter.z - widenedCenter.z;
+        asset.root.updateMatrixWorld(true);
+      }
       // Keep the procedural meshes as a hidden last-resort fallback. Their
       // cached primitive geometries are shared with the rest of the scene.
       for (const child of statue.children) child.visible = false;
