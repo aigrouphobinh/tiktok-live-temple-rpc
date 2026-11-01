@@ -961,7 +961,14 @@ async function connectTikTokLive(usernameOrUrl) {
     } = giftPayload;
 
     const deltaCount = getGiftComboDelta(giftComboTracker, giftPayload);
-    if (deltaCount <= 0) return;
+    if (deltaCount <= 0) {
+      // A duplicate final frame still closes the browser-side visual streak,
+      // even though it must not create another reward or ritual event.
+      if (repeatEnd && groupId) {
+        broadcastNotification('temple.gift-streak-end', { groupId });
+      }
+      return;
+    }
 
     const totalCoins = diamondCount * deltaCount;
     const displayGiftName = rawGiftName
