@@ -173,6 +173,7 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
       && THREE.StaticDrawUsage !== undefined) {
       instances.instanceMatrix.setUsage(THREE.StaticDrawUsage);
     }
+    if (instances.instanceMatrix) instances.instanceMatrix.needsUpdate = true;
     instances.castShadow = false;
     instances.receiveShadow = true;
     instances.name = name;
