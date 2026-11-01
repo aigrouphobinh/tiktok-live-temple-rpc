@@ -91,11 +91,31 @@ describe('Temple environment architecture module', () => {
     result.group.traverse((object) => { if (object.name) names.push(object.name); });
     expect(names).toContain('TempleColumnBaseRings');
     expect(names).toContain('TempleCapitalCorbels');
+    expect(names).toContain('TempleCapitalFrontRosettes');
+    expect(names).toContain('TempleCapitalFrontGems');
     expect(names).toContain('TempleGalleryLattice');
     expect(names).toContain('TempleGalleryScreenRails');
     expect(names).toContain('TempleColumnBaseStoneFootings');
     expect(names).toContain('TemplePortraitColumnShafts');
     expect(names).toContain('TemplePortraitColumnFlutes');
+    result.dispose();
+  });
+
+  it('adds paired front-facing lotus seals to the portrait column capitals', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const batches = new Map();
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
+    });
+    const rosettes = batches.get('TempleCapitalFrontRosettes');
+    const gems = batches.get('TempleCapitalFrontGems');
+    expect(rosettes?.count).toBe(2);
+    expect(gems?.count).toBe(2);
+    expect(rosettes.matrices.map((matrix) => matrix.position[0]).sort((a, b) => a - b))
+      .toEqual([-5.15, 5.15]);
+    expect(rosettes.matrices.every((matrix) => matrix.rotation.every((value) => value === 0))).toBe(true);
+    expect(gems.matrices.every((matrix) => matrix.position[2] > -9.385
+      && matrix.rotation[2] > 0)).toBe(true);
     result.dispose();
   });
 
