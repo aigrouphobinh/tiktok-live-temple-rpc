@@ -35,7 +35,7 @@ jobs:
           node --input-type=module --check < public/js/gift-action-engine.js &&
           node --input-type=module --check < public/js/live.js &&
           grep -Fq 'Full 3D temple world' public/js/temple-3d.js &&
-          grep -Fq 'Calm Amitabha facial features' public/js/temple-3d.js &&
+          grep -Fq 'Seated stone Buddha statue' public/js/temple-3d.js &&
           grep -Fq 'new THREE.InstancedMesh(tileGeometry' public/js/temple-3d.js &&
           grep -Fq 'Carved red-and-gold altar screen' public/js/temple-3d.js &&
           grep -Fq 'Foreground offering table' public/js/temple-3d.js &&
@@ -45,15 +45,13 @@ jobs:
           grep -Fq 'new THREE.SpotLight' public/js/temple-3d.js &&
           grep -Fq 'offeringFlames.forEach' public/js/temple-3d.js &&
           grep -Fq 'function playWorldGiftAction(action)' public/js/temple-3d.js &&
-          grep -Fq "import('three/addons/loaders/GLTFLoader.js')" public/js/temple-3d.js &&
-          grep -Fq 'SkeletonUtils.clone(asset.scene)' public/js/temple-3d.js &&
-          grep -Fq 'Desynchronize idle loops' public/js/temple-3d.js &&
-          grep -Fq 'mixer.timeScale = 0.94 + Math.random() * 0.12' public/js/temple-3d.js &&
-          grep -Fq "'/assets/animals/Corgi.glb'" public/js/temple-3d.js &&
-          grep -Fq "'/assets/animals/Duck.glb'" public/js/temple-3d.js &&
-          ! grep -Fq 'https://gobkit.com/freebies/animal/' public/js/temple-3d.js &&
-          node -e "const fs=require('fs'); for (const f of ['public/assets/animals/Corgi.glb','public/assets/animals/Duck.glb']) { const b=fs.readFileSync(f); if (b.toString('ascii',0,4)!=='glTF' || b.length>150000) throw new Error('Invalid or oversized GLB: '+f); }" &&
-          grep -Fq 'mainDevoteeFallback.visible = false' public/js/temple-3d.js &&
+          grep -Fq 'function makeHumanAvatar(height = 1.55)' public/js/temple-3d.js &&
+          grep -Fq 'function animateHuman(avatar, time, walking = false)' public/js/temple-3d.js &&
+          grep -Fq 'const mainHuman=makeHumanAvatar(1.72)' public/js/temple-3d.js &&
+          ! grep -Fq 'GLTFLoader' public/js/temple-3d.js &&
+          ! grep -Fq '/assets/animals/' public/js/temple-3d.js &&
+          grep -Fq 'Keep the central sightline to the Buddha open' public/js/temple-3d.js &&
+          grep -Fq 'mats.statueStone' public/js/temple-3d.js &&
           grep -Fq 'three/addons/' public/index.html &&
           grep -Fq "action === 'rocket'" public/js/temple-3d.js &&
           grep -Fq "action === 'dragon'" public/js/temple-3d.js &&
