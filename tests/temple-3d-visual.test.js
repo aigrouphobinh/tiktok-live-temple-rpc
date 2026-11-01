@@ -967,3 +967,14 @@ it('validates gift-burst renderer cost against each profile idle baseline', () =
   expect(idleSampleWaitIndex).toBeGreaterThan(idleSampleCountIndex);
   expect(auditScript).not.toContain('waitForRendererSample(rendererStatsSamples, 1)');
 });
+
+it('widens the MIA gilt-bronze scan without changing its normalized height', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain("if (assetSource === 'mia-cc0-gilt-bronze') {");
+  expect(scene).toContain('asset.root.scale.x *= 1.1;');
+  expect(scene).toContain('const originalCenter = new THREE.Box3()');
+  expect(scene).toContain('const widenedCenter = new THREE.Box3()');
+  expect(scene).toContain('asset.root.position.x += originalCenter.x - widenedCenter.x;');
+  expect(scene).toContain('asset.root.position.z += originalCenter.z - widenedCenter.z;');
+  expect(scene).not.toContain('asset.root.scale.y *= 1.1;');
+});
