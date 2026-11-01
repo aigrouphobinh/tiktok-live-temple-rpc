@@ -1085,39 +1085,26 @@ async function boot() {
   sphere(0.019, mats.statueLight, 0, 5.03, 0.557, 0.82, 1.12, 0.48, statue);
 
   // Hands rest together in a meditation mudra above the crossed legs.
-  sphere(0.22,mats.statueLight,-0.2,2.72,0.72,1.2,0.42,0.7,statue);
-  sphere(0.22,mats.statueLight,0.2,2.72,0.72,1.2,0.42,0.7,statue);
-  sphere(0.1,mats.statueStone,0,2.82,0.82,1,0.8,0.7,statue);
-  // Individually modeled finger ridges make the meditation mudra readable at portrait scale.
-  // Each hand keeps a soft, continuous palm while four shallow finger forms sit on its surface.
+  // Build the palms and digits as rounded stone volumes; avoid thin tube strokes that
+  // read as spokes at portrait scale. Fingers extend toward the viewer in parallel.
   for (const side of [-1, 1]) {
+    sphere(0.19, mats.statueStone, side * 0.19, 2.705, 0.755, 1.12, 0.48, 0.62, statue);
     for (let finger = 0; finger < 4; finger++) {
-      const x = side * (0.105 + finger * 0.045);
-      const y = 2.675 + finger * 0.012;
-      const z = 0.846 - finger * 0.012;
-      statueLine([
-        [x - side * 0.018, y - 0.012, z],
-        [x, y + 0.012, z + 0.022],
-        [x + side * 0.018, y + 0.025, z + 0.006]
-      ], 0.018, mats.statueLight);
-      // A fine crease at each knuckle gives the fingers a carved, not mechanical, finish.
-      statueLine([
-        [x - side * 0.012, y + 0.005, z + 0.021],
-        [x, y + 0.012, z + 0.024],
-        [x + side * 0.012, y + 0.005, z + 0.021]
-      ], 0.0055, mats.statueShadow);
+      const x = side * (0.085 + finger * 0.052);
+      const length = 0.19 - finger * 0.012;
+      const z = 0.83 + (finger % 2) * 0.012;
+      sphere(0.052, mats.statueLight, x, 2.665, z + length * 0.48,
+        0.58, 0.52, length / 0.052, statue);
+      // Small knuckle reliefs sit flush with the finger volumes.
+      sphere(0.018, mats.statueStone, x, 2.69, z + 0.035, 0.82, 0.55, 0.72, statue);
     }
   }
-  // The paired thumbs rise toward one another and meet gently at the centre.
+  // The thumbs curve inward and meet softly above the joined palms.
   for (const side of [-1, 1]) {
-    statueLine([
-      [side * 0.28, 2.72, 0.84],
-      [side * 0.2, 2.79, 0.875],
-      [side * 0.105, 2.82, 0.895],
-      [side * 0.025, 2.835, 0.9]
-    ], 0.025, mats.statueLight);
+    sphere(0.065, mats.statueLight, side * 0.115, 2.775, 0.865, 1.0, 0.72, 1.35, statue);
+    sphere(0.058, mats.statueLight, side * 0.055, 2.805, 0.91, 1.0, 0.72, 1.25, statue);
   }
-  statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.009,mats.statueShadow);
+  sphere(0.018, mats.statueShadow, 0, 2.84, 0.925, 0.8, 0.6, 0.7, statue);
   // Fine wrist transitions and palm creases finish the joined meditation hands.
   for (const side of [-1, 1]) {
     const wristCrease = [
