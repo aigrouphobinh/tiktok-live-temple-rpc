@@ -991,3 +991,13 @@ it('uses a restrained aged-gilt PBR finish for the MIA Buddha scan', () => {
   expect(finish).toContain('material.emissiveIntensity = 0.035');
   expect(finish).not.toContain('material.emissiveIntensity = 0.08');
 });
+
+it('gives the custom Buddha a fuller seated silhouette and softer facial volume', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('statue.scale.set(1.16, 1, 1.04)');
+  expect(scene).toContain('sphere(0.8, mats.statueStone, 0, 3.72, -0.015, 1.18, 0.72, 0.8, statue);');
+  expect(scene).toContain('sphere(0.66,mats.statueStone,0,4.62,0.02,0.98,1.1,0.82,statue);');
+  expect(scene).toContain('Soft cheek and chin masses turn the face from a narrow mask into a fuller, calm sculpture.');
+  expect(scene).toContain('sphere(0.22, mats.statueStone, 0, 4.32, 0.49, 0.82, 0.58, 0.72, statue);');
+});
+
