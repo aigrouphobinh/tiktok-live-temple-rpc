@@ -11,9 +11,12 @@ available, place it here as:
 
 `buddha-selected.glb`
 
-Selected source (license/download status still needs confirmation):
-- https://sketchfab.com/3d-models/tam-the-phat-do-go-thanh-anh-93ccd334332a40218bdc3a2e6e849966
-- Model UID: `93ccd334332a40218bdc3a2e6e849966`
+Selected source (user-approved): **Gold Buddha Statue — Kenny Hsieh**
+- https://sketchfab.com/3d-models/gold-buddha-statue-641d85153dd849d3b33bb69bd3ff6748
+- Model UID: `641d85153dd849d3b33bb69bd3ff6748`
+- Published license: **CC BY**; retain attribution to Kenny Hsieh and link to the Sketchfab model wherever the asset is distributed or shown.
+- Download status: not yet vendored. Sketchfab's official Download API requires an authenticated Sketchfab account and an eligible downloadable model. Do not use viewer extraction or third-party rippers.
+- Expected local file: `public/assets/models/buddha-selected.glb` (self-contained GLB preferred).
 
 The character GLB is expected at `devotee-selected.glb`; the loader normalizes it to 1.72 world units and clones the rig for every devotee. Animation clips are detected by names containing idle/stand/breath, walk/run/approach and bow/pray/worship/kneel. The procedural character remains visible if loading fails or `models=1` is omitted.
 
