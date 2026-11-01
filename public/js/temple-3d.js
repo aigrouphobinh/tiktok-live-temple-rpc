@@ -1373,7 +1373,7 @@ async function boot() {
     avatar.upperBody.rotation.x = upperPose.torsoLean - blend * profile.bowAmount;
     const thankYouLift = strength * (0.92 + Math.sin(time * 0.007) * 0.025);
     avatar.leftArm.rotation.x = upperPose.armReach - strength * 0.08;
-    avatar.rightArm.rotation.x = upperPose.armReach - blend * 0.08;
+    avatar.rightArm.rotation.x = upperPose.armReach - strength * 0.08;
     avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;
     avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift;
     avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18 - blend * 0.06;
