@@ -16,18 +16,19 @@ export function getTempleRenderQuality({
     ? hardwareConcurrency
     : null;
 
-  // A single explicit low-end signal is enough to protect constrained devices.
-  if ((memory !== null && memory <= 2) || (cores !== null && cores <= 2)) {
+  // Preserve the existing 1x safety cap for devices at or below 4 GB / 4 cores.
+  if ((memory !== null && memory <= 4) || (cores !== null && cores <= 4)) {
     return { tier: 'low', maxPixelRatio: 1 };
   }
 
-  // Missing browser hints are neutral. With no usable hints, use balanced.
-  if ((memory !== null && memory <= 4) || (cores !== null && cores <= 4)
+  // Mid-range devices can use a modest supersampling budget without taking
+  // the full desktop cost. Missing hints are neutral; no hints means balanced.
+  if ((memory !== null && memory <= 6) || (cores !== null && cores <= 6)
     || (memory === null && cores === null)) {
     return { tier: 'medium', maxPixelRatio: 1.15 };
   }
 
-  // Strong devices keep the existing crisp desktop ceiling of 1.25.
+  // Strong devices retain the existing crisp desktop ceiling of 1.25.
   return { tier: 'high', maxPixelRatio: 1.25 };
 }
 
