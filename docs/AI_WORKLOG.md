@@ -338,3 +338,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The teardown now removes active objects from the scene, disposes their geometries/materials, releases the shared procedural materials, and disposes the renderer on page hide.
 - This prevents the optional overlay from retaining its active effect list and GPU resources through teardown; it does not add automatic WebGL context restoration.
 - Committed source directly to `main`. Browser context-loss, page navigation, and GPU-memory behavior still require runtime verification.
+
+### Gift interruption pose-timer ownership — 2026-11-01
+- Connected `temple:character-interrupted` to the central pose controller in `public/js/live.js`.
+- On the first gift interruption, the controller now clears pending prostration/bow pose timers, removes the carpet-walk CSS class, and restores the neutral kneeling sprite pose before the gift choreography takes over.
+- This prevents previously scheduled bow frames from changing the devotee's pose underneath the gift animation. Subsequent higher-priority gift supersessions remain covered by the gift engine's animation/timer ownership and do not restart the old ritual sequence.
+- Committed source directly to `main`; rapid interruption and visual pose recovery still require browser verification.
