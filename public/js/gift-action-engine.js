@@ -1,4 +1,5 @@
 import { CharacterStateMachine } from './character-state-machine.js';
+import { resolveGiftAction } from './gift-action-rules.js';
 
 /**
  * Single-owner visual controller for the central devotee.
@@ -25,21 +26,6 @@ import { CharacterStateMachine } from './character-state-machine.js';
   let characterAnimation = null;
   const effectAnimations = new Set();
   const effectElements = new Set();
-
-  function normalizedName(event) {
-    return String(event?.giftName || '').normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
-  }
-
-  function giftAction(event) {
-    const name = normalizedName(event);
-    if (/\b(rocket|ten lua)\b/.test(name)) return 'rocket';
-    if (/\b(dragon|rong)\b/.test(name)) return 'dragon';
-    if (/\b(donut|doughnut)\b/.test(name)) return 'donut';
-    if (/\b(rose|hoa hong)\b/.test(name)) return 'rose';
-    return null;
-  }
 
   function playGiftSound(type) {
     window.dispatchEvent(new CustomEvent('temple:gift-sfx', { detail: { type } }));
@@ -335,7 +321,7 @@ import { CharacterStateMachine } from './character-state-machine.js';
 
   function handle(event) {
     if (!event || typeof event.type !== 'string') return { allowWalker: false };
-    const action = ['offerGift', 'grandCeremony'].includes(event.type) ? giftAction(event) : null;
+    const action = ['offerGift', 'grandCeremony'].includes(event.type) ? resolveGiftAction(event) : null;
 
     if (action) {
       // Coalesce cumulative connector frames for a single streakable gift.
