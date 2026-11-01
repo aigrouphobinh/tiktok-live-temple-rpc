@@ -10,6 +10,14 @@ describe('Three.js GLB resource lifecycle', () => {
     expect(loaderSource).not.toContain('disposeThreeObjectTree(root)');
   });
 
+  it('limits shadow casting for high-triangle scans while preserving shadow reception', () => {
+    expect(loaderSource).toContain('maxShadowTriangles = 250000');
+    expect(loaderSource).toContain('const castsShadow = triangleCount <= maxShadowTriangles;');
+    expect(loaderSource).toContain('node.castShadow = castsShadow;');
+    expect(loaderSource).toContain('node.receiveShadow = true;');
+    expect(loaderSource).toContain('triangleCount,');
+  });
+
   it('keeps GLB loading restricted to same-origin project model assets', () => {
     expect(loaderSource).toContain("!url.startsWith('/assets/models/')");
     expect(loaderSource).toContain("url.startsWith('//')");
