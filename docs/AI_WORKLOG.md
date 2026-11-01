@@ -601,3 +601,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The detail uses two short static TubeGeometry paths, reuses existing statue materials, and does not cast additional shadows or add frame-loop work.
 - Added a source regression test for both seam/ridge construction and shadow flags.
 - Browser render and visual fit still require local confirmation at `?3d=1`; automated CI is the next validation step.
+
+
+
+### 2026-11-01 — Add subtle chest folds to the Buddha robe
+- Added two short diagonal folds across the chest, tapering toward the lap to clarify the robe's layered direction without crowding the existing shoulder seams.
+- Reused the existing robeFold helper and statue shadow material; no new lights, shadow casters, or frame-loop updates.
+- Added a source regression test for both fold paths.
+- Visual overlap and depth still need local browser review in `?3d=1`.
