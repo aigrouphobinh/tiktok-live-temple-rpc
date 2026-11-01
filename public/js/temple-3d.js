@@ -1984,7 +1984,9 @@ async function boot() {
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
   let lastRenderedFrameAt = 0;
+  let frameWindowStartedAt = 0;
   const frameIntervals = [];
+  const MIN_FRAME_SAMPLES_FOR_PERCENTILES = 30;
 
   // Probe optional same-origin GLBs before the model loader requests them.
   // A missing preferred asset is an expected fallback state.
@@ -2348,12 +2350,15 @@ async function boot() {
     if (disposed || document.hidden) { raf = 0; return; }
     raf = requestAnimationFrame(frame);
     if (now - lastFrame < 33) return; // cap at 30 fps for the portrait live scene
-    if (statsEnabled && lastRenderedFrameAt > 0) {
-      frameIntervals.push(now - lastRenderedFrameAt);
-      // Bound diagnostic memory even during unusually long device sessions.
-      if (frameIntervals.length > 300) frameIntervals.shift();
+    if (statsEnabled) {
+      if (!frameWindowStartedAt) frameWindowStartedAt = now;
+      if (lastRenderedFrameAt > 0) {
+        frameIntervals.push(now - lastRenderedFrameAt);
+        // Bound diagnostic memory even during unusually long device sessions.
+        if (frameIntervals.length > 300) frameIntervals.shift();
+      }
+      lastRenderedFrameAt = now;
     }
-    if (statsEnabled) lastRenderedFrameAt = now;
     const dt = Math.min(50, now - (lastFrame || now));
     lastFrame = now; elapsed += dt;
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
@@ -2444,11 +2449,13 @@ async function boot() {
     if (statsEnabled && now - lastStatsAt >= 5000) {
       const info = renderer.info;
       const sortedIntervals = [...frameIntervals].sort((a, b) => a - b);
-      const percentile = (ratio) => sortedIntervals.length
+      const sampleWindowMs = frameWindowStartedAt ? Math.max(0, now - frameWindowStartedAt) : 0;
+      const sampleCount = sortedIntervals.length;
+      const percentilesReliable = sampleCount >= MIN_FRAME_SAMPLES_FOR_PERCENTILES
+        && sampleWindowMs >= 4000;
+      const percentile = (ratio) => percentilesReliable
         ? sortedIntervals[Math.min(sortedIntervals.length - 1, Math.ceil(sortedIntervals.length * ratio) - 1)]
         : null;
-      const frameTimeP50Ms = percentile(0.50);
-      const frameTimeP95Ms = percentile(0.95);
       console.info('[Temple3D] GPU frame stats', {
         drawCalls: info.render.calls,
         triangles: info.render.triangles,
@@ -2456,14 +2463,17 @@ async function boot() {
         textures: info.memory.textures,
         activeEffects: effects.length,
         pixelRatio: renderer.getPixelRatio(),
-        frameSamples: sortedIntervals.length,
-        observedFps: sortedIntervals.length
-          ? Math.round((1000 / (frameIntervals.reduce((sum, value) => sum + value, 0) / sortedIntervals.length)) * 10) / 10
+        frameSamples: sampleCount,
+        sampleWindowMs,
+        sampleQuality: percentilesReliable ? 'reliable' : 'insufficient',
+        observedFps: sampleWindowMs > 0
+          ? Math.round((sampleCount * 1000 / sampleWindowMs) * 10) / 10
           : null,
-        frameTimeP50Ms,
-        frameTimeP95Ms
+        frameTimeP50Ms: percentile(0.50),
+        frameTimeP95Ms: percentile(0.95)
       });
       frameIntervals.length = 0;
+      frameWindowStartedAt = now;
       lastStatsAt = now;
     }
     if (!effects.length && now > ritualUntil && elapsed > 60000) elapsed = 0;
