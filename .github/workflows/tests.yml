@@ -38,6 +38,9 @@ jobs:
           grep -Fq 'Calm Amitabha facial features' public/js/temple-3d.js &&
           grep -Fq 'new THREE.InstancedMesh(tileGeometry' public/js/temple-3d.js &&
           grep -Fq 'Carved red-and-gold altar screen' public/js/temple-3d.js &&
+          grep -Fq 'Curved tiled roof' public/js/temple-3d.js &&
+          grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
+          grep -Fq 'Raised eaves' public/js/temple-3d.js &&
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
           grep -Fq 'temple-3d-mode' public/js/temple-3d.js &&
           grep -Fq '.stage-9x16.temple-3d-mode .sanctuary-bg-img' public/css/live.css &&
