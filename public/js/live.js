@@ -702,6 +702,8 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
             lastTikTokConnected = connected;
           }
           updateUIState(msg.params);
+        } else if (msg.method === 'temple.gift-streak-end') {
+          window.TempleGiftActionEngine?.clearStreak?.(msg.params?.groupId);
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
           if (msg.params?.event) triggerRitualVisuals(msg.params.event);
