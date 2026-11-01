@@ -36,6 +36,14 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('for (const z of [16.8, 17.45])');
   });
 
+  it('adds low raised galleries beyond both side-column rows', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const x = side * 9.15');
+    expect(scene).toContain('box(2.35, 0.18, 25.5, mats.wood, x, -0.055, 2.2)');
+    expect(scene).toContain('box(2.2, 0.045, 25.2, mats.stone, x, 0.06, 2.2)');
+    expect(scene).toContain('side * 10.25');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
