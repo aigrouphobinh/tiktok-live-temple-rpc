@@ -80,10 +80,13 @@ describe('3D sanctuary visual treatment', () => {
   it('adds animated blinking, eye gaze and a restrained bow expression to procedural faces', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const eyeWhites = [], eyePupils = [];');
-    expect(scene).toContain('eyeWhites, eyePupils, smile,');
+    expect(scene).toContain('eyeWhites, eyePupils, eyebrows, smile,');
     expect(scene).toContain('const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;');
     expect(scene).toContain('avatar.eyeWhites[index].scale.y = eyeOpen;');
-    expect(scene).toContain('avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006;');
+    expect(scene).toContain('avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006 + giftReaction * (index === 0 ? 0.009 : -0.009);');
+    expect(scene).toContain('avatar.eyePupils[index].position.y = giftReaction * 0.008;');
+    expect(scene).toContain('for (const { mesh, side } of avatar.eyebrows) mesh.rotation.z = -side * 0.12 + giftReaction * side * 0.035;');
+    expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * Math.sin(avatar.phase) * 0.035;');
     expect(scene).toContain('avatar.smile.scale.y = 1 + giftReaction * 0.12 - avatar.bowAmount * 0.12;');
   });
 
