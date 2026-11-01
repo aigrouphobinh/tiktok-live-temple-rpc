@@ -1,3 +1,8 @@
+### 2026-11-01 — Match fallback gait to eased devotee translation
+- Follow-up inspection found that the main devotee's position uses smoothstep easing while the initial distance-synchronized gait phase used linear progress. This could still cause foot sliding during acceleration and deceleration.
+- Compute the stride phase from the same eased progress used by the world-space Z translation, preserving the 2.2-unit stride cycle.
+- Updated regression assertions. Real foot-contact and stride-length tuning still require an actual rigged model in the running scene.
+
 ### 2026-11-01 — Synchronize fallback footsteps with devotee travel
 - The main devotee traverses a fixed 11.2 world-unit path while the fallback gait previously advanced from wall-clock time, so stride phase could drift from actual translation and visibly slide.
 - Drive the main character's fallback gait phase from normalized travel distance (using a 2.2-unit stride cycle); retain the time-based idle/crowd gait when no explicit phase is supplied.
