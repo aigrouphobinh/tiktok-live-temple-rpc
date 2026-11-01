@@ -1,3 +1,9 @@
+### 2026-11-01 — Reduce upper negative space without widening the lens
+- Kept the 42° FOV and camera position (0, 11.75, 28.5); adjusted only the look-at Y from 0 to -1.5.
+- This is an intermediate target between the centered FOV42 crop and the more aggressively lowered 44° / Y=-2 experiment.
+- The goal is to move the architectural focal plane higher in the 9:16 composition while retaining the larger focal scale of the 42° lens.
+- Keep the preset isolated until its screenshot, unit tests and visual audit all pass.
+
 ### 2026-11-01 — Compare a balanced 42-degree camera crop
 - Created an isolated preset at 42° FOV, camera position (0, 11.75, 28.5), look-at (0, 0, -5.5).
 - It interpolates between the tighter 40° focal framing and the wider/lower-target negative-space experiment, aiming to preserve Buddha/altar scale while raising the colonnade within the portrait frame.
