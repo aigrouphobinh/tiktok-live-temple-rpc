@@ -11,6 +11,12 @@ describe('Three.js scene performance safeguards', () => {
     expect(source).toContain('lanterns.push(light);');
   });
 
+  it('bounds concurrent transient gift and ritual effects and disposes evictions', () => {
+    expect(source).toContain('const MAX_EFFECTS = 64;');
+    expect(source).toContain('if (effects.length >= MAX_EFFECTS)');
+    expect(source).toContain('world.remove(old.object); disposeThreeObjectTree(old.object);');
+  });
+
   it('keeps the fixed elevated portrait camera and 30fps frame cap', () => {
     expect(source).toContain('camera.position.set(0, 10.5, 23);');
     expect(source).toContain('camera.lookAt(0, 4.4, -5.5);');
