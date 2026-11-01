@@ -739,3 +739,14 @@ it('adds procedural roughness detail and a physical clearcoat to lacquer and gil
   expect(scene).toContain('clearcoat: 0.42, clearcoatRoughness: 0.22');
   expect(scene).toContain('texture.generateMipmaps = true;');
 });
+
+
+it('adds instanced brass rosettes and ruby centres to the altar side panels', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const panelRosetteGeometry = new THREE.TorusGeometry(0.085, 0.012, 6, 20);');
+  expect(scene).toContain('new THREE.InstancedMesh(panelRosetteGeometry, mats.goldBright, 10)');
+  expect(scene).toContain('new THREE.InstancedMesh(panelGemGeometry, mats.redBright, 10)');
+  expect(scene).toContain('for (const ornamentY of [2.72, 3.38, 4.05, 4.72, 5.38])');
+  expect(scene).toContain('panelRosettes.instanceMatrix.setUsage(THREE.StaticDrawUsage);');
+  expect(scene).toContain('world.add(panelRosettes, panelGems);');
+});
