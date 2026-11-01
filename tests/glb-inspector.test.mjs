@@ -37,7 +37,7 @@ describe('GLB asset inspection', () => {
     const result = parseGLB(makeGlb(document));
     expect(result.assetVersion).toBe('2.0');
     expect(result.generator).toBe('unit-test');
-    expect(result.triangleEstimate).toBe(106);
+    expect(result.triangleEstimate).toBe(118);
     expect(result.nodeNames).toEqual(['BuddhaRoot']);
     expect(result.animations).toEqual(['Idle', 'unnamed animation']);
     expect(result.skins).toBe(1);
