@@ -375,3 +375,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Kept the generic double-bell cue for ceremonies that do not resolve to a special gift action; grand-ceremony particles, congregation pulse and banner remain unchanged.
 - This prevents the delayed second generic bell from firing 900 ms into a special action's own SFX sequence. Source-level review only; browser audio mix and real TikTok LIVE payloads remain unverified.
 - Committed directly to `main`; project remains **IN PROGRESS — NOT DONE**.
+
+
+### CI confirmation — grand ceremony SFX isolation — 2026-11-01
+- GitHub Actions run `41257099609` completed successfully for code commit `311d48f389dd7b02e3ff8c56e5c73ff96ece99d2`.
+- Follow-up worklog commit run `41257106219` also completed successfully. The `character-state-machine` job passed both `Run unit tests` and `Check server-side JavaScript syntax`.
+- These workflow steps do not exercise browser audio playback, Web Audio mixing, visual timing, or real TikTok LIVE payloads; those acceptance checks remain open.
