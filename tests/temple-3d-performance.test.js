@@ -13,7 +13,7 @@ describe('Three.js scene performance safeguards', () => {
   });
 
   it('bounds concurrent transient gift and ritual effects and disposes evictions', () => {
-    expect(source).toContain('const MAX_EFFECTS = 64;');
+    expect(source).toContain('const MAX_EFFECTS = 48;');
     expect(source).toContain('if (effects.length >= MAX_EFFECTS)');
     expect(source).toContain('world.remove(old.object); disposeThreeObjectTree(old.object);');
   });
