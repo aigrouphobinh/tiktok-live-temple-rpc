@@ -98,6 +98,9 @@ jobs:
           grep -Fq 'Refine the nose wings and philtrum' public/js/temple-3d.js &&
           grep -Fq 'Fine upper-lid folds and outer eye corners' public/js/temple-3d.js &&
           grep -Fq 'Soft cheekbone highlights and jaw transitions' public/js/temple-3d.js &&
+          grep -Fq 'Subtle neck tendons and shoulder drape creases' public/js/temple-3d.js &&
+          grep -Fq 'new THREE.Vector3(side * 0.22, 4.2, 0.235)' public/js/temple-3d.js &&
+          grep -Fq 'shoulderDrapeHighlightMesh' public/js/temple-3d.js &&
           grep -Fq '[side * 0.37, 4.565, 0.635]' public/js/temple-3d.js &&
           grep -Fq '[side * 0.34, 4.245, 0.625]' public/js/temple-3d.js &&
           grep -Fq '[side * 0.31, 4.81, 0.665]' public/js/temple-3d.js &&
