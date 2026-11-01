@@ -1169,10 +1169,10 @@ async function boot() {
       };
       const replacements = allHumanAvatars.map(() => clone(asset.root));
       for (const [avatarIndex, avatar] of allHumanAvatars.entries()) {
-        for (const child of [...avatar.root.children]) {
-          avatar.root.remove(child);
-          disposeThreeObjectTree(child);
-        }
+        // Keep procedural fallback nodes attached but hidden: their primitive
+        // geometry/materials may be shared with the sanctuary's cached meshes.
+        // Scene teardown owns and releases these resources exactly once.
+        for (const child of avatar.root.children) child.visible = false;
         const model = replacements[avatarIndex];
         avatar.root.add(model);
         avatar.gltfRoot = model;
@@ -1295,10 +1295,9 @@ async function boot() {
         asset.dispose();
         return;
       }
-      for (const child of [...statue.children]) {
-        child.traverse((node) => { if (node.geometry) node.geometry.dispose(); });
-        statue.remove(child);
-      }
+      // Retain the procedural statue as a hidden fallback. Its cached
+      // primitive geometries are shared with other scene meshes.
+      for (const child of statue.children) child.visible = false;
       statue.add(asset.root);
       console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
     } catch (error) {
