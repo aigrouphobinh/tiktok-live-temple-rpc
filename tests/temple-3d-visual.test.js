@@ -245,6 +245,14 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('updateIncenseWisps(now);');
   });
 
+  it('adds restrained per-tile color variation without increasing the courtyard draw-call count', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const tilePalette = index === 0');
+    expect(scene).toContain('instances.setColorAt(instanceIndex, tileColors[paletteIndex])');
+    expect(scene).toContain('if (instances.instanceColor) instances.instanceColor.needsUpdate = true;');
+    expect(scene).toContain('new THREE.InstancedMesh(tileGeometry, material, tilePositions[index].length)');
+  });
+
   it('builds two instanced lotus tiers from a curved tapered petal mesh', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function createLotusPetalGeometry()');
