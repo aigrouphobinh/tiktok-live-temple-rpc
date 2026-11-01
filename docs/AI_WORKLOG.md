@@ -1,3 +1,8 @@
+### 2026-11-01 — Align legacy GLB inspector expectations
+- CI exposed one older inspector test that still expected unnamed clips without their stable one-based index. Updated the legacy assertion to match the richer inspector output.
+- New rig/joint/channel fixture tests passed; this correction aligns the pre-existing suite with the same output contract.
+- CI pending.
+
 ### 2026-11-01 — Inspect GLB rigs and animation targets
 - Extended `inspect:glb` output with skin joint names/counts and skeleton roots, plus animation channel targets, animated property paths and estimated clip duration from input accessor bounds.
 - Added fixture coverage for a small rig and rotation channels, making it easier to assess whether a candidate model has usable armature and animation data before scene integration.
