@@ -1,3 +1,8 @@
+### 2026-11-01 — Align shaft plaques to the cylinder centreline
+- The close-up showed the prior inward offset put the plaque behind the curved shaft surface. Re-aligned the plaque to the shaft centreline, matching the existing outer-pillar badge placement.
+- Moved the ruby centre slightly forward from the gold diamond plate so it layers cleanly in depth.
+- Updated placement tests to assert the symmetric centreline coordinates and front Z offsets.
+
 ### 2026-11-01 — Match upper-shaft plaques to the existing hall pillar motif
 - Replaced the low-contrast torus seal with a visible two-tone diamond plaque on the exposed upper shaft of each inner column.
 - The gold outer diamond and ruby centre reuse the existing temple palette and mirror inward toward the aisle, matching the established outer-pillar ornament language.
