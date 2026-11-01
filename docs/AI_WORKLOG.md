@@ -1,3 +1,11 @@
+### 2026-11-01 — Strengthen the Buddha's portrait-scale silhouette
+
+- Broadened the seated statue group slightly and replaced the narrower upper-chest form with a fuller stone chest/shoulder transition.
+- Added one continuous shoulder mantle under the neck so the robe reads as a solid carved volume at 9:16 stream scale, rather than relying only on thin contour lines.
+- Deepened the warm sandstone and carved-shadow tones while keeping the aged-ivory highlight material and focal lighting from the prior pass.
+- Preserved the master camera, halo, altar, lotus throne, open-air sightline and roofless composition.
+- Added regression coverage for the silhouette geometry and refreshed visual palette assertions. A new three-profile Chromium audit is required before merge; this is not a physical-GPU/OBS benchmark.
+
 ### 2026-11-01 — Warm aged-stone focal pass for the Buddha
 
 - Shifted the Buddha's shared stone palette from pale neutral ivory to warmer aged sandstone/ivory, with a deeper carved-shadow tone and softer highlight tone. The existing procedural grooves, robe ridges, curls and mineral bump map remain unchanged.
