@@ -90,12 +90,27 @@ async function boot() {
 
   // Courtyard floor, raised processional path and inlaid gold borders.
   plane(22, 36, mats.stone, 0, -0.18, 1);
+  // Instance the courtyard tiles: hundreds of repeated meshes become two draw calls.
+  const tileGeometry = new THREE.BoxGeometry(1.08, 0.035, 1.08);
+  const tilePositions = [[], []];
   for (let z = -14; z < 19; z += 1.15) {
     for (let x = -9; x < 10; x += 1.15) {
-      const tile = box(1.08, 0.035, 1.08, (Math.round(x + z) % 2 ? mats.stone : mats.wood), x, -0.13, z);
-      tile.castShadow = false;
+      tilePositions[Math.round(x + z) % 2 ? 0 : 1].push([x, -0.13, z]);
     }
   }
+  const tileTransform = new THREE.Object3D();
+  [mats.stone, mats.wood].forEach((material, index) => {
+    const instances = new THREE.InstancedMesh(tileGeometry, material, tilePositions[index].length);
+    instances.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+    instances.castShadow = false;
+    instances.receiveShadow = true;
+    tilePositions[index].forEach(([x, y, z], instanceIndex) => {
+      tileTransform.position.set(x, y, z);
+      tileTransform.updateMatrix();
+      instances.setMatrixAt(instanceIndex, tileTransform.matrix);
+    });
+    world.add(instances);
+  });
   box(5.8, 0.12, 27, mats.red, 0, -0.02, 3);
   box(0.12, 0.035, 27, mats.gold, -2.82, 0.06, 3);
   box(0.12, 0.035, 27, mats.gold, 2.82, 0.06, 3);
@@ -119,6 +134,29 @@ async function boot() {
   box(8.4, 1.0, 1.1, mats.woodLight, 0, 1.05, -10.45);
   for (let x = -3.8; x <= 3.8; x += 0.95) {
     cylinder(0.12, 0.16, 0.82, mats.goldBright, x, 1.12, -9.7, world, 12);
+  }
+
+  // Carved red-and-gold altar screen behind the Buddha, kept in the rear focal plane.
+  box(9.2, 5.5, 0.28, mats.red, 0, 4.05, -11.25);
+  box(9.55, 0.22, 0.42, mats.goldBright, 0, 6.86, -11.22);
+  box(9.55, 0.22, 0.42, mats.goldBright, 0, 1.24, -11.22);
+  for (const x of [-4.65, -2.35, 0, 2.35, 4.65]) {
+    box(0.12, 5.45, 0.38, mats.gold, x, 4.05, -11.02);
+  }
+  for (const y of [2.0, 3.05, 4.1, 5.15, 6.2]) {
+    box(9.0, 0.055, 0.36, mats.gold, 0, y, -11.0);
+  }
+  // Central carved medallion and side relief panels.
+  cylinder(0.92, 0.92, 0.1, mats.gold, 0, 4.25, -10.98, world, 48).rotation.x = Math.PI / 2;
+  cylinder(0.72, 0.72, 0.12, mats.redBright, 0, 4.25, -10.9, world, 48).rotation.x = Math.PI / 2;
+  for (const x of [-3.45, 3.45]) {
+    box(1.55, 3.8, 0.12, mats.woodLight, x, 4.05, -10.98);
+    for (let y = 2.55; y <= 5.55; y += 0.75) {
+      box(1.42, 0.045, 0.08, mats.goldBright, x, y, -10.88);
+    }
+    for (let dx = -0.48; dx <= 0.49; dx += 0.48) {
+      box(0.045, 3.55, 0.08, mats.goldBright, x + dx, 4.05, -10.88);
+    }
   }
 
   // Layered lotus pedestal.
