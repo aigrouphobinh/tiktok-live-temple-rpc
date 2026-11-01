@@ -31,4 +31,10 @@ describe('Three.js scene performance safeguards', () => {
     expect(getTemplePixelRatio({ devicePixelRatio: 2, deviceMemory: 8, hardwareConcurrency: 2 })).toBe(1);
   });
 
+  it('keeps the sanctuary roofless and preserves the open altar sightline', () => {
+    expect(source).not.toMatch(/makeCurvedRoofSide|roofTile|roofTrim|roofStartZ|const ridge =/);
+    expect(source).toContain('Open-air sanctuary: keep the upper sightline clear');
+    expect(source).toContain('camera.lookAt(0, 4.4, -5.5);');
+  });
+
 });
