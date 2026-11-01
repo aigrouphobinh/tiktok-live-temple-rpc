@@ -344,4 +344,14 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds restrained lower eyelid, cheek and lower-lip details to the Buddha face', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Lower eyelids and cheek transitions soften the serene carved expression.');
+    expect(scene).toContain('], 0.012, mats.statueLight);');
+    expect(scene).toContain('], 0.014, mats.statueShadow);');
+    expect(scene).toContain('A restrained lower-lip crease adds definition without a pronounced smile.');
+    expect(scene).toContain('statueLine([[-0.105,4.27,0.685],[0,4.255,0.715],[0.105,4.27,0.685]],0.009,mats.statueLight);');
+  });
+
+
 });
