@@ -558,3 +558,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added subtle independent breathing to the Buddha focal light, altar fill and lantern point lights to create a warmer living-light atmosphere.
 - Kept the fixed camera and limited shadow rendering to the existing key light.
 - Added regression assertions for shadow tuning and light animation; browser visual verification remains outstanding.
+
+
+### 2026-11-01 — Add subtle courtyard tile material variation
+- Added deterministic per-instance tint variation to the existing instanced courtyard tiles, separating individual stone slabs and timber inlays so the floor reads less like a repeated checker grid.
+- Reuses the existing two InstancedMesh batches and shared tile geometry/materials; this does not add draw calls, per-frame work, textures, or shadow-casting lights.
+- Camera, carpet, 2D mode and ritual interactions remain unchanged.
+- Added a source regression test for the color-variation path. Browser visual verification and mobile GPU profiling remain outstanding.
