@@ -423,4 +423,4 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a ritual-generation token to `gift-action-engine.js`. Approach/offering/bowing/completion callbacks now verify that they still belong to the current devotee before mutating the state machine.
 - Starting a gift effect invalidates the prior ritual generation, so a timer callback already queued by the browser cannot complete a later devotee or advance an interrupted ritual.
 - Added the matching effect-token check to the cooldown handoff callback. A superseding gift invalidates an already-queued cooldown callback as well as clearing its timer handle.
-- This hardens rapid gift supersession and ritual handoff at the timer-ownership boundary. GitHub Actions validation is pending; browser race reproduction and live runtime remain unverified.
+- This hardens rapid gift supersession and ritual handoff at the timer-ownership boundary. GitHub Actions run `41257817146` succeeded on the worklog commit; Bun unit tests and server-side JavaScript syntax checks passed. Browser race reproduction and live runtime remain unverified.
