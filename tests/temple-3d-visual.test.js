@@ -945,3 +945,12 @@ it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
   expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
   expect(scene).toContain('A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.');
 });
+
+it('validates gift-burst renderer cost against each profile idle baseline', () => {
+  const auditScript = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
+  expect(auditScript).toContain('giftBurstDrawCallsIncreased: Number.isFinite(idleStats?.drawCalls)');
+  expect(auditScript).toContain('stressStats.drawCalls > idleStats.drawCalls');
+  expect(auditScript).toContain('const idleDrawCallsStrictlyIncrease = idleDrawCalls.every(Number.isFinite)');
+  expect(auditScript).toContain('maxDrawCallsBudget: 1200');
+  expect(auditScript).not.toContain('giftBurstEffectsIncreaseByTier');
+});
