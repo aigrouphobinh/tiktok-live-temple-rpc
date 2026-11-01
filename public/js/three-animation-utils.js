@@ -5,8 +5,7 @@ const DEFAULT_CLIP_ALIASES = {
 };
 
 function hasNameToken(name, token) {
-  const escaped = token.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
-  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, 'i').test(name);
+  return (` ${name} `).includes(` ${token} `);
 }
 
 function normalizeClipName(value) {
@@ -14,8 +13,9 @@ function normalizeClipName(value) {
     .trim()
     .toLowerCase()
     .replace(/[_|./-]+/g, ' ')
-    .replace(/\\s+/g, ' ')
-    .trim();
+    .split(' ')
+    .filter(Boolean)
+    .join(' ');
 }
 
 /**
