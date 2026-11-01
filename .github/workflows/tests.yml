@@ -72,23 +72,16 @@ jobs:
           grep -Fq "temple:character-interrupted" public/js/gift-action-engine.js &&
           grep -Fq "temple:gift-action" public/js/gift-action-engine.js &&
           grep -Fq "temple:gift-action" public/js/temple-3d.js &&
-          grep -Fq 'Curved tiled roof' public/js/temple-3d.js &&
-          grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
-          grep -Fq 'Keep the near half open' public/js/temple-3d.js &&
-          grep -Fq 'roofEndZ = -4' public/js/temple-3d.js &&
-          grep -Fq 'const roofHalfWidth = 7.8' public/js/temple-3d.js &&
-          grep -Fq 'Math.pow(Math.abs((z - roofCenterZ) / roofHalfLength), 4) * 0.82' public/js/temple-3d.js &&
-          grep -Fq 'const roofCenterZ = (roofStartZ + roofEndZ) / 2' public/js/temple-3d.js &&
-          grep -Fq 'box(0.22, 0.28, roofLength, mats.red' public/js/temple-3d.js &&
-          grep -Fq 'box(0.09, 0.09, roofLength, roofTrim' public/js/temple-3d.js &&
-          node -e "const fs=require('fs'); const s=fs.readFileSync('public/js/temple-3d.js','utf8'); if (!(s.indexOf('const roofStartZ = -15.5') < s.indexOf('function makeCurvedRoofSide') && s.indexOf('function makeCurvedRoofSide') < s.indexOf('const ridge = cylinder'))) process.exit(1);" &&
-          grep -Fq 'raised corner eaves' public/js/temple-3d.js &&
+          grep -Fq 'Open-air sanctuary: keep the upper sightline clear' public/js/temple-3d.js &&
+          ! grep -Eq 'makeCurvedRoofSide|roofTile|roofTrim|roofStartZ|const ridge =' public/js/temple-3d.js &&
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
           grep -Fq 'temple-3d-mode' public/js/temple-3d.js &&
           grep -Fq '.stage-9x16.temple-3d-mode .sanctuary-bg-img' public/css/live.css &&
           grep -Fq '.stage-9x16.temple-3d-mode .bottom-hud-bar' public/css/live.css &&
           grep -Fq '3D SANCTUARY' public/css/live.css &&
           grep -Fq 'Clean livestream HUD refresh' public/css/live.css &&
+          grep -Fq 'Final visual pass — 3D livestream HUD' public/css/live.css &&
+          grep -Fq 'height: 166px' public/css/live.css &&
           grep -Fq 'height: 142px' public/css/live.css &&
           grep -Fq 'grid-template-columns: minmax(0, 1.45fr) minmax(0, .82fr)' public/css/live.css &&
           grep -Fq 'display: none;' public/css/live.css &&
