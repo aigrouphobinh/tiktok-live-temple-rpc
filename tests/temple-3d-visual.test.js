@@ -12,6 +12,17 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
+  it('builds articulated palms and fingers for the procedural devotee', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const leftHand = new THREE.Group();');
+    expect(scene).toContain('const rightHand = new THREE.Group();');
+    expect(scene).toContain('Small articulated palms and separated fingers keep the prayer gesture readable at scene scale.');
+    expect(scene).toContain('for(let finger=0;finger<4;finger++){');
+    expect(scene).toContain('root, upperBody, head, leftArm, rightArm, leftHand, rightHand,');
+    expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18;');
+    expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.armOpen * 0.18;');
+  });
+
   it('uses the shared upper-body pose for a procedural kneeling bow', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('getHumanUpperPose, getRitualPoseState');
