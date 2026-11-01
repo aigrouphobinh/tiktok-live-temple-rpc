@@ -770,3 +770,13 @@ it('adds curved-front ruby-and-brass lotus plaques to the Buddha pedestal band',
   expect(scene).toContain('Math.sqrt(1.94 * 1.94 - x * x)');
   expect(scene).toContain('world.add(pedestalPlaques, pedestalGems);');
 });
+
+
+it('adds instanced raised gold midribs to both lotus petal rings', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const lotusVeinGeometry = new THREE.TubeGeometry(lotusVeinCurve, 16, 0.009, 5, false);');
+  expect(scene).toContain('const petalVeins = new THREE.InstancedMesh(lotusVeinGeometry, mats.goldBright, count);');
+  expect(scene).toContain('petalVeins.setMatrixAt(i, transform.matrix);');
+  expect(scene).toContain('ring.add(redPetals, goldPetals, petalVeins);');
+  expect(scene).toContain('petals.castShadow = false;');
+});
