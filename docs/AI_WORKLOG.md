@@ -970,3 +970,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - This validates the transition math at source level; visual confirmation still requires the deployed GLB in a browser.
 
 - Updated the workflow's legacy source assertion to check the renamed eased `bowOutProgress` value; the initial CI failure was caused by that stale grep assertion, not by a test failure in the easing logic.
+
+
+### 2026-11-01 — Add attentive facial expressions to gift reactions
+- Extended procedural avatar face state with tracked eyebrow meshes; gift reactions now gently lift the brows and guide pupils inward/upward toward the live audience.
+- Added a restrained, phase-offset head tilt and slightly deeper appreciative nod so surrounding devotees feel responsive without moving their planted roots or becoming perfectly synchronized.
+- Kept GLB rigs untouched because their actual face/eye/brow controls remain unverified; the procedural fallback owns these expressions.
+- Added source regression assertions and CI guards for pupil, brow and head movement. Browser rendering still needs visual confirmation with the deployed scene/model.
