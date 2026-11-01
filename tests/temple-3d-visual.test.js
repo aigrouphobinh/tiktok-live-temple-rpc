@@ -396,4 +396,15 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds restrained paired robe creases at the Buddha elbows', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Small paired elbow creases connect the upper-arm drape to the resting forearms.');
+    expect(scene).toContain('const elbowCrease = [');
+    expect(scene).toContain('robeFold(elbowCrease, 0.012);');
+    expect(scene).toContain('new THREE.TubeGeometry(elbowRidgeCurve, 16, 0.008, 6, false)');
+    expect(scene).toContain('elbowRidge.castShadow = false;');
+    expect(scene).toContain('statue.add(elbowRidge);');
+  });
+
+
 });
