@@ -1,3 +1,9 @@
+### 2026-11-01 — Add articulated knee flex and foot lift to fallback gait
+- Split the procedural avatar legs into upper-leg, knee/lower-leg and foot pivots while preserving the existing leg silhouette and ground-level rest position.
+- Added a gait pose helper that keeps knees nearly straight and feet grounded during stance, then bends the knee and raises the foot through the swing arc.
+- Extended optional GLB rig matching for lower-leg and foot bones; fallback gait applies knee flex and approximate foot counter-rotation only when those joints are available.
+- Added numerical gait-pose tests and scene integration assertions. This remains a procedural approximation, not full world-space inverse kinematics or guaranteed foot locking.
+
 ### 2026-11-01 — Add stance/swing foot placement to fallback gait
 - Replaced the symmetric sine-only leg swing with an asymmetric gait cycle: a 62% stance phase moves the planted foot from rear to front, followed by an eased swing return.
 - Share the gait phase between procedural avatars and GLB upper-leg fallback rotations; keep arm counter-swing.
