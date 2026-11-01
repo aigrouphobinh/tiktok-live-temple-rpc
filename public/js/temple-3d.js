@@ -508,27 +508,7 @@ async function boot() {
     const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, radius, 8, false), mats.statueShadow);
     mesh.castShadow = true; statue.add(mesh); return mesh;
   };
-  // Paired shoulder-to-elbow contours define the robe-covered upper arms.
-  for (const side of [-1, 1]) {
-    const armEdge = [
-      [side * 0.55, 3.92, 0.35],
-      [side * 0.72, 3.72, 0.48],
-      [side * 0.78, 3.42, 0.52],
-      [side * 0.69, 3.12, 0.56],
-      [side * 0.48, 2.88, 0.62]
-    ];
-    robeFold(armEdge, 0.016);
-    const armRidge = new THREE.CatmullRomCurve3(armEdge.map(([x, y, z]) =>
-      new THREE.Vector3(x - side * 0.045, y + 0.018, z + 0.018)
-    ));
-    const armRidgeMesh = new THREE.Mesh(
-      new THREE.TubeGeometry(armRidge, 28, 0.01, 6, false),
-      mats.statueLight
-    );
-    armRidgeMesh.castShadow = false;
-    armRidgeMesh.receiveShadow = false;
-    statue.add(armRidgeMesh);
-  }
+  // One continuous shoulder-to-hand robe contour avoids stacked parallel seams.
   robeFold([[-0.58,4.02,0.18],[-0.44,3.55,0.57],[-0.18,3.02,0.72],[0.34,2.52,0.67],[0.72,2.25,0.4]],0.045);
   robeFold([[0.58,4.0,0.18],[0.7,3.55,0.48],[0.5,3.1,0.67],[0.15,2.65,0.72],[-0.42,2.34,0.55]],0.035);
   for (let k=0;k<5;k++) {
@@ -557,21 +537,23 @@ async function boot() {
   // Two restrained chest folds follow the robe diagonally toward the lap.
   robeFold([[-0.38,3.28,0.69],[-0.12,3.18,0.77],[0.16,3.04,0.75],[0.39,2.9,0.67]],0.018);
   robeFold([[-0.3,3.12,0.73],[-0.04,3.02,0.79],[0.22,2.88,0.73],[0.43,2.76,0.62]],0.014);
-  // Shallow shoulder seams clarify how the robe wraps over each shoulder.
-  // Paired dark incisions and fine ivory ridges stay close to the existing silhouette.
+  // A single shoulder seam continues down the outer arm toward the resting hand.
+  // Its offset ivory ridge is subtle and does not cast shadows.
   for (const side of [-1, 1]) {
     const shoulderSeam = [
       [side * 0.62, 4.02, 0.2],
       [side * 0.76, 3.82, 0.43],
-      [side * 0.81, 3.55, 0.53],
-      [side * 0.72, 3.29, 0.59]
+      [side * 0.78, 3.55, 0.53],
+      [side * 0.69, 3.12, 0.56],
+      [side * 0.48, 2.88, 0.62],
+      [side * 0.34, 2.78, 0.68]
     ];
-    robeFold(shoulderSeam, 0.018);
+    robeFold(shoulderSeam, 0.016);
     const shoulderRidge = new THREE.CatmullRomCurve3(shoulderSeam.map(([x, y, z]) =>
-      new THREE.Vector3(x - side * 0.055, y + 0.025, z + 0.025)
+      new THREE.Vector3(x - side * 0.045, y + 0.018, z + 0.018)
     ));
     const ridgeMesh = new THREE.Mesh(
-      new THREE.TubeGeometry(shoulderRidge, 24, 0.012, 6, false),
+      new THREE.TubeGeometry(shoulderRidge, 32, 0.01, 6, false),
       mats.statueLight
     );
     ridgeMesh.castShadow = false;
