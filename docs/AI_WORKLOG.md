@@ -326,3 +326,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Changes are committed directly to `main`; CI status and runtime behavior are pending verification.
 
 - Follow-up queue regression: the capacity-one test now also proves an equal-priority Donut cannot evict the earlier queued Donut; the earlier item remains the one played next.
+
+### Delayed gift callback cancellation — 2026-11-01
+- Added explicit ownership for delayed Rocket impact and Dragon roar/impact callbacks in the gift action engine.
+- When a new gift supersedes the current action, pending delayed callbacks are now cleared immediately instead of merely waking later and returning after an effect-token check.
+- Retained the token guard as a second line of defense against stale callbacks.
+- Source change is committed directly to `main`. Syntax/unit CI and browser interruption behavior have not yet been run for this change; verify rapid Rocket → Dragon → Rose supersession in the game runtime.
