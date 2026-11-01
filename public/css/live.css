@@ -1901,6 +1901,120 @@ body.obs-mode .stage-wrapper {
 }
 
 
+/* 3D HUD refinement: split the legacy footer into two floating console modules. */
+.stage-9x16.temple-3d-mode .bottom-hud-bar {
+  height: 276px;
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.38fr) minmax(0, .82fr);
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.stage-9x16.temple-3d-mode .hud-left-col,
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  position: relative;
+  min-width: 0;
+  padding: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 220, 157, .62);
+  border-radius: 18px 6px 18px 6px;
+  background:
+    linear-gradient(135deg, rgba(119, 75, 34, .26), transparent 48%),
+    linear-gradient(155deg, rgba(22, 17, 14, .97), rgba(7, 8, 9, .96));
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, .5),
+    inset 0 1px rgba(255, 244, 218, .18),
+    inset 0 -2px rgba(183, 125, 55, .18);
+}
+.stage-9x16.temple-3d-mode .hud-left-col::before,
+.stage-9x16.temple-3d-mode .hud-right-leaderboard::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 220, 157, .13);
+  border-radius: 12px 3px 12px 3px;
+  pointer-events: none;
+}
+.stage-9x16.temple-3d-mode .hud-left-col {
+  gap: 13px;
+}
+.stage-9x16.temple-3d-mode .hud-active-notice {
+  min-height: 48px;
+  height: 48px;
+  flex-basis: 48px;
+  padding: 0 16px;
+  border-radius: 7px;
+  font-size: 16px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-cards {
+  gap: 12px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card {
+  border-radius: 13px 5px 13px 5px;
+  background:
+    linear-gradient(145deg, rgba(157, 102, 43, .25), transparent 60%),
+    linear-gradient(180deg, rgba(46, 31, 20, .98), rgba(12, 11, 10, .98));
+}
+.stage-9x16.temple-3d-mode .gift-emoji {
+  font-size: 44px;
+}
+.stage-9x16.temple-3d-mode .gift-title {
+  font-size: 17px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  padding: 17px 18px;
+}
+.stage-9x16.temple-3d-mode .hud-lb-header {
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+.stage-9x16.temple-3d-mode .leader-item {
+  min-height: 29px;
+  font-size: 14px;
+}
+.stage-9x16.temple-3d-mode .leader-name {
+  font-size: 14px;
+}
+.stage-9x16.temple-3d-mode .leader-merit {
+  font-size: 13px;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .bottom-hud-bar {
+    height: 198px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    gap: 6px;
+  }
+  .stage-9x16.temple-3d-mode .hud-left-col,
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard {
+    padding: 7px;
+  }
+  .stage-9x16.temple-3d-mode .hud-left-col { gap: 6px; }
+  .stage-9x16.temple-3d-mode .hud-active-notice {
+    min-height: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+  .stage-9x16.temple-3d-mode .hud-gift-cards { gap: 5px; }
+  .stage-9x16.temple-3d-mode .gift-emoji { font-size: 25px; }
+  .stage-9x16.temple-3d-mode .gift-title { font-size: 10px; }
+  .stage-9x16.temple-3d-mode .hud-lb-header { font-size: 10px; }
+  .stage-9x16.temple-3d-mode .leader-item,
+  .stage-9x16.temple-3d-mode .leader-name { font-size: 9px; }
+  .stage-9x16.temple-3d-mode .leader-merit { font-size: 8px; }
+}
+
 /* Cinematic scene finish — 3D mode only. The soft edge falloff adds depth,
    protects HUD contrast, and leaves the central Buddha/altar unobscured. */
 .stage-9x16.temple-3d-mode::after {
