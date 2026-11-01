@@ -252,6 +252,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const rightKnee = new THREE.Group(); rightKnee.position.y = -0.24; rightLeg.add(rightKnee);');
     expect(scene).toContain('avatar.leftKnee.rotation.x = walking ? leftPose.kneeFlex : 0;');
     expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + (walking ? leftPose.footLift : 0);');
+    expect(scene.match(/avatar\.root\.position\.y = walking \? 0/g)).toHaveLength(2);
     expect(scene).toContain('leftKnee: bones.leftKnee');
     expect(scene).toContain('leftFoot: bones.leftFoot');
     expect(scene).toContain('rig.leftKnee.rotation.x = base(rig.leftKnee, rig.leftKneeRest) + leftPose.kneeFlex * weight;');
