@@ -237,6 +237,31 @@ describe('applyTwoBoneIKToBones', () => {
     expect(result.reachable).toBe(true);
   });
 
+  it('keeps the solved ankle stable when the same world target is applied repeatedly', () => {
+    const chain=makeChain();
+    const target=[0.8,-1.2,0.2];
+    const first=applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,target,[1,0,0]);
+    const firstAnkle=chain.ankle.getWorldPosition();
+    const second=applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,target,[1,0,0]);
+    const secondAnkle=chain.ankle.getWorldPosition();
+    expect(first).not.toBeNull();
+    expect(second).not.toBeNull();
+    expect(secondAnkle.distanceTo(firstAnkle)).toBeLessThan(1e-6);
+    expect(secondAnkle.distanceTo(new Vector3(...target))).toBeLessThan(1e-6);
+  });
+
+  it('solves world targets when the entire bone rig has a rotated parent', () => {
+    const chain=makeChain();
+    const halfAngle=Math.PI/4;
+    chain.rig.quaternion=new Quaternion(0,Math.sin(halfAngle),0,Math.cos(halfAngle));
+    const target=[1.1,-1.2,-0.3];
+    const result=applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,target,[1,0,0]);
+    expect(result).not.toBeNull();
+    expect(chain.ankle.getWorldPosition().distanceTo(new Vector3(...target))).toBeLessThan(1e-6);
+    expect(chain.root.getWorldPosition().distanceTo(chain.knee.getWorldPosition())).toBeCloseTo(1,7);
+    expect(chain.knee.getWorldPosition().distanceTo(chain.ankle.getWorldPosition())).toBeCloseTo(1,7);
+  });
+
   it('preserves segment lengths while aiming the chain', () => {
     const chain=makeChain();
     const beforeUpper=chain.root.getWorldPosition().distanceTo(chain.knee.getWorldPosition());
