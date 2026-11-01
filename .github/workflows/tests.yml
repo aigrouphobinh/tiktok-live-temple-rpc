@@ -69,6 +69,9 @@ jobs:
           grep -Fq 'const lotusSparkCount = 32' public/js/temple-3d.js &&
           grep -Fq 'lotusSparkMaterial.opacity = auraPulse * 0.88' public/js/temple-3d.js &&
           grep -Fq 'lotusSparkGeometry.attributes.position.needsUpdate = true' public/js/temple-3d.js &&
+          grep -Fq 'const statueRimLight = new THREE.DirectionalLight(0xffc982, 1.05)' public/js/temple-3d.js &&
+          grep -Fq 'statueRimLight.intensity = 1.05 + auraPulse * 1.35' public/js/temple-3d.js &&
+          grep -Fq 'mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38' public/js/temple-3d.js &&
           grep -Fq 'function getAvatarGiftReactionBlend(avatar, time)' public/js/temple-3d.js &&
           grep -Fq 'avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs' public/js/temple-3d.js &&
           grep -Fq 'congregationGiftGlow * 4.5' public/js/temple-3d.js &&
