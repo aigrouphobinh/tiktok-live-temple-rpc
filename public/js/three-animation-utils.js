@@ -1,7 +1,7 @@
 const DEFAULT_CLIP_ALIASES = {
-  idle: ['idle', 'breath', 'resting', 'standing', 'stand'],
+  idle: ['idle', 'breathing', 'breath', 'resting', 'standing', 'stand'],
   walk: ['walking', 'walk', 'locomotion', 'approach', 'travel', 'running', 'run', 'movement', 'move'],
-  bow: ['prostrate', 'worship', 'prayer', 'pray', 'kneel', 'bow']
+  bow: ['prostrate', 'worshipping', 'worshiping', 'worship', 'praying', 'prayer', 'pray', 'kneeling', 'kneel', 'bowing', 'bow']
 };
 
 function hasNameToken(name, token) {
