@@ -44,4 +44,27 @@ describe('Three.js lifecycle recovery', () => {
     expect(handler).toContain('releaseWorldResources();');
     expect(handler).not.toContain('disposeThreeObjectTree(scene)');
   });
+
+  it('integrates the Agent 3 environment once using the active render profile', () => {
+    expect(source).toContain("import { createTempleEnvironment } from './temple-environment.js';");
+    expect(source.split('createTempleEnvironment({')).toHaveLength(2);
+    const integrationStart = source.indexOf('const templeEnvironment = createTempleEnvironment({');
+    const integrationEnd = source.indexOf('});', integrationStart);
+    const integration = source.slice(integrationStart, integrationEnd);
+    expect(integration).toContain('THREE,');
+    expect(integration).toContain('scene,');
+    expect(integration).toContain('detailLevel: renderProfile.environmentDetail');
+  });
+
+  it('disposes Agent 3 architecture before shared scene resources', () => {
+    const cleanupStart = source.indexOf('function releaseWorldResources()');
+    const cleanupEnd = source.indexOf('function onVisibilityChange()', cleanupStart);
+    const cleanup = source.slice(cleanupStart, cleanupEnd);
+    expect(cleanup).toContain('templeEnvironment.dispose();');
+    expect(cleanup.indexOf('templeEnvironment.dispose();'))
+      .toBeGreaterThan(-1);
+    expect(cleanup.indexOf('templeEnvironment.dispose();'))
+      .toBeLessThan(cleanup.indexOf('disposeThreeSceneResources(scene);'));
+  });
+
 });
