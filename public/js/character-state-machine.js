@@ -75,6 +75,15 @@ export class CharacterStateMachine {
       };
     }
 
+    // The short cooldown after a gift still belongs to the interrupted
+    // devotee's handoff. A gift arriving in this window must remain a gift
+    // effect, not fall through and become an ordinary queued visit.
+    if (!this.active && this.state === 'COOLDOWN') {
+      this.effect = { action, priority, event: giftEvent };
+      this.state = 'INTERRUPTED';
+      return { interrupted: true, resumesCooldown: true, action };
+    }
+
     if (!this.active) return { interrupted: false, reason: 'no_active_character' };
 
     if (this.queue.length >= this.maxQueue) this.queue.pop();
