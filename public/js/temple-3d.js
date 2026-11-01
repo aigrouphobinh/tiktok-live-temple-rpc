@@ -668,7 +668,10 @@ async function boot() {
     detail.receiveShadow = false;
   }
   statue.add(statueBaseBand, statueBaseHighlight);
-  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);\n  // Add a continuous shoulder mantle beneath the neck so the Buddha reads as a\n  // solid carved figure at 9:16 stream scale, not only as fine robe outlines.\n  sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);
+  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);
+  // Add a continuous shoulder mantle beneath the neck so the Buddha reads as a
+  // solid carved figure at 9:16 stream scale, not only as fine robe outlines.
+  sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);
   // A shallow curved neckline softens the join between neck, shoulders and chest.
   const necklineCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-0.48, 3.98, 0.43),
