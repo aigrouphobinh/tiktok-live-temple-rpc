@@ -762,6 +762,15 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds paired wrist transitions and palm creases to the Buddha meditation mudra', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// Fine wrist transitions and palm creases finish the joined meditation hands.');
+  expect(scene).toContain('[side * 0.31, 2.69, 0.82]');
+  expect(scene).toContain('[side * 0.445, 2.72, 0.79]');
+  expect(scene).toContain('[side * 0.105, 2.655, 0.795]');
+  expect(scene).toContain('[side * 0.295, 2.69, 0.795]');
+});
+
 it('adds layered side-torso and lower-elbow robe folds on both sides', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// A short side-torso pleat and lower elbow fold create a quiet layered transition.');
