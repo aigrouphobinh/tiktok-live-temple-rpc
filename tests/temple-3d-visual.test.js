@@ -760,3 +760,13 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
   expect(scene).toContain('for (const y of [1.55, 4.05, 6.55])');
   expect(scene).toContain('world.add(columnPlaques, columnPlaqueGems);');
 });
+
+
+it('adds curved-front ruby-and-brass lotus plaques to the Buddha pedestal band', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const pedestalPlaqueXs = [-1.35, -0.9, -0.45, 0, 0.45, 0.9, 1.35];');
+  expect(scene).toContain('new THREE.InstancedMesh(pedestalPlaqueGeometry, mats.goldBright, pedestalPlaqueXs.length)');
+  expect(scene).toContain('new THREE.InstancedMesh(pedestalGemGeometry, mats.red, pedestalPlaqueXs.length)');
+  expect(scene).toContain('Math.sqrt(1.94 * 1.94 - x * x)');
+  expect(scene).toContain('world.add(pedestalPlaques, pedestalGems);');
+});
