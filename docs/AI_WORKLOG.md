@@ -1,3 +1,8 @@
+### 2026-11-01 — Repair GLB lifecycle regression assertion
+- CI exposed one stale visual-suite assertion that still expected the old geometry/material-only disposer after the GLB loader was correctly upgraded to texture-aware scene disposal.
+- Updated the assertion to require `disposeThreeSceneResources(root)`; implementation and GLB loading behavior are unchanged.
+- Re-ran source-level regression suite via GitHub Actions; result pending.
+
 ### 2026-11-01 — Close imported GLB texture lifecycle
 - Found that GLB teardown used the transient-object disposer, which releases geometries/materials but intentionally leaves textures alone.
 - Switched GLB model disposal to the full scene-resource disposer so imported base-color, normal, emissive and other material textures are released with the model.
