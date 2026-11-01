@@ -97,6 +97,20 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('camera.lookAt(0, 4.4, -5.5);');
   });
 
+  it('makes modeled ritual stations directly clickable through raycasting', async () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('new THREE.Raycaster()');
+    expect(scene).toContain('ritualRaycaster.intersectObjects(ritualHitMeshes, false)');
+    expect(scene).toContain("bell: 'ringBell'");
+    expect(scene).toContain("woodfish: 'strikeWoodenFish'");
+    expect(scene).toContain("fortune: 'drawFortune'");
+    expect(scene).toContain("canvas.addEventListener('pointerup', onWorldPointerUp)");
+    expect(scene).toContain("canvas.addEventListener('pointermove', onWorldPointerMove");
+    expect(scene).toContain("window.dispatchEvent(new CustomEvent('temple:ritual'");
+    expect(scene).toContain('canvas.removeEventListener(\'pointerup\', onWorldPointerUp)');
+    expect(scene).toContain('canvas.removeEventListener(\'pointermove\', onWorldPointerMove)');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
