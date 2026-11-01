@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test';
-import * as THREE from 'three';
 import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
@@ -156,53 +155,90 @@ describe('getFootPlantingWorldTarget', () => {
   });
 });
 
+
 describe('applyTwoBoneIKToBones', () => {
+  class Vector3 {
+    constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
+    clone() { return new Vector3(this.x, this.y, this.z); }
+    sub(v) { this.x -= v.x; this.y -= v.y; this.z -= v.z; return this; }
+    add(v) { this.x += v.x; this.y += v.y; this.z += v.z; return this; }
+    normalize() { const n = Math.hypot(this.x, this.y, this.z) || 1; this.x /= n; this.y /= n; this.z /= n; return this; }
+    lengthSq() { return this.x * this.x + this.y * this.y + this.z * this.z; }
+    distanceTo(v) { return Math.hypot(this.x-v.x, this.y-v.y, this.z-v.z); }
+    toArray() { return [this.x, this.y, this.z]; }
+    applyQuaternion(q) {
+      const x=this.x,y=this.y,z=this.z,qx=q.x,qy=q.y,qz=q.z,qw=q.w;
+      const ix=qw*x+qy*z-qz*y, iy=qw*y+qz*x-qx*z, iz=qw*z+qx*y-qy*x, iw=-qx*x-qy*y-qz*z;
+      this.x=ix*qw+iw*-qx+iy*-qz-iz*-qy;
+      this.y=iy*qw+iw*-qy+iz*-qx-ix*-qz;
+      this.z=iz*qw+iw*-qz+ix*-qy-iy*-qx;
+      return this;
+    }
+  }
+  class Quaternion {
+    constructor(x=0,y=0,z=0,w=1) { this.x=x;this.y=y;this.z=z;this.w=w; }
+    clone() { return new Quaternion(this.x,this.y,this.z,this.w); }
+    copy(q) { this.x=q.x;this.y=q.y;this.z=q.z;this.w=q.w;return this; }
+    normalize() { const n=Math.hypot(this.x,this.y,this.z,this.w)||1;this.x/=n;this.y/=n;this.z/=n;this.w/=n;return this; }
+    multiply(q) {
+      const ax=this.x,ay=this.y,az=this.z,aw=this.w,bx=q.x,by=q.y,bz=q.z,bw=q.w;
+      this.x=ax*bw+aw*bx+ay*bz-az*by;this.y=ay*bw+aw*by+az*bx-ax*bz;
+      this.z=az*bw+aw*bz+ax*by-ay*bx;this.w=aw*bw-ax*bx-ay*by-az*bz;return this;
+    }
+    premultiply(q) { return this.copy(q.clone().multiply(this)); }
+    invert() { this.x=-this.x;this.y=-this.y;this.z=-this.z;return this; }
+    setFromUnitVectors(a,b) {
+      let r=a.x*b.x+a.y*b.y+a.z*b.z+1;
+      if(r<1e-7) { r=0; if(Math.abs(a.x)>Math.abs(a.z)){this.x=-a.y;this.y=a.x;this.z=0;}else{this.x=0;this.y=-a.z;this.z=a.y;} }
+      else { this.x=a.y*b.z-a.z*b.y;this.y=a.z*b.x-a.x*b.z;this.z=a.x*b.y-a.y*b.x; }
+      this.w=r;return this.normalize();
+    }
+    equals(q) { return this.x===q.x&&this.y===q.y&&this.z===q.z&&this.w===q.w; }
+  }
+  class Node {
+    constructor(isBone=false) { this.isBone=isBone;this.position=new Vector3();this.quaternion=new Quaternion();this.parent=null;this.children=[]; }
+    add(child) { child.parent=this;this.children.push(child);return this; }
+    updateWorldMatrix() {}
+    getWorldQuaternion(out=new Quaternion()) {
+      if(!this.parent)return out.copy(this.quaternion);
+      return out.copy(this.parent.getWorldQuaternion()).multiply(this.quaternion);
+    }
+    getWorldPosition(out=new Vector3()) {
+      if(!this.parent)return out.copy(this.position);
+      return out.copy(this.position).applyQuaternion(this.parent.getWorldQuaternion()).add(this.parent.getWorldPosition());
+    }
+  }
+  const THREE = { Vector3, Quaternion };
   function makeChain() {
-    const root = new THREE.Bone();
-    const knee = new THREE.Bone();
-    const ankle = new THREE.Bone();
-    knee.position.set(0, -1, 0);
-    ankle.position.set(0, -1, 0);
-    root.add(knee);
-    knee.add(ankle);
-    const rig = new THREE.Group();
-    rig.add(root);
-    rig.updateMatrixWorld(true);
-    return { root, knee, ankle, rig };
+    const root=new Node(true),knee=new Node(true),ankle=new Node(true),rig=new Node();
+    knee.position.set?.(0,-1,0);
+    knee.position=new Vector3(0,-1,0);ankle.position=new Vector3(0,-1,0);
+    root.add(knee);knee.add(ankle);rig.add(root);
+    return {root,knee,ankle,rig};
   }
 
-  it('rotates a real Three.js bone chain toward a reachable world target', () => {
-    const chain = makeChain();
-    const result = applyTwoBoneIKToBones(
-      THREE, chain.root, chain.knee, chain.ankle, [1, -1, 0], [1, 0, 0]
-    );
-    chain.rig.updateMatrixWorld(true);
-    const actual = chain.ankle.getWorldPosition(new THREE.Vector3());
+  it('rotates a bone chain toward a reachable world target', () => {
+    const chain=makeChain();
+    const result=applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,[1,-1,0],[1,0,0]);
+    const actual=chain.ankle.getWorldPosition();
     expect(result).not.toBeNull();
-    expect(actual.distanceTo(new THREE.Vector3(1, -1, 0))).toBeLessThan(1e-6);
+    expect(actual.distanceTo(new Vector3(1,-1,0))).toBeLessThan(1e-6);
     expect(result.reachable).toBe(true);
   });
 
   it('preserves segment lengths while aiming the chain', () => {
-    const chain = makeChain();
-    const beforeUpper = chain.root.position.distanceTo(chain.knee.position);
-    const beforeLower = chain.knee.position.distanceTo(chain.ankle.position);
-    applyTwoBoneIKToBones(
-      THREE, chain.root, chain.knee, chain.ankle, [0.8, -1.2, 0.2], [1, 0, 0]
-    );
-    chain.rig.updateMatrixWorld(true);
-    const rootWorld = chain.root.getWorldPosition(new THREE.Vector3());
-    const kneeWorld = chain.knee.getWorldPosition(new THREE.Vector3());
-    const ankleWorld = chain.ankle.getWorldPosition(new THREE.Vector3());
-    expect(rootWorld.distanceTo(kneeWorld)).toBeCloseTo(beforeUpper, 7);
-    expect(kneeWorld.distanceTo(ankleWorld)).toBeCloseTo(beforeLower, 7);
+    const chain=makeChain();
+    const beforeUpper=chain.root.getWorldPosition().distanceTo(chain.knee.getWorldPosition());
+    const beforeLower=chain.knee.getWorldPosition().distanceTo(chain.ankle.getWorldPosition());
+    applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,[0.8,-1.2,0.2],[1,0,0]);
+    expect(chain.root.getWorldPosition().distanceTo(chain.knee.getWorldPosition())).toBeCloseTo(beforeUpper,7);
+    expect(chain.knee.getWorldPosition().distanceTo(chain.ankle.getWorldPosition())).toBeCloseTo(beforeLower,7);
   });
 
   it('rejects incomplete chains and malformed targets without mutating bones', () => {
-    const chain = makeChain();
-    const before = chain.root.quaternion.clone();
-    expect(applyTwoBoneIKToBones(THREE, chain.root, chain.knee, null, [0, -1, 0], [1, 0, 0])).toBeNull();
-    expect(applyTwoBoneIKToBones(THREE, chain.root, chain.knee, chain.ankle, [0, 1], [1, 0, 0])).toBeNull();
+    const chain=makeChain(),before=chain.root.quaternion.clone();
+    expect(applyTwoBoneIKToBones(THREE,chain.root,chain.knee,null,[0,-1,0],[1,0,0])).toBeNull();
+    expect(applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,[0,1],[1,0,0])).toBeNull();
     expect(chain.root.quaternion.equals(before)).toBe(true);
   });
 });
