@@ -295,3 +295,18 @@ export function applyTwoBoneIKToBones(THREE, upperBone, lowerBone, footBone, tar
   if (!aimBone(lowerBone, footBone, solved.target)) return null;
   return solved;
 }
+
+
+/**
+ * Smooth, bounded response envelope for short-lived gift acknowledgements.
+ * The first and last 260ms are eased to avoid a mechanical snap.
+ */
+export function getGiftReactionBlend(remainingMs, durationMs = 1800, rampMs = 260) {
+  if (!Number.isFinite(remainingMs) || !Number.isFinite(durationMs) || durationMs <= 0) return 0;
+  const remaining = Math.min(durationMs, Math.max(0, remainingMs));
+  const ramp = Math.min(durationMs / 2, Math.max(0, Number.isFinite(rampMs) ? rampMs : 260));
+  if (ramp <= 0) return remaining > 0 ? 1 : 0;
+  const elapsed = durationMs - remaining;
+  const ease = (value) => { const t = Math.min(1, Math.max(0, value)); return t * t * (3 - 2 * t); };
+  return Math.min(ease(elapsed / ramp), ease(remaining / ramp));
+}
