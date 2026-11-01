@@ -668,13 +668,13 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
-  it('adds subtle finger creases and a raised thumb contour to the Buddha mudra', () => {
+  it('models the Buddha meditation mudra with rounded palms and individual fingers', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('Individually modeled finger ridges make the meditation mudra readable at portrait scale.');
+    expect(scene).toContain('Build the palms and digits as rounded stone volumes; avoid thin tube strokes');
     expect(scene).toContain('for (let finger = 0; finger < 4; finger++)');
-    expect(scene).toContain('A fine crease at each knuckle gives the fingers a carved, not mechanical, finish.');
-    expect(scene).toContain('The paired thumbs rise toward one another and meet gently at the centre.');
-    expect(scene).toContain('statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.009,mats.statueShadow);');
+    expect(scene).toContain('Small knuckle reliefs sit flush with the finger volumes.');
+    expect(scene).toContain('The thumbs curve inward and meet softly above the joined palms.');
+    expect(scene).toContain('sphere(0.018, mats.statueShadow, 0, 2.84, 0.925, 0.8, 0.6, 0.7, statue);');
   });
 
 
