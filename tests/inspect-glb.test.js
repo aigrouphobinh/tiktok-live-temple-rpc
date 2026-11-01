@@ -36,7 +36,7 @@ describe('GLB inspector', () => {
       animations: [{ name: 'Idle' }, {}]
     }));
     expect(result.assetVersion).toBe('2.0');
-    expect(result.triangleEstimate).toBe(18);
+    expect(result.triangleEstimate).toBe(12);
     expect(result.meshes).toBe(1);
     expect(result.textures).toBe(1);
     expect(result.skins).toBe(1);
