@@ -301,4 +301,18 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds a raised stone robe hem with a recessed shadow groove', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const robeHemCurve = new THREE.CatmullRomCurve3([');
+    expect(scene).toContain('new THREE.TubeGeometry(robeHemCurve, 48, 0.032, 8, false)');
+    expect(scene).toContain('mats.statueLight');
+    expect(scene).toContain('const robeHemGrooveCurve = new THREE.CatmullRomCurve3(');
+    expect(scene).toContain('new THREE.TubeGeometry(robeHemGrooveCurve, 48, 0.014, 6, false)');
+    expect(scene).toContain('robeHem.castShadow = true;');
+    expect(scene).toContain('robeHemGroove.castShadow = false;');
+    expect(scene).toContain('statue.add(robeHem);');
+    expect(scene).toContain('statue.add(robeHemGroove);');
+  });
+
+
 });
