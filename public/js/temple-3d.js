@@ -654,7 +654,9 @@ async function boot() {
     start();
   }
   window.addEventListener('temple:ritual', (event) => handleRitual(event.detail));
-  window.addEventListener('temple:character-interrupted', (event) => {
+  // A gift can arrive while the altar is empty; listen to the effect lifecycle,
+  // not the character-interruption signal, so every started gift renders once.
+  window.addEventListener('temple:gift-action', (event) => {
     const action = event.detail?.action;
     if (['rocket', 'dragon', 'donut', 'rose'].includes(action)) playWorldGiftAction(action);
   });
