@@ -63,7 +63,10 @@ jobs:
           grep -Fq 'Curved tiled roof' public/js/temple-3d.js &&
           grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
           grep -Fq 'Keep the near half open' public/js/temple-3d.js &&
-          grep -Fq 'roofEndZ = 3.5' public/js/temple-3d.js &&
+          grep -Fq 'roofEndZ = -1.5' public/js/temple-3d.js &&
+          grep -Fq 'const roofCenterZ = (roofStartZ + roofEndZ) / 2' public/js/temple-3d.js &&
+          grep -Fq 'box(0.22, 0.28, roofLength, mats.red' public/js/temple-3d.js &&
+          grep -Fq 'box(0.09, 0.09, roofLength, roofTrim' public/js/temple-3d.js &&
           node -e "const fs=require('fs'); const s=fs.readFileSync('public/js/temple-3d.js','utf8'); if (!(s.indexOf('const roofStartZ = -13') < s.indexOf('function makeCurvedRoofSide') && s.indexOf('function makeCurvedRoofSide') < s.indexOf('const ridge = cylinder'))) process.exit(1);" &&
           grep -Fq 'raised corner eaves' public/js/temple-3d.js &&
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
