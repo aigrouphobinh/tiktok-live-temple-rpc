@@ -273,4 +273,18 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('petals.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
   });
 
+  it('finishes the Buddha pedestal with static brass mouldings and a beaded red tier', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const pedestalTrimGeometry = new THREE.TorusGeometry(1.94, 0.026, 8, 64)');
+    expect(scene).toContain('new THREE.InstancedMesh(pedestalTrimGeometry, mats.goldBright, 2)');
+    expect(scene).toContain('pedestalTrim.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
+    expect(scene).toContain('new THREE.InstancedMesh(pedestalStudGeometry, mats.goldBright, 32)');
+    expect(scene).toContain('pedestalStuds.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
+    expect(scene).toContain('pedestalTrim.castShadow = false;');
+    expect(scene).toContain('pedestalStuds.castShadow = false;');
+    expect(scene).toContain('world.add(pedestalTrim);');
+    expect(scene).toContain('world.add(pedestalStuds);');
+  });
+
+
 });
