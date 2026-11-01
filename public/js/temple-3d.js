@@ -925,12 +925,12 @@ async function boot() {
       devoteeState.startedAt = performance.now();
       devoteeState.bowAt = 0;
     }
-    else if (event.type === 'ringBell') { makeRing(-6, 5, -1, 0xffe18a); }
-    else if (event.type === 'strikeWoodenFish') { makeRing(5.8, 0.7, 1.5); }
+    else if (event.type === 'ringBell') { makeRing(-3.75, 1.85, -1.2, 0xffe18a); }
+    else if (event.type === 'strikeWoodenFish') { makeRing(3.75, 0.9, -1.2); }
     else if (event.type === 'sendPrayer') lotusBurst(8);
     else if (event.type === 'offerGift') lotusBurst(Math.min(18, 5 + Math.ceil((event.coins || 10) / 10)));
     else if (event.type === 'grandCeremony') { lotusBurst(18); for (let i = 0; i < 5; i++) makeRing(0, 0.2 + i * 0.2, -7); }
-    else if (event.type === 'drawFortune') lotusBurst(5);
+    else if (event.type === 'drawFortune') { lotusBurst(5); makeRing(3.75, 0.85, -5.4, 0xffdf83); }
     start();
   }
   function onTempleRitual(event) { handleRitual(event.detail); }
