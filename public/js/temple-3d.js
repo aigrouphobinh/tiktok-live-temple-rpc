@@ -1152,7 +1152,10 @@ async function boot() {
       if (avatar.gltfActions?.bow) return;
       const rig = avatar.gltfRig;
       if (rig?.spine) {
-        rig.spine.rotation.x = rig.spineRest.x - amount * 0.58;
+        rig.spine.rotation.x = rig.spineRest.x - amount * 0.46;
+      }
+      if (rig?.neck) {
+        rig.neck.rotation.x = rig.neckRest.x - amount * 0.12;
       }
       if (rig?.head) {
         rig.head.rotation.x = rig.headRest.x + amount * 0.16;
@@ -1209,12 +1212,13 @@ async function boot() {
         const bones = {};
         const normalizedBoneName = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         const boneAliases = {
-          spine: ['spine', 'spine01', 'spine1', 'spine02', 'spine2', 'chest', 'upperbody', 'neck'],
-          head: ['head'],
-          leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml', 'lupperarm', 'larm'],
-          rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr', 'rupperarm', 'rarm'],
-          leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg'],
-          rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg']
+          spine: ['spine', 'spine01', 'spine1', 'spine02', 'spine2', 'chest', 'upperbody', 'jbipcspine', 'jbipcchest'],
+          neck: ['neck', 'jbipcneck'],
+          head: ['head', 'jbipchead'],
+          leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml', 'lupperarm', 'larm', 'jbiplupperarm'],
+          rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr', 'rupperarm', 'rarm', 'jbiprupperarm'],
+          leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg', 'jbiplupperleg'],
+          rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg', 'jbiprupperleg']
         };
         model.traverse((node) => {
           if (!node.isBone) return;
@@ -1227,10 +1231,12 @@ async function boot() {
         });
         avatar.gltfRig = {
           spine: bones.spine,
+          neck: bones.neck,
           head: bones.head,
           leftArm: bones.leftArm,
           rightArm: bones.rightArm,
           spineRest: bones.spine?.rotation.clone(),
+          neckRest: bones.neck?.rotation.clone(),
           headRest: bones.head?.rotation.clone(),
           leftArmRest: bones.leftArm?.rotation.clone(),
           rightArmRest: bones.rightArm?.rotation.clone(),
