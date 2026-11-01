@@ -26,12 +26,12 @@ describe('3D sanctuary visual treatment', () => {
 
   it('sequences the main devotee through approach, kneel and bow with a shared timeline', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("getHumanFootPose, getRitualPoseState } from './three-gait-utils.js';");
+    expect(scene).toContain("getHumanFootPose, getHumanUpperPose, getRitualPoseState } from './three-gait-utils.js';");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
     expect(scene).toContain('avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
     expect(scene).toContain('animateHuman(mainHuman, now, ritualPose.walking, walkPhase);');
-    expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount);');
+    expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
     expect(scene).toContain('devoteeState.arrivedAt = now;');
     expect(scene).toContain('mainHuman.kneelBlend = 0;');
   });
@@ -281,7 +281,7 @@ describe('3D sanctuary visual treatment', () => {
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1)');
-    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getRitualPoseState } from './three-gait-utils.js';");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState } from './three-gait-utils.js';");
     expect(scene).toContain('const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);');
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
     expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
@@ -346,7 +346,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('findBestAnimationClip(animations)');
 
 
-    expect(scene).toContain('function applyHumanBow(avatar, amount)');
+    expect(scene).toContain('function applyHumanBow(avatar, amount, kneelBlend = 0)');
     expect(scene).toContain("Optional devotee GLB unavailable; keeping procedural characters");
     expect(scene).toContain('void upgradeDevoteesFromGLB()');
   });
@@ -573,12 +573,12 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('elapsedAfterArrival: devoteeState.arrivedAt ? now - devoteeState.arrivedAt : 0,');
     expect(scene).toContain('remainingMs: ritualUntil - now');
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
-    expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount);');
+    expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
   });
 
   it('routes procedural avatars through the shared idle, walk and kneel foot-pose controller', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getRitualPoseState }");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState }");
     expect(scene).toContain("const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';");
     expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });");
     expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });");
