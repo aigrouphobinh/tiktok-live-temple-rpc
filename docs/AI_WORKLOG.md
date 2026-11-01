@@ -410,3 +410,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The tracker now returns only the positive difference from the last cumulative count; exact duplicates and out-of-order lower counts return zero. Final frames always clear the group, including duplicate final frames.
 - Added regression coverage for repeated count 1, progression to count 3, duplicate count 3, and a final frame that repeats the existing count.
 - Committed code and tests directly to `main`; GitHub Actions validation is pending. This covers connector-frame deduplication logic, not a live connector capture.
+
+
+### Duplicate final combo frame — browser streak cleanup — 2026-11-01
+- Follow-up review found a cross-layer edge case: when a duplicate cumulative frame is also the final `repeatEnd` frame, server reward deduplication correctly drops it (delta 0), but the browser never sees that frame and can retain its visual coalescer key until TTL expiry.
+- The server now broadcasts a targeted `temple.gift-streak-end` notification for a dropped duplicate final frame. The browser clears only that `groupId`; it does not create a second ritual, gift effect, or reward.
+- Added a public `clearStreak(groupId)` method to the coalescer and regression tests proving targeted cleanup preserves other active group IDs and permits immediate reuse.
+- Code, tests and this worklog entry are committed directly to `main`. GitHub Actions validation is pending; real connector and browser runtime behavior remain unverified.
