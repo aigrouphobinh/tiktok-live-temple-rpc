@@ -111,6 +111,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('canvas.removeEventListener(\'pointermove\', onWorldPointerMove)');
   });
 
+  it('requires pointer down and pointer up on the same station before firing a ritual', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('let pressedRitualStation = null;');
+    expect(scene).toContain("canvas.addEventListener('pointerdown', onWorldPointerDown)");
+    expect(scene).toContain('if (!station || station !== pressedStation) return;');
+    expect(scene).toContain("canvas.addEventListener('pointercancel', onWorldPointerCancel)");
+    expect(scene).toContain("canvas.removeEventListener('pointerdown', onWorldPointerDown)");
+    expect(scene).toContain("canvas.removeEventListener('pointercancel', onWorldPointerCancel)");
+  });
+
   it('animates each physical ritual prop when its matching ritual event fires', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("station.userData.ritualKind = kind;");
