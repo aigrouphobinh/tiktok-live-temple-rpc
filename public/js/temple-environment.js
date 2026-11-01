@@ -347,14 +347,13 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         collarPositions.push([x, 7.43, z]);
 
         if (settings.detailLevel !== 'low') {
-          // Ruby-and-brass diamond plaques echo the outer hall pillars, mirrored inward.
-          const inwardOffset = x < 0 ? 0.2 : -0.2;
+          // Ruby-and-brass plaques align to the shaft centreline, matching the outer hall pillars.
           frontPlaqueTransforms.push({
-            position: [x + inwardOffset, 6.2, z + 0.445],
+            position: [x, 6.2, z + 0.48],
             rotation: [0, 0, Math.PI / 4]
           });
           frontGemTransforms.push({
-            position: [x + inwardOffset, 6.2, z + 0.48],
+            position: [x, 6.2, z + 0.515],
             rotation: [0, 0, Math.PI / 4]
           });
           for (const direction of [-1, 1]) {
