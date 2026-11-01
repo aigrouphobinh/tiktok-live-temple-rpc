@@ -252,3 +252,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - These tests cover state-machine behavior only; they do not yet exercise DOM animation cancellation, SFX event dispatch or real TikTok payload delivery.
 - The test source is committed directly to `main`. Await/inspect the GitHub Actions run before claiming the expanded suite passes.
 - Dragon procedural sprite source is in place, but actual browser appearance, layer overlap and mobile crop remain unverified.
+
+
+### Gift display-name resolver extraction — 2026-11-01
+- Extracted gift-name normalization and visual action mapping into `public/js/gift-action-rules.js`; the browser gift engine now imports the pure resolver instead of keeping matching rules inside its DOM IIFE.
+- Added `tests/gift-action-rules.test.js` for English/Vietnamese aliases (Rocket/Tên Lửa, Dragon/Rồng, Donut/Doughnut, Rose/Hoa Hồng), accent/case normalization, unknown/missing values and partial-word false positives.
+- This is display-name-only visual routing. It does not assign numeric TikTok gift IDs, alter coin/merit accounting, or change server reward behavior.
+- Files committed directly to `main`. Re-run the repository Bun test workflow and inspect the Actions result; no test pass is claimed until the run is observed.
+- Runtime validation remains outstanding for actual TikTok LIVE display names, combo frames, animation cancellation, sound mix and browser rendering.
