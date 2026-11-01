@@ -126,6 +126,21 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('updateRitualStationAnimations(now)');
   });
 
+  it('enables pointer and touch input only for the active 3D canvas', () => {
+    const canvasRule = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode #temple3dCanvas'));
+    expect(canvasRule).toContain('pointer-events: auto;');
+    expect(canvasRule).toContain('touch-action: manipulation;');
+    const baseCanvas = css.slice(css.indexOf('#temple3dCanvas {'), css.indexOf('#temple3dCanvas[hidden]'));
+    expect(baseCanvas).toContain('pointer-events: none;');
+  });
+
+  it('places ritual feedback at the visible 3D station coordinates', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("makeRing(-3.75, 1.85, -1.2, 0xffe18a)");
+    expect(scene).toContain('makeRing(3.75, 0.9, -1.2)');
+    expect(scene).toContain('makeRing(3.75, 0.85, -5.4, 0xffdf83)');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
