@@ -185,7 +185,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr', 'rupperarm', 'rarm', 'jbiprupperarm']");
     expect(scene).toContain("leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg', 'jbiplupperleg']");
     expect(scene).toContain("rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg', 'jbiprupperleg']");
-    expect(scene).toContain('aliases.some((alias) => name === alias || name.endsWith(alias))');
+    expect(scene).toContain('const aliasIndex = aliases.findIndex((alias) => name === alias || name.endsWith(alias));');
   });
 
   it('supports VRM J_Bip and Unity-style side-prefixed bone names', () => {
