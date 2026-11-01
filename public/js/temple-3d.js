@@ -20,7 +20,11 @@ if (enabled && stage && canvas) {
 }
 
 async function boot() {
-  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+  const THREE = await import('three');
+  const [{ GLTFLoader }, SkeletonUtils] = await Promise.all([
+    import('three/addons/loaders/GLTFLoader.js'),
+    import('three/addons/utils/SkeletonUtils.js')
+  ]);
   const renderer = new THREE.WebGLRenderer({
     canvas, alpha: false, antialias: true, powerPreference: 'high-performance'
   });
@@ -403,38 +407,93 @@ async function boot() {
   cylinder(0.08, 0.08, 0.9, mats.woodLight, 0, 1.28, 0, burner, 12);
   sphere(0.11, mats.redBright, 0, 1.76, 0, 1, 1, 1, burner);
 
-  // Small, kneeling devotees placed in perspective along both sides of the carpet.
+  // Lightweight congregation anchors. CC0 skinned animal models replace these
+  // procedural silhouettes as soon as the GLBs arrive; each anchor remains a safe fallback.
   const devotees = [];
+  const devoteeAnchors = [];
+  const animalMixers = [];
   function makeDevotee(x, z, scale = 1) {
     const group = new THREE.Group(); group.position.set(x, 0.02, z); group.scale.setScalar(scale); world.add(group);
-    sphere(0.28, mats.robe, 0, 0.78, 0, 1.05, 1.5, 0.72, group);
-    sphere(0.22, mats.skin, 0, 1.32, 0.02, 0.82, 0.9, 0.82, group);
-    sphere(0.12, mats.robeDark, -0.22, 0.42, 0.16, 1.5, 0.55, 1.1, group);
-    sphere(0.12, mats.robeDark, 0.22, 0.42, 0.16, 1.5, 0.55, 1.1, group);
-    sphere(0.1, mats.skin, -0.17, 0.9, 0.25, 0.7, 0.6, 0.6, group);
-    sphere(0.1, mats.skin, 0.17, 0.9, 0.25, 0.7, 0.6, 0.6, group);
-    devotees.push(group); return group;
+    const fallback = new THREE.Group(); group.add(fallback);
+    sphere(0.28, mats.robe, 0, 0.78, 0, 1.05, 1.5, 0.72, fallback);
+    sphere(0.22, mats.skin, 0, 1.32, 0.02, 0.82, 0.9, 0.82, fallback);
+    sphere(0.12, mats.robeDark, -0.22, 0.42, 0.16, 1.5, 0.55, 1.1, fallback);
+    sphere(0.12, mats.robeDark, 0.22, 0.42, 0.16, 1.5, 0.55, 1.1, fallback);
+    sphere(0.1, mats.skin, -0.17, 0.9, 0.25, 0.7, 0.6, 0.6, fallback);
+    sphere(0.1, mats.skin, 0.17, 0.9, 0.25, 0.7, 0.6, 0.6, fallback);
+    devotees.push(group); devoteeAnchors.push({ group, fallback }); return group;
   }
-  for (let row = 0; row < 6; row++) {
+  for (let row = 0; row < 4; row++) {
     const z = -3.2 + row * 3.1;
     const scale = 1.0 - row * 0.065;
     makeDevotee(-4.3, z, scale); makeDevotee(4.3, z, scale);
-    if (row % 2 === 0) { makeDevotee(-5.6, z + 0.8, scale * 0.82); makeDevotee(5.6, z + 0.8, scale * 0.82); }
   }
 
-  // One correctly scaled 3D worshipper enters the carpet for live incense rituals.
+  // The lead visitor uses the same rigged animal art direction as the congregation.
+  // Procedural geometry remains visible until the remote CC0 GLB loads successfully.
   const mainDevotee = new THREE.Group();
   mainDevotee.visible = false;
   mainDevotee.position.set(0, 0.05, 7.5);
   world.add(mainDevotee);
-  sphere(0.34, mats.robe, 0, 0.92, 0, 1.05, 1.65, 0.82, mainDevotee);
-  sphere(0.23, mats.skin, 0, 1.62, 0.02, 0.9, 1.0, 0.85, mainDevotee);
-  sphere(0.13, mats.dark, 0, 1.83, 0.02, 1.0, 0.45, 0.9, mainDevotee);
-  const leftArm = sphere(0.13, mats.robeDark, -0.3, 1.2, 0.22, 0.8, 1.9, 0.85, mainDevotee);
-  const rightArm = sphere(0.13, mats.robeDark, 0.3, 1.2, 0.22, 0.8, 1.9, 0.85, mainDevotee);
-  sphere(0.11, mats.skin, -0.08, 1.0, 0.42, 0.75, 0.75, 0.75, mainDevotee);
-  sphere(0.11, mats.skin, 0.08, 1.0, 0.42, 0.75, 0.75, 0.75, mainDevotee);
+  const mainDevoteeFallback = new THREE.Group(); mainDevotee.add(mainDevoteeFallback);
+  sphere(0.34, mats.robe, 0, 0.92, 0, 1.05, 1.65, 0.82, mainDevoteeFallback);
+  sphere(0.23, mats.skin, 0, 1.62, 0.02, 0.9, 1.0, 0.85, mainDevoteeFallback);
+  sphere(0.13, mats.dark, 0, 1.83, 0.02, 1.0, 0.45, 0.9, mainDevoteeFallback);
+  sphere(0.13, mats.robeDark, -0.3, 1.2, 0.22, 0.8, 1.9, 0.85, mainDevoteeFallback);
+  sphere(0.13, mats.robeDark, 0.3, 1.2, 0.22, 0.8, 1.9, 0.85, mainDevoteeFallback);
+  sphere(0.11, mats.skin, -0.08, 1.0, 0.42, 0.75, 0.75, 0.75, mainDevoteeFallback);
+  sphere(0.11, mats.skin, 0.08, 1.0, 0.42, 0.75, 0.75, 0.75, mainDevoteeFallback);
+  let mainAnimal = null;
   const devoteeState = { active: false, startedAt: 0, duration: 2600, bowAt: 0 };
+
+  function makeAnimalInstance(asset, targetHeight) {
+    const model = SkeletonUtils.clone(asset.scene);
+    model.updateMatrixWorld(true);
+    const bounds = new THREE.Box3().setFromObject(model);
+    const size = bounds.getSize(new THREE.Vector3());
+    const scale = targetHeight / Math.max(size.y, 0.001);
+    model.scale.setScalar(scale);
+    model.position.set(
+      -((bounds.min.x + bounds.max.x) * 0.5) * scale,
+      -bounds.min.y * scale,
+      -((bounds.min.z + bounds.max.z) * 0.5) * scale
+    );
+    // Gobkit rigs face +Z; the visitors walk from the foreground toward the altar (-Z).
+    model.rotation.y = Math.PI;
+    const mixer = new THREE.AnimationMixer(model);
+    const idleClip = THREE.AnimationClip.findByName(asset.animations, 'idle') || asset.animations[0];
+    const walkClip = THREE.AnimationClip.findByName(asset.animations, 'walk');
+    const idle = idleClip ? mixer.clipAction(idleClip) : null;
+    const walk = walkClip ? mixer.clipAction(walkClip) : null;
+    if (idle) idle.play();
+    animalMixers.push(mixer);
+    return { model, mixer, idle, walk, activeAction: idle };
+  }
+
+  async function loadAnimalDevotees() {
+    const loader = new GLTFLoader();
+    const sources = await Promise.allSettled([
+      loader.loadAsync('https://gobkit.com/freebies/animal/Corgi.glb'),
+      loader.loadAsync('https://gobkit.com/freebies/animal/Duck.glb')
+    ]);
+    const corgi = sources[0].status === 'fulfilled' ? sources[0].value : null;
+    const duck = sources[1].status === 'fulfilled' ? sources[1].value : null;
+    const leadAsset = corgi || duck;
+    if (!leadAsset) throw new Error('Corgi and Duck GLB downloads both failed');
+    devoteeAnchors.forEach((anchor, index) => {
+      const asset = index % 3 === 1 && duck ? duck : leadAsset;
+      const animal = makeAnimalInstance(asset, 1.25);
+      anchor.fallback.visible = false;
+      anchor.group.add(animal.model);
+    });
+    mainAnimal = makeAnimalInstance(leadAsset, 1.62);
+    mainDevoteeFallback.visible = false;
+    mainDevotee.add(mainAnimal.model);
+    console.info('[Temple3D] CC0 animal devotees ready:', corgi ? 'Corgi' : 'Duck', duck ? '+ Duck' : '(single model fallback)');
+  }
+  loadAnimalDevotees().catch((error) => {
+    console.warn('[Temple3D] CC0 animal models unavailable; keeping procedural devotee fallback:', error);
+  });
 
   // Prayer flags, side screens and lotus planters give the hall a lived-in scale.
   for (const x of [-6.2, 6.2]) {
@@ -669,8 +728,17 @@ async function boot() {
     lastFrame = now; elapsed += dt;
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
+    animalMixers.forEach((mixer) => mixer.update(dt * 0.001));
     if (devoteeState.active) {
       const travel = Math.min(1, (now - devoteeState.startedAt) / devoteeState.duration);
+      if (mainAnimal) {
+        const desired = travel < 0.92 && mainAnimal.walk ? mainAnimal.walk : mainAnimal.idle;
+        if (desired && desired !== mainAnimal.activeAction) {
+          mainAnimal.activeAction?.fadeOut(0.18);
+          desired.reset().fadeIn(0.18).play();
+          mainAnimal.activeAction = desired;
+        }
+      }
       const eased = travel * travel * (3 - 2 * travel);
       mainDevotee.position.z = 7.5 - eased * 11.2;
       mainDevotee.scale.setScalar(1 - eased * 0.18);
