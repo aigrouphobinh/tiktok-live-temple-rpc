@@ -1,4 +1,5 @@
 import { disposeThreeObjectTree } from './three-resource-utils.js';
+import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -24,7 +25,11 @@ async function boot() {
   const renderer = new THREE.WebGLRenderer({
     canvas, alpha: false, antialias: true, powerPreference: 'high-performance'
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
+  renderer.setPixelRatio(getTemplePixelRatio({
+    devicePixelRatio: window.devicePixelRatio || 1,
+    deviceMemory: navigator.deviceMemory,
+    hardwareConcurrency: navigator.hardwareConcurrency
+  }));
   renderer.setSize(1080, 1920, false);
   renderer.setClearColor(0x160904, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
