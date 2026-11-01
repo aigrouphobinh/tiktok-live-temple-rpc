@@ -26,7 +26,7 @@ async function waitForRendererSample(samples, targetCount, timeoutMs = 15000) {
 await mkdir(artifactDir, { recursive: true });
 
 const report = {
-  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1',
+  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1&buddha=1',
   capturedAt: new Date().toISOString(),
   viewport,
   deviceScaleFactor,
@@ -148,6 +148,18 @@ try {
         profileReport.readinessError = error.message;
       }
 
+      // Require the external Buddha GLB to finish loading before the visual capture.
+      try {
+        await page.waitForFunction(
+          () => window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== undefined
+            && window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== 'loading',
+          null,
+          { timeout: 30000 }
+        );
+      } catch (error) {
+        profileReport.modelLoadError = error.message;
+      }
+
       // Capture one renderer sample for the idle-scene baseline.
       const idleStats = await waitForRendererSample(rendererStatsSamples, 1);
       const samplesBeforeGiftBurst = rendererStatsSamples.length;
@@ -202,6 +214,7 @@ try {
         });
         return {
           readyFlag: window.__TEMPLE_3D_READY__ === true,
+          buddhaModelSource: window.__TEMPLE_BUDDHA_MODEL_SOURCE__ ?? null,
           userAgent: navigator.userAgent,
           devicePixelRatio: window.devicePixelRatio,
           browserHints: {
@@ -233,6 +246,7 @@ try {
         };
       });
 
+      profileReport.buddhaModelSource = scene.buddhaModelSource;
       profileReport.browserHints = scene.browserHints;
       profileReport.userAgent = scene.userAgent;
       profileReport.devicePixelRatio = scene.devicePixelRatio;
@@ -270,6 +284,7 @@ try {
           && Number.isFinite(stressStats?.drawCalls)
           && stressStats.drawCalls > idleStats.drawCalls,
         sceneReady: profileReport.ready && scene.readyFlag,
+        buddhaModelLoaded: ['kenny-hsieh', 'mia-cc0-gilt-bronze'].includes(scene.buddhaModelSource),
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
