@@ -85,6 +85,13 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added regression coverage for the query flag, reported metrics and sampling interval.
 - Validation: pending CI workflow. Browser GPU measurements still require running the scene on the target machine.
 
+## Session update — 2026-11-01 (shared primitive geometry)
+- Confirmed all three GPU diagnostics workflow runs passed (`a320630`, `72a0769`, `31bf24d`).
+- Cached immutable BoxGeometry, CylinderGeometry, SphereGeometry and PlaneGeometry in the scene's primitive helpers, keyed by exact dimensions/segments. Repeated meshes now share GPU geometry buffers while retaining their own transforms, materials and shadow flags.
+- Full scene teardown already deduplicates geometries, so shared resources are disposed once.
+- Added regression checks for all four cache keys. No geometry dimensions or visual placement changed.
+- Validation: pending CI. Browser draw-call and GPU memory measurements still require target-device logs.
+
 ## Session log — 2026-11-01
 
 ### Optional Three.js layer — initial implementation
