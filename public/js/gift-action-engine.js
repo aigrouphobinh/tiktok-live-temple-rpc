@@ -1,5 +1,5 @@
 import { CharacterStateMachine } from './character-state-machine.js';
-import { resolveGiftAction } from './gift-action-rules.js';
+import { resolveGiftAction, resolveGiftReactionProfile } from './gift-action-rules.js';
 import { GiftStreakCoalescer } from './gift-streak-coalescer.js';
 import { GiftEffectRegistry } from './gift-effect-registry.js';
 
@@ -309,7 +309,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     }, event?.type === 'drawFortune' ? 18000 : 7600);
   }
 
-  function beginEffect(action) {
+  function beginEffect(action, giftEvent = null) {
     // Fade only the superseded gift's sound group; background music and TTS
     // remain on their independent playback paths.
     if (effectToken > 0) {
@@ -324,7 +324,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     clearTimeout(cooldownTimer);
     clearDelayedEffectTimers();
     const token = ++effectToken;
-    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: { action, effectId: token } }));
+    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: { action, effectId: token, reactionProfile: resolveGiftReactionProfile(giftEvent || {}) } }));
     clearActiveEffects();
     // Every new gift action owns the central character animation. Cancel the
     // previous action's motion even when the incoming action (e.g. Rose) has
@@ -343,7 +343,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       characterAnimation = null;
       const result = machine.finishEffect();
       if (result.nextEffect) {
-        beginEffect(result.nextEffect.action);
+        beginEffect(result.nextEffect.action, result.nextEffect.event);
         return;
       }
       cooldownTimer = window.setTimeout(() => {
@@ -373,7 +373,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         if (interruptedEvent && !result.superseded) {
           window.dispatchEvent(new CustomEvent('temple:character-interrupted', { detail: { event: interruptedEvent, action } }));
         }
-        beginEffect(action);
+        beginEffect(action, event);
         return { allowWalker: false, interruptsRitual: true, action, state: machine.snapshot() };
       }
       if (result.queuedEffect) {
