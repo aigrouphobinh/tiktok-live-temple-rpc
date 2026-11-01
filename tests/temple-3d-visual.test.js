@@ -218,4 +218,13 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('sphere(0.075, mats.goldBright, x + side * 0.72, y, -10.69, 1, 1, 0.55)');
   });
 
+
+  it('finishes the offering table with a lacquered front apron and gilded seal', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('box(5.32, 0.3, 0.12, mats.redBright, 0, 1.38, 0.755, offeringTable)');
+    expect(scene).toContain('box(5.28, 0.035, 0.15, mats.goldBright, 0, 1.55, 0.765, offeringTable)');
+    expect(scene).toContain('const tableSeal = box(0.25, 0.25, 0.065, mats.goldBright, 0, 1.38, 0.84, offeringTable)');
+    expect(scene).toContain('tableSeal.rotation.z = Math.PI / 4;');
+  });
+
 });
