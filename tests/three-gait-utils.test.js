@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -383,5 +383,23 @@ describe('applyTwoBoneIKToBones', () => {
     expect(applyTwoBoneIKToBones(
       THREE, chain.root, chain.knee, unrelated, [0,-1,0], [1,0,0]
     )).toBeNull();
+  });
+});
+
+
+describe('getGiftReactionBlend', () => {
+  it('eases into and out of a short gift acknowledgement', () => {
+    expect(getGiftReactionBlend(1800)).toBe(0);
+    expect(getGiftReactionBlend(1670)).toBeGreaterThan(0);
+    expect(getGiftReactionBlend(900)).toBe(1);
+    expect(getGiftReactionBlend(130)).toBeGreaterThan(0);
+    expect(getGiftReactionBlend(0)).toBe(0);
+  });
+
+  it('clamps time and safely handles invalid durations', () => {
+    expect(getGiftReactionBlend(2400)).toBe(0);
+    expect(getGiftReactionBlend(-20)).toBe(0);
+    expect(getGiftReactionBlend(Number.NaN)).toBe(0);
+    expect(getGiftReactionBlend(500, 0)).toBe(0);
   });
 });
