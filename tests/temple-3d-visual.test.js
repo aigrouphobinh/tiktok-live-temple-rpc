@@ -982,7 +982,7 @@ it('validates gift-burst renderer cost against each profile idle baseline', () =
     'const samplesBeforeIdle = rendererStatsSamples.length;'
   );
   const idleSampleWaitIndex = auditScript.indexOf(
-    'samplesBeforeIdle + 1'
+    'waitForReliableRendererSample(\n        rendererStatsSamples,\n        samplesBeforeIdle + 1'
   );
   expect(modelSettledIndex).toBeGreaterThanOrEqual(0);
   expect(idleSampleCountIndex).toBeGreaterThan(modelSettledIndex);
