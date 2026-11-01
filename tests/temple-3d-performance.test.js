@@ -65,10 +65,12 @@ describe('Three.js opt-in GPU diagnostics', () => {
     expect(source).toContain('activeEffects: effects.length');
     expect(source).toContain('now - lastStatsAt >= 5000');
     expect(source).toContain('frameIntervals.push(now - lastRenderedFrameAt);');
-    expect(source).toContain('frameSamples: sortedIntervals.length');
-    expect(source).toContain('observedFps:');
-    expect(source).toContain('frameTimeP50Ms');
-    expect(source).toContain('frameTimeP95Ms');
+    expect(source).toContain('frameSamples: sampleCount');
+    expect(source).toContain('sampleWindowMs');
+    expect(source).toContain("sampleQuality: percentilesReliable ? 'reliable' : 'insufficient'");
+    expect(source).toContain('MIN_FRAME_SAMPLES_FOR_PERCENTILES = 30');
+    expect(source).toContain('frameTimeP50Ms: percentile(0.50)');
+    expect(source).toContain('frameTimeP95Ms: percentile(0.95)');
     expect(source).toContain('if (frameIntervals.length > 300) frameIntervals.shift();');
   });
 });
