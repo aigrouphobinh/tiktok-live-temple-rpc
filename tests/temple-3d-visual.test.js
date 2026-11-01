@@ -221,6 +221,18 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})");
   });
 
+  it('diagnoses ordered GLB leg chains and measures world-space segment lengths', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const inspectLegChain = (upper, lower, foot) => {');
+    expect(scene).toContain('!descendsFrom(lower, upper) || !descendsFrom(foot, lower)');
+    expect(scene).toContain('model.updateWorldMatrix(true, true);');
+    expect(scene).toContain('upperLength: Number(upperPosition.distanceTo(lowerPosition).toFixed(4))');
+    expect(scene).toContain('lowerLength: Number(lowerPosition.distanceTo(footPosition).toFixed(4))');
+    expect(scene).toContain('left: allHumanAvatars[0]?.gltfRig?.leftLegChain');
+    expect(scene).toContain('right: allHumanAvatars[0]?.gltfRig?.rightLegChain');
+    expect(scene).toContain('do not enable world-space IK until the');
+  });
+
   it('reports available GLB animation names, duration, tracks and targets', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("'available clips:', animations.map((clip) => ({");
