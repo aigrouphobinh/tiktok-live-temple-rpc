@@ -1,25 +1,39 @@
+import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
-import { mkdir, writeFile } from 'node:fs/promises';
 
 const artifactDir = 'artifacts';
+const viewport = { width: 1080, height: 1920 };
+const deviceScaleFactor = 2;
+const scenarios = [
+  { id: 'low', deviceMemory: 2, hardwareConcurrency: 8, expectedPixelRatio: 1 },
+  { id: 'medium', deviceMemory: 6, hardwareConcurrency: 8, expectedPixelRatio: 1.15 },
+  { id: 'high', deviceMemory: 8, hardwareConcurrency: 8, expectedPixelRatio: 1.25 }
+];
+
 await mkdir(artifactDir, { recursive: true });
 
-const errors = [];
-const failedRequests = [];
-let browser;
-
 const report = {
-  url: 'http://127.0.0.1:3000/?obs=1&3d=1',
+  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1',
   capturedAt: new Date().toISOString(),
-  viewport: { width: 1080, height: 1920, deviceScaleFactor: 1 },
+  viewport,
+  deviceScaleFactor,
   ready: false,
   sceneCanvasVisible: false,
   webgl: null,
   stage: null,
   sceneCanvas: null,
-  consoleErrors: errors,
-  failedRequests
+  consoleErrors: [],
+  failedRequests: [],
+  note: 'Browser capability hints are overridden for deterministic profile coverage. This is a Chromium/SwiftShader visual and configuration audit, not a physical-GPU benchmark. Shadow-map size is reported from the selected render profile; it is not read back from a GPU allocation.',
+  profiles: [],
+  summary: {
+    passed: false,
+    allProfilesPassed: false,
+    drawCallsStrictlyIncrease: false
+  }
 };
+
+let browser;
 
 try {
   browser = await chromium.launch({
@@ -33,92 +47,315 @@ try {
     ]
   });
 
-  const page = await browser.newPage({
-    viewport: report.viewport,
-    deviceScaleFactor: report.viewport.deviceScaleFactor
-  });
+  for (const scenario of scenarios) {
+    const errors = [];
+    const failedRequests = [];
+    let page;
+    const rendererStatsSamples = [];
 
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  page.on('pageerror', (error) => errors.push(error.stack || error.message));
-  page.on('requestfailed', (request) => {
-    failedRequests.push({
-      url: request.url(),
-      error: request.failure()?.errorText || 'request failed'
-    });
-  });
+    const profileReport = {
+      id: scenario.id,
+      requestedHints: {
+        deviceMemory: scenario.deviceMemory,
+        hardwareConcurrency: scenario.hardwareConcurrency
+      },
+      expectedPixelRatio: scenario.expectedPixelRatio,
+      expectedShadowMapSize: scenario.id === 'low' ? 512 : 1024,
+      expectedEnvironmentDetail: scenario.id,
+      ready: false,
+      sceneCanvasVisible: false,
+      browserHints: null,
+      renderProfile: null,
+      stage: null,
+      canvas: null,
+      framebufferScale: null,
+      webgl: null,
+      rendererStats: null,
+      consoleErrors: errors,
+      failedRequests,
+      checks: {}
+    };
 
-  await page.goto(report.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    try {
+      page = await browser.newPage({ viewport, deviceScaleFactor });
+      await page.addInitScript((hints) => {
+        Object.defineProperty(navigator, 'deviceMemory', {
+          configurable: true,
+          get: () => hints.deviceMemory
+        });
+        Object.defineProperty(navigator, 'hardwareConcurrency', {
+          configurable: true,
+          get: () => hints.hardwareConcurrency
+        });
+      }, {
+        deviceMemory: scenario.deviceMemory,
+        hardwareConcurrency: scenario.hardwareConcurrency
+      });
 
-  try {
-    await page.waitForFunction(
-      () => window.__TEMPLE_3D_READY__ === true,
-      null,
-      { timeout: 60000 }
-    );
-    report.ready = true;
-  } catch (error) {
-    report.readinessError = error.message;
+      page.on('console', async (message) => {
+        if (message.type() === 'error') errors.push(message.text());
+        if (message.text().includes('[Temple3D] GPU frame stats')) {
+          try {
+            const args = message.args();
+            const payload = await args[1]?.jsonValue();
+            if (payload && typeof payload === 'object') {
+              rendererStatsSamples.push({
+                capturedAt: new Date().toISOString(),
+                ...payload
+              });
+            }
+          } catch (error) {
+            errors.push(`Unable to read renderer stats: ${error.message}`);
+          }
+        }
+      });
+      page.on('pageerror', (error) => errors.push(error.stack || error.message));
+      page.on('requestfailed', (request) => {
+        failedRequests.push({
+          url: request.url(),
+          error: request.failure()?.errorText || 'request failed'
+        });
+      });
+
+      const profileUrl = new URL(report.url);
+      profileUrl.searchParams.set('profileAudit', scenario.id);
+      await page.goto(profileUrl.toString(), {
+        waitUntil: 'domcontentloaded',
+        timeout: 45000
+      });
+
+      try {
+        await page.waitForFunction(
+          () => window.__TEMPLE_3D_READY__ === true,
+          null,
+          { timeout: 60000 }
+        );
+        profileReport.ready = true;
+      } catch (error) {
+        profileReport.readinessError = error.message;
+      }
+
+      // First diagnostic snapshot is the idle-scene baseline.
+      await page.waitForTimeout(6500);
+      if (!rendererStatsSamples.length) await page.waitForTimeout(2500);
+      const idleStats = rendererStatsSamples[0] || null;
+
+      // Sustain a mixed gift-effect burst until the next renderer diagnostic.
+      await page.evaluate(() => {
+        const actions = ['rocket', 'dragon', 'donut', 'rose'];
+        let index = 0;
+        const dispatch = () => {
+          const action = actions[index % actions.length];
+          index += 1;
+          window.dispatchEvent(new CustomEvent('temple:gift-action', {
+            detail: {
+              action,
+              reactionProfile: {
+                tier: 'special',
+                intensity: 0.9,
+                bowAmount: 0.8,
+                durationMs: 1800
+              }
+            }
+          }));
+        };
+        dispatch();
+        const timer = window.setInterval(dispatch, 600);
+        window.__TEMPLE_AUDIT_STOP_GIFTS__ = () => window.clearInterval(timer);
+      });
+      await page.waitForTimeout(5200);
+      await page.evaluate(() => {
+        window.__TEMPLE_AUDIT_STOP_GIFTS__?.();
+        delete window.__TEMPLE_AUDIT_STOP_GIFTS__;
+      });
+      const stressStats = rendererStatsSamples[rendererStatsSamples.length - 1] || null;
+
+      const scene = await page.evaluate(async () => {
+        const stage = document.getElementById('stage9x16');
+        const canvas = document.getElementById('temple3dCanvas');
+        const stageRect = stage?.getBoundingClientRect();
+        const canvasRect = canvas?.getBoundingClientRect();
+        let context = null;
+        try {
+          context = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
+        } catch {}
+        const quality = await import('/js/temple-render-quality.js');
+        const renderProfile = quality.getTempleRenderProfile({
+          devicePixelRatio: window.devicePixelRatio || 1,
+          deviceMemory: navigator.deviceMemory,
+          hardwareConcurrency: navigator.hardwareConcurrency
+        });
+        return {
+          readyFlag: window.__TEMPLE_3D_READY__ === true,
+          userAgent: navigator.userAgent,
+          devicePixelRatio: window.devicePixelRatio,
+          browserHints: {
+            deviceMemory: navigator.deviceMemory ?? null,
+            hardwareConcurrency: navigator.hardwareConcurrency ?? null
+          },
+          renderProfile,
+          stage: stageRect ? {
+            x: stageRect.x, y: stageRect.y,
+            width: stageRect.width, height: stageRect.height
+          } : null,
+          canvas: canvas ? {
+            hidden: canvas.hidden,
+            width: canvas.width,
+            height: canvas.height,
+            rect: canvasRect ? {
+              x: canvasRect.x, y: canvasRect.y,
+              width: canvasRect.width, height: canvasRect.height
+            } : null
+          } : null,
+          webgl: context ? {
+            version: context.getParameter(context.VERSION),
+            renderer: context.getParameter(context.RENDERER),
+            contextLost: context.isContextLost()
+          } : null,
+          backgroundDisplay: document.querySelector('.sanctuary-bg-img')
+            ? getComputedStyle(document.querySelector('.sanctuary-bg-img')).display
+            : null
+        };
+      });
+
+      profileReport.browserHints = scene.browserHints;
+      profileReport.userAgent = scene.userAgent;
+      profileReport.devicePixelRatio = scene.devicePixelRatio;
+      profileReport.renderProfile = scene.renderProfile;
+      profileReport.stage = scene.stage;
+      profileReport.canvas = scene.canvas;
+      profileReport.webgl = scene.webgl;
+      profileReport.backgroundDisplay = scene.backgroundDisplay;
+      profileReport.sceneCanvasVisible = scene.canvas?.hidden === false;
+      profileReport.framebufferScale = scene.canvas ? {
+        x: scene.canvas.width / viewport.width,
+        y: scene.canvas.height / viewport.height
+      } : null;
+      profileReport.rendererStats = {
+        idle: idleStats,
+        giftBurst: stressStats,
+        samplesCaptured: rendererStatsSamples.length
+      };
+
+      profileReport.checks = {
+        hintsMatchRequested: scene.browserHints?.deviceMemory === scenario.deviceMemory
+          && scene.browserHints?.hardwareConcurrency === scenario.hardwareConcurrency,
+        expectedTierSelected: scene.renderProfile?.tier === scenario.id,
+        expectedPixelRatioSelected: scene.renderProfile?.pixelRatio === scenario.expectedPixelRatio,
+        shadowMapBudgetSelected: scene.renderProfile?.shadowMapSize === profileReport.expectedShadowMapSize,
+        environmentDetailSelected: scene.renderProfile?.environmentDetail === scenario.id,
+        framebufferScaleMatches: Boolean(scene.canvas)
+          && Math.abs((scene.canvas.width / viewport.width) - scenario.expectedPixelRatio) < 0.002
+          && Math.abs((scene.canvas.height / viewport.height) - scenario.expectedPixelRatio) < 0.002,
+        rendererStatsCaptured: Boolean(idleStats),
+        rendererPixelRatioMatches: idleStats?.pixelRatio === scenario.expectedPixelRatio,
+        giftBurstStatsCaptured: Boolean(stressStats),
+        giftBurstHadActiveEffects: Number(stressStats?.activeEffects) > 0,
+        giftBurstIncreasedDrawCalls: Number.isFinite(idleStats?.drawCalls)
+          && Number.isFinite(stressStats?.drawCalls)
+          && stressStats.drawCalls > idleStats.drawCalls,
+        sceneReady: profileReport.ready && scene.readyFlag,
+        canvasVisible: profileReport.sceneCanvasVisible,
+        webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
+        contextHealthy: scene.webgl?.contextLost === false,
+        noConsoleErrors: errors.length === 0,
+        noFailedRequests: failedRequests.length === 0
+      };
+      profileReport.checks.passed = Object.values(profileReport.checks).every(Boolean);
+
+      if (profileReport.sceneCanvasVisible) {
+        const screenshotPath = `${artifactDir}/temple-3d-${scenario.id}.png`;
+        await page.locator('#stage9x16').screenshot({
+          path: screenshotPath,
+          animations: 'disabled',
+          timeout: 45000,
+          scale: 'css'
+        });
+        profileReport.screenshot = screenshotPath;
+
+        if (scenario.id === 'high') {
+          await page.screenshot({
+            path: `${artifactDir}/temple-3d-full-page.png`,
+            fullPage: false,
+            animations: 'disabled',
+            scale: 'css'
+          });
+          await copyFile(screenshotPath, `${artifactDir}/temple-3d-portrait.png`);
+        }
+      }
+    } catch (error) {
+      profileReport.fatalError = error.stack || error.message;
+      profileReport.checks.passed = false;
+    } finally {
+      await page?.close();
+    }
+
+    report.profiles.push(profileReport);
+    console.log(`[Temple 3D audit] ${scenario.id}: ${profileReport.checks.passed ? 'PASS' : 'FAIL'}`);
   }
 
-  await page.waitForTimeout(2500);
-  report.scene = await page.evaluate(() => {
-    const stage = document.getElementById('stage9x16');
-    const canvas = document.getElementById('temple3dCanvas');
-    const stageRect = stage?.getBoundingClientRect();
-    const canvasRect = canvas?.getBoundingClientRect();
-    let context = null;
-    try {
-      context = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
-    } catch {}
-    return {
-      readyFlag: window.__TEMPLE_3D_READY__ === true,
-      stageClass: stage?.className || null,
-      stage: stageRect ? {
-        x: stageRect.x, y: stageRect.y,
-        width: stageRect.width, height: stageRect.height
-      } : null,
-      canvas: canvasRect ? {
-        hidden: canvas.hidden,
-        x: canvasRect.x, y: canvasRect.y,
-        width: canvasRect.width, height: canvasRect.height
-      } : null,
-      webgl: context ? {
-        version: context.getParameter(context.VERSION),
-        renderer: context.getParameter(context.RENDERER),
-        contextLost: context.isContextLost()
-      } : null,
-      backgroundDisplay: document.querySelector('.sanctuary-bg-img')
-        ? getComputedStyle(document.querySelector('.sanctuary-bg-img')).display
-        : null
-    };
-  });
-  report.sceneCanvasVisible = report.scene?.canvas?.hidden === false;
-  report.webgl = report.scene?.webgl || null;
-  report.stage = report.scene?.stage || null;
-  report.sceneCanvas = report.scene?.canvas || null;
+  const idleDrawCallsByTier = Object.fromEntries(report.profiles.map((profile) => [
+    profile.id,
+    profile.rendererStats?.idle?.drawCalls ?? null
+  ]));
+  const giftBurstDrawCallsByTier = Object.fromEntries(report.profiles.map((profile) => [
+    profile.id,
+    profile.rendererStats?.giftBurst?.drawCalls ?? null
+  ]));
+  const giftBurstActiveEffectsByTier = Object.fromEntries(report.profiles.map((profile) => [
+    profile.id,
+    profile.rendererStats?.giftBurst?.activeEffects ?? null
+  ]));
+  const idleDrawCalls = [idleDrawCallsByTier.low, idleDrawCallsByTier.medium, idleDrawCallsByTier.high];
+  const giftBurstDrawCalls = [
+    giftBurstDrawCallsByTier.low,
+    giftBurstDrawCallsByTier.medium,
+    giftBurstDrawCallsByTier.high
+  ];
+  report.summary = {
+    passed: report.profiles.length === scenarios.length
+      && report.profiles.every((profile) => profile.checks.passed),
+    allProfilesPassed: report.profiles.length === scenarios.length
+      && report.profiles.every((profile) => profile.checks.passed),
+    drawCallsByTier: idleDrawCallsByTier,
+    idleDrawCallsStrictlyIncrease: idleDrawCalls.every(Number.isFinite)
+      && idleDrawCalls[0] < idleDrawCalls[1]
+      && idleDrawCalls[1] < idleDrawCalls[2],
+    giftBurstDrawCallsByTier,
+    giftBurstActiveEffectsByTier,
+    giftBurstDrawCallsStrictlyIncrease: giftBurstDrawCalls.every(Number.isFinite)
+      && giftBurstDrawCalls[0] < giftBurstDrawCalls[1]
+      && giftBurstDrawCalls[1] < giftBurstDrawCalls[2]
+  };
+  // Keep the original summary field name for consumers of the first profile audit.
+  report.summary.drawCallsStrictlyIncrease = report.summary.idleDrawCallsStrictlyIncrease;
 
-  await page.locator('#stage9x16').screenshot({
-    path: `${artifactDir}/temple-3d-portrait.png`,
-    animations: 'disabled',
-    timeout: 45000
-  });
-  await page.screenshot({
-    path: `${artifactDir}/temple-3d-full-page.png`,
-    fullPage: false,
-    animations: 'disabled'
-  });
+  // Preserve the original single-profile report fields for older artifact consumers.
+  const defaultProfile = report.profiles.find((profile) => profile.id === 'high')
+    || report.profiles[0];
+  report.ready = Boolean(defaultProfile?.ready);
+  report.sceneCanvasVisible = Boolean(defaultProfile?.sceneCanvasVisible);
+  report.webgl = defaultProfile?.webgl || null;
+  report.stage = defaultProfile?.stage || null;
+  report.sceneCanvas = defaultProfile?.canvas || null;
+  report.consoleErrors = report.profiles.flatMap((profile) => profile.consoleErrors || []);
+  report.failedRequests = report.profiles.flatMap((profile) => profile.failedRequests || []);
+
+  // A stable detail profile should submit progressively more batches at higher tiers.
+  report.summary.passed = report.summary.allProfilesPassed
+    && report.summary.drawCallsStrictlyIncrease
+    && report.profiles.every((profile) =>
+      profile.checks.giftBurstStatsCaptured
+      && profile.checks.giftBurstHadActiveEffects
+      && profile.checks.giftBurstIncreasedDrawCalls
+    );
 
   await writeFile(
     `${artifactDir}/temple-3d-visual-report.json`,
     JSON.stringify(report, null, 2)
   );
-
   console.log(JSON.stringify(report, null, 2));
-  if (!report.ready || !report.sceneCanvasVisible || !report.webgl || report.webgl.contextLost) {
-    process.exitCode = 1;
-  }
+  if (!report.summary.passed) process.exitCode = 1;
 } catch (error) {
   report.fatalError = error.stack || error.message;
   await writeFile(
