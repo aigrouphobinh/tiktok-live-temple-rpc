@@ -356,10 +356,11 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         collarPositions.push([x, 7.43, z]);
 
         if (settings.detailLevel !== 'low') {
-          // A small lacquer-and-brass lotus seal faces the audience on each capital.
-          frontRosettePositions.push([x, 7.69, z + 0.71]);
+          // Mount a small lotus seal on the clear front of each upper shaft, mirrored inward.
+          const inwardOffset = x < 0 ? 0.2 : -0.2;
+          frontRosettePositions.push([x + inwardOffset, 6.2, z + 0.48]);
           frontGemTransforms.push({
-            position: [x, 7.69, z + 0.74],
+            position: [x + inwardOffset, 6.2, z + 0.505],
             rotation: [0, 0, Math.PI / 4]
           });
           for (const direction of [-1, 1]) {
@@ -383,15 +384,15 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     if (frontRosettePositions.length) {
       addTorusBatch(
         'TempleCapitalFrontRosettes',
-        0.055,
-        0.012,
+        0.095,
+        0.018,
         materials.bronze,
         frontRosettePositions,
         8,
         24,
         [0, 0, 0]
       );
-      addBoxBatch('TempleCapitalFrontGems', [0.052, 0.052, 0.035], materials.goldBright, frontGemTransforms);
+      addBoxBatch('TempleCapitalFrontGems', [0.11, 0.11, 0.04], materials.goldBright, frontGemTransforms);
     }
     if (bracketTransforms.length) {
       addBoxBatch('TempleCapitalCorbels', [0.24, 0.58, 0.34], materials.darkWood, bracketTransforms);
