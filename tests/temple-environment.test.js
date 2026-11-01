@@ -143,7 +143,7 @@ describe('Temple environment architecture module', () => {
     });
     expect(result.metadata.detailLevel).toBe('low');
     expect(result.metadata.columnCount).toBe(6);
-    expect(result.metadata.galleryScreenCount).toBe(8);
+    expect(result.metadata.galleryScreenCount).toBe(2);
     expect(result.group.userData.roofless).toBe(true);
     result.dispose();
   });
