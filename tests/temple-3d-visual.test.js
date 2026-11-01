@@ -188,6 +188,19 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('leftArmRest: bones.leftArm?.rotation.clone()');
   });
 
+  it('does not fade an animation action out against itself when states share a fallback clip', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    const start = scene.indexOf('function playGLTFHumanAction(avatar, mode)');
+    const end = scene.indexOf('function applyHumanBow(', start);
+    const action = scene.slice(start, end);
+    expect(action).toContain('avatar.gltfCurrentClip === clip');
+    expect(action).toContain('current.setLoop(isBow ? THREE.LoopOnce : THREE.LoopRepeat');
+    expect(action).toContain('if (current && current !== next) current.fadeOut(0.18);');
+    expect(action).toContain('avatar.gltfCurrentClip = clip;');
+    expect(action).toContain('avatar.gltfCurrentAction?.fadeOut(0.18);');
+    expect(scene).toContain('avatar.gltfCurrentClip = null;');
+  });
+
   it('keeps the hidden source GLB in the scene so cloned avatar resources have one disposal owner', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     const start = scene.indexOf('async function upgradeDevoteesFromGLB()');
