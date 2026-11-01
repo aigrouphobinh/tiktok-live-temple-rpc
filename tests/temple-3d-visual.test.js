@@ -170,6 +170,20 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain('disposeThreeObjectTree(root)');
   });
 
+  it('supports optional rigged devotee GLBs while preserving procedural fallback', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("loadGLTFAsset('/assets/models/devotee-selected.glb'");
+    expect(scene).toContain("import('three/addons/utils/SkeletonUtils.js')");
+    expect(scene).toContain('allHumanAvatars.map(() => clone(asset.root))');
+    expect(scene).toContain('new THREE.AnimationMixer(model)');
+    expect(scene).toContain('findClip(/idle|stand|breath/i)');
+    expect(scene).toContain('findClip(/walk|walking|run|approach/i)');
+    expect(scene).toContain('findClip(/bow|pray|prayer|worship|kneel/i)');
+    expect(scene).toContain('function applyHumanBow(avatar, amount)');
+    expect(scene).toContain("Optional devotee GLB unavailable; keeping procedural characters");
+    expect(scene).toContain('void upgradeDevoteesFromGLB()');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
