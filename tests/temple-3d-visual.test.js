@@ -188,6 +188,15 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('aliases.some((alias) => name === alias || name.endsWith(alias))');
   });
 
+  it('supports VRM J_Bip and Unity-style side-prefixed bone names', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("'lupperarm', 'larm'");
+    expect(scene).toContain("'rupperarm', 'rarm'");
+    expect(scene).toContain("'lupperleg', 'lthigh', 'lleg'");
+    expect(scene).toContain("'rupperleg', 'rthigh', 'rleg'");
+    expect(scene).toContain("'spine01', 'spine1', 'spine02', 'spine2'");
+  });
+
   it('recognizes more descriptive locomotion, rest and prostration clip names', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('/idle|stand|breath|resting/i');
