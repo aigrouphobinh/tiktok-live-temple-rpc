@@ -762,6 +762,15 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('extends the Buddha hair curl pattern down both temples with one instanced batch', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const templeCurlCount = 8;');
+  expect(scene).toContain('new THREE.InstancedMesh(hairCurlGeometry, mats.statueShadow, templeCurlCount)');
+  expect(scene).toContain('templeCurlTransform.position.set(side * (0.53 - row * 0.018), 5.13 - row * 0.105, 0.36 + row * 0.035);');
+  expect(scene).toContain('statue.add(templeCurls);');
+});
+
+
 it('adds paired stone highlights and shadow grooves to the Buddha lap robe folds', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('const lapFoldPoints = [[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]];');
