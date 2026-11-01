@@ -827,3 +827,5 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Replaced linear bow-in and bow-out ramps with smoothstep easing at both ends of the ritual pose, reducing abrupt starts/stops in the torso and neck articulation.
 - Added a source regression test for both eased ramps and their combined bow amount.
 - This validates the transition math at source level; visual confirmation still requires the deployed GLB in a browser.
+
+- Updated the workflow's legacy source assertion to check the renamed eased `bowOutProgress` value; the initial CI failure was caused by that stale grep assertion, not by a test failure in the easing logic.
