@@ -187,7 +187,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.gltfWalkBlend += (walkTarget - avatar.gltfWalkBlend) * walkBlend;');
     expect(scene).toContain('applyGLTFFallbackWalk(avatar, time, avatar.gltfWalkBlend)');
     expect(scene).toContain('const base = (bone, rest) => avatar.gltfActions?.idle ? bone?.rotation.x : rest?.x;');
-    expect(scene).toContain('gltfWalkBlend: 0');
+    expect(scene).toContain('avatar.gltfWalkBlend = 0;');
   });
 
   it('returns a manually posed GLB bow to rest when the bow state ends', () => {
