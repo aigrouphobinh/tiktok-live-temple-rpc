@@ -492,3 +492,12 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Updated pagehide cleanup to dispose the complete Three.js scene tree, including persistent geometry/materials.
 - Added CI assertions that the persistent scene geometry remains present and the Three.js module parses.
 - Scope note: this is the first persistent procedural 3D pass, not yet a production-quality detailed temple asset pack. It overlays stylized 3D geometry on the existing artwork; detailed imported temple/Buddha models, texture matching, responsive device profiling, and visual verification in a real browser remain open.
+
+### Rebuild optional 3D mode as a complete temple world — 2026-11-01
+- Replaced the previous screen-space/transparent geometry overlay with a perspective Three.js world using world-space coordinates and a fixed elevated view down the main hall.
+- Added a tiled courtyard floor, red-and-gold processional carpet with lotus inlays, raised altar, layered lotus throne, seated Buddha statue and halo, paired wooden pillars, beams/roof eaves, warm hanging lanterns, brass incense burner, side lotus planters, and rows of small kneeling devotees.
+- Added a correctly scaled 3D worshipper that walks up the carpet and bows during the incense ritual. Gift/ritual effects now spawn in world space. Ambient lantern flicker and floating light motes keep the scene alive while idle.
+- In `?3d=1`, the old 2D background image, sprite crowds, central oversized DOM character, and 2D effect canvas are hidden so they cannot overlap the 3D world. The live status and bottom HUD remain overlaid. Without the query flag, the original 2D view remains unchanged.
+- Added scene fog, warm lighting, shadows, tone mapping, responsive renderer sizing, a 30 FPS cap, WebGL-loss fallback, and full resource disposal on pagehide.
+- The camera remains an elevated fixed master view; the existing subtle ritual-only camera director is retained.
+- Validation still pending in an actual browser/WebGL session and on lower-powered devices. This is a procedural 3D world pass, not yet a detailed scanned/artist-authored asset pack; visual tuning, model fidelity, and device profiling remain open.
