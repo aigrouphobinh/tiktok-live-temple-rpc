@@ -150,6 +150,37 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     );
   };
 
+  const addCylinderBatch = (name, radiusTop, radiusBottom, height, material, transforms, segments = 16) => {
+    if (!transforms.length) return;
+    if (typeof THREE.InstancedMesh !== 'function' || typeof THREE.Object3D !== 'function') {
+      transforms.forEach((position) => addCylinder(radiusTop, radiusBottom, height, material, position, segments));
+      return;
+    }
+    const itemGeometry = geometry(
+      `cylinder:${radiusTop}:${radiusBottom}:${height}:${segments}`,
+      () => new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments)
+    );
+    const instances = new THREE.InstancedMesh(itemGeometry, material, transforms.length);
+    const transform = new THREE.Object3D();
+    transforms.forEach((position, index) => {
+      transform.position.set(position[0], position[1], position[2]);
+      transform.rotation.set(0, 0, 0);
+      transform.scale.set(1, 1, 1);
+      transform.updateMatrix();
+      instances.setMatrixAt(index, transform.matrix);
+    });
+    if (instances.instanceMatrix && typeof instances.instanceMatrix.setUsage === 'function'
+      && THREE.StaticDrawUsage !== undefined) {
+      instances.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+    }
+    instances.castShadow = false;
+    instances.receiveShadow = true;
+    instances.name = name;
+    group.add(instances);
+    meshCount += 1;
+    instanceBatchCount += 1;
+  };
+
   const addTorusBatch = (name, radius, tube, material, transforms, radialSegments = 6, tubularSegments = 20) => {
     if (!transforms.length || typeof THREE.InstancedMesh !== 'function' || typeof THREE.Object3D !== 'function') {
       transforms.forEach((position) => {
@@ -218,17 +249,24 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
   };
 
   const buildColumnBases = () => {
+    const stoneDarkTransforms = [];
+    const stoneTransforms = [];
+    const lacquerTransforms = [];
+    const collarTransforms = [];
     const ringPositions = [];
     const studTransforms = [];
+    const cylinderPositions = [];
+
     for (const x of settings.columnXs) {
       for (const z of settings.columnZs) {
         const y = settings.columnBaseY;
         // Three stepped stone courses visually anchor each timber shaft.
-        addBox([1.46, 0.18, 1.46], materials.stoneDark, [x, y + 0.09, z]);
-        addBox([1.3, 0.12, 1.3], materials.stone, [x, y + 0.23, z]);
-        addBox([1.12, 0.1, 1.12], materials.lacquer, [x, y + 0.34, z]);
-        addCylinder(0.59, 0.64, 0.14, materials.mutedGold, [x, y + 0.45, z], 12);
+        stoneDarkTransforms.push({ position: [x, y + 0.09, z] });
+        stoneTransforms.push({ position: [x, y + 0.23, z] });
+        lacquerTransforms.push({ position: [x, y + 0.34, z] });
+        cylinderPositions.push([x, y + 0.45, z]);
         ringPositions.push([x, y + 0.54, z]);
+
         if (settings.detailLevel === 'high') {
           for (let side = 0; side < 4; side += 1) {
             const angle = side * Math.PI / 2 + Math.PI / 4;
@@ -240,19 +278,30 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         }
       }
     }
+
+    addBoxBatch('TempleColumnBaseStoneFootings', [1.46, 0.18, 1.46], materials.stoneDark, stoneDarkTransforms);
+    addBoxBatch('TempleColumnBaseStoneCaps', [1.3, 0.12, 1.3], materials.stone, stoneTransforms);
+    addBoxBatch('TempleColumnBaseLacquerCourses', [1.12, 0.1, 1.12], materials.lacquer, lacquerTransforms);
+    addCylinderBatch('TempleColumnBaseCollars', 0.59, 0.64, 0.14, materials.mutedGold, cylinderPositions, 12);
     addTorusBatch('TempleColumnBaseRings', 0.53, 0.018, materials.bronze, ringPositions, 6, 24);
-    if (studTransforms.length) addBoxBatch('TempleColumnBaseStuds', [0.075, 0.075, 0.035], materials.mutedGold, studTransforms);
+    if (studTransforms.length) {
+      addBoxBatch('TempleColumnBaseStuds', [0.075, 0.075, 0.035], materials.mutedGold, studTransforms);
+    }
   };
 
   const buildCapitalBrackets = () => {
+    const lowerTransforms = [];
+    const lacquerTransforms = [];
+    const upperBeamTransforms = [];
     const bracketTransforms = [];
     const collarPositions = [];
+
     for (const x of settings.columnXs) {
       for (const z of settings.columnZs) {
         // A compact capital stack adds a crafted transition into the open beam line.
-        addBox([1.18, 0.18, 1.18], materials.darkWood, [x, 7.55, z]);
-        addBox([1.38, 0.12, 1.38], materials.lacquer, [x, 7.69, z]);
-        addBox([1.55, 0.16, 0.72], materials.agedWood, [x, 7.82, z]);
+        lowerTransforms.push({ position: [x, 7.55, z] });
+        lacquerTransforms.push({ position: [x, 7.69, z] });
+        upperBeamTransforms.push({ position: [x, 7.82, z] });
         collarPositions.push([x, 7.43, z]);
 
         if (settings.detailLevel !== 'low') {
@@ -269,6 +318,10 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         }
       }
     }
+
+    addBoxBatch('TempleCapitalLowerStacks', [1.18, 0.18, 1.18], materials.darkWood, lowerTransforms);
+    addBoxBatch('TempleCapitalLacquerStacks', [1.38, 0.12, 1.38], materials.lacquer, lacquerTransforms);
+    addBoxBatch('TempleCapitalUpperBeams', [1.55, 0.16, 0.72], materials.agedWood, upperBeamTransforms);
     addTorusBatch('TempleCapitalCollars', 0.57, 0.022, materials.mutedGold, collarPositions, 6, 24);
     if (bracketTransforms.length) {
       addBoxBatch('TempleCapitalCorbels', [0.24, 0.58, 0.34], materials.darkWood, bracketTransforms);
@@ -276,21 +329,21 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
   };
 
   const buildGalleryScreens = () => {
+    const railTransforms = [];
+    const postTransforms = [];
+    const centerBarTransforms = [];
     const latticeTransforms = [];
+    const width = 1.08;
+    const height = settings.screenHeight;
+
     for (const x of settings.galleryScreenXs) {
       for (const z of settings.galleryBayZs) {
-        const panel = new THREE.Group();
-        panel.name = 'TempleGalleryCarvedScreen';
-        panel.position.set(x, 0.08, z);
-        group.add(panel);
-
-        const width = 1.08;
-        const height = settings.screenHeight;
-        addBox([width, 0.1, 0.12], materials.darkWood, [0, height, 0], panel);
-        addBox([width, 0.1, 0.12], materials.darkWood, [0, 0.08, 0], panel);
-        addBox([0.1, height, 0.12], materials.agedWood, [-width / 2, height / 2, 0], panel);
-        addBox([0.1, height, 0.12], materials.agedWood, [width / 2, height / 2, 0], panel);
-        addBox([0.035, height - 0.22, 0.1], materials.mutedGold, [0, height / 2, 0.025], panel);
+        // Batch equal screen members so the eight repeated panels stay inexpensive.
+        railTransforms.push({ position: [x, 0.08 + height, z] });
+        railTransforms.push({ position: [x, 0.16, z] });
+        postTransforms.push({ position: [x - width / 2, 0.08 + height / 2, z] });
+        postTransforms.push({ position: [x + width / 2, 0.08 + height / 2, z] });
+        centerBarTransforms.push({ position: [x, 0.08 + height / 2, z + 0.025] });
 
         if (settings.detailLevel !== 'low') {
           for (const offset of [-0.28, 0.28]) {
@@ -302,25 +355,35 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         }
       }
     }
+
+    addBoxBatch('TempleGalleryScreenRails', [width, 0.1, 0.12], materials.darkWood, railTransforms);
+    addBoxBatch('TempleGalleryScreenPosts', [0.1, height, 0.12], materials.agedWood, postTransforms);
+    addBoxBatch('TempleGalleryScreenCenterBars', [0.035, height - 0.22, 0.1], materials.mutedGold, centerBarTransforms);
     if (latticeTransforms.length) {
-      addBoxBatch('TempleGalleryLattice', [0.055, settings.screenHeight * 0.72, 0.055], materials.mutedGold, latticeTransforms);
+      addBoxBatch('TempleGalleryLattice', [0.055, height * 0.72, 0.055], materials.mutedGold, latticeTransforms);
     }
   };
 
   const buildFloorInlays = () => {
+    const horizontalTransforms = [];
+    const verticalTransforms = [];
     const medallionTransforms = [];
     const inlayY = settings.gallerySurfaceY + 0.0175;
+
     for (const side of [-1, 1]) {
       const x = side * 8.15;
       for (const z of [-7, -1, 5, 11]) {
-        addBox([1.28, 0.035, 0.08], materials.bronze, [x, inlayY, z]);
-        addBox([0.08, 0.035, 1.28], materials.bronze, [x, inlayY, z]);
+        horizontalTransforms.push({ position: [x, inlayY, z] });
+        verticalTransforms.push({ position: [x, inlayY, z] });
         medallionTransforms.push({
           position: [x, settings.gallerySurfaceY + 0.0475, z],
           rotation: [0, 0, 0]
         });
       }
     }
+
+    addBoxBatch('TempleFloorInlayHorizontal', [1.28, 0.035, 0.08], materials.bronze, horizontalTransforms);
+    addBoxBatch('TempleFloorInlayVertical', [0.08, 0.035, 1.28], materials.bronze, verticalTransforms);
     if (settings.detailLevel === 'high') {
       addBoxBatch('TempleFloorInlayStuds', [0.09, 0.025, 0.09], materials.mutedGold, medallionTransforms);
     }
