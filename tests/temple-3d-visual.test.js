@@ -179,6 +179,15 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain('disposeThreeSceneResources(root)');
   });
 
+  it('provides a procedural bone gait when a rigged GLB has no walk clip', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('function applyGLTFFallbackWalk(avatar, time)');
+    expect(scene).toContain('leftLegRest: bones.leftLeg?.rotation.clone()');
+    expect(scene).toContain('rightLegRest: bones.rightLeg?.rotation.clone()');
+    expect(scene).toContain('if (walking && !avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, time);');
+    expect(scene).toContain('leftArmRest: bones.leftArm?.rotation.clone()');
+  });
+
   it('keeps the hidden source GLB in the scene so cloned avatar resources have one disposal owner', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     const start = scene.indexOf('async function upgradeDevoteesFromGLB()');
