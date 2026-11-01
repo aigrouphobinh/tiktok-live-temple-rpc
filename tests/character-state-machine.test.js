@@ -161,6 +161,24 @@ describe('CharacterStateMachine', () => {
     expect(machine.finishEffect().nextEffect.event.sequence).toBe('donut');
   });
 
+  it('preserves the interrupted devotee at the front when evicting overflow from a full queue', () => {
+    const machine = new CharacterStateMachine({ maxQueue: 2 });
+    machine.request(devotee('A'));
+    machine.request(devotee('B'));
+    machine.request(devotee('C'));
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+
+    expect(machine.snapshot()).toMatchObject({
+      active: null,
+      queueLength: 2,
+      effect: 'rocket'
+    });
+    machine.finishEffect();
+    expect(machine.finishCooldown().event.user).toBe('A');
+    expect(machine.snapshot().queueLength).toBe(1);
+    expect(machine.completeActive().event.user).toBe('B');
+  });
+
   it('supports a zero-capacity queue without throwing or retaining waiting work', () => {
     const machine = new CharacterStateMachine({ maxQueue: 0 });
     machine.request(devotee('A'));
