@@ -762,6 +762,15 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds fine paired upper-chest pleats with restrained ivory ridges to the Buddha robe', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// Fine upper-chest pleats carry the robe\'s drape from the neckline into the chest.');
+  expect(scene).toContain('[side * 0.14, 3.72, 0.69]');
+  expect(scene).toContain('[side * 0.28, 3.4, 0.78]');
+  expect(scene).toContain('upperChestPleatRidgeMesh');
+  expect(scene).toContain('robeFold(upperChestPleat, 0.011);');
+});
+
 it('adds subtle neck contours and paired shoulder drape creases to the Buddha robe', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// Subtle neck tendons and shoulder drape creases bridge the head into the robe.');
