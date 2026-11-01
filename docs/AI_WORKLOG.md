@@ -586,3 +586,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Kept the curls static and retained shadow casting; the detail is now submitted as one mesh batch instead of 24 separate meshes.
 - Added a source regression test for the 24-instance layout, static usage and shadow flags.
 - Appearance should remain equivalent; browser render and mobile GPU profiling still need local verification.
+
+
+### 2026-11-01 — Carve a finished lower hem into the Buddha robe
+- Added a softly raised ivory hem following the front curve of the crossed lap, plus a finer recessed shadow groove just beneath it to clarify the layered robe edge.
+- Both are static tube meshes within the existing statue group; no camera, silhouette, pose, materials elsewhere or interaction changes.
+- Added regression assertions for both curves, materials and shadow behavior.
+- Actual visual fit against the lap silhouette still needs browser review.
