@@ -344,7 +344,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const statue = new THREE.Group()');
   });
 
-  it('tries the selected Kenny Hsieh model before the bundled CC0 gilt-bronze fallback', () => {
+  it('tries Kenny first, then the CC0 scan, and exposes a Buddha-only preview flag', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     const start = scene.indexOf('async function upgradeBuddhaFromGLB()');
     const end = scene.indexOf('function addEffect', start);
@@ -353,9 +353,11 @@ describe('3D sanctuary visual treatment', () => {
     const fallbackIndex = loader.indexOf("loadGLTFAsset('/assets/models/buddha-cc0-fallback.glb'");
     expect(selectedIndex).toBeGreaterThanOrEqual(0);
     expect(fallbackIndex).toBeGreaterThan(selectedIndex);
-    expect(loader).toContain('Selected Kenny Hsieh Buddha unavailable; trying the CC0 gilt-bronze scan');
+    expect(scene).toContain("modelParams.get('buddha') === '1'");
+    expect(scene).toContain('modelsRequested || buddhaModelRequested');
+    expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading'");
+    expect(loader).toContain("assetSource = 'mia-cc0-gilt-bronze'");
     expect(loader).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
-    expect(loader).toContain('statue.add(asset.root)');
   });
 
   it('normalizes bundled GLB assets and keeps GLTFLoader lazy-loaded', () => {
@@ -533,8 +535,8 @@ describe('3D sanctuary visual treatment', () => {
 
   it('uses warm ivory stone for the Buddha and the aureole in the reference palette', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('color: 0xa99b84');
-    expect(scene).toContain('color: 0x5e4d3a');
+    expect(scene).toContain('color: 0x98866d');
+    expect(scene).toContain('color: 0x493724');
     expect(scene).toContain('color: 0xd9c7a5');
     expect(scene).toContain('color:0xa59a83');
   });
@@ -926,8 +928,8 @@ it('shows a designed and truthful empty state for the 3D merit panel', () => {
 
 it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0xa99b84, roughness: 0.94 })');
-  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x5e4d3a, roughness: 0.96 })');
+  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0x98866d, roughness: 0.92 })');
+  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x493724, roughness: 0.96 })');
   expect(scene).toContain('statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 })');
   expect(scene).toContain('new THREE.PointLight(0xffd1a0, 23, 18, 2)');
   expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
