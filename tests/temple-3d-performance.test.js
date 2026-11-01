@@ -17,6 +17,13 @@ describe('Three.js scene performance safeguards', () => {
     expect(source).toContain('world.remove(old.object); disposeThreeObjectTree(old.object);');
   });
 
+  it('scales ambient incense draw calls to the selected render tier', () => {
+    expect(source).toContain("const incenseWispCount = renderProfile.tier === 'low' ? 3");
+    expect(source).toContain(": renderProfile.tier === 'medium' ? 4 : 6;");
+    expect(source).toContain('Array.from({ length: incenseWispCount }');
+    expect(source).toContain('const incenseSmokeGeometry = new THREE.SphereGeometry(0.105, 8, 6);');
+  });
+
   it('keeps the fixed elevated portrait camera and 30fps frame cap', () => {
     expect(source).toContain('camera.position.set(0, 11.75, 28.5);');
     expect(source).toContain('camera.lookAt(0, -1.5, -5.5);');
