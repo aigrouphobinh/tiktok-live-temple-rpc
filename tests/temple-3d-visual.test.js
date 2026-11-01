@@ -44,6 +44,14 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('side * 10.25');
   });
 
+  it('adds open timber balustrades along both raised gallery edges', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const railX = side * 10.18');
+    expect(scene).toContain('box(0.14, 0.14, 24.8, mats.woodLight, railX, 0.66, 2.2)');
+    expect(scene).toContain('box(0.1, 0.09, 24.8, mats.goldBright, railX, 0.79, 2.2)');
+    expect(scene).toContain('sphere(0.075, mats.goldBright, railX, 1.02, z, 1, 0.7, 1)');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
