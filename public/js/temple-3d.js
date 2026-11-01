@@ -359,9 +359,10 @@ async function boot() {
   });
   // Keep the near half open: the fixed camera looks into the sanctuary from +Z.
   // Stop the roof behind the altar so its underside cannot cut across the Buddha/camera sightline.
-  const roofStartZ = -13, roofEndZ = -1.5, roofLength = roofEndZ - roofStartZ;
+  const roofStartZ = -15.5, roofEndZ = -4, roofLength = roofEndZ - roofStartZ;
   const roofCenterZ = (roofStartZ + roofEndZ) / 2;
   const roofHalfLength = roofLength / 2;
+  const roofHalfWidth = 7.8;
   function makeCurvedRoofSide(side) {
     const columns = 20, rows = 28;
     const positions = [], uvs = [], indices = [];
@@ -371,7 +372,7 @@ async function boot() {
       const endLift = Math.pow(Math.abs((z - roofCenterZ) / roofHalfLength), 4) * 0.82;
       for (let column = 0; column <= columns; column++) {
         const u = column / columns;
-        const x = side * u * 9.0;
+        const x = side * u * roofHalfWidth;
         const y = 11.15 - 1.72 * u + 0.24 * u * u + endLift * u * u;
         positions.push(x, y, z);
         uvs.push(u, v);
@@ -399,9 +400,9 @@ async function boot() {
       for (let step = 0; step <= 12; step++) {
         const v = step / 12;
         const z = roofStartZ + v * roofLength;
-        const endLift = Math.pow(Math.abs((z + 4.75) / 8.25), 4) * 0.82;
+        const endLift = Math.pow(Math.abs((z - roofCenterZ) / roofHalfLength), 4) * 0.82;
         points.push(new THREE.Vector3(
-          side * u * 9.0,
+          side * u * roofHalfWidth,
           11.18 - 1.72 * u + 0.24 * u * u + endLift * u * u,
           z
         ));
@@ -411,9 +412,9 @@ async function boot() {
       seamMesh.castShadow = true; world.add(seamMesh);
     }
     // Eaves follow the roof's real bounds; the old oversized beams extended into the camera foreground.
-    const eave = box(0.22, 0.28, roofLength, mats.red, side * 8.95, 9.72, roofCenterZ);
+    const eave = box(0.22, 0.28, roofLength, mats.red, side * (roofHalfWidth - 0.05), 9.72, roofCenterZ);
     eave.rotation.z = side * -0.025;
-    const goldEdge = box(0.09, 0.09, roofLength, roofTrim, side * 9.08, 9.82, roofCenterZ);
+    const goldEdge = box(0.09, 0.09, roofLength, roofTrim, side * (roofHalfWidth + 0.08), 9.82, roofCenterZ);
     goldEdge.rotation.z = side * -0.025;
   }
   makeCurvedRoofSide(-1);
