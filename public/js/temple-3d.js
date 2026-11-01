@@ -223,6 +223,20 @@ async function boot() {
     if (row % 2 === 0) { makeDevotee(-5.6, z + 0.8, scale * 0.82); makeDevotee(5.6, z + 0.8, scale * 0.82); }
   }
 
+  // One correctly scaled 3D worshipper enters the carpet for live incense rituals.
+  const mainDevotee = new THREE.Group();
+  mainDevotee.visible = false;
+  mainDevotee.position.set(0, 0.05, 7.5);
+  world.add(mainDevotee);
+  sphere(0.34, mats.robe, 0, 0.92, 0, 1.05, 1.65, 0.82, mainDevotee);
+  sphere(0.23, mats.skin, 0, 1.62, 0.02, 0.9, 1.0, 0.85, mainDevotee);
+  sphere(0.13, mats.dark, 0, 1.83, 0.02, 1.0, 0.45, 0.9, mainDevotee);
+  const leftArm = sphere(0.13, mats.robeDark, -0.3, 1.2, 0.22, 0.8, 1.9, 0.85, mainDevotee);
+  const rightArm = sphere(0.13, mats.robeDark, 0.3, 1.2, 0.22, 0.8, 1.9, 0.85, mainDevotee);
+  sphere(0.11, mats.skin, -0.08, 1.0, 0.42, 0.75, 0.75, 0.75, mainDevotee);
+  sphere(0.11, mats.skin, 0.08, 1.0, 0.42, 0.75, 0.75, 0.75, mainDevotee);
+  const devoteeState = { active: false, startedAt: 0, duration: 2600, bowAt: 0 };
+
   // Prayer flags, side screens and lotus planters give the hall a lived-in scale.
   for (const x of [-6.2, 6.2]) {
     for (let z = -8; z <= 10; z += 6) {
@@ -293,7 +307,16 @@ async function boot() {
   function handleRitual(event) {
     if (!event || typeof event.type !== 'string') return;
     ritualUntil = performance.now() + 7800;
-    if (event.type === 'burnIncense') { incenseEffect(); makeRing(0, 1.2, -5.6); }
+    if (event.type === 'burnIncense') {
+      incenseEffect(); makeRing(0, 1.2, -5.6);
+      mainDevotee.visible = true;
+      mainDevotee.position.z = 7.5;
+      mainDevotee.scale.setScalar(1);
+      mainDevotee.rotation.x = 0;
+      devoteeState.active = true;
+      devoteeState.startedAt = performance.now();
+      devoteeState.bowAt = 0;
+    }
     else if (event.type === 'ringBell') { makeRing(-6, 5, -1, 0xffe18a); }
     else if (event.type === 'strikeWoodenFish') { makeRing(5.8, 0.7, 1.5); }
     else if (event.type === 'sendPrayer') lotusBurst(8);
@@ -312,6 +335,21 @@ async function boot() {
     lastFrame = now; elapsed += dt;
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
+    if (devoteeState.active) {
+      const travel = Math.min(1, (now - devoteeState.startedAt) / devoteeState.duration);
+      const eased = travel * travel * (3 - 2 * travel);
+      mainDevotee.position.z = 7.5 - eased * 11.2;
+      mainDevotee.scale.setScalar(1 - eased * 0.18);
+      if (travel >= 1 && !devoteeState.bowAt) devoteeState.bowAt = now;
+      if (devoteeState.bowAt) {
+        const bow = Math.min(1, (now - devoteeState.bowAt) / 650);
+        mainDevotee.rotation.x = -bow * 0.62;
+      }
+      if (now > ritualUntil) {
+        devoteeState.active = false;
+        mainDevotee.visible = false;
+      }
+    }
     lanterns.forEach((light, i) => { light.intensity = 12 + Math.sin(elapsed * 0.003 + i) * 2; });
     dust.rotation.y += dt * 0.000018;
     for (let i = effects.length - 1; i >= 0; i--) {
