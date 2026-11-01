@@ -1076,7 +1076,7 @@ async function boot() {
       const fringe=sphere(0.105,hair,x,y,0.22,sx,0.72,0.42,head);
       fringe.rotation.z=-x*0.8;
     }
-    const eyeWhites = [], eyePupils = [];
+    const eyeWhites = [], eyePupils = [], eyebrows = [];
     for(const side of [-1,1]){
       const eyeGroup = new THREE.Group(); eyeGroup.position.set(side*0.105,0.045,0.22); head.add(eyeGroup);
       const sclera = sphere(0.052,white,0,0,0,1,1,0.45,eyeGroup);
@@ -1084,6 +1084,7 @@ async function boot() {
       eyeWhites.push(sclera); eyePupils.push(pupil);
       const brow=sphere(0.052,hair,side*0.105,0.115,0.205,1.25,0.22,0.35,head);
       brow.rotation.z=-side*0.12;
+      eyebrows.push({ mesh: brow, side });
       sphere(0.035,skin,side*0.265,-0.02,0.05,0.7,0.7,0.7,head);
     }
     sphere(0.035,skin,0,-0.045,0.25,0.7,0.7,0.7,head);
@@ -1118,7 +1119,7 @@ async function boot() {
     }
     root.scale.setScalar(height/1.72);
     const avatar = {
-      root, upperBody, torso, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
+      root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
@@ -1424,8 +1425,9 @@ async function boot() {
     avatar.torso.position.y = 0.40 + breath * 0.0025;
     avatar.torso.rotation.y = giftReaction * 0.035;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;
-    avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.025;
-    avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * 0.018;
+    avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.045;
+    // A tiny alternating head tilt keeps the group feeling attentive rather than mechanically synchronized.
+    avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * Math.sin(avatar.phase) * 0.035;
     const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;
     const blinkPulse = Math.max(0, 1 - Math.abs(blinkCycle - 0.12) / 0.12);
     const blink = Math.min(1, blinkPulse * 0.94 + avatar.kneelBlend * 0.12);
@@ -1433,12 +1435,15 @@ async function boot() {
       const eyeOpen = 1 - blink * 0.9;
       avatar.eyeWhites[index].scale.y = eyeOpen;
       avatar.eyePupils[index].scale.y = eyeOpen;
-      avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006;
+      avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006 + giftReaction * (index === 0 ? 0.009 : -0.009);
+      avatar.eyePupils[index].position.y = giftReaction * 0.008;
     }
     // A subtle wider smile and attentive eyes make the thank-you readable at portrait scale.
     avatar.smile.scale.x = 1 + giftReaction * 0.2;
     avatar.smile.scale.y = 1 + giftReaction * 0.12 - avatar.bowAmount * 0.12;
     for (const eyeWhite of avatar.eyeWhites) eyeWhite.scale.x = 1 + giftReaction * 0.045;
+    // Lift the brows subtly and direct the pupils toward the viewer during thanks.
+    for (const { mesh, side } of avatar.eyebrows) mesh.rotation.z = -side * 0.12 + giftReaction * side * 0.035;
     avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
     applyGiftThankYouGesture(avatar, time);
   }
