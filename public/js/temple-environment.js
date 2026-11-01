@@ -32,6 +32,8 @@ const MATERIAL_OPTIONS = Object.freeze({
   agedWood: { color: 0x68402a, roughness: 0.78, metalness: 0.06 },
   bronze: { color: 0x76502d, roughness: 0.68, metalness: 0.58 },
   mutedGold: { color: 0x98713c, roughness: 0.58, metalness: 0.62 },
+  goldBright: { color: 0xd6ad55, roughness: 0.42, metalness: 0.72 },
+  redBright: { color: 0x9f1828, roughness: 0.46, metalness: 0.28 },
   stone: { color: 0x77736b, roughness: 0.94, metalness: 0.02 },
   stoneDark: { color: 0x514d47, roughness: 0.96, metalness: 0.01 }
 });

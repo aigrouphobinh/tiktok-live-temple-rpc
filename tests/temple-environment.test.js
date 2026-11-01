@@ -121,6 +121,32 @@ describe('Temple environment architecture module', () => {
     result.dispose();
   });
 
+  it('uses owned bright-gold and ruby materials for the paired capital ornaments', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const batches = new Map();
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
+    });
+
+    const plaques = batches.get('TempleColumnFrontPlaques');
+    const gems = batches.get('TempleColumnFrontGems');
+    expect(plaques?.material?.color).toBe(0xd6ad55);
+    expect(plaques?.material?.metalness).toBe(0.72);
+    expect(gems?.material?.color).toBe(0x9f1828);
+    expect(gems?.material?.metalness).toBe(0.28);
+
+    const ownedMaterials = new Set();
+    result.group.traverse((object) => {
+      if (object.material) ownedMaterials.add(object.material);
+    });
+    expect(ownedMaterials.has(plaques.material)).toBe(true);
+    expect(ownedMaterials.has(gems.material)).toBe(true);
+
+    result.dispose();
+    expect(plaques.material.disposed).toBe(true);
+    expect(gems.material.disposed).toBe(true);
+  });
+
   it('marks every populated instance matrix for GPU upload', () => {
     const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
     const batches = [];
