@@ -572,3 +572,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - All 20 rings share one TorusGeometry and one static InstancedMesh batch; no per-frame updates, extra lights, or shadow maps.
 - Preserved the open roofless sightline and fixed camera.
 - Added a source regression test. Browser visual confirmation and mobile GPU profiling remain outstanding.
+
+
+### 2026-11-01 — Finish the Buddha pedestal detailing
+- Added two restrained brass moulding rings around the carved lower pedestal drum and 32 small gold studs around the red middle tier.
+- Both decorations use static InstancedMesh batches with shared geometry/materials; decorative instances do not cast additional shadows and have no per-frame update cost.
+- Kept the statue, lotus throne, fixed camera and ritual interactions in place.
+- Added regression assertions for instance counts, static usage and shadow settings. Browser appearance and mobile GPU performance still need local visual review.
