@@ -71,6 +71,20 @@ This file records researched candidates only. A model is not considered integrat
 **Do not bundle the ManNeko Low Poly Girl as a default choice**
 - Its page advertises commercial use but prohibits resale/redistribution of the raw model. Since this game bundles assets to players, that restriction needs separate legal review and is less suitable than CC0.
 
+## Additional verified public candidates (research only; do not auto-substitute)
+
+**10th C CE Thai Seated Buddha — Minneapolis Institute of Art / artsmia**
+- Original model listing: https://sketchfab.com/3d-models/10th-c-ce-thai-seated-buddha-black-background-31857e30bf9249f788aed2dfe5eb6673
+- Archival GLB: https://zenodo.org/records/10242851
+- Sketchfab listing states CC0 Public Domain; Zenodo archives the matching GLB at about 4.8 MB.
+- About 64k triangles. It is a bronze Thai Buddha scan, not the user's selected wood-carved Buddha; keep as an alternate only unless the user approves a visual substitution.
+- The binary could not be fetched into this runtime, so polygon topology, embedded textures, scale, orientation and actual rendering remain uninspected.
+
+**Female-character, Woman, Girl — Quaternius_CC0 on Pixabay**
+- Official listing: https://pixabay.com/3d-models/female-character-woman-girl-human-809/
+- Listing states Pixabay Content License, GLB format, textures and animations, 2,642 vertices, published June 1, 2025.
+- Potential crowd/stand-in candidate only. Its actual skeleton and clip names must be inspected before mapping it to the existing bow/walk state machine.
+
 ## Lightweight fallback
 
 **Female-character / Woman / Girl — Quaternius_CC0 on Pixabay**
