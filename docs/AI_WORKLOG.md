@@ -388,3 +388,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added fallback for legacy top-level `describe` gift labels and string `repeat_end: "true"`; current camelCase field precedence remains unchanged.
 - Added regression tests for nested legacy gift metadata and top-level snake_case combo metadata.
 - Source and tests committed directly to `main`. Await the GitHub Actions result before claiming the tests pass. Actual LIVE payload capture remains unverified.
+
+
+### Legacy payload regression follow-up and CI result — 2026-11-01
+- First expanded test run exposed a missing top-level `gift_id` fallback (51 passed, 1 failed); the failure was inspected from the Actions job log rather than treated as a successful run.
+- Added the missing `data.gift_id` fallback. GitHub Actions run `41257263011` on commit `9d15c3cf063a7753d51ecab487065997839a8cda` completed successfully: all Bun unit tests and the server-side JavaScript syntax check passed.
+- Earlier runs `41257236465` and `41257243389` failed on the incomplete intermediate implementation; the corrected follow-up run is green. Actual TikTok LIVE payload capture and browser runtime remain unverified.
