@@ -193,7 +193,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - [x] Forward TikTok combo metadata into game events and coalesce repeated streak frames into one cinematic with lightweight combo pulses.
 - [ ] Validate streak coalescing against real TikTok LIVE combo frames and verify a new streak can trigger a fresh effect.
 - [x] Add automated tests for gift action selection, priority replacement and interrupted-character queue recovery; add bounded combo coalescer regression coverage.
-- [ ] Add automated DOM effect-cleanup tests; SFX-dispatch unit coverage is now implemented. Browser verification remains required.
+- [x] Add unit tests for gift effect lifecycle cleanup and SFX dispatch; browser DOM integration and runtime verification remain open.
 - [ ] Validate audio unlock, SFX/music/TTS mixing, clipping, sound overlap, and browser autoplay behavior.
 - [ ] Validate 2D fallback, optional 3D overlay, stage layering, resize behavior, FPS, memory, and long-running stability in an actual browser.
 - [ ] Validate real TikTok LIVE Rocket/Dragon/Donut IDs, names, diamond values, repeatCount/repeatEnd, and reconnect behavior using sanitized logs.
@@ -295,3 +295,8 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Extracted the six supported gift sound routes into `public/js/gift-sfx-dispatcher.js`; the live controller now delegates to this allowlisted dispatcher instead of maintaining an inline conditional chain.
 - Added `tests/gift-sfx-dispatcher.test.js`: verifies all six routes, the explosion intensity argument, unknown event rejection, and safe handling of missing audio methods/engine.
 - This is source-level regression coverage only. Browser audio output, autoplay unlock, volume toggle, and mix balance remain unverified.
+### Gift VFX lifecycle cleanup — implementation checkpoint
+- Extracted transient effect ownership into `public/js/gift-effect-registry.js`; the gift engine delegates animation completion, cancellation, and element removal to this registry.
+- Clearing an effect batch cancels tracked Web Animations and removes each owned DOM node immediately; natural completion removes its node and releases the registry entry.
+- Added `tests/gift-effect-registry.test.js` for natural completion, batch cancellation/removal, invalid registrations, and repeated empty clears.
+- Unit-level lifecycle coverage only; browser DOM integration, interrupted animation visuals, and long-running heap stability still require browser verification.
