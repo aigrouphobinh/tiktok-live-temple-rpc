@@ -815,3 +815,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added common gerund and spelling variants for idle breathing and ritual poses: `breathing`, `bowing`, `praying`, `kneeling`, `worshipping` and `worshiping`.
 - Added regression tests for breathing loops, bowing clips and prayer/kneeling exports.
 - Kept token-boundary matching and unique clip assignment intact; this broadens supported labels without reverting to substring matching.
+
+
+### 2026-11-01 — Prioritize ritual intent in ambiguous animation labels
+- CI exposed a genuine ambiguity: `Praying Idle` matched the generic idle token before the prayer token, stealing the bow clip.
+- Updated matching so an explicit ritual token (`bow` alias family) excludes the clip from idle/walk candidates; the clip is now assigned to the bow state.
+- The prayer/kneeling regression test verifies that ritual intent wins and no idle/walk clip is fabricated.
