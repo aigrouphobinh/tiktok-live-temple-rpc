@@ -1,3 +1,9 @@
+### 2026-11-01 — Sequence the devotee ritual through kneeling and bowing
+- Added a pure time-based ritual pose helper that eases the avatar from approach into a grounded kneel, then into a bow, and fades both poses out at the end of the ritual.
+- Connected the shared timeline to the main procedural avatar and to the existing GLB bow-state path. Procedural knee/foot offsets are blended; GLB kneeling remains intentionally disabled until the imported rig's axes and rest pose are visually verified.
+- Reset kneeling and bow weights when a new ritual starts or the active ritual ends.
+- Added unit tests for arrival timing, kneel/bow easing, exit fades, invalid inputs and scene integration.
+
 ### 2026-11-01 — Add state-based procedural foot pose controller
 - Added a shared pure pose helper for idle/bow, walking and kneeling states, including blend weights, knee/hip/foot offsets, grounded contact and swing lift.
 - Routed procedural avatars through the shared helper so walk-to-idle returns to neutral consistently; the kneeling pose is available through the avatar's `kneeling` state flag without changing the current ritual trigger.
