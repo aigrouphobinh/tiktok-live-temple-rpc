@@ -762,6 +762,14 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds subtle neck contours and paired shoulder drape creases to the Buddha robe', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// Subtle neck tendons and shoulder drape creases bridge the head into the robe.');
+  expect(scene).toContain('new THREE.Vector3(side * 0.22, 4.2, 0.235)');
+  expect(scene).toContain('[side * 0.55, 3.88, 0.51]');
+  expect(scene).toContain('shoulderDrapeHighlightMesh');
+});
+
 it('adds gentle cheekbone highlights and jaw transition grooves to the Buddha face', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// Soft cheekbone highlights and jaw transitions give the face a gently sculpted profile.');
