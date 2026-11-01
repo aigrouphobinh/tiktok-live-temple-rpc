@@ -33,6 +33,11 @@ export class GiftStreakCoalescer {
     return duplicate;
   }
 
+  clearStreak(groupId) {
+    if (groupId == null || String(groupId) === '') return false;
+    return this.recent.delete(String(groupId));
+  }
+
   clear() {
     this.recent.clear();
   }
