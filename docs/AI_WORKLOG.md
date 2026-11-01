@@ -1,3 +1,10 @@
+### 2026-11-01 — Scale gratitude gestures by TikTok gift value
+- Added pure gift-value tiers based on diamondCount and incremental giftComboDelta: small, medium, large and special.
+- Gift-action engine now forwards the resolved profile with the visual event, including queued gifts; server reward handling is unchanged.
+- Procedural devotees scale acknowledgement duration, hand lift and bow depth by tier. Higher-value gifts supersede weaker active profiles without stacking animation state.
+- Imported GLB rigs remain untouched pending visual inspection of their skeleton and animation axes.
+- Added unit and scene tests plus CI guards for value calculation and event plumbing.
+
 ### 2026-11-01 — Add a two-hand thank-you gesture for gift reactions
 - Procedural devotees now raise and bring both forearms inward so their palms meet near chest height during the existing gift acknowledgement window.
 - The gesture uses the same eased reaction blend, includes a very small appreciative pulse, and derives from the current ritual pose each frame to prevent rotational drift.
