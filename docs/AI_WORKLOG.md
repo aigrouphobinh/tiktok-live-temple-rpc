@@ -300,3 +300,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Clearing an effect batch cancels tracked Web Animations and removes each owned DOM node immediately; natural completion removes its node and releases the registry entry.
 - Added `tests/gift-effect-registry.test.js` for natural completion, batch cancellation/removal, invalid registrations, and repeated empty clears.
 - Unit-level lifecycle coverage only; browser DOM integration, interrupted animation visuals, and long-running heap stability still require browser verification.
+### Donut chase movement polish — implementation checkpoint
+- Reworked the Donut flight into a multi-beat zig-zag arc with staged scale/rotation and a controlled exit path in the upper-middle scene lane.
+- Reduced the devotee reaction from a large 300px lateral sweep to a short sidestep/hop sequence to reduce the risk of crossing altar/scene props.
+- Source-level choreography only; actual sprite bounds, overlap with Buddha/altar/HUD, camera framing and mobile rendering still require browser validation.
