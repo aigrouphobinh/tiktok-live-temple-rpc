@@ -6,10 +6,10 @@ Agent 3 delivers an independent architectural-detail layer for the existing roof
 
 The module enriches the existing colonnade and galleries without replacing the scene, renderer, camera, lighting, or animation loop.
 
-- Layered stone and lacquer column plinths with aged-bronze collars and optional instanced studs.
+- Two complete portrait-framed timber side columns with layered stone/lacquer plinths, aged-bronze collars, capital stacks, corbels and static gilded fluting.
 - Timber capital stacks and restrained corbel brackets aligned to the existing column grid.
-- Open carved gallery screens placed in the outer gallery bays.
-- Low-profile bronze floor inlays that remain outside the central processional aisle.
+- Paired carved relief screens extending the altar backdrop into the visible left/right margins.
+- Low-profile bronze floor inlays set flush on the visible side-deck strips beside the central processional aisle.
 - Shared primitive geometry and InstancedMesh batches for repeated details; instance matrices are marked for GPU upload after population.
 - Idempotent disposal of all geometry and materials owned by this module.
 
@@ -26,11 +26,16 @@ const templeEnvironment = createTempleEnvironment({
   config: {
     detailLevel: 'high', // 'low' | 'medium' | 'high'
     // Optional layout overrides:
-    // columnXs: [-7.2, 7.2],
-    // columnZs: [-10, -4, 2, 8, 13],
-    // galleryScreenXs: [-9.55, 9.55],
-    // galleryBayZs: [-6.8, -0.8, 5.2, 11.2],
-    gallerySurfaceY: 0.0825, // top surface of the existing raised side gallery
+    // Portrait layout defaults; override these only when changing camera framing:
+    // columnXs: [-5.15, 5.15],
+    // columnZs: [-10],
+    // galleryScreenXs: [-6.25, 6.25],
+    // galleryBayZs: [-14],
+    galleryScreenBaseY: 2.05,
+    galleryScreenWidth: 0.95,
+    floorInlayX: 3.82,
+    floorInlayZs: [-7, -4, -1, 2],
+    gallerySurfaceY: -0.0825, // top surface of the visible side aisle deck in the portrait crop
     enableColumnBases: true,
     enableCapitalBrackets: true,
     enableGalleryScreens: true,
@@ -58,7 +63,7 @@ The returned `group` is attached to the supplied scene. The module never owns or
 
 ## Placement and visual safety
 
-Default coordinates follow the existing main-hall column line at X = ±7.2 and Z = -10, -4, 2, 8, 13. Gallery screens sit near the outer gallery edge (X = ±9.55), outside the central aisle and altar sightline. Floor inlays are restricted to the peripheral gallery zone (X = ±8.15) and sit flush with the existing raised gallery deck (default surface Y = 0.0825).
+The default coordinates are tailored to the fixed 9:16 camera: two full-height side columns sit at X = ±5.15, Z = -10, just outside the altar screen; matching relief panels sit farther back at X = ±6.25, Z = -14. Low-profile floor inlays sit on the visible side-deck strips at X = ±3.82 and Z = -7, -4, -1, 2 (default surface Y = -0.0825). These placements keep the central Buddha/altar sightline clear while bringing the architecture inside the portrait crop.
 
 The module adds no objects in front of the Buddha or altar and does not add a roof or overhead slab. If the Coordinator changes the temple's world scale or column grid, pass matching positions through `config`.
 
