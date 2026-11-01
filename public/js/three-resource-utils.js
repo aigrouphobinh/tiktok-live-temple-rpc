@@ -25,3 +25,32 @@ export function disposeThreeObjectTree(root) {
 
   return { geometries: geometries.size, materials: materials.size };
 }
+
+
+/**
+ * Dispose a complete scene tree, including textures referenced by its materials.
+ * Unlike transient effects, a full scene owns its texture lifetime; Set keeps
+ * shared maps (such as the Buddha's bump tile) from being disposed repeatedly.
+ */
+export function disposeThreeSceneResources(root) {
+  if (!root || typeof root.traverse !== 'function') {
+    return { geometries: 0, materials: 0, textures: 0 };
+  }
+
+  const textures = new Set();
+  root.traverse((node) => {
+    const nodeMaterials = Array.isArray(node?.material)
+      ? node.material
+      : node?.material ? [node.material] : [];
+    for (const material of nodeMaterials) {
+      if (!material) continue;
+      for (const value of Object.values(material)) {
+        if (value?.isTexture && typeof value.dispose === 'function') textures.add(value);
+      }
+    }
+  });
+
+  const disposed = disposeThreeObjectTree(root);
+  for (const texture of textures) texture.dispose();
+  return { ...disposed, textures: textures.size };
+}
