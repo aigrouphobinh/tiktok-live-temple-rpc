@@ -546,6 +546,19 @@ async function boot() {
   sphere(0.22,mats.statueLight,-0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.22,mats.statueLight,0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.1,mats.statueStone,0,2.82,0.82,1,0.8,0.7,statue);
+  // Fine finger creases define the joined hands without changing the meditation pose.
+  for (const side of [-1, 1]) {
+    for (let finger = 0; finger < 3; finger++) {
+      const x = side * 0.2 + (finger - 1) * 0.055;
+      statueLine([
+        [x - 0.025, 2.68, 0.858],
+        [x, 2.705, 0.875],
+        [x + 0.025, 2.73, 0.858]
+      ], 0.008);
+    }
+  }
+  // A soft raised contour separates the thumbs at the centre of the mudra.
+  statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.012,mats.statueLight);
   // Broad carved stone aureole behind the Buddha.
   const halo = new THREE.Group(); halo.position.set(0,5.25,-8.8); world.add(halo);
   const haloStone = new THREE.MeshStandardMaterial({color:0xa59a83,roughness:0.9,metalness:0.02,side:THREE.DoubleSide});
