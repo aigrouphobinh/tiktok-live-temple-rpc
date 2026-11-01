@@ -227,4 +227,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('tableSeal.rotation.z = Math.PI / 4;');
   });
 
+
+  it('builds two instanced lotus tiers from a curved tapered petal mesh', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('function createLotusPetalGeometry()');
+    expect(scene).toContain('geometry.computeVertexNormals();');
+    expect(scene).toContain('new THREE.InstancedMesh(lotusPetalGeometry, mats.redBright, redCount)');
+    expect(scene).toContain('new THREE.InstancedMesh(lotusPetalGeometry, mats.goldBright, goldCount)');
+    expect(scene).toContain('createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1)');
+    expect(scene).toContain('createLotusPetalRing(12, 1.12, 0.1, 0.78, 0.06)');
+    expect(scene).toContain('petals.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
+  });
+
 });
