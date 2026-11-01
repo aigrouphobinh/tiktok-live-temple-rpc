@@ -51,7 +51,7 @@ try {
     const errors = [];
     const failedRequests = [];
     let page;
-    let rendererStats = null;
+    const rendererStatsSamples = [];
 
     const profileReport = {
       id: scenario.id,
@@ -98,7 +98,12 @@ try {
           try {
             const args = message.args();
             const payload = await args[1]?.jsonValue();
-            if (payload && typeof payload === 'object') rendererStats = payload;
+            if (payload && typeof payload === 'object') {
+              rendererStatsSamples.push({
+                capturedAt: new Date().toISOString(),
+                ...payload
+              });
+            }
           } catch (error) {
             errors.push(`Unable to read renderer stats: ${error.message}`);
           }
@@ -130,9 +135,40 @@ try {
         profileReport.readinessError = error.message;
       }
 
-      // The renderer emits a diagnostic snapshot after five seconds when stats=1.
+      // First diagnostic snapshot is the idle-scene baseline.
       await page.waitForTimeout(6500);
-      if (!rendererStats) await page.waitForTimeout(2500);
+      if (!rendererStatsSamples.length) await page.waitForTimeout(2500);
+      const idleStats = rendererStatsSamples[0] || null;
+
+      // Sustain a mixed gift-effect burst until the next renderer diagnostic.
+      await page.evaluate(() => {
+        const actions = ['rocket', 'dragon', 'donut', 'rose'];
+        let index = 0;
+        const dispatch = () => {
+          const action = actions[index % actions.length];
+          index += 1;
+          window.dispatchEvent(new CustomEvent('temple:gift-action', {
+            detail: {
+              action,
+              reactionProfile: {
+                tier: 'special',
+                intensity: 0.9,
+                bowAmount: 0.8,
+                durationMs: 1800
+              }
+            }
+          }));
+        };
+        dispatch();
+        const timer = window.setInterval(dispatch, 600);
+        window.__TEMPLE_AUDIT_STOP_GIFTS__ = () => window.clearInterval(timer);
+      });
+      await page.waitForTimeout(5200);
+      await page.evaluate(() => {
+        window.__TEMPLE_AUDIT_STOP_GIFTS__?.();
+        delete window.__TEMPLE_AUDIT_STOP_GIFTS__;
+      });
+      const stressStats = rendererStatsSamples[rendererStatsSamples.length - 1] || null;
 
       const scene = await page.evaluate(async () => {
         const stage = document.getElementById('stage9x16');
@@ -195,7 +231,11 @@ try {
         x: scene.canvas.width / viewport.width,
         y: scene.canvas.height / viewport.height
       } : null;
-      profileReport.rendererStats = rendererStats;
+      profileReport.rendererStats = {
+        idle: idleStats,
+        giftBurst: stressStats,
+        samplesCaptured: rendererStatsSamples.length
+      };
 
       profileReport.checks = {
         hintsMatchRequested: scene.browserHints?.deviceMemory === scenario.deviceMemory
@@ -207,8 +247,13 @@ try {
         framebufferScaleMatches: Boolean(scene.canvas)
           && Math.abs((scene.canvas.width / viewport.width) - scenario.expectedPixelRatio) < 0.002
           && Math.abs((scene.canvas.height / viewport.height) - scenario.expectedPixelRatio) < 0.002,
-        rendererStatsCaptured: Boolean(rendererStats),
-        rendererPixelRatioMatches: rendererStats?.pixelRatio === scenario.expectedPixelRatio,
+        rendererStatsCaptured: Boolean(idleStats),
+        rendererPixelRatioMatches: idleStats?.pixelRatio === scenario.expectedPixelRatio,
+        giftBurstStatsCaptured: Boolean(stressStats),
+        giftBurstHadActiveEffects: Number(stressStats?.activeEffects) > 0,
+        giftBurstIncreasedDrawCalls: Number.isFinite(idleStats?.drawCalls)
+          && Number.isFinite(stressStats?.drawCalls)
+          && stressStats.drawCalls > idleStats.drawCalls,
         sceneReady: profileReport.ready && scene.readyFlag,
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
