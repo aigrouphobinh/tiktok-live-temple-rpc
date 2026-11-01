@@ -462,6 +462,44 @@ async function boot() {
   cylinder(0.08, 0.08, 0.9, mats.woodLight, 0, 1.28, 0, burner, 12);
   sphere(0.11, mats.redBright, 0, 1.76, 0, 1, 1, 1, burner);
 
+  // Three ritual stations are modeled as actual sanctuary props, not flat HUD icons.
+  // They sit on the side galleries so the fixed central altar sightline stays open.
+  const ritualStations = [];
+  function makeRitualStation(x, z, kind) {
+    const station = new THREE.Group();
+    station.position.set(x, 0.16, z);
+    world.add(station);
+    box(1.55, 0.22, 1.45, mats.wood, 0, 0, 0, station);
+    box(1.62, 0.07, 1.52, mats.gold, 0, 0.14, 0, station);
+    box(1.42, 0.12, 1.32, mats.woodLight, 0, 0.23, 0, station);
+    if (kind === 'bell') {
+      cylinder(0.38, 0.48, 0.76, mats.gold, 0, 0.72, 0, station, 32);
+      cylinder(0.5, 0.5, 0.1, mats.goldBright, 0, 1.08, 0, station, 32);
+      sphere(0.1, mats.goldBright, 0, 1.2, 0, 1, 1.25, 1, station);
+      cylinder(0.035, 0.035, 0.42, mats.wood, 0.58, 0.63, 0, station, 10);
+      sphere(0.09, mats.gold, 0.58, 0.4, 0, 1, 1, 1, station);
+    } else if (kind === 'woodfish') {
+      const drum = new THREE.Mesh(new THREE.SphereGeometry(0.48, 24, 18), mats.red);
+      drum.scale.set(1.2, 0.76, 0.82); drum.position.set(0, 0.72, 0);
+      drum.castShadow = true; station.add(drum);
+      sphere(0.09, mats.goldBright, 0, 0.76, 0.39, 1, 0.7, 0.35, station);
+      cylinder(0.055, 0.055, 0.72, mats.woodLight, 0.58, 0.67, 0, station, 10).rotation.z = -0.65;
+    } else {
+      cylinder(0.34, 0.42, 0.82, mats.red, 0, 0.72, 0, station, 12);
+      cylinder(0.38, 0.38, 0.08, mats.goldBright, 0, 1.14, 0, station, 16);
+      cylinder(0.38, 0.38, 0.08, mats.gold, 0, 0.3, 0, station, 16);
+      for (let i = 0; i < 9; i++) {
+        const angle = i * Math.PI * 2 / 9;
+        cylinder(0.018, 0.018, 0.72, mats.woodLight, Math.cos(angle) * 0.2, 0.73, Math.sin(angle) * 0.2, station, 6);
+      }
+      sphere(0.1, mats.goldBright, 0, 1.25, 0, 1, 0.8, 1, station);
+    }
+    ritualStations.push(station);
+  }
+  makeRitualStation(-7.1, -0.8, 'bell');
+  makeRitualStation(7.1, -0.8, 'woodfish');
+  makeRitualStation(7.1, -5.0, 'fortune');
+
   // Stylized human devotees replace the temporary animal crowd.
   // The avatar is deliberately built from lightweight Three.js geometry so it
   // is local, deterministic and does not depend on a third-party model host.
