@@ -143,6 +143,17 @@ async function boot() {
   const buddhaLight = new THREE.PointLight(0xe5eaed, 34, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
+  // A restrained rear-side rim separates the ivory statue from the dark altar.
+  // It deliberately casts no shadows; gift light is layered onto this same light.
+  const statueRimTarget = new THREE.Object3D();
+  statueRimTarget.position.set(0, 4.1, -8.25);
+  scene.add(statueRimTarget);
+  const statueRimLight = new THREE.DirectionalLight(0xffc982, 1.05);
+  statueRimLight.position.set(5.5, 8.5, -12.5);
+  statueRimLight.target = statueRimTarget;
+  statueRimLight.castShadow = false;
+  scene.add(statueRimLight);
+
   // Layered altar lighting: two soft, non-shadow-casting spots shape the focal area
   // without changing the fixed master camera or adding expensive shadow maps.
   const altarTargets = [];
@@ -1873,6 +1884,12 @@ async function boot() {
     lotusGiftAuraMaterial.opacity = auraPulse * 0.34;
     lotusGiftAura.scale.setScalar(1 + auraPulse * 0.18);
     haloGlow.intensity = 8 + auraPulse * 13;
+    // A warm edge light and restrained material emission make stone reliefs
+    // and gilded trim catch the special-gift beat without a full-scene flash.
+    statueRimLight.intensity = 1.05 + auraPulse * 1.35;
+    mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;
+    mats.statueStone.emissive.setHex(0x241507);
+    mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;
     buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;
     altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
