@@ -514,9 +514,12 @@
 
   function triggerRitualVisuals(ev) {
     if (!ev) return;
-    // Optional 3D layer listens independently; existing 2D/audio flow remains unchanged.
-    window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
     const giftActionResult = window.TempleGiftActionEngine?.handle(ev) || { allowWalker: ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune'].includes(ev.type), interruptsRitual: false };
+    // Keep optional 3D effects in sync with the 2D combo coalescer. Each streak
+    // still updates server rewards/merit, but repeated frames do not replay 3D VFX.
+    if (!giftActionResult.coalescedCombo) {
+      window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
+    }
     if (giftActionResult.interruptsRitual) {
       clearProstrationTimers();
       setCentralPose('walk1');
