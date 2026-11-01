@@ -1,7 +1,60 @@
+describe('getTempleRenderProfile', () => {
+  it('reduces pixel ratio, shadow-map size and environment detail for low-end devices', () => {
+    expect(getTempleRenderProfile({
+      devicePixelRatio: 2,
+      deviceMemory: 2,
+      hardwareConcurrency: 4
+    })).toEqual({
+      tier: 'low',
+      maxPixelRatio: 1,
+      pixelRatio: 1,
+      shadowMapSize: 512,
+      environmentDetail: 'low'
+    });
+  });
+
+  it('uses balanced environment detail and preserves the existing shadow-map budget for mid-range devices', () => {
+    expect(getTempleRenderProfile({
+      devicePixelRatio: 2,
+      deviceMemory: 6,
+      hardwareConcurrency: 8
+    })).toEqual({
+      tier: 'medium',
+      maxPixelRatio: 1.15,
+      pixelRatio: 1.15,
+      shadowMapSize: 1024,
+      environmentDetail: 'medium'
+    });
+  });
+
+  it('keeps high detail and caps strong devices at the existing 1.25x ceiling', () => {
+    expect(getTempleRenderProfile({
+      devicePixelRatio: 2,
+      deviceMemory: 16,
+      hardwareConcurrency: 16
+    })).toEqual({
+      tier: 'high',
+      maxPixelRatio: 1.25,
+      pixelRatio: 1.25,
+      shadowMapSize: 1024,
+      environmentDetail: 'high'
+    });
+  });
+
+  it('handles an invalid DPR without changing the selected device tier', () => {
+    expect(getTempleRenderProfile({
+      devicePixelRatio: Number.NaN,
+      deviceMemory: 8,
+      hardwareConcurrency: 8
+    }).pixelRatio).toBe(1);
+  });
+});
+
 import { describe, expect, it } from 'bun:test';
 import {
   getTemplePixelRatio,
-  getTempleRenderQuality
+  getTempleRenderQuality,
+  getTempleRenderProfile
 } from '../public/js/temple-render-quality.js';
 
 describe('getTempleRenderQuality', () => {
