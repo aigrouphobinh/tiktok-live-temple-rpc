@@ -1,3 +1,8 @@
+### 2026-11-01 — Synchronize fallback footsteps with devotee travel
+- The main devotee traverses a fixed 11.2 world-unit path while the fallback gait previously advanced from wall-clock time, so stride phase could drift from actual translation and visibly slide.
+- Drive the main character's fallback gait phase from normalized travel distance (using a 2.2-unit stride cycle); retain the time-based idle/crowd gait when no explicit phase is supplied.
+- Apply the same phase to GLB rig fallback limbs and procedural avatar limbs; add source regression assertions. Runtime foot-contact validation still requires a real character model in the 3D scene.
+
 ### 2026-11-01 — Cancel interrupted fades when a GLB state has no matching clip
 - When a requested state has no authored clip and no idle fallback, the active action fades out. If that action was already in a fade-in or fade-out transition, the old scheduled fade could continue to compete with the new fade-out.
 - Cancel any pending fade before fading the active action out; added a regression assertion for the no-clip fallback path.
