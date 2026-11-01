@@ -1,3 +1,8 @@
+### 2026-11-01 — Keep gift gratitude in sync with combo streaks
+- Cumulative TikTok streak frames now publish a separate gratitude-update event with the incremental combo value.
+- The 3D scene upgrades the active acknowledgement profile and extends its duration without replaying the rocket/dragon/donut/rose world effect.
+- Added scene coverage and CI guards for the separate combo reaction channel.
+
 ### 2026-11-01 — Scale gratitude gestures by TikTok gift value
 - Added pure gift-value tiers based on diamondCount and incremental giftComboDelta: small, medium, large and special.
 - Gift-action engine now forwards the resolved profile with the visual event, including queued gifts; server reward handling is unchanged.
