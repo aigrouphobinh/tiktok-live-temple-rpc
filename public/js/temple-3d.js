@@ -241,11 +241,74 @@ async function boot() {
   // Deep ceiling and gold rafters.
   box(17, 0.38, 27, mats.wood, 0, 10.2, 1);
   for (let z = -11; z <= 12; z += 2.8) box(16.8, 0.12, 0.16, mats.gold, 0, 9.95, z);
-  // Roof ridges and decorative eaves.
-  for (const side of [-1, 1]) {
-    const eave = box(1.0, 0.32, 28, mats.red, side * 8.0, 9.35, 1);
-    eave.rotation.z = side * -0.12;
-    box(0.22, 0.14, 28, mats.goldBright, side * 8.5, 9.45, 1);
+  // Curved tiled roof: a continuous pitched surface with raised corner eaves.
+  const roofTile = new THREE.MeshStandardMaterial({
+    color: 0x76202a, roughness: 0.78, metalness: 0.08, side: THREE.DoubleSide
+  });
+  const roofTrim = new THREE.MeshStandardMaterial({
+    color: 0xb98538, roughness: 0.42, metalness: 0.62
+  });
+  function makeCurvedRoofSide(side) {
+    const columns = 20, rows = 48;
+    const positions = [], uvs = [], indices = [];
+    for (let row = 0; row <= rows; row++) {
+      const v = row / rows;
+      const z = -13 + v * 28;
+      const endLift = Math.pow(Math.abs((z - 1) / 14), 4) * 0.82;
+      for (let column = 0; column <= columns; column++) {
+        const u = column / columns;
+        const x = side * u * 9.0;
+        const y = 11.15 - 1.72 * u + 0.24 * u * u + endLift * u * u;
+        positions.push(x, y, z);
+        uvs.push(u, v);
+      }
+    }
+    for (let row = 0; row < rows; row++) {
+      for (let column = 0; column < columns; column++) {
+        const a = row * (columns + 1) + column;
+        const b = a + columns + 1;
+        indices.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    const roof = new THREE.Mesh(geometry, roofTile);
+    roof.castShadow = true; roof.receiveShadow = true; world.add(roof);
+
+    // Subtle raised tile seams follow the roof pitch; keep count low for mobile GPUs.
+    for (let seam = 1; seam < 9; seam++) {
+      const u = seam / 9;
+      const points = [];
+      for (let step = 0; step <= 12; step++) {
+        const v = step / 12;
+        const z = -13 + v * 28;
+        const endLift = Math.pow(Math.abs((z - 1) / 14), 4) * 0.82;
+        points.push(new THREE.Vector3(
+          side * u * 9.0,
+          11.18 - 1.72 * u + 0.24 * u * u + endLift * u * u,
+          z
+        ));
+      }
+      const seamCurve = new THREE.CatmullRomCurve3(points);
+      const seamMesh = new THREE.Mesh(new THREE.TubeGeometry(seamCurve, 24, 0.018, 5, false), roofTrim);
+      seamMesh.castShadow = true; world.add(seamMesh);
+    }
+    const eave = box(0.22, 0.28, 28.1, mats.red, side * 8.95, 9.72, 1);
+    eave.rotation.z = side * -0.025;
+    const goldEdge = box(0.09, 0.09, 27.9, roofTrim, side * 9.08, 9.82, 1);
+    goldEdge.rotation.z = side * -0.025;
+  }
+  makeCurvedRoofSide(-1);
+  makeCurvedRoofSide(1);
+  // Ridge cap and ornamental end finials.
+  const ridge = cylinder(0.22, 0.22, 28.2, mats.redBright, 0, 11.25, 1, world, 32);
+  ridge.rotation.x = Math.PI / 2;
+  for (const z of [-13, 15]) {
+    const finial = sphere(0.25, roofTrim, 0, 11.28, z, 1.3, 0.8, 1.2);
+    finial.rotation.z = z < 0 ? -0.22 : 0.22;
   }
 
   // Lanterns with warm emissive cores along the side aisles.
