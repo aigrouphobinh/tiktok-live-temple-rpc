@@ -1,6 +1,7 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
 import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
+import { createTempleEnvironment } from './temple-environment.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2154,6 +2155,14 @@ async function boot() {
   window.addEventListener('temple:gift-action', onTempleGiftAction);
   window.addEventListener('temple:gift-reaction', onTempleGiftReaction);
 
+  // Add the independent roofless architectural detail layer to the same scene.
+  // It shares the renderer, camera and animation loop; no extra lights are created.
+  const templeEnvironment = createTempleEnvironment({
+    THREE,
+    scene,
+    config: { detailLevel: 'high' }
+  });
+
   function frame(now) {
     if (disposed || document.hidden) { raf = 0; return; }
     raf = requestAnimationFrame(frame);
@@ -2279,6 +2288,7 @@ async function boot() {
       world.remove(effect.object);
       disposeThreeObjectTree(effect.object);
     }
+    templeEnvironment.dispose();
     disposeThreeSceneResources(scene);
     renderer.dispose();
   }
