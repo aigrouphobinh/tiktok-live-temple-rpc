@@ -2481,3 +2481,23 @@ body.obs-mode .stage-wrapper {
 @media (prefers-reduced-motion: reduce) {
   .stage-9x16.temple-3d-mode .hud-gift-card { transition: none; }
 }
+
+/* Reference finish — a quiet antique-brass frame around the 3D sanctuary only.
+   It sits above the scene/HUD but never intercepts pointer or touch input. */
+.stage-9x16.temple-3d-mode {
+  border-radius: 42px;
+  isolation: isolate;
+}
+.stage-9x16.temple-3d-mode::before {
+  content: '';
+  position: absolute;
+  inset: 16px;
+  z-index: 50;
+  border: 3px solid rgba(186, 137, 51, .82);
+  border-radius: 34px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 226, 157, .2),
+    inset 0 0 18px rgba(205, 151, 61, .055),
+    0 0 0 1px rgba(14, 7, 3, .92);
+  pointer-events: none;
+}
