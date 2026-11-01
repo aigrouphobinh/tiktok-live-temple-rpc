@@ -44,6 +44,12 @@ jobs:
           grep -Fq 'Layered altar lighting' public/js/temple-3d.js &&
           grep -Fq 'new THREE.SpotLight' public/js/temple-3d.js &&
           grep -Fq 'offeringFlames.forEach' public/js/temple-3d.js &&
+          grep -Fq 'function playWorldGiftAction(action)' public/js/temple-3d.js &&
+          grep -Fq "action === 'rocket'" public/js/temple-3d.js &&
+          grep -Fq "action === 'dragon'" public/js/temple-3d.js &&
+          grep -Fq "action === 'donut'" public/js/temple-3d.js &&
+          grep -Fq "action === 'rose'" public/js/temple-3d.js &&
+          grep -Fq "temple:character-interrupted" public/js/temple-3d.js &&
           grep -Fq 'Curved tiled roof' public/js/temple-3d.js &&
           grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
           grep -Fq 'Keep the near half open' public/js/temple-3d.js &&
