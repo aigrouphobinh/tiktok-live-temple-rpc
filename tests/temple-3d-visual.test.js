@@ -268,7 +268,7 @@ describe('3D sanctuary visual treatment', () => {
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1)');
-    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose } from './three-gait-utils.js';");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getRitualPoseState } from './three-gait-utils.js';");
     expect(scene).toContain('const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);');
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
     expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
@@ -556,11 +556,11 @@ describe('3D sanctuary visual treatment', () => {
 });
   it('eases the devotee bow pose smoothly into and out of the ritual', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('const bowInProgress = Math.min(1, (now - devoteeState.bowAt) / 650);');
-    expect(scene).toContain('const bowOutProgress = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;');
-    expect(scene).toContain('const bowIn = bowInProgress * bowInProgress * (3 - 2 * bowInProgress);');
-    expect(scene).toContain('const bowOut = bowOutProgress * bowOutProgress * (3 - 2 * bowOutProgress);');
-    expect(scene).toContain('const bow = bowIn * bowOut;');
+    expect(scene).toContain('const ritualPose = getRitualPoseState({');
+    expect(scene).toContain('elapsedAfterArrival: devoteeState.arrivedAt ? now - devoteeState.arrivedAt : 0,');
+    expect(scene).toContain('remainingMs: ritualUntil - now');
+    expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
+    expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount);');
   });
 
   it('routes procedural avatars through the shared idle, walk and kneel foot-pose controller', () => {
