@@ -38,7 +38,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const rightHand = new THREE.Group();');
     expect(scene).toContain('Small articulated palms and separated fingers keep the prayer gesture readable at scene scale.');
     expect(scene).toContain('for(let finger=0;finger<4;finger++){');
-    expect(scene).toContain('root, upperBody, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand,');
+    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand,');
     expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18;');
     expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.armOpen * 0.18;');
   });
