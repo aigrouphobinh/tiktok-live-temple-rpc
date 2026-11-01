@@ -375,4 +375,14 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds a restrained curved neckline and collar ridge to blend the Buddha neck into the shoulders', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('A shallow curved neckline softens the join between neck, shoulders and chest.');
+    expect(scene).toContain('new THREE.TubeGeometry(necklineCurve, 32, 0.018, 6, false)');
+    expect(scene).toContain('new THREE.TubeGeometry(collarRidgeCurve, 32, 0.01, 6, false)');
+    expect(scene).toContain('neckline.castShadow = false;');
+    expect(scene).toContain('collarRidge.castShadow = false;');
+  });
+
+
 });
