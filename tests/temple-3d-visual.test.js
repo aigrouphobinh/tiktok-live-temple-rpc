@@ -209,4 +209,13 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('color:0xa59a83');
   });
 
+
+  it('builds layered red side altar niches with gilded inner mouldings', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('box(1.34, 3.55, 0.05, mats.redBright, x, 4.05, -10.90)');
+    expect(scene).toContain('box(0.065, 3.68, 0.1, mats.gold, x + side * 0.72, 4.05, -10.78)');
+    expect(scene).toContain('box(1.5, 0.075, 0.1, mats.goldBright, x, y, -10.78)');
+    expect(scene).toContain('sphere(0.075, mats.goldBright, x + side * 0.72, y, -10.69, 1, 1, 0.55)');
+  });
+
 });
