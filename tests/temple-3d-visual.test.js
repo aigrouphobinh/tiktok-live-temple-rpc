@@ -349,8 +349,14 @@ describe('3D sanctuary visual treatment', () => {
     const start = scene.indexOf('async function upgradeBuddhaFromGLB()');
     const end = scene.indexOf('function addEffect', start);
     const loader = scene.slice(start, end);
+    const customIndex = loader.indexOf("loadGLTFAsset(customUrl");
     const selectedIndex = loader.indexOf("loadGLTFAsset(selectedUrl");
     const fallbackIndex = loader.indexOf("loadGLTFAsset(fallbackUrl");
+    const customPreflightIndex = loader.indexOf("await isLocalModelAvailable(customUrl)");
+    expect(customPreflightIndex).toBeGreaterThanOrEqual(0);
+    expect(customPreflightIndex).toBeLessThan(customIndex);
+    expect(loader).toContain("const customUrl = '/assets/models/buddha.glb'");
+    expect(loader).toContain("assetSource = 'user-custom'");
     const preflightIndex = loader.indexOf("await isLocalModelAvailable(selectedUrl)");
     const fallbackPreflightIndex = loader.indexOf("await isLocalModelAvailable(fallbackUrl)");
     expect(preflightIndex).toBeGreaterThanOrEqual(0);
