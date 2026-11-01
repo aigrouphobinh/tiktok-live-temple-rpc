@@ -141,4 +141,35 @@ describe('gift priority tiers', () => {
     expect(machine.snapshot().effect).toBe('rocket');
     expect(machine.snapshot().queuedEffects).toContain('rose');
   });
+  it('queues equal-priority gifts in arrival order instead of superseding the active effect', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.interrupt('dragon', { giftName: 'Dragon', sequence: 1 });
+    const first = machine.interrupt('dragon', { giftName: 'Dragon', sequence: 2 });
+    const second = machine.interrupt('dragon', { giftName: 'Dragon', sequence: 3 });
+    expect(first).toMatchObject({ interrupted: false, queuedEffect: true });
+    expect(second).toMatchObject({ interrupted: false, queuedEffect: true });
+    expect(machine.snapshot()).toMatchObject({
+      effect: 'dragon',
+      queuedEffects: ['dragon', 'dragon']
+    });
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe(2);
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe(3);
+  });
+
+  it('orders queued effects by priority while preserving arrival order within each tier', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+    machine.interrupt('rose', { giftName: 'Rose', sequence: 'rose' });
+    machine.interrupt('donut', { giftName: 'Donut', sequence: 'donut-1' });
+    machine.interrupt('dragon', { giftName: 'Dragon', sequence: 'dragon' });
+    machine.interrupt('donut', { giftName: 'Donut', sequence: 'donut-2' });
+    expect(machine.snapshot().queuedEffects).toEqual(['dragon', 'donut', 'donut', 'rose']);
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe('dragon');
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe('donut-1');
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe('donut-2');
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe('rose');
+  });
+
 });
