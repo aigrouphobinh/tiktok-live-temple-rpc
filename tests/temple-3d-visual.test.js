@@ -678,6 +678,13 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('models the Buddha nose as soft stone volume rather than linework alone', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('The nose is modeled as a continuous stone volume first; fine lines only describe its transitions.');
+    expect(scene).toContain('sphere(0.085, mats.statueStone, 0, 4.515, 0.69, 0.62, 1.45, 0.68, statue);');
+    expect(scene).toContain('sphere(0.075, mats.statueStone, 0, 4.425, 0.725, 0.92, 0.78, 0.72, statue);');
+  });
+
   it('adds restrained lower eyelid, cheek and lower-lip details to the Buddha face', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('Lower eyelids and cheek transitions soften the serene carved expression.');
