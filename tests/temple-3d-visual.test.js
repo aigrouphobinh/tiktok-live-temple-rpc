@@ -363,7 +363,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(preflightIndex).toBeLessThan(selectedIndex);
     expect(fallbackPreflightIndex).toBeLessThan(fallbackIndex);
     expect(scene).toContain("method: 'HEAD'");
-    expect(loader).toContain('skipping its load request');
+    expect(loader).toContain('Optional Buddha GLB files are not available; keeping procedural statue.');
     expect(scene).toContain("modelParams.get('buddha') === '1'");
     expect(scene).toContain('modelsRequested || buddhaModelRequested');
     expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading'");
