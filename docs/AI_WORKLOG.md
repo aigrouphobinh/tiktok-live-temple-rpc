@@ -290,3 +290,8 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - GitHub Actions run `41255125379` also completed successfully for the optional 3D combo deduplication code commit.
 - Reconciled the backlog: Dragon roar/impact source implementation and automated gift-action/priority/queue/coalescer coverage are now marked implemented; Donut chase polish, DOM cleanup/SFX-dispatch tests and all browser/live runtime checks remain open.
 - CI success does not replace manual browser, audio, performance or actual TikTok LIVE acceptance testing.
+
+### Gift SFX routing isolation — implementation checkpoint
+- Extracted the six supported gift sound routes into `public/js/gift-sfx-dispatcher.js`; the live controller now delegates to this allowlisted dispatcher instead of maintaining an inline conditional chain.
+- Added `tests/gift-sfx-dispatcher.test.js`: verifies all six routes, the explosion intensity argument, unknown event rejection, and safe handling of missing audio methods/engine.
+- This is source-level regression coverage only. Browser audio output, autoplay unlock, volume toggle, and mix balance remain unverified.
