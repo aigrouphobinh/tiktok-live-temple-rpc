@@ -925,6 +925,37 @@ async function boot() {
   columnCollars.receiveShadow = true;
   world.add(columnCollars);
 
+  // Front-facing ruby-and-brass diamond plaques add a carved rhythm to each
+  // pillar without changing its silhouette or introducing per-piece draw calls.
+  const columnPlaqueGeometry = new THREE.BoxGeometry(0.16, 0.16, 0.035);
+  const columnPlaques = new THREE.InstancedMesh(columnPlaqueGeometry, mats.goldBright, 10 * 3);
+  const columnPlaqueGemGeometry = new THREE.SphereGeometry(0.052, 10, 8);
+  const columnPlaqueGems = new THREE.InstancedMesh(columnPlaqueGemGeometry, mats.redBright, 10 * 3);
+  const plaqueTransform = new THREE.Object3D();
+  let plaqueIndex = 0;
+  for (const x of [-7.2, 7.2]) {
+    for (const z of [-10, -4, 2, 8, 13]) {
+      for (const y of [1.55, 4.05, 6.55]) {
+        plaqueTransform.position.set(x, y, z + 0.445);
+        plaqueTransform.rotation.set(0, 0, Math.PI / 4);
+        plaqueTransform.scale.set(1, 1, 1);
+        plaqueTransform.updateMatrix();
+        columnPlaques.setMatrixAt(plaqueIndex, plaqueTransform.matrix);
+        plaqueTransform.position.z = z + 0.47;
+        plaqueTransform.rotation.set(0, 0, 0);
+        plaqueTransform.scale.set(1, 1, 0.42);
+        plaqueTransform.updateMatrix();
+        columnPlaqueGems.setMatrixAt(plaqueIndex, plaqueTransform.matrix);
+        plaqueIndex++;
+      }
+    }
+  }
+  columnPlaques.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  columnPlaqueGems.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  columnPlaques.castShadow = columnPlaqueGems.castShadow = false;
+  columnPlaques.receiveShadow = columnPlaqueGems.receiveShadow = true;
+  world.add(columnPlaques, columnPlaqueGems);
+
   // Keep the central sightline to the Buddha open. Full-width crossbeams and
   // the low ceiling slab previously projected as opaque black bands over the altar.
   for (const z of [-10, -4, 2, 8, 13]) {
