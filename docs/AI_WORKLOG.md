@@ -274,3 +274,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added focused Bun tests for first/subsequent frames, independent group IDs, non-streakable/missing IDs, TTL expiry, final-frame cleanup, fresh streak reuse, capacity eviction, explicit clearing and timestamp-zero handling.
 - Preserved the existing 5-second TTL and 200-group cap. The helper only controls repeated visual effects; server-side gift/reward accounting is unchanged.
 - Validation for this checkpoint: source-level integration and GitHub Actions execution are pending; do not claim Bun tests or browser LIVE behavior passed until observed.
+
+
+### Optional 3D combo visual deduplication — 2026-11-01
+- Moved the optional `temple:ritual` 3D bridge dispatch after the gift-action engine evaluates the event.
+- Coalesced TikTok streak frames no longer replay optional Three.js lotus/gift particles for every incremental frame; the first frame still triggers the full 3D effect.
+- Incremental server merit/reward display and the lightweight 2D combo pulse remain intact. No RPC or TikTok connector payload changes.
+- Source integration reviewed; GitHub Actions validation is pending for this follow-up commit. Browser verification with `?3d=1` remains outstanding.
