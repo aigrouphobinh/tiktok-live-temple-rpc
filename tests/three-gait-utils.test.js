@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, getFootPlantingWorldTarget, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
+import * as THREE from 'three';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -152,5 +153,56 @@ describe('getFootPlantingWorldTarget', () => {
       phase: 0, hip: [0, 1], strideDirection: [0, 0, -1],
       strideLength: 1, groundY: 0
     })).toBeNull();
+  });
+});
+
+describe('applyTwoBoneIKToBones', () => {
+  function makeChain() {
+    const root = new THREE.Bone();
+    const knee = new THREE.Bone();
+    const ankle = new THREE.Bone();
+    knee.position.set(0, -1, 0);
+    ankle.position.set(0, -1, 0);
+    root.add(knee);
+    knee.add(ankle);
+    const rig = new THREE.Group();
+    rig.add(root);
+    rig.updateMatrixWorld(true);
+    return { root, knee, ankle, rig };
+  }
+
+  it('rotates a real Three.js bone chain toward a reachable world target', () => {
+    const chain = makeChain();
+    const result = applyTwoBoneIKToBones(
+      THREE, chain.root, chain.knee, chain.ankle, [1, -1, 0], [1, 0, 0]
+    );
+    chain.rig.updateMatrixWorld(true);
+    const actual = chain.ankle.getWorldPosition(new THREE.Vector3());
+    expect(result).not.toBeNull();
+    expect(actual.distanceTo(new THREE.Vector3(1, -1, 0))).toBeLessThan(1e-6);
+    expect(result.reachable).toBe(true);
+  });
+
+  it('preserves segment lengths while aiming the chain', () => {
+    const chain = makeChain();
+    const beforeUpper = chain.root.position.distanceTo(chain.knee.position);
+    const beforeLower = chain.knee.position.distanceTo(chain.ankle.position);
+    applyTwoBoneIKToBones(
+      THREE, chain.root, chain.knee, chain.ankle, [0.8, -1.2, 0.2], [1, 0, 0]
+    );
+    chain.rig.updateMatrixWorld(true);
+    const rootWorld = chain.root.getWorldPosition(new THREE.Vector3());
+    const kneeWorld = chain.knee.getWorldPosition(new THREE.Vector3());
+    const ankleWorld = chain.ankle.getWorldPosition(new THREE.Vector3());
+    expect(rootWorld.distanceTo(kneeWorld)).toBeCloseTo(beforeUpper, 7);
+    expect(kneeWorld.distanceTo(ankleWorld)).toBeCloseTo(beforeLower, 7);
+  });
+
+  it('rejects incomplete chains and malformed targets without mutating bones', () => {
+    const chain = makeChain();
+    const before = chain.root.quaternion.clone();
+    expect(applyTwoBoneIKToBones(THREE, chain.root, chain.knee, null, [0, -1, 0], [1, 0, 0])).toBeNull();
+    expect(applyTwoBoneIKToBones(THREE, chain.root, chain.knee, chain.ankle, [0, 1], [1, 0, 0])).toBeNull();
+    expect(chain.root.quaternion.equals(before)).toBe(true);
   });
 });
