@@ -883,9 +883,12 @@ async function boot() {
   cylinder(0.28,0.32,0.42,mats.statueStone,0,4.05,0,statue,24);
   sphere(0.66,mats.statueStone,0,4.62,0.02,0.98,1.1,0.82,statue);
   // Soft cheek and chin masses turn the face from a narrow mask into a fuller, calm sculpture.
-  sphere(0.25, mats.statueStone, -0.285, 4.49, 0.49, 0.9, 0.72, 0.72, statue);
-  sphere(0.25, mats.statueStone, 0.285, 4.49, 0.49, 0.9, 0.72, 0.72, statue);
-  sphere(0.22, mats.statueStone, 0, 4.32, 0.49, 0.82, 0.58, 0.72, statue);
+  sphere(0.25, mats.statueStone, -0.285, 4.49, 0.49, 0.96, 0.78, 0.78, statue);
+  sphere(0.25, mats.statueStone, 0.285, 4.49, 0.49, 0.96, 0.78, 0.78, statue);
+  // Paired mandibular volumes broaden the lower face and blend the cheeks into a rounded jaw.
+  sphere(0.19, mats.statueStone, -0.205, 4.365, 0.49, 1.02, 0.78, 0.78, statue);
+  sphere(0.19, mats.statueStone, 0.205, 4.365, 0.49, 1.02, 0.78, 0.78, statue);
+  sphere(0.22, mats.statueStone, 0, 4.32, 0.49, 0.9, 0.66, 0.78, statue);
   sphere(0.36,mats.statueShadow,0,5.42,0.02,0.82,0.72,0.78,statue);
   sphere(0.13,mats.statueStone,-0.62,4.55,0.02,0.55,1.2,0.62,statue);
   sphere(0.13,mats.statueStone,0.62,4.55,0.02,0.55,1.2,0.62,statue);
