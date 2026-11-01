@@ -2467,7 +2467,7 @@ async function boot() {
         sampleWindowMs,
         sampleQuality: percentilesReliable ? 'reliable' : 'insufficient',
         observedFps: sampleWindowMs > 0
-          ? Math.round((sampleCount * 1000 / sampleWindowMs) * 10) / 10
+          ? Math.round(((sampleCount + 1) * 1000 / sampleWindowMs) * 10) / 10
           : null,
         frameTimeP50Ms: percentile(0.50),
         frameTimeP95Ms: percentile(0.95)
