@@ -17,6 +17,23 @@ describe('GLB animation clip matching', () => {
     expect(actions.bow).toBe(bow);
   });
 
+  it('recognizes gerund forms used by common animation exports', () => {
+    const idle = { name: 'Breathing Loop' };
+    const bow = { name: 'Bowing_Gently' };
+    const actions = findBestAnimationClip([idle, bow]);
+    expect(actions.idle).toBe(idle);
+    expect(actions.bow).toBe(bow);
+  });
+
+  it('recognizes prayer and kneeling variants', () => {
+    const prayer = { name: 'Praying Idle' };
+    const kneel = { name: 'Kneeling Down' };
+    const actions = findBestAnimationClip([prayer, kneel]);
+    expect(actions.bow).toBe(prayer);
+    expect(actions.idle).toBeNull();
+    expect(actions.walk).toBeNull();
+  });
+
   it('does not match generic aliases inside unrelated words', () => {
     const unrelated = { name: 'Remove Props' };
     const actions = findBestAnimationClip([unrelated]);
