@@ -385,14 +385,15 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
-  it('defines paired robe-covered upper-arm contours from shoulder to elbow', () => {
+  it('uses one continuous paired robe contour from shoulder toward the resting hands', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('Paired shoulder-to-elbow contours define the robe-covered upper arms.');
-    expect(scene).toContain('const armEdge = [');
-    expect(scene).toContain('robeFold(armEdge, 0.016);');
-    expect(scene).toContain('new THREE.TubeGeometry(armRidge, 28, 0.01, 6, false)');
-    expect(scene).toContain('armRidgeMesh.castShadow = false;');
-    expect(scene).toContain('statue.add(armRidgeMesh);');
+    expect(scene).toContain('One continuous shoulder-to-hand robe contour avoids stacked parallel seams.');
+    expect(scene).toContain('const shoulderSeam = [');
+    expect(scene).toContain('[side * 0.34, 2.78, 0.68]');
+    expect(scene).toContain('robeFold(shoulderSeam, 0.016);');
+    expect(scene).toContain('new THREE.TubeGeometry(shoulderRidge, 32, 0.01, 6, false)');
+    expect(scene).toContain('ridgeMesh.castShadow = false;');
+    expect(scene).not.toContain('const armEdge = [');
   });
 
 
