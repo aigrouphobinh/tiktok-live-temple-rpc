@@ -514,3 +514,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added modeled facial linework for closed eyes, brows, nose and a gentle smile, plus a small urna detail and meditation hands in the lap. These are Three.js meshes in the persistent statue group, not a 2D overlay.
 - Kept the existing fixed elevated main-hall camera and altar composition unchanged. The statue remains the focal point of the 3D sanctuary.
 - Added a CI source assertion for the new model-detail block. Await Actions; browser rendering, face proportions and material tuning still require visual review on the user's device.
+
+### 2026-11-01 — Align 3D presentation to uploaded reference
+- Used the uploaded 9:16 sanctuary screenshot as the visual target: dark breathing space, thin antique-brass perimeter, warm ivory Buddha/aureole, red-and-gold altar, and two compact footer consoles.
+- Added a 3D-only inset brass frame with rounded corners and pointer-events disabled; the underlying world, touch/raycast interactions and 2D mode are not changed by this overlay.
+- Warmed the procedural Buddha stone, shadow and highlight materials, plus the aureole disc, to move away from the previous cool-grey appearance.
+- Bumped the live stylesheet cache key to `3d-ritual-console-20261101-6`.
+- Added visual regression assertions for the frame, palette and stylesheet cache key.
+- Browser rendering and device-specific visual inspection remain unverified; automated CI is the next check.
