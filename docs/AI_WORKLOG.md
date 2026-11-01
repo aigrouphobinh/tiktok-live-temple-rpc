@@ -1,5 +1,5 @@
 ### 2026-11-01 — Add front-facing lotus seals to the timber capitals
-- Added one restrained brass torus rosette with a lacquer diamond centre to each visible portrait capital.
+- Added one restrained brass torus rosette with a lacquer diamond centre to the front face of each visible portrait capital's upper beam.
 - The rosettes use two static InstancedMesh batches and shared cached primitive geometry; no new materials, lights, animation, external assets or roof geometry are introduced.
 - Extended the torus batch helper with an optional orientation while preserving its existing horizontal-ring default.
 - Added regression tests for the paired capital seals, front-facing orientation and instance upload.
