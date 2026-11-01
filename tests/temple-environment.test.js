@@ -130,6 +130,23 @@ describe('Temple environment architecture module', () => {
     result.dispose();
   });
 
+  it('keeps structural column shafts when decorative column bases are disabled', () => {
+    const result = createTempleEnvironment({
+      THREE: fakeTHREE,
+      scene: createScene(),
+      config: { enableColumnBases: false }
+    });
+    const batches = new Map();
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
+    });
+    expect(batches.get('TemplePortraitColumnShafts')?.count).toBe(2);
+    expect(batches.has('TemplePortraitColumnFlutes')).toBe(true);
+    expect(batches.has('TempleColumnBaseStoneFootings')).toBe(false);
+    expect(batches.has('TempleColumnBaseRings')).toBe(false);
+    result.dispose();
+  });
+
   it('accepts detail and layout overrides while clamping unsafe dimensions', () => {
     const result = createTempleEnvironment({
       THREE: fakeTHREE,
