@@ -444,3 +444,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - GitHub Actions run `41258156866` completed successfully on workflow commit `51df2d7909dbcd7a9e45d2355aa8e907fa773795`. The Bun unit-test step and expanded JavaScript syntax step both passed.
 - Expanded CI syntax coverage to include the browser audio engine, gift SFX dispatcher, gift action engine and live controller in addition to the server entry point and legacy payload parser. This closes the earlier gap where browser audio syntax was not checked by CI.
 - The code is committed directly to `main`. This confirms unit/syntax checks only; browser audio output, interruption fade behavior and actual listening/device tests remain outstanding.
+
+
+### Gift SFX resource lifecycle regression tests — 2026-11-01
+- Added deterministic tests against the real `TempleAudioEngine` implementation using a mocked Web Audio gain node and controllable timers. Coverage verifies per-effect output reuse/isolation, targeted fade and disconnect, idempotent cancellation, idle-timeout extension when another sound joins an effect, and safe handling of missing IDs.
+- GitHub Actions run `41263192693` passed both `bun test` and the expanded JavaScript syntax check.
+- These tests validate gain-group resource ownership and cleanup deterministically; they do not substitute for listening tests or browser/device audio verification.
