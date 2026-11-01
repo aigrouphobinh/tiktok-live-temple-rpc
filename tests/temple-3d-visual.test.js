@@ -724,3 +724,18 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).not.toContain('node.geometry.dispose()');
   });
 
+
+
+it('adds procedural roughness detail and a physical clearcoat to lacquer and gilding', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const makeRoughnessTexture = (kind) => {');
+  expect(scene).toContain("const woodRoughness = makeRoughnessTexture('wood');");
+  expect(scene).toContain("const lacquerRoughness = makeRoughnessTexture('lacquer');");
+  expect(scene).toContain("const goldRoughness = makeRoughnessTexture('gold');");
+  expect(scene).toContain('material.roughnessMap = woodRoughness');
+  expect(scene).toContain('material.roughnessMap = lacquerRoughness');
+  expect(scene).toContain('material.roughnessMap = goldRoughness');
+  expect(scene).toContain('redBright: new THREE.MeshPhysicalMaterial');
+  expect(scene).toContain('clearcoat: 0.42, clearcoatRoughness: 0.22');
+  expect(scene).toContain('texture.generateMipmaps = true;');
+});
