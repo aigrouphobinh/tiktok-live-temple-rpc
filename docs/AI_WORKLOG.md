@@ -267,3 +267,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Ran 11 in-memory resolver cases covering all eight intended aliases plus unknown/partial-word rejection; all 11 matched expected routing. This is a focused assertion, not execution of the Bun test runner.
 - Confirmed the GitHub Actions workflow is configured for all branch pushes and runs `bun test`; the latest commit combined status returned no status entries yet. Do not claim CI passed until an Actions run/check appears.
 - Updated the sprite backlog checkbox to reflect that Rocket, Dragon and Donut source sprites are implemented; visual/browser validation remains open.
+
+
+### Gift streak coalescer extraction — 2026-11-01
+- Extracted cumulative TikTok combo-frame deduplication into `public/js/gift-streak-coalescer.js`; the browser gift engine now delegates streak tracking to this pure bounded helper.
+- Added focused Bun tests for first/subsequent frames, independent group IDs, non-streakable/missing IDs, TTL expiry, final-frame cleanup, fresh streak reuse, capacity eviction, explicit clearing and timestamp-zero handling.
+- Preserved the existing 5-second TTL and 200-group cap. The helper only controls repeated visual effects; server-side gift/reward accounting is unchanged.
+- Validation for this checkpoint: source-level integration and GitHub Actions execution are pending; do not claim Bun tests or browser LIVE behavior passed until observed.
