@@ -65,6 +65,46 @@ async function boot() {
     lotus: new THREE.MeshStandardMaterial({ color: 0xe9829a, roughness: 0.42, side: THREE.DoubleSide }),
     leaf: new THREE.MeshStandardMaterial({ color: 0x315a35, roughness: 0.85 })
   };
+
+  // Procedural micro-roughness breaks up the perfectly uniform finish on
+  // lacquer, carved timber and gilding without adding image assets.
+  const detailTextureSize = 64;
+  const makeRoughnessTexture = (kind) => {
+    const data = new Uint8Array(detailTextureSize * detailTextureSize * 4);
+    for (let y = 0; y < detailTextureSize; y++) {
+      for (let x = 0; x < detailTextureSize; x++) {
+        const index = (y * detailTextureSize + x) * 4;
+        const grain = (Math.sin(y * 1.17 + Math.sin(x * 0.19) * 2.2)
+          + Math.sin(y * 0.37 + x * 0.11) * 0.32) * 0.5;
+        const noise = ((Math.imul(x + 17, 374761393) ^ Math.imul(y + 29, 668265263)) >>> 24) / 255;
+        let value;
+        if (kind === 'wood') value = 178 + grain * 30 + noise * 13;
+        else if (kind === 'lacquer') value = 82 + grain * 10 + noise * 9;
+        else value = 112 + grain * 8 + noise * 15;
+        const channel = Math.max(0, Math.min(255, Math.round(value)));
+        data[index] = data[index + 1] = data[index + 2] = channel;
+        data[index + 3] = 255;
+      }
+    }
+    const texture = new THREE.DataTexture(data, detailTextureSize, detailTextureSize, THREE.RGBAFormat);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(kind === 'wood' ? 2 : 3, kind === 'wood' ? 5 : 3);
+    texture.magFilter = THREE.LinearFilter;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.generateMipmaps = true;
+    texture.needsUpdate = true;
+    return texture;
+  };
+  const woodRoughness = makeRoughnessTexture('wood');
+  const lacquerRoughness = makeRoughnessTexture('lacquer');
+  const goldRoughness = makeRoughnessTexture('gold');
+  for (const material of [mats.wood, mats.woodLight]) material.roughnessMap = woodRoughness;
+  for (const material of [mats.red, mats.redBright]) material.roughnessMap = lacquerRoughness;
+  for (const material of [mats.gold, mats.goldBright]) material.roughnessMap = goldRoughness;
+  mats.red.clearcoat = 0.28;
+  mats.red.clearcoatRoughness = 0.32;
+  mats.redBright.clearcoat = 0.42;
+  mats.redBright.clearcoatRoughness = 0.22;
   // A tiny deterministic grayscale bump tile gives the carved stone a restrained mineral grain.
   const stoneGrainSize = 64;
   const stoneGrainData = new Uint8Array(stoneGrainSize * stoneGrainSize * 4);
