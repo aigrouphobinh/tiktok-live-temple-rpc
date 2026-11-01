@@ -55,6 +55,105 @@ async function boot() {
   keyLight.position.set(540, 700, 450);
   scene.add(keyLight);
 
+  // Persistent 3D sanctuary: this scene is present before any RPC/gift arrives.
+  // Screen-space Y is converted to the orthographic camera's bottom-up coordinates.
+  const screenY = (y) => 1920 - y;
+  const architecture = new THREE.Group();
+  const bronze = new THREE.MeshStandardMaterial({
+    color: 0x8b4b18, metalness: 0.82, roughness: 0.32
+  });
+  const ruby = new THREE.MeshStandardMaterial({
+    color: 0x8d1830, metalness: 0.48, roughness: 0.3
+  });
+  const buddhaGold = new THREE.MeshStandardMaterial({
+    color: 0xf5bd4d, metalness: 0.72, roughness: 0.24
+  });
+  const skin = new THREE.MeshStandardMaterial({
+    color: 0xe9a64f, metalness: 0.28, roughness: 0.38
+  });
+  const dark = new THREE.MeshStandardMaterial({
+    color: 0x24100b, metalness: 0.38, roughness: 0.42
+  });
+
+  function addMesh(geometry, material, x, y, z, sx = 1, sy = 1, sz = 1, parent = architecture) {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, screenY(y), z);
+    mesh.scale.set(sx, sy, sz);
+    parent.add(mesh);
+    return mesh;
+  }
+  function addBox(x, y, z, w, h, d, material) {
+    return addMesh(new THREE.BoxGeometry(w, h, d), material, x, y, z);
+  }
+  function addCylinder(x, y, z, radiusTop, radiusBottom, height, material, segments = 20) {
+    return addMesh(new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments), material, x, y, z);
+  }
+
+  // Symmetric carved pillars and lintel establish depth around the main altar.
+  for (const x of [78, 1002]) {
+    addCylinder(x, 930, 90, 42, 54, 1460, bronze, 28);
+    addCylinder(x, 260, 96, 72, 72, 66, gold, 28);
+    addCylinder(x, 1580, 96, 78, 78, 74, gold, 28);
+    addCylinder(x, 930, 98, 60, 60, 34, paleGold, 28);
+    for (let y = 390; y < 1510; y += 180) {
+      addCylinder(x, y, 102, 49, 49, 12, gold, 24);
+    }
+  }
+  addBox(540, 220, 75, 1000, 70, 90, bronze);
+  addBox(540, 270, 88, 1040, 18, 96, gold);
+  addBox(540, 1510, 78, 1040, 48, 100, bronze);
+  addBox(540, 1545, 92, 1080, 18, 108, gold);
+
+  // Layered lotus throne, visible as actual lit 3D geometry over the 2D fallback.
+  addCylinder(650, 1255, 110, 230, 180, 92, bronze, 48);
+  addCylinder(650, 1205, 126, 205, 225, 42, ruby, 48);
+  addCylinder(650, 1172, 138, 180, 200, 28, gold, 48);
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    const petal = addMesh(new THREE.SphereGeometry(1, 18, 12), ruby,
+      650 + Math.cos(a) * 190, 1155 + Math.sin(a) * 24, 152, 30, 76, 16);
+    petal.rotation.z = -a;
+  }
+
+  // Seated Amitabha silhouette: torso, shoulders, head, ears, ushnisha and robe.
+  addMesh(new THREE.SphereGeometry(1, 40, 28), buddhaGold, 650, 930, 178, 155, 215, 78);
+  addMesh(new THREE.SphereGeometry(1, 36, 24), paleGold, 650, 1010, 194, 205, 88, 72);
+  addMesh(new THREE.SphereGeometry(1, 36, 28), skin, 650, 690, 188, 98, 126, 76);
+  addMesh(new THREE.SphereGeometry(1, 24, 18), skin, 548, 700, 184, 20, 42, 22);
+  addMesh(new THREE.SphereGeometry(1, 24, 18), skin, 752, 700, 184, 20, 42, 22);
+  addMesh(new THREE.SphereGeometry(1, 28, 20), dark, 650, 570, 184, 72, 42, 62);
+  addMesh(new THREE.SphereGeometry(1, 20, 16), buddhaGold, 650, 548, 188, 42, 35, 42);
+  // Halo ring and radial spokes sit behind the head.
+  const halo = new THREE.Group();
+  halo.position.set(650, screenY(690), 142);
+  halo.add(new THREE.Mesh(new THREE.TorusGeometry(164, 8, 12, 96), gold));
+  halo.add(new THREE.Mesh(new THREE.TorusGeometry(138, 3, 8, 96), paleGold));
+  for (let i = 0; i < 24; i++) {
+    const ray = new THREE.Mesh(new THREE.BoxGeometry(3, 42, 3), paleGold);
+    ray.position.y = 150;
+    ray.rotation.z = (i / 24) * Math.PI * 2;
+    halo.add(ray);
+  }
+  architecture.add(halo);
+
+  // Small bead-like curls make the head visibly sculpted rather than a flat sprite.
+  for (let row = 0; row < 4; row++) {
+    const count = 9 - row * 2;
+    for (let i = 0; i < count; i++) {
+      const x = 650 + (i - (count - 1) / 2) * 15;
+      const y = 552 + row * 13;
+      addMesh(new THREE.SphereGeometry(8, 10, 8), dark, x, y, 224, 1, 1, 0.8);
+    }
+  }
+
+  // Carved altar rail in the foreground gives the 3D mode a clear depth cue.
+  addBox(540, 1450, 230, 1080, 30, 72, gold);
+  addBox(540, 1488, 238, 1080, 18, 78, bronze);
+  for (let x = 80; x <= 1000; x += 92) {
+    addCylinder(x, 1468, 244, 13, 13, 48, paleGold, 12);
+  }
+  scene.add(architecture);
+
   const active = [];
   const MAX_EFFECTS = 80;
   let raf = 0;
@@ -247,9 +346,7 @@ async function boot() {
     disposed = true;
     stop();
     disposeActiveEffects();
-    gold.dispose();
-    paleGold.dispose();
-    smokeMat.dispose();
+    disposeThreeObjectTree(scene);
     renderer.dispose();
   }, { once: true });
 
