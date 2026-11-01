@@ -1,7 +1,7 @@
 ### 2026-11-01 — Add Three.js bone-chain IK application
 - Added a Three.js adapter that measures upper/lower segment lengths from live world-space joint positions, solves the two-bone chain, then rotates the upper and lower bones toward the solved knee and ankle targets.
 - Bone aiming uses world-space direction deltas converted back through each parent world quaternion, preserving the rig's existing twist and parent transforms rather than assuming a particular local X/Y/Z bone axis.
-- Added tests with a real Three.js Bone hierarchy for target placement, segment-length preservation, and invalid-chain safety.
+- Added dependency-free tests with a Three.js-compatible mocked Bone hierarchy for target placement, segment-length preservation, and invalid-chain safety.
 - Kept this adapter separate from the live character gait until a selected GLB rig is available for validation. It expects a direct upper-leg → lower-leg → foot/ankle bone chain and must be checked against the model's actual rest pose before enabling it in the scene.
 
 ### 2026-11-01 — Add world-space foot contact target locking
