@@ -344,3 +344,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - On the first gift interruption, the controller now clears pending prostration/bow pose timers, removes the carpet-walk CSS class, and restores the neutral kneeling sprite pose before the gift choreography takes over.
 - This prevents previously scheduled bow frames from changing the devotee's pose underneath the gift animation. Subsequent higher-priority gift supersessions remain covered by the gift engine's animation/timer ownership and do not restart the old ritual sequence.
 - Committed source directly to `main`; rapid interruption and visual pose recovery still require browser verification.
+
+### Gift interruption pose ownership follow-up — 2026-11-01
+- Removed a second pose write in `triggerRitualVisuals()` that ran immediately after the synchronous `temple:character-interrupted` event.
+- The interruption listener already clears prostration timers, removes the carpet-walk class and sets the central sprite to the neutral kneeling pose. The old follow-up write changed it back to `walk1`, contradicting that ownership handoff.
+- Gift choreography now retains the central sprite until effect completion/cooldown hands it back to the queued devotee.
+- Source change committed directly to `main`. Browser verification of rapid Rocket → Dragon → Donut → Rose interruption and pose recovery remains pending; no visual/runtime pass is claimed.
