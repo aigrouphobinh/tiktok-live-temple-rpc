@@ -24,6 +24,9 @@ jobs:
       - name: Check browser entrypoints and JavaScript syntax
         run: >-
           grep -Fq '<script type="module" src="/js/live.js"></script>' public/index.html &&
+          grep -Fq '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />' public/index.html &&
+          test -f public/favicon.svg &&
+          ! grep -R -Fq '/assets/bg_chant.m4a' public/js &&
           ! grep -Fq '<script src="/js/live.js"></script>' public/index.html &&
           node --check server.js &&
           node --check lib/tiktok-gift-payload.cjs &&
