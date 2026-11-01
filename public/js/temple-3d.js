@@ -2456,7 +2456,7 @@ async function boot() {
       const percentile = (ratio) => percentilesReliable
         ? sortedIntervals[Math.min(sortedIntervals.length - 1, Math.ceil(sortedIntervals.length * ratio) - 1)]
         : null;
-      console.info('[Temple3D] GPU frame stats', {
+      console.info('[Temple3D] Frame diagnostics', {
         drawCalls: info.render.calls,
         triangles: info.render.triangles,
         geometries: info.memory.geometries,
@@ -2467,7 +2467,7 @@ async function boot() {
         sampleWindowMs,
         sampleQuality: percentilesReliable ? 'reliable' : 'insufficient',
         observedFps: sampleWindowMs > 0
-          ? Math.round(((sampleCount + 1) * 1000 / sampleWindowMs) * 10) / 10
+          ? Math.round((sampleCount * 1000 / sampleWindowMs) * 10) / 10
           : null,
         frameTimeP50Ms: percentile(0.50),
         frameTimeP95Ms: percentile(0.95)
