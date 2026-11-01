@@ -55,6 +55,7 @@ jobs:
           grep -Fq 'function applyHumanBow(avatar, amount, kneelBlend = 0)' public/js/temple-3d.js &&
           grep -Fq 'avatar.leftArm.rotation.x = upperPose.armReach' public/js/temple-3d.js &&
           grep -Fq 'for(let finger=0;finger<4;finger++)' public/js/temple-3d.js && grep -Fq 'avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18' public/js/temple-3d.js &&
+          grep -Fq 'const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;' public/js/temple-3d.js && grep -Fq 'avatar.eyeWhites[index].scale.y = eyeOpen' public/js/temple-3d.js &&
           grep -Fq 'if (avatar.gltfActions?.bow) return;' public/js/temple-3d.js &&
           grep -Fq "three/addons/utils/SkeletonUtils.js" public/js/temple-3d.js &&
           grep -Fq 'upperBody.position.y = 0.48' public/js/temple-3d.js &&
