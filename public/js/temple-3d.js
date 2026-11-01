@@ -251,7 +251,7 @@ async function boot() {
     color: 0xd8cbb8, transparent: true, opacity: 0.0, depthWrite: false
   });
   const incenseWisps = Array.from({ length: 6 }, (_, index) => {
-    const wisp = new THREE.Mesh(incenseSmokeGeometry, incenseSmokeMaterial);
+    const wisp = new THREE.Mesh(incenseSmokeGeometry, incenseSmokeMaterial.clone());
     wisp.scale.set(0.72 + (index % 3) * 0.18, 1.9 + (index % 2) * 0.45, 0.72 + (index % 2) * 0.12);
     wisp.userData.phase = index / 6;
     wisp.userData.drift = index % 2 ? 1 : -1;
