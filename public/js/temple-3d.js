@@ -865,6 +865,22 @@ async function boot() {
     statueLine([[side*0.43,4.75,0.59],[side*0.3,4.78,0.68],[side*0.16,4.75,0.7]],0.022);
     statueLine([[side*0.42,4.94,0.58],[side*0.28,4.99,0.65],[side*0.14,4.96,0.68]],0.025,mats.statueLight);
   }
+  // Fine upper-lid folds and outer eye corners define the closed, meditative gaze.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.43, 4.79, 0.59],
+      [side * 0.31, 4.81, 0.665],
+      [side * 0.18, 4.79, 0.695]
+    ], 0.01, mats.statueShadow);
+    statueLine([
+      [side * 0.45, 4.755, 0.585],
+      [side * 0.39, 4.735, 0.625]
+    ], 0.008, mats.statueLight);
+    statueLine([
+      [side * 0.49, 4.77, 0.555],
+      [side * 0.53, 4.745, 0.52]
+    ], 0.008, mats.statueShadow);
+  }
   // Lower eyelids and cheek transitions soften the serene carved expression.
   for (const side of [-1, 1]) {
     statueLine([
