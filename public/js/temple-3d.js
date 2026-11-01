@@ -751,13 +751,15 @@ async function boot() {
     else if (event.type === 'drawFortune') lotusBurst(5);
     start();
   }
-  window.addEventListener('temple:ritual', (event) => handleRitual(event.detail));
+  function onTempleRitual(event) { handleRitual(event.detail); }
   // A gift can arrive while the altar is empty; listen to the effect lifecycle,
   // not the character-interruption signal, so every started gift renders once.
-  window.addEventListener('temple:gift-action', (event) => {
+  function onTempleGiftAction(event) {
     const action = event.detail?.action;
     if (['rocket', 'dragon', 'donut', 'rose'].includes(action)) playWorldGiftAction(action);
-  });
+  }
+  window.addEventListener('temple:ritual', onTempleRitual);
+  window.addEventListener('temple:gift-action', onTempleGiftAction);
 
   function frame(now) {
     if (disposed || document.hidden) { raf = 0; return; }
@@ -809,6 +811,10 @@ async function boot() {
   function releaseWorldResources() {
     if (resourcesDisposed) return;
     resourcesDisposed = true;
+    window.removeEventListener('temple:ritual', onTempleRitual);
+    window.removeEventListener('temple:gift-action', onTempleGiftAction);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('resize', onWindowResize);
     for (const effect of effects.splice(0)) {
       world.remove(effect.object);
       disposeThreeObjectTree(effect.object);
@@ -816,12 +822,14 @@ async function boot() {
     disposeThreeObjectTree(scene);
     renderer.dispose();
   }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
-  window.addEventListener('resize', () => {
+  function onVisibilityChange() { if (document.hidden) stop(); else start(); }
+  function onWindowResize() {
     if (disposed) return;
     camera.aspect = 1080 / 1920; camera.updateProjectionMatrix();
     renderer.setSize(1080, 1920, false);
-  });
+  }
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('resize', onWindowResize);
   canvas.addEventListener('webglcontextlost', (event) => {
     // Do not attempt to render into a lost context. Release CPU-side references
     // and fall back to the known-good 2D stage; a page reload can create a fresh
