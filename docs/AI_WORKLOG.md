@@ -1,3 +1,9 @@
+### 2026-11-01 — Harden GLB inspection and cover parser boundaries
+- Tightened the dependency-free GLB inspector to reject header/file-size mismatches, truncated chunk headers, chunks extending beyond the declared file and non-4-byte-aligned chunks.
+- Added executable parser tests covering mesh/triangle/material/texture/skin/animation summaries, external image references and malformed boundaries.
+- Moved the GLB validation-failure cleanup assertion back inside its intended test suite so test organization is explicit.
+- CI pending.
+
 ### 2026-11-01 — Dispose rejected GLB loads
 - Hardened the loader's post-download validation path: if an imported GLB has an empty scene or invalid vertical bounds, decoded geometry/material/texture resources are now disposed before the error is rethrown to the existing procedural fallback.
 - Added a regression assertion for cleanup on validation failure. Successful model normalization and animation behavior remain unchanged.
