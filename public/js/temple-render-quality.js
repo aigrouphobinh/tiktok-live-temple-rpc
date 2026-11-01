@@ -48,3 +48,27 @@ export function getTemplePixelRatio({
 
   return Math.min(Math.max(requested, 1), quality.maxPixelRatio);
 }
+
+
+/**
+ * Resolve the complete device render profile used by the scene coordinator.
+ * This keeps the current Three.js pixel-ratio API intact while also exposing
+ * conservative shadow-map and environment-detail budgets for one-time setup.
+ */
+export function getTempleRenderProfile({
+  devicePixelRatio = 1,
+  deviceMemory,
+  hardwareConcurrency
+} = {}) {
+  const quality = getTempleRenderQuality({ deviceMemory, hardwareConcurrency });
+  const requested = Number.isFinite(devicePixelRatio) && devicePixelRatio > 0
+    ? devicePixelRatio
+    : 1;
+
+  return {
+    ...quality,
+    pixelRatio: Math.min(Math.max(requested, 1), quality.maxPixelRatio),
+    shadowMapSize: quality.tier === 'low' ? 512 : 1024,
+    environmentDetail: quality.tier
+  };
+}
