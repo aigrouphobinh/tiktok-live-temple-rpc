@@ -49,7 +49,9 @@ jobs:
           grep -Fq "action === 'dragon'" public/js/temple-3d.js &&
           grep -Fq "action === 'donut'" public/js/temple-3d.js &&
           grep -Fq "action === 'rose'" public/js/temple-3d.js &&
-          grep -Fq "temple:character-interrupted" public/js/temple-3d.js &&
+          grep -Fq "temple:character-interrupted" public/js/gift-action-engine.js &&
+          grep -Fq "temple:gift-action" public/js/gift-action-engine.js &&
+          grep -Fq "temple:gift-action" public/js/temple-3d.js &&
           grep -Fq 'Curved tiled roof' public/js/temple-3d.js &&
           grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
           grep -Fq 'Keep the near half open' public/js/temple-3d.js &&
