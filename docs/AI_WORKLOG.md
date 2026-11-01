@@ -318,3 +318,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Equal-priority arrivals remain FIFO; lower/equal-priority arrivals are still rejected when the queue is full. The currently playing effect is never displaced by this overflow rule.
 - Added a regression test proving Donut can replace a queued Rose at capacity while Rocket remains active; existing overflow coverage continues to assert that a lower-priority Rose cannot displace a queued Donut.
 - Source and test changes are committed directly to `main`. CI/test execution and browser/TikTok LIVE behavior have not yet been verified for these commits.
+
+### Zero-capacity queue guard — 2026-11-01
+- Hardened `CharacterStateMachine` queue configuration: non-negative integer limits are accepted, including zero; invalid negative/fractional values fall back to the default capacity of 40.
+- Fixed the full effect-queue branch so a zero-capacity queue rejects waiting effects safely rather than dereferencing a missing lowest-priority entry.
+- Added regression tests for zero-capacity devotee/effect queues and invalid negative configuration.
+- Changes are committed directly to `main`; CI status and runtime behavior are pending verification.
