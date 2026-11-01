@@ -104,6 +104,9 @@ jobs:
           grep -Fq 'A short side-torso pleat and lower elbow fold' public/js/temple-3d.js &&
           grep -Fq 'sideTorsoPleatRidgeMesh' public/js/temple-3d.js &&
           grep -Fq 'elbowLowerFoldMesh' public/js/temple-3d.js &&
+          grep -Fq 'Fine wrist transitions and palm creases' public/js/temple-3d.js &&
+          grep -Fq '[side * 0.31, 2.69, 0.82]' public/js/temple-3d.js &&
+          grep -Fq '[side * 0.105, 2.655, 0.795]' public/js/temple-3d.js &&
           grep -Fq 'new THREE.Vector3(side * 0.22, 4.2, 0.235)' public/js/temple-3d.js &&
           grep -Fq 'shoulderDrapeHighlightMesh' public/js/temple-3d.js &&
           grep -Fq '[side * 0.37, 4.565, 0.635]' public/js/temple-3d.js &&
