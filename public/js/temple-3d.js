@@ -880,6 +880,24 @@ async function boot() {
   }
   // A restrained lower-lip crease adds definition without a pronounced smile.
   statueLine([[-0.105,4.27,0.685],[0,4.255,0.715],[0.105,4.27,0.685]],0.009,mats.statueLight);
+  // Refine the nose wings and philtrum with restrained, shallow stone carving.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.045, 4.455, 0.716],
+      [side * 0.105, 4.425, 0.704],
+      [side * 0.145, 4.438, 0.68]
+    ], 0.012, mats.statueShadow);
+    statueLine([
+      [side * 0.055, 4.405, 0.718],
+      [side * 0.085, 4.395, 0.714]
+    ], 0.008, mats.statueShadow);
+    statueLine([
+      [side * 0.025, 4.385, 0.721],
+      [side * 0.04, 4.355, 0.72],
+      [side * 0.075, 4.337, 0.705]
+    ], 0.009, mats.statueLight);
+  }
+  statueLine([[-0.13,4.315,0.686],[0,4.325,0.718],[0.13,4.315,0.686]],0.011,mats.statueLight);
   statueLine([[0,4.78,0.69],[0.02,4.55,0.76],[-0.06,4.48,0.72]],0.035,mats.statueLight);
   statueLine([[-0.16,4.34,0.66],[0,4.30,0.72],[0.16,4.34,0.66]],0.024,mats.statueShadow);
   // Hands rest together in a meditation mudra above the crossed legs.
