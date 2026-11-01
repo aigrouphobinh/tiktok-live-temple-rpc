@@ -478,6 +478,34 @@ async function boot() {
   pedestalStuds.castShadow = false;
   pedestalStuds.receiveShadow = true;
   world.add(pedestalStuds);
+
+  // Seven front-facing lotus-seed plaques decorate the red pedestal band.
+  // The shallow Z offsets follow the cylinder's curved face rather than floating flat.
+  const pedestalPlaqueXs = [-1.35, -0.9, -0.45, 0, 0.45, 0.9, 1.35];
+  const pedestalPlaqueGeometry = new THREE.BoxGeometry(0.19, 0.19, 0.035);
+  const pedestalPlaques = new THREE.InstancedMesh(pedestalPlaqueGeometry, mats.goldBright, pedestalPlaqueXs.length);
+  const pedestalGemGeometry = new THREE.SphereGeometry(0.052, 10, 8);
+  const pedestalGems = new THREE.InstancedMesh(pedestalGemGeometry, mats.red, pedestalPlaqueXs.length);
+  const pedestalPlaqueTransform = new THREE.Object3D();
+  pedestalPlaqueXs.forEach((x, index) => {
+    const faceZ = -8.25 + Math.sqrt(1.94 * 1.94 - x * x);
+    pedestalPlaqueTransform.position.set(x, 1.38, faceZ + 0.018);
+    pedestalPlaqueTransform.rotation.set(0, 0, Math.PI / 4);
+    pedestalPlaqueTransform.scale.set(1, 1, 1);
+    pedestalPlaqueTransform.updateMatrix();
+    pedestalPlaques.setMatrixAt(index, pedestalPlaqueTransform.matrix);
+    pedestalPlaqueTransform.position.z = faceZ + 0.047;
+    pedestalPlaqueTransform.rotation.set(0, 0, 0);
+    pedestalPlaqueTransform.scale.set(1, 1, 0.5);
+    pedestalPlaqueTransform.updateMatrix();
+    pedestalGems.setMatrixAt(index, pedestalPlaqueTransform.matrix);
+  });
+  pedestalPlaques.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  pedestalGems.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  pedestalPlaques.castShadow = pedestalGems.castShadow = false;
+  pedestalPlaques.receiveShadow = pedestalGems.receiveShadow = true;
+  world.add(pedestalPlaques, pedestalGems);
+
   const lotusThrone = new THREE.Group(); lotusThrone.position.set(0, 1.7, -8.25); world.add(lotusThrone);
   // Special gifts briefly reveal a soft gold aura around the lotus without adding lights.
   const lotusGiftAuraMaterial = new THREE.MeshBasicMaterial({
