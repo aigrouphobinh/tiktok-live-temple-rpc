@@ -754,3 +754,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - When no clip or idle fallback exists, fade out and clear the previous action so an old walk/bow animation cannot continue in the wrong state.
 - Added regression coverage for shared fallback clips, loop-mode updates and clearing unavailable actions.
 - This is source-level animation lifecycle validation; the selected GLB still needs an in-browser pass to confirm its actual rig and clip naming.
+
+
+### 2026-11-01 — Blend GLB fallback gait and restore manual bow poses
+- Added a time-based gait blend for rigged models without a walk clip, easing limb swing in and out instead of switching it on/off abruptly.
+- The fallback uses the idle clip's evaluated limb pose as its base when available, and captured rest rotations when the model has no idle animation, preventing a no-clip rig from freezing in its last walking pose.
+- Manual bow posing now receives a zero amount after the bow state ends, restoring the spine, head and arm rotations instead of leaving the character bent.
+- Added regression checks for gait blending, rest-pose recovery and bow release.
+- This remains source-level validation; the actual selected GLB needs a browser pass to verify the rig's bone names and visual blend.
