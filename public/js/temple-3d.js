@@ -1,6 +1,7 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
 import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
+import { createTempleEnvironment } from './temple-environment.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -141,6 +142,28 @@ async function boot() {
 
   const world = new THREE.Group();
   scene.add(world);
+
+  // Add the coordinated roofless architecture layer to the existing world.
+  // Match detail density to the same device class used by the render-quality cap.
+  const environmentCores = Number.isFinite(navigator.hardwareConcurrency)
+    ? navigator.hardwareConcurrency
+    : 4;
+  const environmentMemory = Number.isFinite(navigator.deviceMemory)
+    ? navigator.deviceMemory
+    : (environmentCores >= 8 ? 8 : 4);
+  const environmentDetailLevel = environmentMemory <= 2 || environmentCores <= 2
+    ? 'low'
+    : environmentMemory <= 4 || environmentCores <= 4
+      ? 'medium'
+      : 'high';
+  const templeEnvironment = createTempleEnvironment({
+    THREE,
+    scene: world,
+    config: {
+      detailLevel: environmentDetailLevel,
+      gallerySurfaceY: 0.0825
+    }
+  });
 
   // Reuse immutable primitive geometry across repeated architectural pieces.
   // This reduces duplicate GPU buffers while preserving independent transforms/materials.
@@ -2279,6 +2302,9 @@ async function boot() {
       world.remove(effect.object);
       disposeThreeObjectTree(effect.object);
     }
+    // Detach and dispose only the environment layer's resources before the
+    // shared scene traversal releases the remaining world resources.
+    templeEnvironment.dispose();
     disposeThreeSceneResources(scene);
     renderer.dispose();
   }
