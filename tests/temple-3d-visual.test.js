@@ -385,4 +385,15 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('defines paired robe-covered upper-arm contours from shoulder to elbow', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Paired shoulder-to-elbow contours define the robe-covered upper arms.');
+    expect(scene).toContain('const armEdge = [');
+    expect(scene).toContain('robeFold(armEdge, 0.016);');
+    expect(scene).toContain('new THREE.TubeGeometry(armRidge, 28, 0.01, 6, false)');
+    expect(scene).toContain('armRidgeMesh.castShadow = false;');
+    expect(scene).toContain('statue.add(armRidgeMesh);');
+  });
+
+
 });
