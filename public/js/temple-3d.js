@@ -1362,6 +1362,21 @@ async function boot() {
     if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + leftStep * amount * 0.62;
   }
 
+  function applyGiftThankYouGesture(avatar, time) {
+    if (avatar.gltfRoot) return;
+    const blend = getGiftReactionBlend(avatar.giftReactionUntil - time);
+    const upperPose = getHumanUpperPose({ kneelBlend: avatar.kneelBlend, bowAmount: avatar.bowAmount });
+    // Sweep both forearms inward and upward so the palms meet at chest height.
+    // Recompute from the ritual base pose every frame to avoid rotation drift.
+    const thankYouLift = blend * (0.92 + Math.sin(time * 0.007) * 0.025);
+    avatar.leftArm.rotation.x = upperPose.armReach - blend * 0.08;
+    avatar.rightArm.rotation.x = upperPose.armReach - blend * 0.08;
+    avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;
+    avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift;
+    avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18 - blend * 0.06;
+    avatar.rightHand.rotation.z = upperPose.armOpen * 0.18 + blend * 0.06;
+  }
+
   function animateHuman(avatar, time, walking = false, walkPhase = null) {
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
     const swing = Math.sin(gaitPhase + avatar.phase);
@@ -1417,6 +1432,7 @@ async function boot() {
     }
     avatar.smile.scale.y = 1 - avatar.bowAmount * 0.12;
     avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
+    applyGiftThankYouGesture(avatar, time);
   }
   function makeDevotee(x,z,scale=1) {
     const group=new THREE.Group();group.position.set(x,0.02,z);group.scale.setScalar(scale);world.add(group);
@@ -1734,6 +1750,7 @@ async function boot() {
       mainDevotee.scale.setScalar(1 - eased * 0.18);
       // The same eased timeline drives the procedural bow and GLB bow state.
       applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);
+      applyGiftThankYouGesture(mainHuman, now);
       if (now > ritualUntil) {
         devoteeState.active = false;
         mainHuman.kneeling = false;
