@@ -324,3 +324,5 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Fixed the full effect-queue branch so a zero-capacity queue rejects waiting effects safely rather than dereferencing a missing lowest-priority entry.
 - Added regression tests for zero-capacity devotee/effect queues and invalid negative configuration.
 - Changes are committed directly to `main`; CI status and runtime behavior are pending verification.
+
+- Follow-up queue regression: the capacity-one test now also proves an equal-priority Donut cannot evict the earlier queued Donut; the earlier item remains the one played next.
