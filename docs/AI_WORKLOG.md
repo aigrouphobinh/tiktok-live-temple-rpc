@@ -186,12 +186,14 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - [x] Add a persisted SFX master toggle and independent SFX volume control routed through a shared Web Audio gain node.
 - [x] Improve Rocket VFX with a procedural exhaust trail, impact flash, shockwave, smoke puffs and debris; align impact origin to the projectile's final stage position.
 - [x] Replace emoji placeholders for Rocket, Dragon and Donut with procedural CSS game-style sprites (source implemented; browser appearance still requires verification).
-- [ ] Add Dragon impact/roar layer and Donut movement/chase polish; verify no effects overlap the altar, Buddha, HUD, or central devotee incorrectly.
+- [x] Add Dragon impact/roar layer (source implemented; browser listening/visual validation remains open).
+- [ ] Polish Donut movement/chase and verify no gift effects overlap the altar, Buddha, HUD, or central devotee incorrectly.
 - [x] Add display-name based Rose/hoa hồng action with petal VFX and a soft chime; numeric gift ID remains unassigned pending real LIVE evidence.
 - [ ] Add Heart/Butterfly and other lower-tier behaviors only after exact display names are observed.
 - [x] Forward TikTok combo metadata into game events and coalesce repeated streak frames into one cinematic with lightweight combo pulses.
 - [ ] Validate streak coalescing against real TikTok LIVE combo frames and verify a new streak can trigger a fresh effect.
-- [ ] Add tests for gift action selection, priority replacement, effect cleanup, SFX dispatch, and queue recovery after supersession.
+- [x] Add automated tests for gift action selection, priority replacement and interrupted-character queue recovery; add bounded combo coalescer regression coverage.
+- [ ] Add automated DOM effect-cleanup and SFX-dispatch tests; browser verification remains required.
 - [ ] Validate audio unlock, SFX/music/TTS mixing, clipping, sound overlap, and browser autoplay behavior.
 - [ ] Validate 2D fallback, optional 3D overlay, stage layering, resize behavior, FPS, memory, and long-running stability in an actual browser.
 - [ ] Validate real TikTok LIVE Rocket/Dragon/Donut IDs, names, diamond values, repeatCount/repeatEnd, and reconnect behavior using sanitized logs.
@@ -281,3 +283,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Coalesced TikTok streak frames no longer replay optional Three.js lotus/gift particles for every incremental frame; the first frame still triggers the full 3D effect.
 - Incremental server merit/reward display and the lightweight 2D combo pulse remain intact. No RPC or TikTok connector payload changes.
 - Source integration reviewed; GitHub Actions validation is pending for this follow-up commit. Browser verification with `?3d=1` remains outstanding.
+
+
+### Latest CI and backlog reconciliation — 2026-11-01
+- GitHub Actions run `41255128195` completed with conclusion `success` on the current `main` commit `a1db6784cca235348833356f95a71b0b349b94de`; the workflow's Bun unit-test step and server-side JavaScript syntax-check step both succeeded.
+- GitHub Actions run `41255125379` also completed successfully for the optional 3D combo deduplication code commit.
+- Reconciled the backlog: Dragon roar/impact source implementation and automated gift-action/priority/queue/coalescer coverage are now marked implemented; Donut chase polish, DOM cleanup/SFX-dispatch tests and all browser/live runtime checks remain open.
+- CI success does not replace manual browser, audio, performance or actual TikTok LIVE acceptance testing.
