@@ -364,9 +364,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain("assetSource = 'mia-cc0-gilt-bronze'");
     expect(loader).toContain("assetSource === 'mia-cc0-gilt-bronze'");
     expect(scene).toContain('function applyGiltFinish(root)');
-    expect(scene).toContain('material.color.setHex(0xd8a63d)');
-    expect(scene).toContain('material.metalness = 0.64');
-    expect(scene).toContain('material.roughness = 0.32');
+    expect(scene).toContain('material.color.setHex(0xc99a3c)');
+    expect(scene).toContain('material.metalness = 0.68');
+    expect(scene).toContain('material.roughness = 0.42');
     expect(loader).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
   });
 
@@ -977,4 +977,17 @@ it('widens the MIA gilt-bronze scan without changing its normalized height', () 
   expect(scene).toContain('asset.root.position.x += originalCenter.x - widenedCenter.x;');
   expect(scene).toContain('asset.root.position.z += originalCenter.z - widenedCenter.z;');
   expect(scene).not.toContain('asset.root.scale.y *= 1.1;');
+});
+
+it('uses a restrained aged-gilt PBR finish for the MIA Buddha scan', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  const start = scene.indexOf('function applyGiltFinish(root)');
+  const end = scene.indexOf('async function upgradeBuddhaFromGLB()', start);
+  const finish = scene.slice(start, end);
+  expect(finish).toContain('material.color.setHex(0xc99a3c)');
+  expect(finish).toContain("material.metalness = 0.68");
+  expect(finish).toContain("material.roughness = 0.42");
+  expect(finish).toContain("material.envMapIntensity = 1.15");
+  expect(finish).toContain('material.emissiveIntensity = 0.035');
+  expect(finish).not.toContain('material.emissiveIntensity = 0.08');
 });

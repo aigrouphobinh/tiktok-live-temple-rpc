@@ -1,3 +1,9 @@
+### 2026-11-01 — Refine Buddha gilt-bronze PBR finish
+- The bundled MIA scan is now centered and widened for the 9:16 altar composition.
+- Refine its fallback gold from bright/yellow and low-roughness toward a deeper aged-gilt bronze: slightly higher metalness, broader roughness, reduced emissive lift, and a restrained environment intensity when supported by the imported material.
+- Preserve all source texture maps and leave the preferred Kenny Hsieh model untouched.
+- Require unit tests and fresh Low / Medium / High visual captures before merge.
+
 ### 2026-11-01 — Widen the gilt-bronze Buddha scan for portrait framing
 - The 1080×1920 Chromium capture confirmed the MIA GLB is loading, but the seated figure reads narrow against the halo and altar.
 - Apply a restrained 10% X-axis expansion to the MIA scan only, recenter its bounds after scaling, and preserve its normalized height and floor contact.
