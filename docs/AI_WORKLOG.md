@@ -1,3 +1,8 @@
+### 2026-11-01 — Wrap the ushnisha with sculpted curl courses
+- Added two staggered rings of small stone-shadow curls following the existing ushnisha ellipsoid rather than laying the curls on a flat plane.
+- Uses one static InstancedMesh batch (20 curls), with no new material, light, animation, dependency or camera change.
+- Added regression coverage for the ring layout and instance upload. Browser visual confirmation remains required.
+
 ### 2026-11-01 — Turn the devotee crowd toward gift senders
 - During the eased gift-reaction envelope, procedural devotees and the main avatar turn from the altar toward the live audience, then return to their original altar-facing orientation.
 - Added a restrained wider smile and attentive eye expression, layered with existing blinking and bow animation.

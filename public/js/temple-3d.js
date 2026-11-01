@@ -915,6 +915,37 @@ async function boot() {
   templeCurls.receiveShadow = false;
   statue.add(templeCurls);
   sphere(0.1,mats.statueStone,0,5.78,0.02,1,1.1,1,statue);
+  // A pair of tight curl courses follows the ushnisha ellipsoid instead of floating as a flat crown row.
+  const ushnishaCurlPolarAngles = [0.56, 0.98];
+  const ushnishaCurlCounts = [8, 12];
+  const ushnishaCurlCount = ushnishaCurlCounts.reduce((total, count) => total + count, 0);
+  const ushnishaCurlGeometry = new THREE.SphereGeometry(0.045, 16, 12);
+  const ushnishaCurls = new THREE.InstancedMesh(
+    ushnishaCurlGeometry, mats.statueShadow, ushnishaCurlCount
+  );
+  const ushnishaCurlTransform = new THREE.Object3D();
+  let ushnishaCurlIndex = 0;
+  ushnishaCurlPolarAngles.forEach((polarAngle, ringIndex) => {
+    const count = ushnishaCurlCounts[ringIndex];
+    for (let curl = 0; curl < count; curl++) {
+      const angle = (curl / count) * Math.PI * 2 + ringIndex * 0.13;
+      const sinPolar = Math.sin(polarAngle);
+      ushnishaCurlTransform.position.set(
+        0.2952 * sinPolar * Math.cos(angle),
+        5.42 + 0.2592 * Math.cos(polarAngle),
+        0.02 + 0.2808 * sinPolar * Math.sin(angle)
+      );
+      ushnishaCurlTransform.scale.setScalar(0.72);
+      ushnishaCurlTransform.updateMatrix();
+      ushnishaCurls.setMatrixAt(ushnishaCurlIndex++, ushnishaCurlTransform.matrix);
+    }
+  });
+  ushnishaCurls.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  ushnishaCurls.instanceMatrix.needsUpdate = true;
+  ushnishaCurls.name = 'BuddhaUshnishaCurls';
+  ushnishaCurls.castShadow = true;
+  ushnishaCurls.receiveShadow = false;
+  statue.add(ushnishaCurls);
   // Calm eyes, brows, nose and lips, carved shallow into the stone.
   const statueLine=(points,radius,material=mats.statueShadow)=>{
     const curve=new THREE.CatmullRomCurve3(points.map(([x,y,z])=>new THREE.Vector3(x,y,z)));
