@@ -147,6 +147,30 @@ describe('Temple environment architecture module', () => {
     result.dispose();
   });
 
+  it('keeps optional architectural detail toggles independent', () => {
+    const result = createTempleEnvironment({
+      THREE: fakeTHREE,
+      scene: createScene(),
+      config: {
+        enableColumnBases: false,
+        enableCapitalBrackets: false,
+        enableGalleryScreens: false,
+        enableFloorInlays: false
+      }
+    });
+    const names = new Set();
+    result.group.traverse((object) => { if (object.name) names.add(object.name); });
+    expect(names.has('TemplePortraitColumnShafts')).toBe(true);
+    expect(names.has('TemplePortraitColumnFlutes')).toBe(true);
+    expect(names.has('TempleColumnBaseStoneFootings')).toBe(false);
+    expect(names.has('TempleCapitalLowerStacks')).toBe(false);
+    expect(names.has('TempleGalleryScreenRails')).toBe(false);
+    expect(names.has('TempleFloorInlayHorizontal')).toBe(false);
+    expect(result.metadata.columnCount).toBe(2);
+    expect(result.metadata.galleryScreenCount).toBe(0);
+    result.dispose();
+  });
+
   it('accepts detail and layout overrides while clamping unsafe dimensions', () => {
     const result = createTempleEnvironment({
       THREE: fakeTHREE,
