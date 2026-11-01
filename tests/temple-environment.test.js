@@ -126,6 +126,22 @@ describe('Temple environment architecture module', () => {
     result.dispose();
   });
 
+  it('keeps peripheral floor inlays flush with the raised gallery surface', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const inlays = [];
+    result.group.traverse((object) => {
+      const args = object.geometry?.args;
+      if (object.material?.name === 'TempleEnvironment_bronze'
+        && args?.[1] === 0.035
+        && (args?.[0] === 1.28 || args?.[2] === 1.28)) {
+        inlays.push(object);
+      }
+    });
+    expect(inlays).toHaveLength(16);
+    inlays.forEach((mesh) => expect(mesh.position.values[1]).toBeCloseTo(0.1));
+    result.dispose();
+  });
+
   it('throws helpful errors for missing or invalid inputs', () => {
     expect(() => createTempleEnvironment()).toThrow(/THREE namespace/);
     expect(() => createTempleEnvironment({ THREE: fakeTHREE, scene: null })).toThrow(/scene/);
