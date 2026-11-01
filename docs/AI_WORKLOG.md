@@ -431,3 +431,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Compressor settings: threshold -8 dB, knee 12 dB, ratio 10:1, attack 3 ms, release 220 ms. The existing SFX gain/enable controls remain upstream and unchanged.
 - Added a safe fallback to direct destination routing if the browser does not expose `createDynamicsCompressor`.
 - Scope: this protects the synthesized SFX bus only. HTML media background music and TTS are separate playback paths and are not covered by this compressor. GitHub Actions run `41257909818` succeeded; the `character-state-machine` job passed. No listening test or browser/device clipping measurement has been performed.
+
+
+### Gift SFX cancellation on effect supersession — 2026-11-01
+- Added per-effect Web Audio gain groups for Rocket, Dragon, Donut and Rose sounds. Each delayed/secondary sound is routed through the same effect group ID, so a later gift can fade only the superseded gift's SFX without touching background music, TTS, or unrelated SFX.
+- Gift groups automatically release their gain node after the sound tail; explicit cancellation fades the group over 25 ms and disconnects it shortly afterward. Existing standalone audio method calls remain compatible when no group ID is supplied.
+- Wired the gift engine's effect-generation token through the SFX dispatcher and cancel the previous group when a new gift takes ownership. Added dispatcher regression coverage for group-ID routing and targeted cancellation.
+- Source-level checks confirmed all six gift sound methods use their group output and the effect engine passes IDs for launch/impact/chime events. Await GitHub Actions for unit/syntax validation; browser audio interruption and listening tests remain outstanding.
