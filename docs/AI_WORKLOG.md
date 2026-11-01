@@ -1,3 +1,8 @@
+### 2026-11-01 — Compare a balanced 42-degree camera crop
+- Created an isolated preset at 42° FOV, camera position (0, 11.75, 28.5), look-at (0, 0, -5.5).
+- It interpolates between the tighter 40° focal framing and the wider/lower-target negative-space experiment, aiming to preserve Buddha/altar scale while raising the colonnade within the portrait frame.
+- Keep this candidate separate until its 1080×1920 Chromium capture is reviewed; no production camera change is implied yet.
+
 ### 2026-11-01 — Select a balanced 40-degree portrait camera
 - Compared the existing 36-degree crop with 44-degree and 40-degree Chromium captures at 1080×1920.
 - Selected 40° FOV, position (0, 11.5, 27), look-at (0, 3.2, -5.5): preserves more Buddha/altar scale than 44° while retaining the side colonnade and visible gallery floor.
