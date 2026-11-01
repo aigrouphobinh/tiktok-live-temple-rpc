@@ -253,7 +253,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.gltfWalkBlend = 0;');
     expect(scene).toContain('function animateHuman(avatar, time, walking = false, walkPhase = null)');
     expect(scene).toContain('const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;');
-    expect(scene).toContain('const walkPhase = (travel * 11.2 / 2.2) * Math.PI * 2;');
+    expect(scene).toContain('const walkPhase = (eased * 11.2 / 2.2) * Math.PI * 2;');
+    expect(scene).toContain('const eased = travel * travel * (3 - 2 * travel);');
+    expect(scene).toContain('const walkPhase = (eased * 11.2 / 2.2) * Math.PI * 2;');
   });
 
   it('returns a manually posed GLB bow to rest when the bow state ends', () => {
