@@ -709,6 +709,8 @@ async function boot() {
       mainDevotee.position.z = 7.5;
       mainDevotee.scale.setScalar(1);
       mainDevotee.rotation.x = 0;
+      mainHuman.upperBody.rotation.x = 0;
+      mainHuman.head.rotation.x = 0;
       devoteeState.active = true;
       devoteeState.startedAt = performance.now();
       devoteeState.bowAt = 0;
