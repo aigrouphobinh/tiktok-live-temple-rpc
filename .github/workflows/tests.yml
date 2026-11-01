@@ -69,8 +69,8 @@ jobs:
           grep -Fq 'const lotusSparkCount = 32' public/js/temple-3d.js &&
           grep -Fq 'lotusSparkMaterial.opacity = auraPulse * 0.88' public/js/temple-3d.js &&
           grep -Fq 'lotusSparkGeometry.attributes.position.needsUpdate = true' public/js/temple-3d.js &&
-          grep -Fq 'const statueRimLight = new THREE.DirectionalLight(0xffc982, 1.05)' public/js/temple-3d.js &&
-          grep -Fq 'statueRimLight.intensity = 1.05 + auraPulse * 1.35' public/js/temple-3d.js &&
+          grep -Fq 'const statueRimLight = new THREE.DirectionalLight(0xffc982, 0.82)' public/js/temple-3d.js &&
+          grep -Fq 'statueRimLight.intensity = 0.82 + auraPulse * 1.1' public/js/temple-3d.js &&
           grep -Fq 'mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38' public/js/temple-3d.js &&
           grep -Fq "const woodRoughness = makeRoughnessTexture('wood')" public/js/temple-3d.js &&
           grep -Fq "const lacquerRoughness = makeRoughnessTexture('lacquer')" public/js/temple-3d.js &&
@@ -136,7 +136,7 @@ jobs:
           ! grep -Fq '/assets/animals/' public/js/temple-3d.js &&
           grep -Fq 'Keep the central sightline to the Buddha open' public/js/temple-3d.js &&
           grep -Fq 'mats.statueStone' public/js/temple-3d.js &&
-          grep -Fq 'PointLight(0xffd1a0, 23, 18, 2)' public/js/temple-3d.js &&
+          grep -Fq 'PointLight(0xffd1a0, 15, 18, 2)' public/js/temple-3d.js &&
           grep -Fq 'Long back hair and shoulder-length side locks' public/js/temple-3d.js &&
           grep -Fq 'three/addons/' public/index.html &&
           grep -Fq "action === 'rocket'" public/js/temple-3d.js &&
