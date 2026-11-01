@@ -42,6 +42,8 @@ jobs:
           grep -Fq 'Central bronze incense vessel' public/js/temple-3d.js &&
           grep -Fq 'Paired bronze vases with lotus stems' public/js/temple-3d.js &&
           grep -Fq 'Layered altar lighting' public/js/temple-3d.js &&
+          grep -Fq 'Repeating carved flame leaves' public/js/temple-3d.js &&
+          grep -Fq 'new THREE.ShapeGeometry(flameShape)' public/js/temple-3d.js &&
           grep -Fq 'new THREE.SpotLight' public/js/temple-3d.js &&
           grep -Fq 'offeringFlames.forEach' public/js/temple-3d.js &&
           grep -Fq 'function playWorldGiftAction(action)' public/js/temple-3d.js &&
