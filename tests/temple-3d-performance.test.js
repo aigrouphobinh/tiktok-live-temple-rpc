@@ -2,8 +2,13 @@ import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+const visualAuditSource = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
 
 describe('Three.js scene performance safeguards', () => {
+  it('keeps the visual audit subscribed to the current frame diagnostics label', () => {
+    expect(visualAuditSource).toContain("[Temple3D] Frame diagnostics");
+    expect(visualAuditSource).not.toContain("[Temple3D] GPU frame stats");
+  });
   it('limits decorative lantern point lights to two per aisle', () => {
     expect(source).toContain('for (const x of [-5.8, 5.8])');
     expect(source).toContain('for (const z of [-7, -1, 5, 11])');
