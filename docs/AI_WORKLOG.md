@@ -465,3 +465,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Duplicate animation registrations are rejected so one animation cannot accumulate duplicate completion handlers. Natural completion, explicit clear, capacity eviction and cancellation all use guarded cleanup; stale promise callbacks cannot remove a newer registration.
 - Added tests for capacity eviction, cancellation, natural completion, duplicate/invalid registrations, invalid limits, and repeated clearing.
 - CI validation is triggered by the direct-to-main commits. This is deterministic lifecycle coverage; browser stress testing and actual TikTok LIVE runtime checks remain outstanding.
+
+
+### Three.js transient resource disposal deduplication — 2026-11-01
+- Review of the optional 3D overlay found that lotus groups share one petal geometry across multiple meshes. The previous traversal could call `dispose()` repeatedly for the same shared geometry/material within one effect tree.
+- Extracted `disposeThreeObjectTree`, which deduplicates geometry and material references before disposal, and wired the 3D effect cleanup through it. This keeps the existing 80-effect cap and visual/camera behavior unchanged.
+- Added unit tests for shared resources, material arrays, empty/invalid trees and non-disposable values. Expanded CI syntax checks to cover the optional 3D module, camera controller and utility module.
+- Browser/WebGL stress testing, context-loss recovery on real devices and TikTok LIVE runtime remain outstanding.
