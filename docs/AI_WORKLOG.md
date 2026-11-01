@@ -381,3 +381,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - GitHub Actions run `41257099609` completed successfully for code commit `311d48f389dd7b02e3ff8c56e5c73ff96ece99d2`.
 - Follow-up worklog commit run `41257106219` also completed successfully. The `character-state-machine` job passed both `Run unit tests` and `Check server-side JavaScript syntax`.
 - These workflow steps do not exercise browser audio playback, Web Audio mixing, visual timing, or real TikTok LIVE payloads; those acceptance checks remain open.
+
+
+### Legacy TikTok gift payload compatibility — 2026-11-01
+- Expanded `normalizeGiftPayload` to read legacy snake_case variants alongside the current camelCase connector fields: `gift_id`, `gift_type`, `diamond_count`, `repeat_count`, `repeat_end`, and `group_id`.
+- Added fallback for legacy top-level `describe` gift labels and string `repeat_end: "true"`; current camelCase field precedence remains unchanged.
+- Added regression tests for nested legacy gift metadata and top-level snake_case combo metadata.
+- Source and tests committed directly to `main`. Await the GitHub Actions result before claiming the tests pass. Actual LIVE payload capture remains unverified.
