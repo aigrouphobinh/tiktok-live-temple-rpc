@@ -657,3 +657,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Kept the lines close to the existing body silhouette and disabled shadow casting on the highlight ridges.
 - Added source regression coverage for both sides and their static geometry.
 - Browser render inspection remains necessary to confirm the contours sit naturally against the torso at the fixed camera distance.
+
+
+
+### 2026-11-01 — Refine the Buddha elbow robe transitions
+- Added one short, paired crease at each elbow to visually connect the upper-arm robe contour with the resting forearms.
+- Added a finer offset highlight ridge; highlight meshes do not cast or receive shadows.
+- Added source regression coverage for the paired elbow detailing.
+- Geometry remains procedural and lightweight; final visual placement still requires a browser render check.
