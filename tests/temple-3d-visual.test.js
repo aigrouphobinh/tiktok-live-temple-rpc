@@ -762,6 +762,15 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds subtle nose-wing, nostril and philtrum carving to the Buddha face', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// Refine the nose wings and philtrum with restrained, shallow stone carving.');
+  expect(scene).toContain('[side * 0.105, 4.425, 0.704]');
+  expect(scene).toContain('[side * 0.055, 4.405, 0.718]');
+  expect(scene).toContain('[side * 0.04, 4.355, 0.72]');
+  expect(scene).toContain('[[ -0.13,4.315,0.686]');
+});
+
 it('extends the Buddha hair curl pattern down both temples with one instanced batch', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('const templeCurlCount = 8;');
