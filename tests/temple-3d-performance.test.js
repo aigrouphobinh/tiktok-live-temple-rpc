@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+const visualAuditSource = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
 
 describe('Three.js scene performance safeguards', () => {
   it('limits decorative lantern point lights to two per aisle', () => {
@@ -57,7 +58,7 @@ describe('Three.js scene performance safeguards', () => {
 describe('Three.js opt-in GPU diagnostics', () => {
   it('reports renderer draw calls, triangles and resource counts only when stats=1', () => {
     expect(source).toContain("const statsEnabled = modelParams.get('stats') === '1';");
-    expect(source).toContain("console.info('[Temple3D] GPU frame stats'");
+    expect(source).toContain("console.info('[Temple3D] Frame diagnostics'");
     expect(source).toContain('drawCalls: info.render.calls');
     expect(source).toContain('triangles: info.render.triangles');
     expect(source).toContain('geometries: info.memory.geometries');
@@ -65,10 +66,16 @@ describe('Three.js opt-in GPU diagnostics', () => {
     expect(source).toContain('activeEffects: effects.length');
     expect(source).toContain('now - lastStatsAt >= 5000');
     expect(source).toContain('frameIntervals.push(now - lastRenderedFrameAt);');
-    expect(source).toContain('frameSamples: sortedIntervals.length');
-    expect(source).toContain('observedFps:');
-    expect(source).toContain('frameTimeP50Ms');
-    expect(source).toContain('frameTimeP95Ms');
+    expect(source).toContain('frameSamples: sampleCount');
+    expect(source).toContain('sampleWindowMs');
+    expect(source).toContain('sampleCount * 1000 / sampleWindowMs');
+    expect(source).not.toContain('(sampleCount + 1) * 1000 / sampleWindowMs');
+    expect(visualAuditSource).toContain("[Temple3D] Frame diagnostics");
+    expect(visualAuditSource).not.toContain("[Temple3D] GPU frame stats");
+    expect(source).toContain("sampleQuality: percentilesReliable ? 'reliable' : 'insufficient'");
+    expect(source).toContain('MIN_FRAME_SAMPLES_FOR_PERCENTILES = 30');
+    expect(source).toContain('frameTimeP50Ms: percentile(0.50)');
+    expect(source).toContain('frameTimeP95Ms: percentile(0.95)');
     expect(source).toContain('if (frameIntervals.length > 300) frameIntervals.shift();');
   });
 });
