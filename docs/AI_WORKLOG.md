@@ -193,7 +193,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - [x] Forward TikTok combo metadata into game events and coalesce repeated streak frames into one cinematic with lightweight combo pulses.
 - [ ] Validate streak coalescing against real TikTok LIVE combo frames and verify a new streak can trigger a fresh effect.
 - [x] Add automated tests for gift action selection, priority replacement and interrupted-character queue recovery; add bounded combo coalescer regression coverage.
-- [ ] Add automated DOM effect-cleanup and SFX-dispatch tests; browser verification remains required.
+- [ ] Add automated DOM effect-cleanup tests; SFX-dispatch unit coverage is now implemented. Browser verification remains required.
 - [ ] Validate audio unlock, SFX/music/TTS mixing, clipping, sound overlap, and browser autoplay behavior.
 - [ ] Validate 2D fallback, optional 3D overlay, stage layering, resize behavior, FPS, memory, and long-running stability in an actual browser.
 - [ ] Validate real TikTok LIVE Rocket/Dragon/Donut IDs, names, diamond values, repeatCount/repeatEnd, and reconnect behavior using sanitized logs.
