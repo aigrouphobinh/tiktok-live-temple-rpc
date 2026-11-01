@@ -492,6 +492,135 @@ async function boot() {
       }, 2600);
     }
   }
+  // Three-dimensional gift reactions mirror the existing gift action engine.
+  // They are world-space overlays; they never move the master camera.
+  function giftSparkBurst(x, y, z, count = 18, color = 0xffc45a) {
+    for (let i = 0; i < count; i++) {
+      const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95 });
+      const spark = new THREE.Mesh(new THREE.SphereGeometry(0.055 + Math.random() * 0.045, 8, 6), material);
+      spark.position.set(x, y, z);
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 5,
+        Math.random() * 4.5,
+        (Math.random() - 0.5) * 4
+      );
+      addEffect(spark, (obj, dt, p) => {
+        const step = dt * 0.001;
+        obj.position.addScaledVector(velocity, step);
+        velocity.y -= step * 2.4;
+        obj.scale.setScalar(Math.max(0.01, 1 - p));
+        obj.material.opacity = 0.95 * (1 - p);
+      }, 1050);
+    }
+  }
+
+  function playWorldGiftAction(action) {
+    if (action === 'rocket') {
+      const rocket = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.9, 12), mats.redBright);
+      body.rotation.z = -Math.PI / 2; rocket.add(body);
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.34, 12), mats.goldBright);
+      nose.rotation.z = -Math.PI / 2; nose.position.x = 0.6; rocket.add(nose);
+      const finMaterial = mats.gold.clone();
+      for (const side of [-1, 1]) {
+        const fin = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.34), finMaterial);
+        fin.position.set(-0.32, side * 0.14, 0); rocket.add(fin);
+      }
+      rocket.position.set(-8, 4.2, 3.5); rocket.rotation.y = -0.08;
+      addEffect(rocket, (obj, dt, p) => {
+        obj.position.x = -8 + p * 8.4;
+        obj.position.y = 4.2 + Math.sin(p * Math.PI) * 0.8;
+        obj.position.z = 3.5 - p * 2.4;
+        obj.rotation.z = -0.08 + p * 0.12;
+        if (p >= 0.98 && !obj.userData.detonated) {
+          obj.userData.detonated = true;
+          world.remove(obj);
+          makeRing(0, 1.25, 1.0, 0xffa52e);
+          makeRing(0, 1.35, 1.0, 0xffe18a);
+          giftSparkBurst(0, 1.5, 1.0, 28, 0xffa52e);
+        }
+      }, 1250);
+      return;
+    }
+    if (action === 'dragon') {
+      const dragon = new THREE.Group();
+      const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2d9a54, roughness: 0.5, metalness: 0.12 });
+      const goldMaterial = mats.goldBright;
+      for (let i = 0; i < 5; i++) {
+        const segment = new THREE.Mesh(new THREE.SphereGeometry(0.28 - i * 0.025, 12, 8), bodyMaterial);
+        segment.position.set(-i * 0.42, Math.sin(i * 0.8) * 0.12, 0);
+        dragon.add(segment);
+      }
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 14, 10), bodyMaterial);
+      head.position.set(0.42, 0.05, 0); dragon.add(head);
+      for (const side of [-1, 1]) {
+        const horn = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.42, 8), goldMaterial);
+        horn.position.set(0.3, 0.38, side * 0.18); horn.rotation.z = -0.35; dragon.add(horn);
+      }
+      const whisker = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.025, 6, 18, Math.PI), goldMaterial);
+      whisker.position.set(0.58, -0.1, 0); dragon.add(whisker);
+      dragon.position.set(-8, 6.2, -1.5);
+      addEffect(dragon, (obj, dt, p) => {
+        obj.position.x = -8 + p * 16;
+        obj.position.y = 6.2 + Math.sin(p * Math.PI * 4) * 0.55;
+        obj.position.z = -1.5 + Math.sin(p * Math.PI * 2) * 0.7;
+        obj.rotation.z = Math.sin(p * Math.PI * 4) * 0.08;
+        obj.scale.setScalar(0.72 + Math.sin(p * Math.PI) * 0.22);
+        if (p > 0.72 && !obj.userData.gust) {
+          obj.userData.gust = true;
+          makeRing(0, 1.5, -0.2, 0x65d9a0);
+          giftSparkBurst(0, 2.0, -0.2, 14, 0x65d9a0);
+        }
+      }, 2900);
+      return;
+    }
+    if (action === 'donut') {
+      const donutMaterial = new THREE.MeshStandardMaterial({ color: 0xf1a0bd, roughness: 0.38, metalness: 0.04 });
+      const donut = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.22, 14, 36), donutMaterial);
+      donut.position.set(-7, 3.3, 4.0);
+      const icing = new THREE.Mesh(new THREE.TorusGeometry(0.59, 0.055, 8, 36), mats.ivory);
+      icing.position.y = 0.08; donut.add(icing);
+      addEffect(donut, (obj, dt, p) => {
+        obj.position.x = -7 + p * 14;
+        obj.position.y = 3.3 + Math.sin(p * Math.PI * 3) * 0.65;
+        obj.position.z = 4 - Math.sin(p * Math.PI) * 2.2;
+        obj.rotation.x += dt * 0.002;
+        obj.rotation.y += dt * 0.004;
+        obj.scale.setScalar(0.65 + Math.sin(p * Math.PI) * 0.3);
+        if (p > 0.55 && !obj.userData.trail) {
+          obj.userData.trail = true;
+          for (let i = 0; i < 7; i++) makeRing((i - 3) * 0.32, 1.0, 3.2, 0xffc2dc);
+        }
+      }, 2450);
+      return;
+    }
+    if (action === 'rose') {
+      const bloom = new THREE.Group();
+      bloom.position.set(0, 3.0, 2.5);
+      const petalMaterial = mats.lotus.clone();
+      for (let i = 0; i < 10; i++) {
+        const angle = i * Math.PI * 2 / 10;
+        const petal = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), petalMaterial);
+        petal.position.set(Math.cos(angle) * 0.35, Math.sin(angle) * 0.35, 0);
+        petal.scale.set(1.0, 0.58, 0.48);
+        petal.rotation.z = angle;
+        bloom.add(petal);
+      }
+      const heart = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8), mats.goldBright);
+      bloom.add(heart);
+      addEffect(bloom, (obj, dt, p) => {
+        obj.position.y = 3.0 + p * 1.8;
+        obj.rotation.z += dt * 0.0007;
+        obj.scale.setScalar(0.35 + Math.sin(Math.min(1, p * 1.5) * Math.PI / 2) * 0.85);
+        obj.children.forEach((petal, i) => { petal.rotation.z += dt * (i % 2 ? 0.0003 : -0.0003); });
+        if (p > 0.28 && !obj.userData.petalBurst) {
+          obj.userData.petalBurst = true;
+          giftSparkBurst(0, 4.0, 2.5, 12, 0xf18eae);
+        }
+      }, 2100);
+    }
+  }
+
   function incenseEffect() {
     for (let i = 0; i < 8; i++) {
       const puff = new THREE.Mesh(new THREE.SphereGeometry(0.16 + Math.random() * 0.1, 10, 8),
@@ -525,6 +654,10 @@ async function boot() {
     start();
   }
   window.addEventListener('temple:ritual', (event) => handleRitual(event.detail));
+  window.addEventListener('temple:character-interrupted', (event) => {
+    const action = event.detail?.action;
+    if (['rocket', 'dragon', 'donut', 'rose'].includes(action)) playWorldGiftAction(action);
+  });
 
   function frame(now) {
     if (disposed || document.hidden) { raf = 0; return; }
