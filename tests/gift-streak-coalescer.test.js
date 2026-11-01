@@ -59,6 +59,8 @@ describe('GiftStreakCoalescer', () => {
     expect(coalescer.snapshot()).toEqual({ size: 2, keys: ['B', 'C'] });
     coalescer.clear();
     expect(coalescer.snapshot().size).toBe(0);
+    // A reused TikTok group ID after reconnect must be treated as a new streak.
+    expect(coalescer.shouldCoalesce(frame({ giftGroupId: 'C' }), 1250)).toBe(false);
   });
 
   it('handles a zero timestamp without treating it as a missing entry', () => {
