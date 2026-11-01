@@ -1,3 +1,4 @@
+import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
 /**
  * Live 9:16 Client Controller — Chánh Điện Đức Phật A Di Đà & Đạo Tràng Phật Tử Quỳ Lễ
  * - Hiển thị 6 Đệm Quỳ VIP (Top 6 Bảng Vàng Công Đức)
@@ -32,13 +33,7 @@
   // Gift-specific SFX are routed through the shared audio engine so the
   // browser's user-gesture unlock and master SFX toggle remain authoritative.
   window.addEventListener('temple:gift-sfx', (event) => {
-    const type = event.detail?.type;
-    if (type === 'rocket-launch') audio.playRocketLaunch();
-    else if (type === 'explosion') audio.playExplosion(1);
-    else if (type === 'dragon-whoosh') audio.playDragonWhoosh();
-    else if (type === 'dragon-roar') audio.playDragonRoar();
-    else if (type === 'donut-chime') audio.playDonutChime();
-    else if (type === 'rose-chime') audio.playRoseChime();
+    dispatchGiftSfx(audio, event.detail?.type);
   });
 
   function unlockAudioOnce() {
