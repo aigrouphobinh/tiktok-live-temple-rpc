@@ -1,3 +1,10 @@
+### 2026-11-01 — Add procedural gait fallback for rigged GLBs without walk clips
+- Rigged character assets may include an armature but no walking animation. The previous behavior reused the idle clip while the avatar translated along the aisle, making the character slide.
+- Added conservative left/right upper-leg and counter-swing arm bone mapping, capturing each bone's rest rotation and applying a time-based gait only when the GLB lacks a walk clip.
+- Existing authored walk clips remain preferred; procedural bow fallback remains unchanged.
+- Added regression coverage for missing-walk fallback.
+- CI pending.
+
 ### 2026-11-01 — Keep cloned GLB source resources under scene ownership
 - Found that SkeletonUtils.clone() shares geometry, materials and textures with the loaded source GLB. The source root was never attached to the scene, so scene teardown could dispose the visible clones while leaving the original imported resources outside the cleanup tree.
 - Keep the source root hidden inside the world before cloning. This avoids rendering a duplicate and ensures the existing scene-level resource disposer reaches both source and clones exactly once.
