@@ -26,6 +26,17 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;');
   });
 
+  it('updates gratitude intensity for combo frames without replaying the world gift effect', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    const engine = readFileSync(new URL('../public/js/gift-action-engine.js', import.meta.url), 'utf8');
+    expect(engine).toContain("new CustomEvent('temple:gift-reaction'");
+    expect(engine).toContain('resolveGiftReactionProfile(event)');
+    expect(scene).toContain('function onTempleGiftReaction(event)');
+    expect(scene).toContain('applyGiftReactionProfile(event.detail?.reactionProfile);');
+    expect(scene).toContain("window.addEventListener('temple:gift-reaction', onTempleGiftReaction);");
+    expect(scene).toContain('// Combo frames update gratitude intensity without replaying the 3D gift effect.');
+  });
+
   it('scales the thank-you bow and hand gesture from the incoming gift tier', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const strength = blend * profile.intensity;');
