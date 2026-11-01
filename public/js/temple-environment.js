@@ -6,13 +6,19 @@
  */
 
 const DEFAULTS = Object.freeze({
-  columnXs: [-7.2, 7.2],
-  columnZs: [-10, -4, 2, 8, 13],
+  // Portrait-camera framing: the altar screen ends near X = ±4.6, so side
+  // columns and panels sit just beyond it but remain inside the 9:16 frustum.
+  columnXs: [-5.15, 5.15],
+  columnZs: [-10],
   columnBaseY: 0.04,
-  galleryScreenXs: [-9.55, 9.55],
-  galleryBayZs: [-6.8, -0.8, 5.2, 11.2],
+  galleryScreenXs: [-6.25, 6.25],
+  galleryBayZs: [-14],
+  galleryScreenBaseY: 2.05,
+  galleryScreenWidth: 0.95,
   screenHeight: 1.48,
-  gallerySurfaceY: 0.0825,
+  gallerySurfaceY: -0.0825,
+  floorInlayX: 3.82,
+  floorInlayZs: [-7, -4, -1, 2],
   enableColumnBases: true,
   enableCapitalBrackets: true,
   enableGalleryScreens: true,
@@ -57,6 +63,10 @@ function normalizeConfig(input = {}) {
     columnBaseY: finiteNumber(config.columnBaseY, DEFAULTS.columnBaseY, -1, 2),
     screenHeight: finiteNumber(config.screenHeight, DEFAULTS.screenHeight, 0.8, 2.2),
     gallerySurfaceY: finiteNumber(config.gallerySurfaceY, DEFAULTS.gallerySurfaceY, -1, 2),
+    galleryScreenBaseY: finiteNumber(config.galleryScreenBaseY, DEFAULTS.galleryScreenBaseY, -1, 6),
+    galleryScreenWidth: finiteNumber(config.galleryScreenWidth, DEFAULTS.galleryScreenWidth, 0.6, 1.6),
+    floorInlayX: finiteNumber(config.floorInlayX, DEFAULTS.floorInlayX, 2.8, 6),
+    floorInlayZs: normalizePositions(config.floorInlayZs, DEFAULTS.floorInlayZs, -18, 20),
     detailLevel
   };
 }
@@ -249,6 +259,35 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     instanceBatchCount += 1;
   };
 
+  const buildColumnShafts = () => {
+    const shaftPositions = [];
+    const flutePositions = [];
+
+    for (const x of settings.columnXs) {
+      for (const z of settings.columnZs) {
+        shaftPositions.push([x, 4.05, z]);
+        // Eight restrained gilded ribs catch the same warm altar lighting.
+        for (let rib = 0; rib < 8; rib += 1) {
+          const angle = rib * Math.PI / 4;
+          flutePositions.push([
+            x + Math.cos(angle) * 0.432,
+            4.05,
+            z + Math.sin(angle) * 0.432
+          ]);
+        }
+      }
+    }
+
+    addCylinderBatch(
+      'TemplePortraitColumnShafts',
+      0.42, 0.5, 8.2, materials.agedWood, shaftPositions, 24
+    );
+    addCylinderBatch(
+      'TemplePortraitColumnFlutes',
+      0.012, 0.012, 5.9, materials.mutedGold, flutePositions, 6
+    );
+  };
+
   const buildColumnBases = () => {
     const stoneDarkTransforms = [];
     const stoneTransforms = [];
@@ -334,22 +373,23 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     const postTransforms = [];
     const centerBarTransforms = [];
     const latticeTransforms = [];
-    const width = 1.08;
+    const width = settings.galleryScreenWidth;
     const height = settings.screenHeight;
+    const baseY = settings.galleryScreenBaseY;
 
     for (const x of settings.galleryScreenXs) {
       for (const z of settings.galleryBayZs) {
-        // Batch equal screen members so the eight repeated panels stay inexpensive.
-        railTransforms.push({ position: [x, 0.08 + height, z] });
-        railTransforms.push({ position: [x, 0.16, z] });
-        postTransforms.push({ position: [x - width / 2, 0.08 + height / 2, z] });
-        postTransforms.push({ position: [x + width / 2, 0.08 + height / 2, z] });
-        centerBarTransforms.push({ position: [x, 0.08 + height / 2, z + 0.025] });
+        // Side relief screens extend the rear altar wall into the narrow portrait margins.
+        railTransforms.push({ position: [x, baseY + height, z] });
+        railTransforms.push({ position: [x, baseY + 0.08, z] });
+        postTransforms.push({ position: [x - width / 2, baseY + height / 2, z] });
+        postTransforms.push({ position: [x + width / 2, baseY + height / 2, z] });
+        centerBarTransforms.push({ position: [x, baseY + height / 2, z + 0.025] });
 
         if (settings.detailLevel !== 'low') {
           for (const offset of [-0.28, 0.28]) {
             latticeTransforms.push({
-              position: [x + offset, height / 2 + 0.08, z + 0.045],
+              position: [x + offset, baseY + height / 2, z + 0.045],
               rotation: [0, 0, Math.PI / 4]
             });
           }
@@ -372,8 +412,8 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     const inlayY = settings.gallerySurfaceY + 0.0175;
 
     for (const side of [-1, 1]) {
-      const x = side * 8.15;
-      for (const z of [-7, -1, 5, 11]) {
+      const x = side * settings.floorInlayX;
+      for (const z of settings.floorInlayZs) {
         horizontalTransforms.push({ position: [x, inlayY, z] });
         verticalTransforms.push({ position: [x, inlayY, z] });
         medallionTransforms.push({
@@ -383,15 +423,18 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
       }
     }
 
-    addBoxBatch('TempleFloorInlayHorizontal', [1.28, 0.035, 0.08], materials.bronze, horizontalTransforms);
-    addBoxBatch('TempleFloorInlayVertical', [0.08, 0.035, 1.28], materials.bronze, verticalTransforms);
+    addBoxBatch('TempleFloorInlayHorizontal', [0.82, 0.035, 0.06], materials.bronze, horizontalTransforms);
+    addBoxBatch('TempleFloorInlayVertical', [0.06, 0.035, 0.82], materials.bronze, verticalTransforms);
     if (settings.detailLevel === 'high') {
       addBoxBatch('TempleFloorInlayStuds', [0.09, 0.025, 0.09], materials.mutedGold, medallionTransforms);
     }
   };
 
   try {
-    if (settings.enableColumnBases) buildColumnBases();
+    if (settings.enableColumnBases) {
+      buildColumnShafts();
+      buildColumnBases();
+    }
     if (settings.enableCapitalBrackets) buildCapitalBrackets();
     if (settings.enableGalleryScreens) buildGalleryScreens();
     if (settings.enableFloorInlays) buildFloorInlays();
