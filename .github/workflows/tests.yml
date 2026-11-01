@@ -40,6 +40,8 @@ jobs:
           grep -Fq 'Carved red-and-gold altar screen' public/js/temple-3d.js &&
           grep -Fq 'Curved tiled roof' public/js/temple-3d.js &&
           grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
+          grep -Fq 'Keep the near half open' public/js/temple-3d.js &&
+          grep -Fq 'roofEndZ = 3.5' public/js/temple-3d.js &&
           grep -Fq 'Raised eaves' public/js/temple-3d.js &&
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
           grep -Fq 'temple-3d-mode' public/js/temple-3d.js &&
