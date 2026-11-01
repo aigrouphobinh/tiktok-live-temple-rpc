@@ -40,3 +40,16 @@ Both features retain their normal startup behavior when these variables are not 
 - The browser reports console errors and failed requests in the downloadable report.
 
 This is a software-rendered Chromium smoke test. It does not validate physical GPU drivers, OBS Browser Source behavior on a production machine, audio/TTS quality, TikTok connectivity, or the visual quality of every frame on all devices. Review the screenshot artifact before changing camera framing, model placement, or architectural coordinates.
+
+
+## Physical-device frame-time benchmark
+
+Use the real live scene on the target phone or tablet; do not treat the Chromium visual-audit profiles as device measurements.
+
+1. Serve the current build over HTTPS or a trusted local development origin and open the OBS scene URL with `?obs=1&3d=1&stats=1`.
+2. Keep the device plugged in, disable battery-saver mode, close unrelated heavy apps, and allow the device to reach a stable temperature. Record device model, OS/browser version, screen refresh rate, and whether the page is foregrounded.
+3. Let the scene warm up for 30 seconds. Capture at least three 60-second windows for each scenario: idle scene, sustained gift activity, and a combined ritual/gift sequence. Reload between render-tier changes; record the tier and pixel ratio reported in the diagnostic line.
+4. In the browser remote-debugging console, collect the `[Temple3D] GPU frame stats` entries. Each five-second sample now includes `observedFps`, `frameTimeP50Ms`, `frameTimeP95Ms`, and `frameSamples`, alongside draw calls, triangles, geometry/texture counts, active effects, and pixel ratio.
+5. Report the median of the window-level P95 frame times across the three runs, plus the worst window, device temperature/throttling observations, and any WebGL context loss. The scene is capped at 30 FPS, so a stable target frame interval is approximately 33.3 ms; frame-time P95 above 50 ms indicates sustained missed-frame pressure and should be investigated.
+
+The interval metric is measured between rendered frames, so it includes time spent rendering the previous frame and skipped animation-frame callbacks. It is a practical end-to-end browser frame cadence indicator, not a GPU-only timer. The five-second samples are bounded to 300 intervals and are emitted only when `stats=1`; normal live sessions do not collect or log these diagnostics. Browser/device memory values and temperature are not exposed consistently across mobile browsers, so record those from the OS or device tooling where available.
