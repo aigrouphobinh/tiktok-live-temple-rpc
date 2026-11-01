@@ -293,6 +293,11 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     clearTimeout(cooldownTimer);
     const token = ++effectToken;
     clearActiveEffects();
+    // Every new gift action owns the central character animation. Cancel the
+    // previous action's motion even when the incoming action (e.g. Rose) has
+    // no replacement character animation of its own.
+    characterAnimation?.cancel();
+    characterAnimation = null;
     showActionLabel(action);
     if (action === 'rocket') playRocket(token);
     else if (action === 'dragon') playDragon(token);
