@@ -796,3 +796,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Kept runtime overhead low: inventory is generated only after the selected devotee GLB loads, not during the render loop.
 - Added source regression checks for the diagnostic fields.
 - This makes unmatched animation naming inspectable when the real model is deployed; no assumptions are made about clip names before inspecting that asset.
+
+
+### 2026-11-01 — Make GLB animation clip matching deterministic
+- Extracted clip selection into `three-animation-utils.js` so matching can be tested independently of the Three.js scene.
+- Replaced broad substring regex matching with token-aware aliases and deterministic scoring: explicit action names and more specific aliases take precedence over generic synonyms, while unrelated words such as `Remove` no longer match `move`.
+- Added tests for source-order independence, Mixamo-style separators/case, false-positive prevention and missing action categories.
+- Real model clip quality still requires inspecting the actual deployed GLB inventory; this change improves selection logic without assuming the asset's contents.
