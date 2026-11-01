@@ -320,6 +320,42 @@ async function boot() {
   cylinder(2.05, 1.8, 0.55, mats.wood, 0, 1.0, -8.25, world, 48);
   cylinder(1.82, 2.0, 0.28, mats.redBright, 0, 1.38, -8.25, world, 48);
   cylinder(1.62, 1.82, 0.2, mats.gold, 0, 1.62, -8.25, world, 48);
+
+  // Fine brass beads and double mouldings finish the carved pedestal drum.
+  const pedestalTrimGeometry = new THREE.TorusGeometry(1.94, 0.026, 8, 64);
+  const pedestalTrim = new THREE.InstancedMesh(pedestalTrimGeometry, mats.goldBright, 2);
+  const pedestalTrimTransform = new THREE.Object3D();
+  [[0.78, 0.95], [1.2, 1.04]].forEach(([y, scale], index) => {
+    pedestalTrimTransform.position.set(0, y, -8.25);
+    pedestalTrimTransform.rotation.set(Math.PI / 2, 0, 0);
+    pedestalTrimTransform.scale.setScalar(scale);
+    pedestalTrimTransform.updateMatrix();
+    pedestalTrim.setMatrixAt(index, pedestalTrimTransform.matrix);
+  });
+  pedestalTrim.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  pedestalTrim.castShadow = false;
+  pedestalTrim.receiveShadow = true;
+  world.add(pedestalTrim);
+
+  const pedestalStudGeometry = new THREE.SphereGeometry(0.052, 8, 6);
+  const pedestalStuds = new THREE.InstancedMesh(pedestalStudGeometry, mats.goldBright, 32);
+  const pedestalStudTransform = new THREE.Object3D();
+  for (let i = 0; i < 32; i++) {
+    const angle = i * Math.PI * 2 / 32;
+    pedestalStudTransform.position.set(
+      Math.cos(angle) * 1.93,
+      1.38,
+      -8.25 + Math.sin(angle) * 1.93
+    );
+    pedestalStudTransform.scale.set(1, 1, 0.72);
+    pedestalStudTransform.rotation.y = -angle;
+    pedestalStudTransform.updateMatrix();
+    pedestalStuds.setMatrixAt(i, pedestalStudTransform.matrix);
+  }
+  pedestalStuds.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  pedestalStuds.castShadow = false;
+  pedestalStuds.receiveShadow = true;
+  world.add(pedestalStuds);
   const lotusThrone = new THREE.Group(); lotusThrone.position.set(0, 1.7, -8.25); world.add(lotusThrone);
   for (let i = 0; i < 16; i++) {
     const a = i * Math.PI / 8;
