@@ -159,6 +159,58 @@ async function boot() {
     }
   }
 
+  // Foreground offering table with bronze incense burner, candles, vases and fruit.
+  const offeringTable = new THREE.Group();
+  offeringTable.position.set(0, 0, -5.85);
+  world.add(offeringTable);
+  box(5.6, 0.2, 1.45, mats.woodLight, 0, 1.62, 0, offeringTable);
+  box(5.72, 0.09, 1.55, mats.gold, 0, 1.77, 0, offeringTable);
+  box(5.35, 0.12, 1.3, mats.red, 0, 1.86, 0, offeringTable);
+  for (const x of [-2.35, -0.8, 0.8, 2.35]) {
+    box(0.18, 1.35, 0.18, mats.wood, x, 0.9, 0, offeringTable);
+    box(0.42, 0.12, 1.32, mats.gold, x, 0.38, 0, offeringTable);
+  }
+  // Central bronze incense vessel.
+  const bronze = new THREE.MeshStandardMaterial({ color: 0x8a5428, roughness: 0.34, metalness: 0.82 });
+  const incense = new THREE.Group(); incense.position.set(0, 1.92, 0.02); offeringTable.add(incense);
+  cylinder(0.42, 0.5, 0.16, bronze, 0, 0, 0, incense, 32);
+  sphere(0.43, bronze, 0, 0.2, 0, 1, 0.58, 1, incense);
+  const burnerRim = new THREE.Mesh(new THREE.TorusGeometry(0.43, 0.055, 8, 32), mats.goldBright);
+  burnerRim.rotation.x = Math.PI / 2; burnerRim.position.y = 0.28; incense.add(burnerRim);
+  cylinder(0.12, 0.2, 0.32, bronze, 0, 0.47, 0, incense, 24);
+  sphere(0.2, mats.gold, 0, 0.68, 0, 1, 0.38, 1, incense);
+  for (let i = -1; i <= 1; i++) {
+    const stick = cylinder(0.018, 0.022, 0.78, mats.woodLight, i * 0.11, 1.0, 0, incense, 8);
+    stick.rotation.z = i * 0.12;
+  }
+  // Paired bronze vases with lotus stems.
+  for (const side of [-1, 1]) {
+    const vase = new THREE.Group(); vase.position.set(side * 1.72, 1.91, 0.02); offeringTable.add(vase);
+    cylinder(0.22, 0.3, 0.12, bronze, 0, 0.05, 0, vase, 24);
+    sphere(0.25, bronze, 0, 0.28, 0, 0.9, 1.15, 0.9, vase);
+    cylinder(0.11, 0.17, 0.34, bronze, 0, 0.56, 0, vase, 20);
+    cylinder(0.16, 0.16, 0.08, mats.goldBright, 0, 0.75, 0, vase, 20);
+    const stem = cylinder(0.018, 0.025, 0.72, mats.leaf, 0, 1.1, 0, vase, 8);
+    stem.rotation.z = side * -0.14;
+    for (let petal = 0; petal < 5; petal++) {
+      const angle = petal * Math.PI * 2 / 5;
+      const bloom = sphere(0.12, mats.lotus, Math.cos(angle) * 0.12, 1.48, Math.sin(angle) * 0.12, 0.65, 0.55, 1, vase);
+      bloom.rotation.y = -angle;
+    }
+  }
+  // Small fruit offerings and warm butter lamps.
+  for (const [x, color] of [[-0.92, 0xe5a52f], [-0.55, 0xb82e32], [0.55, 0xb82e32], [0.92, 0xe5a52f]]) {
+    const fruitMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.42 });
+    sphere(0.18, fruitMaterial, x, 2.03, 0.12, 1, 1.08, 1, offeringTable);
+  }
+  const flameMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffc45a, emissive: 0xff7a18, emissiveIntensity: 1.2, roughness: 0.4
+  });
+  for (const x of [-2.45, 2.45]) {
+    cylinder(0.16, 0.2, 0.22, mats.goldBright, x, 1.98, 0.05, offeringTable, 20);
+    sphere(0.075, flameMaterial, x, 2.17, 0.05, 0.72, 1.5, 0.72, offeringTable);
+  }
+
   // Layered lotus pedestal.
   cylinder(2.05, 1.8, 0.55, mats.wood, 0, 1.0, -8.25, world, 48);
   cylinder(1.82, 2.0, 0.28, mats.redBright, 0, 1.38, -8.25, world, 48);
