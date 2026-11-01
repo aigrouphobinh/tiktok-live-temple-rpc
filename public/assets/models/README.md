@@ -38,7 +38,7 @@ Selected source (license, downloadable status and rig still need confirmation):
 Run:
 
 ```bash
-node scripts/inspect-glb.mjs public/assets/models/buddha-selected.glb
+bun run inspect:glb -- public/assets/models/buddha-selected.glb
 ```
 
 The inspector reports the GLB version, mesh/primitive counts, triangle estimate,
