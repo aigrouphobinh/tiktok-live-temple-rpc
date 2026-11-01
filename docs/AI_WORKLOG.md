@@ -1091,3 +1091,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added fine paired neck contours and short shoulder drape creases with restrained ivory highlights.
 - Reused existing robe geometry/material helpers; kept the neck, shoulder silhouette, robe shape and lighting unchanged.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add fine upper-chest robe pleats to the Buddha
+- Added a restrained pair of curved upper-chest pleats linking the neckline drape to the existing diagonal chest folds.
+- Added thin ivory ridges to catch the existing light without changing the statue silhouette, materials or lighting setup.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
