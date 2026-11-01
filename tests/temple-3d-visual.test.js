@@ -29,6 +29,13 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('columnFlutes.castShadow = false');
   });
 
+  it('frames the processional carpet with low curbs and brass inlay', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('box(0.22, 0.16, 27.2, mats.stone, side * 3.08, 0.025, 3)');
+    expect(scene).toContain('box(0.035, 0.025, 27.0, mats.goldBright, side * 3.19, 0.115, 3)');
+    expect(scene).toContain('for (const z of [16.8, 17.45])');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
