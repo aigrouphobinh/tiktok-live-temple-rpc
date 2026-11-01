@@ -634,6 +634,30 @@ async function boot() {
   sphere(1.12, mats.statueStone, 0, 1.45, 0.12, 1.35, 0.42, 0.82, statue);
   sphere(0.78, mats.statueStone, 0, 2.18, -0.02, 0.9, 1.15, 0.72, statue);
   sphere(0.72, mats.statueLight, 0, 2.0, 0.12, 1.18, 0.42, 0.9, statue);
+  // A pair of fine front-facing fillets follows the curved lower robe/base silhouette.
+  // Their depth is sampled from the seated base ellipsoid so the transition reads as carved-in.
+  const statueBaseBandPoints = [];
+  const statueBaseHighlightPoints = [];
+  for (let i = 0; i <= 20; i++) {
+    const x = -1.12 + (i / 20) * 2.24;
+    const surfaceZ = 0.12 + 0.82 * Math.sqrt(Math.max(0.08,
+      1 - ((1.24 - 1.45) / 0.42) ** 2 - (x / 1.512) ** 2));
+    statueBaseBandPoints.push(new THREE.Vector3(x, 1.24, surfaceZ + 0.012));
+    statueBaseHighlightPoints.push(new THREE.Vector3(x, 1.29, surfaceZ + 0.018));
+  }
+  const statueBaseBand = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(statueBaseBandPoints), 48, 0.018, 6, false),
+    mats.goldBright
+  );
+  const statueBaseHighlight = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(statueBaseHighlightPoints), 48, 0.009, 6, false),
+    mats.statueLight
+  );
+  for (const detail of [statueBaseBand, statueBaseHighlight]) {
+    detail.castShadow = false;
+    detail.receiveShadow = false;
+  }
+  statue.add(statueBaseBand, statueBaseHighlight);
   sphere(0.68, mats.statueStone, 0, 3.35, 0.02, 0.92, 1.18, 0.82, statue);
   // A shallow curved neckline softens the join between neck, shoulders and chest.
   const necklineCurve = new THREE.CatmullRomCurve3([
