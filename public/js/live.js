@@ -33,7 +33,7 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   // Gift-specific SFX are routed through the shared audio engine so the
   // browser's user-gesture unlock and master SFX toggle remain authoritative.
   window.addEventListener('temple:gift-sfx', (event) => {
-    dispatchGiftSfx(audio, event.detail?.type);
+    dispatchGiftSfx(audio, event.detail?.type, event.detail?.effectId);
   });
 
   function unlockAudioOnce() {
