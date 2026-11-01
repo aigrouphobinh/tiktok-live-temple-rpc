@@ -62,7 +62,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-5');
+    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-6');
   });
 
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
@@ -192,4 +192,21 @@ describe('3D sanctuary visual treatment', () => {
     expect(hudLayer).toContain('.stage-9x16.temple-3d-mode .bottom-hud-bar');
     expect(hudLayer).toContain('z-index: 30;');
   });
+
+  it('adds the antique-brass perimeter frame only to the 3D stage', () => {
+    expect(css).toContain('.stage-9x16.temple-3d-mode::before');
+    expect(css).toContain('inset: 16px;');
+    expect(css).toContain('border: 3px solid rgba(186, 137, 51, .82);');
+    expect(css).toContain('border-radius: 34px;');
+    expect(css).toContain('pointer-events: none;');
+  });
+
+  it('uses warm ivory stone for the Buddha and the aureole in the reference palette', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('color: 0xbdb29c');
+    expect(scene).toContain('color: 0x76674f');
+    expect(scene).toContain('color: 0xe5d8bf');
+    expect(scene).toContain('color:0xa59a83');
+  });
+
 });
