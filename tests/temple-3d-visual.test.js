@@ -987,6 +987,9 @@ it('validates gift-burst renderer cost against each profile idle baseline', () =
   expect(modelSettledIndex).toBeGreaterThanOrEqual(0);
   expect(idleSampleCountIndex).toBeGreaterThan(modelSettledIndex);
   expect(idleSampleWaitIndex).toBeGreaterThan(idleSampleCountIndex);
+  expect(auditScript).toContain('sample.sampleQuality !== \'insufficient\'');
+  expect(auditScript).toContain('Number(sample.frameSamples) >= 30');
+  expect(auditScript).toContain('Number(sample.sampleWindowMs) >= 4000');
   expect(auditScript).not.toContain('waitForRendererSample(rendererStatsSamples, 1)');
 });
 
