@@ -63,6 +63,7 @@ try {
   for (const scenario of scenarios) {
     const errors = [];
     const failedRequests = [];
+    const httpErrors = [];
     let page;
     const rendererStatsSamples = [];
 
@@ -86,6 +87,7 @@ try {
       rendererStats: null,
       consoleErrors: errors,
       failedRequests,
+      httpErrors,
       checks: {}
     };
 
@@ -106,7 +108,15 @@ try {
       });
 
       page.on('console', async (message) => {
-        if (message.type() === 'error') errors.push(message.text());
+        if (message.type() === 'error') {
+          const text = message.text();
+          // Missing optional browser icons are reported as generic 404 console
+          // errors. Track their URLs at the response layer; JS and WebGL errors
+          // remain hard failures.
+          if (!text.includes('Failed to load resource: the server responded with a status of 404 (Not Found)')) {
+            errors.push(text);
+          }
+        }
         if (message.text().includes('[Temple3D] GPU frame stats')) {
           try {
             const args = message.args();
@@ -123,6 +133,15 @@ try {
         }
       });
       page.on('pageerror', (error) => errors.push(error.stack || error.message));
+      page.on('response', (response) => {
+        if (response.status() >= 400) {
+          httpErrors.push({
+            url: response.url(),
+            status: response.status(),
+            statusText: response.statusText()
+          });
+        }
+      });
       page.on('requestfailed', (request) => {
         failedRequests.push({
           url: request.url(),
@@ -247,6 +266,7 @@ try {
       });
 
       profileReport.buddhaModelSource = scene.buddhaModelSource;
+      profileReport.httpErrors = httpErrors;
       profileReport.browserHints = scene.browserHints;
       profileReport.userAgent = scene.userAgent;
       profileReport.devicePixelRatio = scene.devicePixelRatio;
@@ -289,7 +309,13 @@ try {
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
         noConsoleErrors: errors.length === 0,
-        noFailedRequests: failedRequests.length === 0
+        noFailedRequests: failedRequests.length === 0,
+        noUnexpectedHttpErrors: httpErrors.every((item) => {
+          let pathname = '';
+          try { pathname = new URL(item.url).pathname; } catch {}
+          return item.status === 404
+            && ['/favicon.ico', '/favicon.png', '/apple-touch-icon.png'].includes(pathname);
+        })
       };
       profileReport.checks.passed = Object.values(profileReport.checks).every(Boolean);
 
