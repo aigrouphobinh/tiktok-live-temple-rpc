@@ -56,9 +56,9 @@ async function boot() {
     red: new THREE.MeshPhysicalMaterial({ color: 0x741321, roughness: 0.48, metalness: 0.22, clearcoat: 0.28, clearcoatRoughness: 0.32 }),
     redBright: new THREE.MeshPhysicalMaterial({ color: 0x9d2030, roughness: 0.4, metalness: 0.3, clearcoat: 0.42, clearcoatRoughness: 0.22 }),
     stone: new THREE.MeshStandardMaterial({ color: 0x777a7c, roughness: 0.92 }),
-    statueStone: new THREE.MeshStandardMaterial({ color: 0xbdb29c, roughness: 0.94 }),
-    statueShadow: new THREE.MeshStandardMaterial({ color: 0x76674f, roughness: 0.96 }),
-    statueLight: new THREE.MeshStandardMaterial({ color: 0xe5d8bf, roughness: 0.9 }),
+    statueStone: new THREE.MeshStandardMaterial({ color: 0xa99b84, roughness: 0.94 }),
+    statueShadow: new THREE.MeshStandardMaterial({ color: 0x5e4d3a, roughness: 0.96 }),
+    statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 }),
     ivory: new THREE.MeshStandardMaterial({ color: 0xffe0a0, roughness: 0.35, metalness: 0.18 }),
     skin: new THREE.MeshStandardMaterial({ color: 0xe7ad6b, roughness: 0.52 }),
     robe: new THREE.MeshStandardMaterial({ color: 0x71859a, roughness: 0.82 }),
@@ -183,7 +183,7 @@ async function boot() {
   key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
   key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
   scene.add(key);
-  const buddhaLight = new THREE.PointLight(0xe5eaed, 34, 18, 2);
+  // A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.\n  const buddhaLight = new THREE.PointLight(0xffd1a0, 23, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
   // A restrained rear-side rim separates the ivory statue from the dark altar.
@@ -2288,7 +2288,7 @@ async function boot() {
     statueRimLight.intensity = 1.05 + auraPulse * 1.35;
     mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;
     mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;
-    buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;
+    buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;
     altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
