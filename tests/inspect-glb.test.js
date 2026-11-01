@@ -23,8 +23,8 @@ describe('GLB inspector', () => {
     const result = parseGLB(makeGlb({
       asset: { version: '2.0', generator: 'fixture' },
       scenes: [{}],
-      nodes: [{ name: 'Devotee_Rig' }],
-      accessors: [{ count: 8 }, { count: 12 }],
+      nodes: [{ name: 'Devotee_Rig' }, { name: 'Spine' }, { name: 'RightArm' }],
+      accessors: [{ count: 8 }, { count: 12 }, { count: 2, min: [0], max: [1.25] }],
       meshes: [{ name: 'Body', primitives: [
         { attributes: { POSITION: 0 } },
         { mode: 5, indices: 1, attributes: { POSITION: 0 } }
@@ -32,15 +32,22 @@ describe('GLB inspector', () => {
       materials: [{}],
       textures: [{}],
       images: [{ uri: 'textures/body.png' }],
-      skins: [{}],
-      animations: [{ name: 'Idle' }, {}]
+      skins: [{ joints: [1, 2], skeleton: 0 }],
+      animations: [{ name: 'Idle', samplers: [{ input: 2 }], channels: [
+        { sampler: 0, target: { node: 1, path: 'rotation' } },
+        { sampler: 0, target: { node: 2, path: 'rotation' } }
+      ] }, {}]
     }));
     expect(result.assetVersion).toBe('2.0');
     expect(result.triangleEstimate).toBe(12);
     expect(result.meshes).toBe(1);
     expect(result.textures).toBe(1);
     expect(result.skins).toBe(1);
-    expect(result.animations).toEqual(['Idle', 'unnamed animation']);
+    expect(result.skinDetails[0].jointNames).toEqual(['Spine', 'RightArm']);
+    expect(result.animations).toEqual(['Idle', 'unnamed animation 2']);
+    expect(result.animationDetails[0].channelCount).toBe(2);
+    expect(result.animationDetails[0].targetPaths).toEqual(['rotation']);
+    expect(result.animationDetails[0].durationSeconds).toBe(1.25);
     expect(result.externalUris).toEqual(['textures/body.png']);
   });
 
