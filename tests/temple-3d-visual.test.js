@@ -18,9 +18,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);');
     expect(scene).toContain('avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;');
     expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * 0.018;');
-    expect(scene).toContain('const profile = event.detail?.reactionProfile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
-    expect(scene).toContain('const reactionUntil = performance.now() + profile.durationMs;');
-    expect(scene).toContain('if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;');
+    expect(scene).toContain('const resolved = profile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
+    expect(scene).toContain('const reactionUntil = performance.now() + resolved.durationMs;');
+    expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
     expect(scene).toContain('for (const avatar of allHumanAvatars) {');
     expect(scene).toContain('avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
     expect(scene).toContain('if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;');
