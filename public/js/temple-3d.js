@@ -1205,6 +1205,7 @@ async function boot() {
         avatar.gltfCurrentAction = null;
         avatar.gltfCurrentClip = null;
         avatar.gltfLastTime = 0;
+        avatar.gltfWalkBlend = 0;
         const bones = {};
         model.traverse((node) => {
           if (!node.isBone) return;
@@ -1238,15 +1239,18 @@ async function boot() {
     }
   }
 
-  function applyGLTFFallbackWalk(avatar, time) {
+  function applyGLTFFallbackWalk(avatar, time, weight = 1) {
     const rig = avatar.gltfRig;
     if (!rig) return;
     const swing = Math.sin(time * 0.009 + avatar.phase);
-    const amount = 0.34;
-    if (rig.leftLeg && rig.leftLegRest) rig.leftLeg.rotation.x = rig.leftLegRest.x + swing * amount;
-    if (rig.rightLeg && rig.rightLegRest) rig.rightLeg.rotation.x = rig.rightLegRest.x - swing * amount;
-    if (rig.leftArm && rig.leftArmRest) rig.leftArm.rotation.x = rig.leftArmRest.x - swing * amount * 0.62;
-    if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = rig.rightArmRest.x + swing * amount * 0.62;
+    const amount = 0.34 * weight;
+    // Preserve the idle clip's evaluated pose when one exists. With no clips,
+    // return to the captured rest pose instead of freezing on the last gait.
+    const base = (bone, rest) => avatar.gltfActions?.idle ? bone?.rotation.x : rest?.x;
+    if (rig.leftLeg && rig.leftLegRest) rig.leftLeg.rotation.x = base(rig.leftLeg, rig.leftLegRest) + swing * amount;
+    if (rig.rightLeg && rig.rightLegRest) rig.rightLeg.rotation.x = base(rig.rightLeg, rig.rightLegRest) - swing * amount;
+    if (rig.leftArm && rig.leftArmRest) rig.leftArm.rotation.x = base(rig.leftArm, rig.leftArmRest) - swing * amount * 0.62;
+    if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + swing * amount * 0.62;
   }
 
   function animateHuman(avatar, time, walking = false) {
@@ -1257,8 +1261,13 @@ async function boot() {
       const delta = avatar.gltfLastTime ? Math.min(0.05, Math.max(0, (time - avatar.gltfLastTime) / 1000)) : 1 / 30;
       avatar.gltfMixer?.update(delta);
       avatar.gltfLastTime = time;
-      if (walking && !avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, time);
-      if (avatar.bowing && !avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowAmount);
+      const walkTarget = walking && !avatar.gltfActions?.walk ? 1 : 0;
+      const walkBlend = 1 - Math.exp(-delta / 0.16);
+      avatar.gltfWalkBlend += (walkTarget - avatar.gltfWalkBlend) * walkBlend;
+      if (!avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, time, avatar.gltfWalkBlend);
+      // Apply zero as well as non-zero bow amounts so a manual bow pose always
+      // blends back to rest when the ritual state ends and no bow clip exists.
+      if (!avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowing ? avatar.bowAmount : 0);
       avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
       return;
     }
