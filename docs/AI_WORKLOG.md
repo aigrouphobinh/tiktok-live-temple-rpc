@@ -1,3 +1,9 @@
+### 2026-11-01 — Integrate device render profiles into the 3D scene
+- The scene now resolves one device profile at boot and uses it for pixel ratio, the main directional shadow-map size and the independent environment detail preset.
+- Low tier keeps a 1x pixel ratio and uses a 512² directional shadow map plus low environment detail; medium/high retain the existing 1024² shadow map with matching environment detail.
+- Existing renderer, camera, light rig, scene and animation loop are reused; no runtime tier switching or measured FPS claim is introduced.
+- Added coordinator integration regression tests. Real-device profiling remains outstanding.
+
 ### 2026-11-01 — Wrap the ushnisha with sculpted curl courses
 - Added two staggered rings of small stone-shadow curls following the existing ushnisha ellipsoid rather than laying the curls on a flat plane.
 - Uses one static InstancedMesh batch (20 curls), with no new material, light, animation, dependency or camera change.
