@@ -16,10 +16,17 @@ describe('getTempleRenderQuality', () => {
   });
 
   it('selects medium quality for mid-range devices', () => {
+    expect(getTempleRenderQuality({ deviceMemory: 6, hardwareConcurrency: 8 }))
+      .toEqual({ tier: 'medium', maxPixelRatio: 1.15 });
+    expect(getTempleRenderQuality({ deviceMemory: 8, hardwareConcurrency: 6 }))
+      .toEqual({ tier: 'medium', maxPixelRatio: 1.15 });
+  });
+
+  it('retains the legacy low-tier cap for devices at or below 4 GB or 4 cores', () => {
     expect(getTempleRenderQuality({ deviceMemory: 4, hardwareConcurrency: 8 }))
-      .toEqual({ tier: 'medium', maxPixelRatio: 1.15 });
+      .toEqual({ tier: 'low', maxPixelRatio: 1 });
     expect(getTempleRenderQuality({ deviceMemory: 8, hardwareConcurrency: 4 }))
-      .toEqual({ tier: 'medium', maxPixelRatio: 1.15 });
+      .toEqual({ tier: 'low', maxPixelRatio: 1 });
   });
 
   it('selects high quality when all available hints indicate a strong device', () => {
@@ -54,8 +61,10 @@ describe('getTempleRenderQuality', () => {
     expect(getTempleRenderQuality({ deviceMemory: 1.5, hardwareConcurrency: 8 }).tier)
       .toBe('low');
     expect(getTempleRenderQuality({ deviceMemory: 3.5, hardwareConcurrency: 8 }).tier)
+      .toBe('low');
+    expect(getTempleRenderQuality({ deviceMemory: 5.5, hardwareConcurrency: 8 }).tier)
       .toBe('medium');
-    expect(getTempleRenderQuality({ deviceMemory: 6, hardwareConcurrency: 8 }).tier)
+    expect(getTempleRenderQuality({ deviceMemory: 8, hardwareConcurrency: 8 }).tier)
       .toBe('high');
   });
 });
@@ -76,12 +85,12 @@ describe('getTemplePixelRatio', () => {
   it('uses an intermediate cap for medium devices', () => {
     expect(getTemplePixelRatio({
       devicePixelRatio: 2,
-      deviceMemory: 4,
+      deviceMemory: 6,
       hardwareConcurrency: 8
     })).toBe(1.15);
     expect(getTemplePixelRatio({
       devicePixelRatio: 1.1,
-      deviceMemory: 4,
+      deviceMemory: 6,
       hardwareConcurrency: 8
     })).toBe(1.1);
   });
