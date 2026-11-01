@@ -189,6 +189,53 @@ describe('Temple environment architecture module', () => {
     result.dispose();
   });
 
+  it('applies progressively richer low, medium, and high detail presets', () => {
+    const presets = ['low', 'medium', 'high'].map((detailLevel) => {
+      const result = createTempleEnvironment({
+        THREE: fakeTHREE,
+        scene: createScene(),
+        config: { detailLevel }
+      });
+      const names = new Set();
+      result.group.traverse((object) => { if (object.name) names.add(object.name); });
+      return {
+        result,
+        names,
+        meshCount: result.metadata.meshCount(),
+        batchCount: result.metadata.instanceBatchCount()
+      };
+    });
+
+    const [low, medium, high] = presets;
+    for (const preset of presets) {
+      expect(preset.names.has('TemplePortraitColumnShafts')).toBe(true);
+      expect(preset.names.has('TemplePortraitColumnFlutes')).toBe(true);
+      expect(preset.names.has('TempleGalleryScreenRails')).toBe(true);
+      expect(preset.names.has('TempleFloorInlayHorizontal')).toBe(true);
+    }
+
+    expect(low.names.has('TempleCapitalCorbels')).toBe(false);
+    expect(low.names.has('TempleGalleryLattice')).toBe(false);
+    expect(low.names.has('TempleColumnBaseStuds')).toBe(false);
+    expect(low.names.has('TempleFloorInlayStuds')).toBe(false);
+
+    expect(medium.names.has('TempleCapitalCorbels')).toBe(true);
+    expect(medium.names.has('TempleGalleryLattice')).toBe(true);
+    expect(medium.names.has('TempleColumnBaseStuds')).toBe(false);
+    expect(medium.names.has('TempleFloorInlayStuds')).toBe(false);
+
+    expect(high.names.has('TempleCapitalCorbels')).toBe(true);
+    expect(high.names.has('TempleGalleryLattice')).toBe(true);
+    expect(high.names.has('TempleColumnBaseStuds')).toBe(true);
+    expect(high.names.has('TempleFloorInlayStuds')).toBe(true);
+    expect(low.meshCount).toBeLessThan(medium.meshCount);
+    expect(medium.meshCount).toBeLessThan(high.meshCount);
+    expect(low.batchCount).toBeLessThan(medium.batchCount);
+    expect(medium.batchCount).toBeLessThan(high.batchCount);
+
+    presets.forEach(({ result }) => result.dispose());
+  });
+
   it('falls back to individual meshes when InstancedMesh is unavailable', () => {
     const fallbackTHREE = { ...fakeTHREE };
     delete fallbackTHREE.InstancedMesh;
