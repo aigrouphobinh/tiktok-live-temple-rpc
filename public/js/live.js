@@ -515,10 +515,9 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     if (!giftActionResult.coalescedCombo) {
       window.dispatchEvent(new CustomEvent("temple:ritual", { detail: ev }));
     }
-    if (giftActionResult.interruptsRitual) {
-      clearProstrationTimers();
-      setCentralPose('walk1');
-    }
+    // The character-interrupted event already cancels ritual pose timers and
+    // establishes the neutral kneeling pose. Do not overwrite it here: gift
+    // choreography now owns the central sprite until the effect cooldown ends.
 
     if (ev.ttsText && ev.type !== 'drawFortune' && !giftActionResult.coalescedCombo) {
       audio.enqueueTts(ev.ttsText, { voice: ev.ttsVoice || 'maichi' });
