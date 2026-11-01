@@ -992,3 +992,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The aura is driven only by the active `special` gift reaction profile, with a subtle pulse, gentle scale expansion and a short-lived boost to the existing halo point light.
 - Normal gifts retain the existing lighting; no new point lights, particle systems, timers or per-frame geometry allocations were added.
 - Added visual-source regression assertions and CI guards. Browser rendering and performance still need confirmation on the live 3D scene.
+
+
+### 2026-11-01 — Animate lotus petal rings opening for special gifts
+- Grouped the two existing instanced lotus-petal tiers so the tiers can gently expand radially as a special gift reaction arrives.
+- The outer tier opens slightly more than the inner tier; both return to their exact baseline as the shared special-gift reaction envelope fades.
+- Animation scales two parent groups rather than rewriting individual instance matrices each frame; no new geometry, lights, timers, or particle allocations.
+- Added source regression tests and CI guards. Browser render validation remains outstanding.
