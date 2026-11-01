@@ -1385,6 +1385,9 @@ async function boot() {
     const swing = Math.sin(gaitPhase + avatar.phase);
     const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
     const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);
+    const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);
+    // Devotees briefly turn from the altar toward the live audience, then ease back.
+    avatar.root.rotation.y = Math.PI * (1 - giftReaction);
     if (avatar.gltfRoot) {
       const mode = walking ? 'walk' : avatar.bowing ? 'bow' : 'idle';
       playGLTFHumanAction(avatar, mode);
@@ -1419,7 +1422,6 @@ async function boot() {
     // Keep breathing on the torso mesh so the waist pivot and kneeling feet stay planted.
     avatar.torso.scale.y = 1 + breath * 0.012;
     avatar.torso.position.y = 0.40 + breath * 0.0025;
-    const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);
     avatar.torso.rotation.y = giftReaction * 0.035;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;
     avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.025;
@@ -1433,7 +1435,10 @@ async function boot() {
       avatar.eyePupils[index].scale.y = eyeOpen;
       avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006;
     }
-    avatar.smile.scale.y = 1 - avatar.bowAmount * 0.12;
+    // A subtle wider smile and attentive eyes make the thank-you readable at portrait scale.
+    avatar.smile.scale.x = 1 + giftReaction * 0.2;
+    avatar.smile.scale.y = 1 + giftReaction * 0.12 - avatar.bowAmount * 0.12;
+    for (const eyeWhite of avatar.eyeWhites) eyeWhite.scale.x = 1 + giftReaction * 0.045;
     avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
     applyGiftThankYouGesture(avatar, time);
   }
