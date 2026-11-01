@@ -21,6 +21,14 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('new THREE.PointLight(0xffbd69, 8, 7, 2)');
   });
 
+  it('uses one static instanced mesh for gilded column fluting', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('new THREE.CylinderGeometry(0.012, 0.012, 5.9, 6)');
+    expect(scene).toContain('mats.goldBright, 10 * 8');
+    expect(scene).toContain('columnFlutes.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
+    expect(scene).toContain('columnFlutes.castShadow = false');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
