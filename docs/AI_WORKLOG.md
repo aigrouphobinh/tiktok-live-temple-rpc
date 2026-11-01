@@ -394,3 +394,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - First expanded test run exposed a missing top-level `gift_id` fallback (51 passed, 1 failed); the failure was inspected from the Actions job log rather than treated as a successful run.
 - Added the missing `data.gift_id` fallback. GitHub Actions run `41257263011` on commit `9d15c3cf063a7753d51ecab487065997839a8cda` completed successfully: all Bun unit tests and the server-side JavaScript syntax check passed.
 - Earlier runs `41257236465` and `41257243389` failed on the incomplete intermediate implementation; the corrected follow-up run is green. Actual TikTok LIVE payload capture and browser runtime remain unverified.
+
+
+### TikTok gift combo reconnect reset — 2026-11-01
+- Reset the server-side cumulative combo tracker when a new TikTok connection starts, when the active connection disconnects, and on an explicit manual disconnect. A late `DISCONNECTED` callback from a superseded connection is ignored so it cannot clear the new session's tracker.
+- Exposed a narrow `resetStreaks()` hook from the browser gift-action engine; the live UI calls it when the server-reported TikTok connected state changes, preventing a reused `groupId` from suppressing the first visual effect after reconnect.
+- Added regression coverage proving both server combo counting and browser streak coalescing accept a fresh first frame after tracker reset.
+- Code and tests committed directly to `main`. GitHub Actions validation is pending; real connector reconnect behavior and browser runtime remain unverified.
