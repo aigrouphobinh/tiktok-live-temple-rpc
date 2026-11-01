@@ -1067,3 +1067,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added eight small curls in one static InstancedMesh batch, continuing the existing cap pattern down both temple edges.
 - Reuses the existing hair-curl geometry and stone-shadow material; no new lights, materials, animation or camera changes.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Refine the Buddha's nose and philtrum
+- Added shallow paired nose-wing and nostril creases, short philtrum contours and a soft upper-lip highlight.
+- Kept the existing face silhouette and serene expression; details reuse the existing statueLine helper and stone materials.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
