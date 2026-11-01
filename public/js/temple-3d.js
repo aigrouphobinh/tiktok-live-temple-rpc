@@ -535,6 +535,25 @@ async function boot() {
     const x=-0.42+k*0.21;
     robeFold([[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]],0.022);
   }
+  // Small paired elbow creases connect the upper-arm drape to the resting forearms.
+  for (const side of [-1, 1]) {
+    const elbowCrease = [
+      [side * 0.53, 3.22, 0.61],
+      [side * 0.64, 3.17, 0.64],
+      [side * 0.75, 3.2, 0.59]
+    ];
+    robeFold(elbowCrease, 0.012);
+    const elbowRidgeCurve = new THREE.CatmullRomCurve3(elbowCrease.map(([x, y, z]) =>
+      new THREE.Vector3(x, y + 0.026, z + 0.012)
+    ));
+    const elbowRidge = new THREE.Mesh(
+      new THREE.TubeGeometry(elbowRidgeCurve, 16, 0.008, 6, false),
+      mats.statueLight
+    );
+    elbowRidge.castShadow = false;
+    elbowRidge.receiveShadow = false;
+    statue.add(elbowRidge);
+  }
   // Two restrained chest folds follow the robe diagonally toward the lap.
   robeFold([[-0.38,3.28,0.69],[-0.12,3.18,0.77],[0.16,3.04,0.75],[0.39,2.9,0.67]],0.018);
   robeFold([[-0.3,3.12,0.73],[-0.04,3.02,0.79],[0.22,2.88,0.73],[0.43,2.76,0.62]],0.014);
