@@ -23,6 +23,14 @@ Updated: 2026-11-01
 - `606039c` — added CI source guards for altar spotlights and candle flicker.
 - `99c7feb` — added CI source guards for all four 3D gift actions and the interruption-event bridge.
 
+## Animated animal devotee integration
+
+- Added a Three.js import map pinned to the same r180.0 build used by the 3D scene, plus the matching GLTFLoader and SkeletonUtils addons.
+- The 3D congregation now creates eight animal anchor positions instead of eighteen rough human-shaped placeholders. Corgi is the lead visitor; Duck is used as a secondary variant when its GLB loads.
+- The active ritual visitor uses the same rigged Corgi (Duck fallback) and switches between the named `walk` and `idle` clips. Each skinned copy is cloned with SkeletonUtils and normalized to the fixed elevated 9:16 camera scale.
+- The primitive figures remain as graceful local fallbacks if either model download fails. The scene does not wait for the remote assets before becoming ready.
+- Source files are served from Gobkit's public CC0 GLB URLs at runtime for this first integration; this is not yet a vendored/offline asset. The browser still needs internet access to load the animal models. No browser/WebGL visual inspection has been performed in this environment.
+
 ## Character art direction and asset shortlist
 
 - User direction (2026-11-01): character models must look attractive and polished; if a suitable attractive humanoid cannot be found, prefer cute animal characters rather than plain/rough placeholder humans.
