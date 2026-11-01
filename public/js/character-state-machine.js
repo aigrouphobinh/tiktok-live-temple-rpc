@@ -86,8 +86,13 @@ export class CharacterStateMachine {
 
     if (!this.active) return { interrupted: false, reason: 'no_active_character' };
 
-    if (this.queue.length >= this.maxQueue) this.queue.pop();
-    this.queue.unshift(this.active);
+    // Preserve the interrupted devotee only when the waiting queue has
+    // capacity. With maxQueue=0 the gift still takes ownership, but the
+    // interrupted visit is intentionally not retained as waiting work.
+    if (this.maxQueue > 0) {
+      if (this.queue.length >= this.maxQueue) this.queue.pop();
+      this.queue.unshift(this.active);
+    }
     this.active = null;
     this.effect = { action, priority, event: giftEvent };
     this.state = 'INTERRUPTED';
