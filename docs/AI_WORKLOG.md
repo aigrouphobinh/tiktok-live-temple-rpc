@@ -665,3 +665,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a finer offset highlight ridge; highlight meshes do not cast or receive shadows.
 - Added source regression coverage for the paired elbow detailing.
 - Geometry remains procedural and lightweight; final visual placement still requires a browser render check.
+
+
+
+### 2026-11-01 — Consolidate the Buddha robe arm contours
+- Reviewed the shoulder, upper-arm and elbow detail paths and found overlapping parallel contour lines that risked making the robe look over-etched.
+- Removed the duplicate upper-arm contour and extended the existing shoulder seam down toward the resting hand, retaining one paired shadow line and a fine non-shadowing highlight.
+- Updated the source regression test to assert the consolidated path and the absence of the redundant arm-edge path.
+- This is a source-level geometry review; a browser render is still needed for visual confirmation.
