@@ -62,7 +62,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-    expect(html).toContain('/css/live.css?v=3d-console-20261101-3');
+    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-4');
   });
 
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
@@ -74,6 +74,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('font-size: 38px;');
     expect(css).toContain('.stage-9x16.temple-3d-mode .hud-right-leaderboard');
     expect(css).toContain('height: 188px;');
+  });
+
+  it('builds a distinct ceremonial 3D interaction console without changing 2D markup behavior', () => {
+    const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+    expect(html).toContain('hud-panel-kicker');
+    expect(html).toContain('NGHI LỄ • CÚNG DƯỜNG');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .hud-panel-kicker');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .hud-gift-card:nth-child(3)::before');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .leader-item:first-child .leader-rank');
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)');
   });
 
   it('keeps the vignette below the live HUD layer', () => {
