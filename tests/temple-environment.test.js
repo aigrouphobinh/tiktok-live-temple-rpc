@@ -45,7 +45,7 @@ class FakeInstancedMesh extends FakeMesh {
   constructor(geometry, material, count) {
     super(geometry, material);
     this.count = count;
-    this.instanceMatrix = { setUsage() {} };
+    this.instanceMatrix = { setUsage() {}, needsUpdate: false };
     this.setMatrixAt = () => {};
   }
 }
@@ -85,6 +85,17 @@ describe('Temple environment architecture module', () => {
     expect(names).toContain('TempleColumnBaseRings');
     expect(names).toContain('TempleCapitalCorbels');
     expect(names).toContain('TempleGalleryLattice');
+    result.dispose();
+  });
+
+  it('marks every populated instance matrix for GPU upload', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const batches = [];
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.push(object);
+    });
+    expect(batches.length).toBeGreaterThan(0);
+    expect(batches.every((batch) => batch.instanceMatrix.needsUpdate === true)).toBe(true);
     result.dispose();
   });
 
