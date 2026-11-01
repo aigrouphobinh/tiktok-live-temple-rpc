@@ -36,7 +36,7 @@ const templeEnvironment = createTempleEnvironment({
     floorInlayX: 3.82,
     floorInlayZs: [-7, -4, -1, 2],
     gallerySurfaceY: -0.0825, // top surface of the visible side aisle deck in the portrait crop
-    enableColumnBases: true,
+    enableColumnBases: true, // decorative footings/collars only; structural shafts remain enabled
     enableCapitalBrackets: true,
     enableGalleryScreens: true,
     enableFloorInlays: true
