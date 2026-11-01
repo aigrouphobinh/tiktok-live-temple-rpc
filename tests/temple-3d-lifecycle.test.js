@@ -22,8 +22,9 @@ describe('Three.js lifecycle recovery', () => {
   });
 
   it('prevents resize callbacks from touching a disposed renderer', () => {
-    const handler = source.slice(source.indexOf("window.addEventListener('resize'"), source.indexOf("canvas.addEventListener('webglcontextlost'"));
+    const handler = source.slice(source.indexOf('function onWindowResize()'), source.indexOf("document.addEventListener('visibilitychange'"));
     expect(handler).toContain('if (disposed) return;');
+    expect(handler).toContain('renderer.setSize(1080, 1920, false);');
   });
 
   it('shares cleanup with pagehide rather than disposing the scene twice', () => {
