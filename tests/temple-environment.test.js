@@ -79,12 +79,14 @@ describe('Temple environment architecture module', () => {
 
   it('builds the repeated architecture using instanced batches', () => {
     const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
-    expect(result.metadata.instanceBatchCount()).toBeGreaterThanOrEqual(3);
+    expect(result.metadata.instanceBatchCount()).toBeGreaterThanOrEqual(10);
     const names = [];
     result.group.traverse((object) => { if (object.name) names.push(object.name); });
     expect(names).toContain('TempleColumnBaseRings');
     expect(names).toContain('TempleCapitalCorbels');
     expect(names).toContain('TempleGalleryLattice');
+    expect(names).toContain('TempleGalleryScreenRails');
+    expect(names).toContain('TempleColumnBaseStoneFootings');
     result.dispose();
   });
 
