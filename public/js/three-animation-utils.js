@@ -5,28 +5,53 @@ const DEFAULT_CLIP_ALIASES = {
 };
 
 function hasNameToken(name, token) {
-  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = token.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
   return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, 'i').test(name);
 }
 
+function normalizeClipName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_|./-]+/g, ' ')
+    .replace(/\\s+/g, ' ')
+    .trim();
+}
+
 /**
- * Select the most specific matching animation clip. Alias order is intentional:
- * explicit action names win over generic synonyms, and token boundaries avoid
- * matching unrelated words such as "remove" for the "move" action.
+ * Select one best clip per action without assigning the same clip to multiple
+ * states. Explicit aliases rank above generic synonyms; source order breaks
+ * otherwise equal scores deterministically.
  */
 export function findBestAnimationClip(animations = [], aliases = DEFAULT_CLIP_ALIASES) {
-  return Object.entries(aliases).reduce((result, [action, tokens]) => {
-    const candidates = animations.map((clip, index) => {
-      const name = String(clip?.name || '').trim();
-      const normalized = name.toLowerCase().replace(/[_|./-]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const actions = Object.keys(aliases);
+  const selected = Object.fromEntries(actions.map((action) => [action, null]));
+  const candidates = [];
+
+  for (const [action, tokens] of Object.entries(aliases)) {
+    animations.forEach((clip, index) => {
+      const normalized = normalizeClipName(clip?.name);
+      if (!normalized) return;
       const aliasIndex = tokens.findIndex((token) => hasNameToken(normalized, token));
-      if (!name || aliasIndex < 0) return null;
+      if (aliasIndex < 0) return;
       const exact = normalized === tokens[aliasIndex];
-      return { clip, index, score: (exact ? 10000 : 5000) - aliasIndex * 100 - normalized.length };
-    }).filter(Boolean).sort((a, b) => b.score - a.score || a.index - b.index);
-    result[action] = candidates[0]?.clip || null;
-    return result;
-  }, {});
+      candidates.push({
+        action,
+        clip,
+        index,
+        score: (exact ? 10000 : 5000) - aliasIndex * 100 - normalized.length
+      });
+    });
+  }
+
+  candidates.sort((a, b) => b.score - a.score || a.index - b.index);
+  const usedClips = new Set();
+  for (const candidate of candidates) {
+    if (selected[candidate.action] || usedClips.has(candidate.clip)) continue;
+    selected[candidate.action] = candidate.clip;
+    usedClips.add(candidate.clip);
+  }
+  return selected;
 }
 
 export { DEFAULT_CLIP_ALIASES };
