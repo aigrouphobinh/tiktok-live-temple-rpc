@@ -1,3 +1,9 @@
+### 2026-11-01 — Preserve shared geometry during GLB upgrades
+- Found that GLB replacement removed procedural Buddha/devotee nodes and disposed their geometries individually. This became unsafe after primitive geometry caching because those buffers can be shared by unrelated meshes.
+- Changed upgrades to hide procedural fallback nodes while keeping them attached to the scene. This preserves fallback content and lets the scene-level deduplicating disposer release shared geometry/material/texture resources once at final teardown.
+- Added regression coverage to prevent per-child geometry disposal in either upgrade path.
+- CI pending; no model assets or visual placement changed.
+
 ### 2026-11-01 — Repair GLB lifecycle regression assertion
 - CI exposed one stale visual-suite assertion that still expected the old geometry/material-only disposer after the GLB loader was correctly upgraded to texture-aware scene disposal.
 - Updated the assertion to require `disposeThreeSceneResources(root)`; implementation and GLB loading behavior are unchanged.
