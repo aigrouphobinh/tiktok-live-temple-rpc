@@ -241,4 +241,16 @@ describe('applyTwoBoneIKToBones', () => {
     expect(applyTwoBoneIKToBones(THREE,chain.root,chain.knee,chain.ankle,[0,1],[1,0,0])).toBeNull();
     expect(chain.root.quaternion.equals(before)).toBe(true);
   });
+
+  it('rejects bones that do not form one ordered ancestor chain', () => {
+    const chain=makeChain();
+    const unrelated=new Node(true);
+    chain.rig.add(unrelated);
+    expect(applyTwoBoneIKToBones(
+      THREE, chain.root, unrelated, chain.ankle, [0,-1,0], [1,0,0]
+    )).toBeNull();
+    expect(applyTwoBoneIKToBones(
+      THREE, chain.root, chain.knee, unrelated, [0,-1,0], [1,0,0]
+    )).toBeNull();
+  });
 });
