@@ -304,3 +304,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Reworked the Donut flight into a multi-beat zig-zag arc with staged scale/rotation and a controlled exit path in the upper-middle scene lane.
 - Reduced the devotee reaction from a large 300px lateral sweep to a short sidestep/hop sequence to reduce the risk of crossing altar/scene props.
 - Source-level choreography only; actual sprite bounds, overlap with Buddha/altar/HUD, camera framing and mobile rendering still require browser validation.
+### Gift action character-animation ownership — 2026-11-01
+- Fixed an interruption edge case: when a new gift action supersedes an in-flight action, the previous central-character Web Animation is now cancelled immediately before dispatching the new action.
+- This also covers incoming actions without their own character motion (notably Rose), preventing a previous Rocket/Dragon/Donut movement from continuing underneath the new effect.
+- Source change reviewed; no browser animation assertion or real TikTok LIVE run is claimed. Verify rapid gift supersession and character pose recovery in-browser.
