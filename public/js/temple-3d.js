@@ -536,6 +536,28 @@ async function boot() {
     const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,18,radius,8,false),material);
     mesh.castShadow=true;statue.add(mesh);return mesh;
   };
+  // Shallow inner-ear grooves make the elongated stone ears read as sculpted forms.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.64, 4.68, 0.105],
+      [side * 0.67, 4.58, 0.145],
+      [side * 0.65, 4.45, 0.13],
+      [side * 0.62, 4.42, 0.105]
+    ], 0.012);
+    statueLine([
+      [side * 0.64, 4.58, 0.15],
+      [side * 0.61, 4.53, 0.16],
+      [side * 0.62, 4.49, 0.145]
+    ], 0.009, mats.statueLight);
+  }
+  // Fine temple arcs connect the curled cap to the head silhouette.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.56, 5.02, 0.49],
+      [side * 0.52, 4.91, 0.55],
+      [side * 0.49, 4.79, 0.57]
+    ], 0.014, mats.statueLight);
+  }
   for(const side of [-1,1]){
     statueLine([[side*0.43,4.75,0.59],[side*0.3,4.78,0.68],[side*0.16,4.75,0.7]],0.022);
     statueLine([[side*0.42,4.94,0.58],[side*0.28,4.99,0.65],[side*0.14,4.96,0.68]],0.025,mats.statueLight);
