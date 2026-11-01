@@ -78,8 +78,8 @@ describe('Temple environment architecture module', () => {
     expect(result.group.name).toBe('TempleEnvironmentArchitecture');
     expect(result.group.parent).toBe(scene);
     expect(result.metadata.roofless).toBe(true);
-    expect(result.metadata.columnCount).toBe(10);
-    expect(result.metadata.galleryScreenCount).toBe(8);
+    expect(result.metadata.columnCount).toBe(2);
+    expect(result.metadata.galleryScreenCount).toBe(2);
     expect(result.metadata.meshCount()).toBeGreaterThan(0);
     result.dispose();
   });
@@ -94,6 +94,8 @@ describe('Temple environment architecture module', () => {
     expect(names).toContain('TempleGalleryLattice');
     expect(names).toContain('TempleGalleryScreenRails');
     expect(names).toContain('TempleColumnBaseStoneFootings');
+    expect(names).toContain('TemplePortraitColumnShafts');
+    expect(names).toContain('TemplePortraitColumnFlutes');
     result.dispose();
   });
 
@@ -105,6 +107,26 @@ describe('Temple environment architecture module', () => {
     });
     expect(batches.length).toBeGreaterThan(0);
     expect(batches.every((batch) => batch.instanceMatrix.needsUpdate === true)).toBe(true);
+    result.dispose();
+  });
+
+  it('places complete architectural side columns and relief panels inside the portrait camera margins', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const batches = new Map();
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
+    });
+    const shafts = batches.get('TemplePortraitColumnShafts');
+    const screens = batches.get('TempleGalleryScreenRails');
+    const inlays = batches.get('TempleFloorInlayHorizontal');
+    expect(shafts?.count).toBe(2);
+    expect(shafts.matrices.map((matrix) => matrix.position[0]).sort((a, b) => a - b))
+      .toEqual([-5.15, 5.15]);
+    expect(shafts.matrices.every((matrix) => matrix.position[1] === 4.05
+      && matrix.position[2] === -10)).toBe(true);
+    expect(screens?.count).toBe(4);
+    expect(inlays?.count).toBe(8);
+    expect(inlays.matrices.every((matrix) => Math.abs(Math.abs(matrix.position[0]) - 3.82) < 1e-8)).toBe(true);
     result.dispose();
   });
 
@@ -148,9 +170,9 @@ describe('Temple environment architecture module', () => {
     expect(vertical?.count).toBe(8);
     expect(studs?.count).toBe(8);
     for (const batch of [horizontal, vertical]) {
-      expect(batch.matrices.every((matrix) => Math.abs(matrix.position[1] - 0.1) < 1e-8)).toBe(true);
+      expect(batch.matrices.every((matrix) => Math.abs(matrix.position[1] + 0.065) < 1e-8)).toBe(true);
     }
-    expect(studs.matrices.every((matrix) => Math.abs(matrix.position[1] - 0.13) < 1e-8)).toBe(true);
+    expect(studs.matrices.every((matrix) => Math.abs(matrix.position[1] + 0.035) < 1e-8)).toBe(true);
     result.dispose();
   });
 
