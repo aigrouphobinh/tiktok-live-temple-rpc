@@ -216,6 +216,17 @@ async function boot() {
   box(5.6, 0.2, 1.45, mats.woodLight, 0, 1.62, 0, offeringTable);
   box(5.72, 0.09, 1.55, mats.gold, 0, 1.77, 0, offeringTable);
   box(5.35, 0.12, 1.3, mats.red, 0, 1.86, 0, offeringTable);
+  // A lacquered front apron makes the altar table read as a crafted piece of
+  // temple furniture instead of a stack of plain rectangular slabs.
+  box(5.32, 0.3, 0.12, mats.redBright, 0, 1.38, 0.755, offeringTable);
+  box(5.28, 0.035, 0.15, mats.goldBright, 0, 1.55, 0.765, offeringTable);
+  box(5.28, 0.035, 0.15, mats.gold, 0, 1.21, 0.765, offeringTable);
+  const tableSeal = box(0.25, 0.25, 0.065, mats.goldBright, 0, 1.38, 0.84, offeringTable);
+  tableSeal.rotation.z = Math.PI / 4;
+  sphere(0.07, mats.red, 0, 1.38, 0.89, 1, 1, 0.38, offeringTable);
+  for (const x of [-2.35, -1.2, 1.2, 2.35]) {
+    sphere(0.055, mats.goldBright, x, 1.38, 0.84, 1, 1, 0.45, offeringTable);
+  }
   for (const x of [-2.35, -0.8, 0.8, 2.35]) {
     box(0.18, 1.35, 0.18, mats.wood, x, 0.9, 0, offeringTable);
     box(0.42, 0.12, 1.32, mats.gold, x, 0.38, 0, offeringTable);
