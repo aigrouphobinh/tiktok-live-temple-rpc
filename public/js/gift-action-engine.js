@@ -24,6 +24,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   let phaseTimers = [];
   let effectTimer = 0;
   let cooldownTimer = 0;
+  let delayedEffectTimers = [];
   let effectToken = 0;
   let characterAnimation = null;
   const effectRegistry = new GiftEffectRegistry();
@@ -48,6 +49,21 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
 
   function clearActiveEffects() {
     effectRegistry.clear();
+  }
+
+  function clearDelayedEffectTimers() {
+    delayedEffectTimers.forEach(clearTimeout);
+    delayedEffectTimers = [];
+  }
+
+  function scheduleEffectCallback(token, callback, delay) {
+    const timer = window.setTimeout(() => {
+      delayedEffectTimers = delayedEffectTimers.filter((id) => id !== timer);
+      if (token !== effectToken) return;
+      callback();
+    }, delay);
+    delayedEffectTimers.push(timer);
+    return timer;
   }
 
   function animateCharacter(keyframes, duration) {
@@ -84,8 +100,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       removeAfter(trail, trailAnim);
     }
 
-    window.setTimeout(() => {
-      if (token !== effectToken) return;
+    scheduleEffectCallback(token, () => {
       playGiftSound('explosion');
       const blast = createEffect('gift-blast', '💥', 595, 1010);
       blast.style.fontSize = '112px';
@@ -175,8 +190,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       { transform: 'translate3d(340px,-80px,0) scale(2.2)', opacity: 0 }
     ], { duration: 1700, delay: 650, easing: 'ease-out', fill: 'forwards' });
     removeAfter(wind, gust);
-    window.setTimeout(() => {
-      if (token !== effectToken) return;
+    scheduleEffectCallback(token, () => {
       playGiftSound('dragon-roar');
       const impact = createEffect('gift-dragon-impact', '', 540, 955);
       const impactAnim = impact.animate([
@@ -291,6 +305,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     phaseTimers = [];
     clearTimeout(effectTimer);
     clearTimeout(cooldownTimer);
+    clearDelayedEffectTimers();
     const token = ++effectToken;
     clearActiveEffects();
     // Every new gift action owns the central character animation. Cancel the
