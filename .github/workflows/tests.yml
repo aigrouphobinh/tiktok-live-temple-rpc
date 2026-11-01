@@ -28,4 +28,7 @@ jobs:
           node --check public/js/audio.js &&
           node --input-type=module --check < public/js/gift-sfx-dispatcher.js &&
           node --input-type=module --check < public/js/gift-action-engine.js &&
-          node --input-type=module --check < public/js/live.js
+          node --input-type=module --check < public/js/live.js &&
+          node --input-type=module --check < public/js/temple-3d.js &&
+          node --input-type=module --check < public/js/camera-controller.js &&
+          node --input-type=module --check < public/js/three-resource-utils.js
