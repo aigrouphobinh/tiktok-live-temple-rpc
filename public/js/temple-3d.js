@@ -185,11 +185,27 @@ async function boot() {
   cylinder(0.72, 0.72, 0.12, mats.redBright, 0, 4.25, -10.9, world, 48).rotation.x = Math.PI / 2;
   for (const x of [-3.45, 3.45]) {
     box(1.55, 3.8, 0.12, mats.woodLight, x, 4.05, -10.98);
+    // Recessed cinnabar panels sit behind the brass lattice, adding a second
+    // architectural plane instead of leaving the side screens visually flat.
+    box(1.34, 3.55, 0.05, mats.redBright, x, 4.05, -10.90);
     for (let y = 2.55; y <= 5.55; y += 0.75) {
       box(1.42, 0.045, 0.08, mats.goldBright, x, y, -10.88);
     }
     for (let dx = -0.48; dx <= 0.49; dx += 0.48) {
       box(0.045, 3.55, 0.08, mats.goldBright, x + dx, 4.05, -10.88);
+    }
+    // Fine inner mouldings catch the warm altar light and make each niche
+    // read as a framed cabinet, matching the reference's red-and-gold screen.
+    for (const side of [-1, 1]) {
+      box(0.065, 3.68, 0.1, mats.gold, x + side * 0.72, 4.05, -10.78);
+    }
+    for (const y of [2.19, 5.91]) {
+      box(1.5, 0.075, 0.1, mats.goldBright, x, y, -10.78);
+    }
+    for (const y of [2.3, 5.8]) {
+      for (const side of [-1, 1]) {
+        sphere(0.075, mats.goldBright, x + side * 0.72, y, -10.69, 1, 1, 0.55);
+      }
     }
   }
 
