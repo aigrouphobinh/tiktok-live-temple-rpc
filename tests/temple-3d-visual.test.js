@@ -315,4 +315,15 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds paired carved seams and ivory ridges over both Buddha shoulders', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const shoulderSeam = [');
+    expect(scene).toContain('robeFold(shoulderSeam, 0.018);');
+    expect(scene).toContain('new THREE.TubeGeometry(shoulderRidge, 24, 0.012, 6, false)');
+    expect(scene).toContain('mats.statueLight');
+    expect(scene).toContain('ridgeMesh.castShadow = false;');
+    expect(scene).toContain('statue.add(ridgeMesh);');
+  });
+
+
 });
