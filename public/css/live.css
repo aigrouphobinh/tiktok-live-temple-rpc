@@ -2501,3 +2501,46 @@ body.obs-mode .stage-wrapper {
     0 0 0 1px rgba(14, 7, 3, .92);
   pointer-events: none;
 }
+
+/* 3D leaderboard empty state — keep the panel intentional before the first live contribution. */
+.stage-9x16.temple-3d-mode .hud-lb-list:empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 0;
+}
+.stage-9x16.temple-3d-mode .hud-lb-list:empty::before {
+  content: '✧';
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 1px solid rgba(230, 190, 119, .34);
+  border-radius: 50%;
+  color: #edc879;
+  background: radial-gradient(circle, rgba(226, 176, 87, .15), rgba(26, 18, 13, .1) 72%);
+  box-shadow: 0 0 18px rgba(218, 169, 83, .08), inset 0 0 9px rgba(255, 230, 180, .06);
+  font-size: 18px;
+  line-height: 1;
+}
+.stage-9x16.temple-3d-mode .hud-lb-list:empty::after {
+  content: 'Chưa có lượt cúng dường\A Mỗi tấm lòng đều được trân trọng';
+  color: rgba(239, 221, 190, .62);
+  font-size: 9px;
+  letter-spacing: .15px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-line;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .hud-lb-list:empty::before {
+    width: 21px;
+    height: 21px;
+    font-size: 14px;
+  }
+  .stage-9x16.temple-3d-mode .hud-lb-list:empty::after {
+    font-size: 7px;
+  }
+}
