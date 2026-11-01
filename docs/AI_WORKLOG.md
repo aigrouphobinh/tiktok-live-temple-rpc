@@ -625,3 +625,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Preserved the existing eye, brow, nose and mouth placement; no camera, lighting or animation changes.
 - Added source regression coverage for the new facial contours.
 - Browser/render review remains necessary to judge visibility and proportions at the fixed camera distance.
+
+
+
+### 2026-11-01 — Sculpt the Buddha ears and temples
+- Added paired shallow inner-ear grooves and small raised inner contours to clarify the elongated ear forms.
+- Added fine temple arcs to visually connect the curled hair cap with the head silhouette.
+- Reused the existing statueLine helper and existing statue materials; no lighting, camera or animation changes.
+- Added source regression coverage. Browser render inspection remains necessary for final proportion and visibility review.
