@@ -1,3 +1,8 @@
+### 2026-11-01 — Dispose rejected GLB loads
+- Hardened the loader's post-download validation path: if an imported GLB has an empty scene or invalid vertical bounds, decoded geometry/material/texture resources are now disposed before the error is rethrown to the existing procedural fallback.
+- Added a regression assertion for cleanup on validation failure. Successful model normalization and animation behavior remain unchanged.
+- CI pending.
+
 ### 2026-11-01 — Preserve shared geometry during GLB upgrades
 - Found that GLB replacement removed procedural Buddha/devotee nodes and disposed their geometries individually. This became unsafe after primitive geometry caching because those buffers can be shared by unrelated meshes.
 - Changed upgrades to hide procedural fallback nodes while keeping them attached to the scene. This preserves fallback content and lets the scene-level deduplicating disposer release shared geometry/material/texture resources once at final teardown.
