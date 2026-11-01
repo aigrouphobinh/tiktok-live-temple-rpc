@@ -89,9 +89,9 @@ describe('3D sanctuary visual treatment', () => {
   it('models the bell, wooden fish and fortune cylinder as 3D sanctuary props', async () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function makeRitualStation(x, z, kind)');
-    expect(scene).toContain("makeRitualStation(-7.1, -0.8, 'bell')");
-    expect(scene).toContain("makeRitualStation(7.1, -0.8, 'woodfish')");
-    expect(scene).toContain("makeRitualStation(7.1, -5.0, 'fortune')");
+    expect(scene).toContain("makeRitualStation(-3.75, -1.2, 'bell')");
+    expect(scene).toContain("makeRitualStation(3.75, -1.2, 'woodfish')");
+    expect(scene).toContain("makeRitualStation(3.75, -5.4, 'fortune')");
     expect(scene).toContain('const ritualStations = [];');
     expect(scene).toContain('camera.position.set(0, 10.5, 23);');
     expect(scene).toContain('camera.lookAt(0, 4.4, -5.5);');
