@@ -686,6 +686,7 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   // 8. Kết nối JSON-RPC 2.0 WebSocket & Gửi Lệnh RPC
   let ws = null;
   let rpcId = 1;
+  let lastTikTokConnected = null;
 
   function connectWebSocket() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -695,6 +696,11 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
       try {
         const msg = JSON.parse(event.data);
         if (msg.method === 'temple.state') {
+          const connected = msg.params?.tiktok?.connected;
+          if (typeof connected === 'boolean' && connected !== lastTikTokConnected) {
+            window.TempleGiftActionEngine?.resetStreaks?.();
+            lastTikTokConnected = connected;
+          }
           updateUIState(msg.params);
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
