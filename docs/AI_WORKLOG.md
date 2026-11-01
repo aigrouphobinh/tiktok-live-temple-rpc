@@ -821,3 +821,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - CI exposed a genuine ambiguity: `Praying Idle` matched the generic idle token before the prayer token, stealing the bow clip.
 - Updated matching so an explicit ritual token (`bow` alias family) excludes the clip from idle/walk candidates; the clip is now assigned to the bow state.
 - The prayer/kneeling regression test verifies that ritual intent wins and no idle/walk clip is fabricated.
+
+
+### 2026-11-01 — Smooth the devotee bow transition
+- Replaced linear bow-in and bow-out ramps with smoothstep easing at both ends of the ritual pose, reducing abrupt starts/stops in the torso and neck articulation.
+- Added a source regression test for both eased ramps and their combined bow amount.
+- This validates the transition math at source level; visual confirmation still requires the deployed GLB in a browser.
