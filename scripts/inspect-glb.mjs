@@ -66,6 +66,44 @@ export function parseGLB(input) {
     }
   }
 
+  const nodes = Array.isArray(document.nodes) ? document.nodes : [];
+  const nodeNames = nodes.map((node, index) => node.name || `node-${index}`);
+  const skins = (document.skins || []).map((skin, index) => ({
+    name: skin.name || `skin-${index}`,
+    joints: Array.isArray(skin.joints) ? skin.joints.length : 0,
+    jointNames: (skin.joints || []).map((nodeIndex) => nodeNames[nodeIndex] ?? `invalid-node-${nodeIndex}`),
+    skeleton: Number.isInteger(skin.skeleton) ? nodeNames[skin.skeleton] ?? null : null
+  }));
+  const animationDetails = (document.animations || []).map((animation, index) => {
+    const channels = (animation.channels || []).map((channel) => ({
+      node: Number.isInteger(channel.target?.node)
+        ? nodeNames[channel.target.node] ?? `invalid-node-${channel.target.node}`
+        : null,
+      path: channel.target?.path ?? null,
+      sampler: channel.sampler ?? null
+    }));
+    const inputAccessorIndices = (animation.samplers || [])
+      .map((sampler) => sampler.input)
+      .filter(Number.isInteger);
+    const timeRanges = inputAccessorIndices
+      .map((accessorIndex) => accessors[accessorIndex])
+      .filter(Boolean)
+      .map((accessor) => ({
+        min: Array.isArray(accessor.min) ? accessor.min[0] : null,
+        max: Array.isArray(accessor.max) ? accessor.max[0] : null
+      }))
+      .filter((range) => Number.isFinite(range.min) && Number.isFinite(range.max));
+    const duration = timeRanges.length
+      ? Math.max(...timeRanges.map((range) => range.max)) - Math.min(...timeRanges.map((range) => range.min))
+      : null;
+    return {
+      name: animation.name || `unnamed animation ${index + 1}`,
+      channels,
+      channelCount: channels.length,
+      targetPaths: [...new Set(channels.map((channel) => channel.path).filter(Boolean))],
+      durationSeconds: duration
+    };
+  });
   const externalUris = [
     ...(document.buffers || []),
     ...(document.images || [])
@@ -76,7 +114,7 @@ export function parseGLB(input) {
     generator: document.asset?.generator ?? null,
     scenes: document.scenes?.length ?? 0,
     nodes: document.nodes?.length ?? 0,
-    nodeNames: (document.nodes || []).map((node) => node.name).filter(Boolean),
+    nodeNames: nodeNames.filter((name, index) => nodes[index].name),
     meshes: meshes.length,
     primitives,
     triangleEstimate,
@@ -84,7 +122,9 @@ export function parseGLB(input) {
     textures: document.textures?.length ?? 0,
     images: document.images?.length ?? 0,
     skins: document.skins?.length ?? 0,
-    animations: (document.animations || []).map((animation) => animation.name || 'unnamed animation'),
+    skinDetails: skins,
+    animations: animationDetails.map((animation) => animation.name),
+    animationDetails,
     externalUris
   };
 }
