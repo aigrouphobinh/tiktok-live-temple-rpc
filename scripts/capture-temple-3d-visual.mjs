@@ -54,6 +54,7 @@ try {
   try {
     await page.waitForFunction(
       () => window.__TEMPLE_3D_READY__ === true,
+      null,
       { timeout: 60000 }
     );
     report.ready = true;
