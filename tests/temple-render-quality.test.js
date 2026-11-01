@@ -62,7 +62,7 @@ describe('getTempleRenderQuality', () => {
 
 describe('getTemplePixelRatio', () => {
   it('preserves the no-argument API and defaults to a safe ratio', () => {
-    expect(getTemplePixelRatio()).toBe(1.15);
+    expect(getTemplePixelRatio()).toBe(1);
   });
 
   it('caps low-end devices at 1x', () => {
