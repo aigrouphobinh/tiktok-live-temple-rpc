@@ -21,7 +21,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const profile = event.detail?.reactionProfile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
     expect(scene).toContain('const reactionUntil = performance.now() + profile.durationMs;');
     expect(scene).toContain('if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;');
-    expect(scene).toContain('for (const avatar of allHumanAvatars) avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
+    expect(scene).toContain('for (const avatar of allHumanAvatars) {');
+    expect(scene).toContain('avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
+    expect(scene).toContain('if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;');
   });
 
   it('scales the thank-you bow and hand gesture from the incoming gift tier', () => {
