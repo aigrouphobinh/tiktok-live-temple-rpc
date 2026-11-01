@@ -2482,8 +2482,13 @@ async function boot() {
         frameTimeP50Ms: percentile(0.50),
         frameTimeP95Ms: percentile(0.95)
       });
-      frameIntervals.length = 0;
-      frameWindowStartedAt = now;
+      // Keep accumulating intervals while a slow software renderer has
+      // not yet produced enough frames for reliable percentiles. Once the
+      // threshold is met, close the window and begin a fresh sample window.
+      if (percentilesReliable) {
+        frameIntervals.length = 0;
+        frameWindowStartedAt = now;
+      }
       lastStatsAt = now;
     }
     if (!effects.length && now > ritualUntil && elapsed > 60000) elapsed = 0;
