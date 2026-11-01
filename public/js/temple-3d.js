@@ -1122,7 +1122,7 @@ async function boot() {
       root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
-      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
+      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionStartedAt: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
     };
     allHumanAvatars.push(avatar);
     return avatar;
@@ -1363,9 +1363,14 @@ async function boot() {
     if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + leftStep * amount * 0.62;
   }
 
+  function getAvatarGiftReactionBlend(avatar, time) {
+    const duration = Math.max(1, avatar.giftReactionProfile?.durationMs || 1800);
+    return getGiftReactionBlend(avatar.giftReactionUntil - time, duration);
+  }
+
   function applyGiftThankYouGesture(avatar, time) {
     if (avatar.gltfRoot) return;
-    const blend = getGiftReactionBlend(avatar.giftReactionUntil - time);
+    const blend = getAvatarGiftReactionBlend(avatar, time);
     const upperPose = getHumanUpperPose({ kneelBlend: avatar.kneelBlend, bowAmount: avatar.bowAmount });
     // Sweep both forearms inward and upward so the palms meet at chest height.
     // Recompute from the ritual base pose every frame to avoid rotation drift.
@@ -1386,7 +1391,7 @@ async function boot() {
     const swing = Math.sin(gaitPhase + avatar.phase);
     const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
     const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);
-    const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);
+    const giftReaction = getAvatarGiftReactionBlend(avatar, time) * (avatar.giftReactionProfile?.intensity || 0.55);
     // Devotees briefly turn from the altar toward the live audience, then ease back.
     avatar.root.rotation.y = Math.PI * (1 - giftReaction);
     if (avatar.gltfRoot) {
@@ -1726,9 +1731,17 @@ async function boot() {
   // not the character-interruption signal, so every started gift renders once.
   function applyGiftReactionProfile(profile) {
     const resolved = profile || { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };
-    const reactionUntil = performance.now() + resolved.durationMs;
+    const now = performance.now();
     for (const avatar of allHumanAvatars) {
-      avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);
+      const wasActive = avatar.giftReactionUntil > now;
+      if (!wasActive) {
+        // Phase-based delay creates a soft wave through the congregation without randomness per gift.
+        const phase = ((avatar.phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;
+        avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;
+      } else {
+        avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, avatar.giftReactionStartedAt + resolved.durationMs);
+      }
       if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;
     }
   }
@@ -1785,8 +1798,12 @@ async function boot() {
     lanterns.forEach((light, i) => {
       light.intensity = 11.5 + Math.sin(elapsed * 0.0032 + i * 1.7) * 1.65 + Math.sin(elapsed * 0.007 + i) * 0.35;
     });
-    buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6;
-    altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2;
+    const congregationGiftGlow = allHumanAvatars.reduce((peak, avatar) => Math.max(
+      peak,
+      getAvatarGiftReactionBlend(avatar, now) * (avatar.giftReactionProfile?.intensity || 0.55)
+    ), 0);
+    buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;
+    altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
     offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
