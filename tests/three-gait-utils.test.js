@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -44,5 +44,52 @@ describe('getFootPlantingPose', () => {
     const pose = getFootPlantingPose(tau);
     expect(pose.kneeFlex).toBeCloseTo(0.035, 8);
     expect(pose.footLift).toBe(0);
+  });
+});
+
+describe('solveTwoBoneIK', () => {
+  const lengths = { upperLength: 2, lowerLength: 2 };
+
+  it('places the joint at equal distance from both segment endpoints', () => {
+    const result = solveTwoBoneIK({
+      root: [0, 0, 0], target: [0, -3, 0], pole: [1, 0, 0], ...lengths
+    });
+    const distance = (a, b) => Math.hypot(...a.map((value, index) => value - b[index]));
+    expect(result).not.toBeNull();
+    expect(distance(result.root, result.knee)).toBeCloseTo(2, 8);
+    expect(distance(result.knee, result.target)).toBeCloseTo(2, 8);
+    expect(result.target).toEqual([0, -3, 0]);
+    expect(result.reachable).toBe(true);
+  });
+
+  it('uses the pole point to choose a stable bend direction', () => {
+    const result = solveTwoBoneIK({
+      root: [0, 0, 0], target: [0, -3, 0], pole: [-2, 0, 0], ...lengths
+    });
+    expect(result.knee[0]).toBeLessThan(0);
+    expect(result.knee.every(Number.isFinite)).toBe(true);
+  });
+
+  it('clamps targets beyond maximum reach without producing invalid coordinates', () => {
+    const result = solveTwoBoneIK({
+      root: [0, 0, 0], target: [0, -8, 0], pole: [1, 0, 0], ...lengths
+    });
+    expect(result.reachable).toBe(false);
+    expect(Math.hypot(...result.target)).toBeCloseTo(4 - 1e-6, 7);
+    expect(result.knee.every(Number.isFinite)).toBe(true);
+  });
+
+  it('handles a zero-distance target and a collinear pole safely', () => {
+    const result = solveTwoBoneIK({
+      root: [1, 2, 3], target: [1, 2, 3], pole: [1, 4, 3], ...lengths
+    });
+    expect(result).not.toBeNull();
+    expect(result.reachable).toBe(false);
+    expect(result.knee.every(Number.isFinite)).toBe(true);
+  });
+
+  it('rejects missing vectors and invalid segment lengths', () => {
+    expect(solveTwoBoneIK({ root: [0, 0, 0], target: [0, 1, 0], pole: [1, 0, 0], upperLength: 0, lowerLength: 1 })).toBeNull();
+    expect(solveTwoBoneIK({ root: [0, 0], target: [0, 1, 0], pole: [1, 0, 0], ...lengths })).toBeNull();
   });
 });
