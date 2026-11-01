@@ -23,6 +23,14 @@ Updated: 2026-11-01
 - `606039c` — added CI source guards for altar spotlights and candle flicker.
 - `99c7feb` — added CI source guards for all four 3D gift actions and the interruption-event bridge.
 
+## Character art direction and asset shortlist
+
+- User direction (2026-11-01): character models must look attractive and polished; if a suitable attractive humanoid cannot be found, prefer cute animal characters rather than plain/rough placeholder humans.
+- Preferred fallback direction: a cohesive, soft-looking, stylized animal cast with expressive silhouettes and readable colors, sized for the fixed elevated 9:16 temple camera. Keep the Buddha/statue and temple architecture dignified; cute animals are visitor/devotee characters, not replacements for the sacred focal statue.
+- First shortlist to preview: Corgi and Duck from Gobkit Animal Pack Vol.1; Koala and Chick from Animal Pack Vol.5. Choose one lead devotee plus a small set of visually consistent variants only after inspecting the actual GLB previews in the game camera.
+- Gobkit's free animal packs are advertised as rigged animated GLB under CC0 1.0, with named idle/attack/dead/walk clips; walk is available for the Animal packs. Verify the individual downloaded file and included licence before vendoring. Prefer downloading and bundling the selected GLB locally rather than depending on a runtime third-party URL.
+- No animal model is integrated yet. This is an art-direction decision and shortlist, not a claim that the assets have been visually approved or tested.
+
 ## Preserved requirements
 
 - Three.js remains opt-in via `?3d=1`; 2D remains the fallback.
