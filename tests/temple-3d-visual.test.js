@@ -12,6 +12,17 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
+  it('sequences the main devotee through approach, kneel and bow with a shared timeline', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("getHumanFootPose, getRitualPoseState } from './three-gait-utils.js';");
+    expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
+    expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
+    expect(scene).toContain('animateHuman(mainHuman, now, ritualPose.walking, walkPhase);');
+    expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount);');
+    expect(scene).toContain('devoteeState.arrivedAt = now;');
+    expect(scene).toContain('mainHuman.kneelBlend = 0;');
+  });
+
   it('adds an instanced gilded outer aureole and warm focal glow', async () => {
     const scene = (await import('node:fs')).readFileSync(
       new URL('../public/js/temple-3d.js', import.meta.url), 'utf8'
