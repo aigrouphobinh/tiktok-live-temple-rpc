@@ -326,4 +326,12 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds two restrained diagonal robe folds across the Buddha chest', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Two restrained chest folds follow the robe diagonally toward the lap.');
+    expect(scene).toContain('robeFold([[-0.38,3.28,0.69],[-0.12,3.18,0.77],[0.16,3.04,0.75],[0.39,2.9,0.67]],0.018);');
+    expect(scene).toContain('robeFold([[-0.3,3.12,0.73],[-0.04,3.02,0.79],[0.22,2.88,0.73],[0.43,2.76,0.62]],0.014);');
+  });
+
+
 });
