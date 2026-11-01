@@ -422,6 +422,19 @@ async function boot() {
     }
   }
 
+  // Open timber balustrades finish the outer edge of each raised gallery.
+  // The waist-high rails define the space without forming walls across the camera view.
+  for (const side of [-1, 1]) {
+    const railX = side * 10.18;
+    box(0.14, 0.14, 24.8, mats.woodLight, railX, 0.66, 2.2);
+    box(0.1, 0.09, 24.8, mats.goldBright, railX, 0.79, 2.2);
+    for (let z = -9.2; z <= 14.0; z += 3.3) {
+      box(0.18, 0.82, 0.18, mats.woodLight, railX, 0.48, z);
+      box(0.25, 0.09, 0.25, mats.gold, railX, 0.94, z);
+      sphere(0.075, mats.goldBright, railX, 1.02, z, 1, 0.7, 1);
+    }
+  }
+
   // Lanterns with warm emissive cores along the side aisles.
   const lanterns = [];
   for (const x of [-5.8, 5.8]) {
