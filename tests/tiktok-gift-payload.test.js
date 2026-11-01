@@ -111,6 +111,19 @@ describe('TikTok gift payload normalization', () => {
     expect(getGiftComboDelta(tracker, payload)).toBe(1);
   });
 
+  it('ignores repeated cumulative counts without double-crediting gifts', () => {
+    const tracker = new Map();
+    const base = { groupId: 'viewer|5655', streakable: true, repeatEnd: false };
+
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 1 })).toBe(1);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 1 })).toBe(0);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3 })).toBe(2);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3 })).toBe(0);
+    expect(tracker.get(base.groupId)).toBe(3);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: true })).toBe(0);
+    expect(tracker.has(base.groupId)).toBe(false);
+  });
+
   it('does not retain state for non-streakable gifts', () => {
     const tracker = new Map();
     expect(getGiftComboDelta(tracker, {
