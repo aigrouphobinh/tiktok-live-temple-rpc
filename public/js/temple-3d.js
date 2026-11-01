@@ -1286,7 +1286,7 @@ async function boot() {
             || !descendsFrom(lower, upper) || !descendsFrom(foot, lower)) {
             return { valid: false, upper: upper?.name || null, lower: lower?.name || null, foot: foot?.name || null };
           }
-          model.updateMatrixWorld(true);
+          model.updateWorldMatrix(true, true);
           const upperPosition = upper.getWorldPosition(new THREE.Vector3());
           const lowerPosition = lower.getWorldPosition(new THREE.Vector3());
           const footPosition = foot.getWorldPosition(new THREE.Vector3());
