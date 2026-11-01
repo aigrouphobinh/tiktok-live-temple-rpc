@@ -185,6 +185,14 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('columnFlutes.castShadow = false');
   });
 
+  it('adds a small stone urna relief to the Buddha forehead without a gold ornament', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("// The Buddha's urna is a restrained stone relief, not a metallic jewel.");
+    expect(scene).toContain('], 0.0055, mats.statueShadow);');
+    expect(scene).toContain('], 0.004, mats.statueLight);');
+    expect(scene).toContain('sphere(0.019, mats.statueLight, 0, 5.03, 0.557, 0.82, 1.12, 0.48, statue);');
+  });
+
   it('adds instanced brass collars to the foot and crown of each timber column', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('new THREE.TorusGeometry(0.49, 0.035, 8, 24)');
