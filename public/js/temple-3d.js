@@ -894,6 +894,24 @@ async function boot() {
       [side * 0.2, 4.43, 0.68]
     ], 0.014, mats.statueShadow);
   }
+  // Soft cheekbone highlights and jaw transitions give the face a gently sculpted profile.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.5, 4.625, 0.53],
+      [side * 0.37, 4.565, 0.635],
+      [side * 0.22, 4.535, 0.685]
+    ], 0.012, mats.statueLight);
+    statueLine([
+      [side * 0.48, 4.36, 0.54],
+      [side * 0.34, 4.245, 0.625],
+      [side * 0.16, 4.205, 0.685]
+    ], 0.01, mats.statueShadow);
+    statueLine([
+      [side * 0.31, 4.205, 0.64],
+      [side * 0.2, 4.17, 0.68],
+      [side * 0.08, 4.16, 0.7]
+    ], 0.008, mats.statueLight);
+  }
   // A restrained lower-lip crease adds definition without a pronounced smile.
   statueLine([[-0.105,4.27,0.685],[0,4.255,0.715],[0.105,4.27,0.685]],0.009,mats.statueLight);
   // Refine the nose wings and philtrum with restrained, shallow stone carving.
