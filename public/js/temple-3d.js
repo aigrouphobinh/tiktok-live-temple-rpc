@@ -51,8 +51,8 @@ async function boot() {
     woodLight: new THREE.MeshStandardMaterial({ color: 0x79401b, roughness: 0.48, metalness: 0.25 }),
     gold: new THREE.MeshStandardMaterial({ color: 0xe6ae45, roughness: 0.3, metalness: 0.78 }),
     goldBright: new THREE.MeshStandardMaterial({ color: 0xffdf83, roughness: 0.24, metalness: 0.62, emissive: 0x70400b, emissiveIntensity: 0.25 }),
-    red: new THREE.MeshStandardMaterial({ color: 0x741321, roughness: 0.48, metalness: 0.22 }),
-    redBright: new THREE.MeshStandardMaterial({ color: 0x9d2030, roughness: 0.4, metalness: 0.3 }),
+    red: new THREE.MeshPhysicalMaterial({ color: 0x741321, roughness: 0.48, metalness: 0.22, clearcoat: 0.28, clearcoatRoughness: 0.32 }),
+    redBright: new THREE.MeshPhysicalMaterial({ color: 0x9d2030, roughness: 0.4, metalness: 0.3, clearcoat: 0.42, clearcoatRoughness: 0.22 }),
     stone: new THREE.MeshStandardMaterial({ color: 0x777a7c, roughness: 0.92 }),
     statueStone: new THREE.MeshStandardMaterial({ color: 0xbdb29c, roughness: 0.94 }),
     statueShadow: new THREE.MeshStandardMaterial({ color: 0x76674f, roughness: 0.96 }),
@@ -101,10 +101,6 @@ async function boot() {
   for (const material of [mats.wood, mats.woodLight]) material.roughnessMap = woodRoughness;
   for (const material of [mats.red, mats.redBright]) material.roughnessMap = lacquerRoughness;
   for (const material of [mats.gold, mats.goldBright]) material.roughnessMap = goldRoughness;
-  mats.red.clearcoat = 0.28;
-  mats.red.clearcoatRoughness = 0.32;
-  mats.redBright.clearcoat = 0.42;
-  mats.redBright.clearcoatRoughness = 0.22;
   // A tiny deterministic grayscale bump tile gives the carved stone a restrained mineral grain.
   const stoneGrainSize = 64;
   const stoneGrainData = new Uint8Array(stoneGrainSize * stoneGrainSize * 4);
