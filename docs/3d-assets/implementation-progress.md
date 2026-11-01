@@ -23,21 +23,15 @@ Updated: 2026-11-01
 - `606039c` — added CI source guards for altar spotlights and candle flicker.
 - `99c7feb` — added CI source guards for all four 3D gift actions and the interruption-event bridge.
 
-## Animated animal devotee integration
+## Human devotee and stone Buddha update
 
-- Added a Three.js import map pinned to the same r180.0 build used by the 3D scene, plus the matching GLTFLoader and SkeletonUtils addons.
-- The 3D congregation now creates eight animal anchor positions instead of eighteen rough human-shaped placeholders. Corgi is the lead visitor; Duck is used as a secondary variant when its GLB loads.
-- The active ritual visitor uses the same rigged Corgi (Duck fallback) and switches between the named `walk` and `idle` clips. Each skinned copy is cloned with SkeletonUtils and normalized to the fixed elevated 9:16 camera scale. Idle loops have slight per-character phase and speed variation so the congregation does not animate in lockstep.
-- The primitive figures remain as graceful local fallbacks if either bundled model fails to load. The scene does not wait for the local assets before becoming ready.
-- Corgi and Duck GLBs are now vendored under `public/assets/animals/` and served by the game's own static server; the game no longer contacts Gobkit at runtime. Their CC0 1.0 licence and source provenance are included alongside the assets. No browser/WebGL visual inspection has been performed in this environment.
-
-## Character art direction and asset shortlist
-
-- User direction (2026-11-01): character models must look attractive and polished; if a suitable attractive humanoid cannot be found, prefer cute animal characters rather than plain/rough placeholder humans.
-- Preferred fallback direction: a cohesive, soft-looking, stylized animal cast with expressive silhouettes and readable colors, sized for the fixed elevated 9:16 temple camera. Keep the Buddha/statue and temple architecture dignified; cute animals are visitor/devotee characters, not replacements for the sacred focal statue.
-- First shortlist to preview: Corgi and Duck from Gobkit Animal Pack Vol.1; Koala and Chick from Animal Pack Vol.5. Choose one lead devotee plus a small set of visually consistent variants only after inspecting the actual GLB previews in the game camera.
-- Gobkit's free animal packs are advertised as rigged animated GLB under CC0 1.0, with named idle/attack/dead/walk clips; walk is available for the Animal packs. Verify the individual downloaded file and included licence before vendoring. Prefer downloading and bundling the selected GLB locally rather than depending on a runtime third-party URL.
-- Corgi and Duck are integrated and bundled locally. The shortlist still contains unreviewed alternates (Koala and Chick); visual approval in the live game camera remains outstanding.
+- `5898435` — replaced the temporary Corgi/Duck congregation with locally constructed stylized human avatars: long brown hair, pink top, blue trousers, white shoes, facial features and simple idle/walk limb motion. The lead visitor uses the same art direction.
+- `5898435` — replaced the gold primitive Buddha blockout with a seated grey-stone figure, robe folds, elongated ears, curled hair, facial carving, meditation hands and a stone aureole with restrained gold trim.
+- `5898435` — removed full-width crossbeams and the low ceiling slab from the central view corridor. These structures were projecting as opaque horizontal bars across the statue and altar in the supplied screenshot. Side supports and upper roof details remain.
+- `a1bc291` — updated CI source guards and JavaScript syntax checks for the new human avatar, stone statue and clear central sightline.
+- `53534d0`, `30e0593`, `10559e5`, `d103679` — marked the animal prototype as retired and removed the Corgi/Duck public assets. They remain in Git history only.
+- `d103679` — GitHub Actions CI completed successfully: [workflow run](https://github.com/aigrouphobinh/tiktok-live-temple-rpc/actions/runs/41267333750).
+- The human avatars and Buddha are currently procedural Three.js geometry, not imported GLB assets. They are a functional art-direction replacement, not yet a final high-detail character/sculpture asset.
 
 ## Preserved requirements
 
@@ -49,16 +43,16 @@ Updated: 2026-11-01
 ## Not yet verified
 
 - Corgi and Duck are bundled locally; external asset-host availability is no longer a runtime dependency.
-- No actual browser screenshot or WebGL visual inspection has been performed for these latest changes.
+- No actual browser screenshot or WebGL visual inspection has been performed for the new human avatar, stone Buddha or horizontal-band fix; the user must reload the local scene and provide a fresh screenshot for visual tuning.
 - No mobile GPU/frame-time/draw-call profile has been recorded.
 - No real TikTok LIVE payload test has been performed.
 - The GitHub workflow wrapper available here only returns PR-triggered runs for a commit; it returned an empty list for the push commit. Check the repository Actions page for the push-triggered CI result.
 
 ## Next work
 
-1. Visually inspect the open-roof sightline, curved roof, offering props and layered altar lighting from the fixed elevated camera.
-2. Inspect the individual Thai seated Buddha CC0 record and file; integrate only after pose, license, scale and texture checks.
-3. Replace the primitive Buddha blockout with a reviewed, correctly licensed seated Buddha GLB or a higher-quality custom model.
+1. Visually inspect the new human avatar, stone Buddha and clear central sightline from the fixed elevated camera; tune scale and placement from a fresh screenshot.
+2. Research higher-detail, correctly licensed GLB assets for the female devotee and seated Buddha; integrate only after pose, license, scale and texture checks.
+3. Improve procedural facial details, robe folds, hands and avatar animation if no suitable licensed assets are selected.
 4. Inspect Corgi and Duck in the actual fixed 9:16 browser camera; tune their scale, spacing and animation transitions, verify the local GLBs in the actual fixed 9:16 browser camera and tune their scale, spacing and animation transitions.
 5. Add asset loading failure handling and performance budgets, then perform actual browser/device validation.
 6. Verify 3D gift reaction timing and composition in-browser alongside the existing CSS effects; tune depth/scale only after visual inspection.
