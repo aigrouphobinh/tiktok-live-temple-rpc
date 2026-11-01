@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { disposeThreeObjectTree } from './three-resource-utils.js';
+import { disposeThreeSceneResources } from './three-resource-utils.js';
 
 /**
  * Load a project-vendored GLB and normalize it to the temple's world units.
@@ -68,7 +68,8 @@ export async function loadGLTFAsset(url, {
       if (disposed) return;
       disposed = true;
       mixer?.stopAllAction();
-      disposeThreeObjectTree(root);
+      // GLB materials own their imported maps; dispose textures with the model.
+      disposeThreeSceneResources(root);
     }
   };
 }
