@@ -378,7 +378,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     resetStreaks: () => streakCoalescer.clear(),
     clearStreak: (groupId) => {
       if (groupId == null || String(groupId) === '') return false;
-      return streakCoalescer.recent.delete(String(groupId));
+      return streakCoalescer.clearStreak(groupId);
     },
     snapshot: () => machine.snapshot()
   };
