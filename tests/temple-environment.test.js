@@ -243,6 +243,58 @@ describe('Temple environment architecture module', () => {
     expect(scene.children).toHaveLength(0);
   });
 
+  it('does not dispose externally owned resources attached to its group', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const externalGeometry = new FakeGeometry();
+    const externalMaterial = new FakeMaterial({ color: 0xffffff });
+    const externalMesh = new FakeMesh(externalGeometry, externalMaterial);
+    result.group.add(externalMesh);
+
+    result.dispose();
+
+    expect(externalGeometry.disposed).toBe(false);
+    expect(externalMaterial.disposed).toBe(false);
+    expect(result.group.children).toContain(externalMesh);
+  });
+
+  it('cleans up resources created before a construction failure', () => {
+    const createdGeometries = [];
+    const createdMaterials = [];
+    class TrackingGeometry extends FakeGeometry {
+      constructor(...args) {
+        super(...args);
+        createdGeometries.push(this);
+      }
+    }
+    class TrackingMaterial extends FakeMaterial {
+      constructor(options) {
+        super(options);
+        createdMaterials.push(this);
+      }
+    }
+    class FailingBoxGeometry extends TrackingGeometry {
+      constructor(...args) {
+        if (args[0] === 1.46) throw new Error('simulated geometry failure');
+        super(...args);
+      }
+    }
+    const failingTHREE = {
+      ...fakeTHREE,
+      BoxGeometry: FailingBoxGeometry,
+      CylinderGeometry: TrackingGeometry,
+      TorusGeometry: TrackingGeometry,
+      MeshStandardMaterial: TrackingMaterial
+    };
+    const scene = createScene();
+
+    expect(() => createTempleEnvironment({ THREE: failingTHREE, scene }))
+      .toThrow('simulated geometry failure');
+    expect(scene.children).toHaveLength(0);
+    expect(createdGeometries.length).toBeGreaterThan(0);
+    expect(createdGeometries.every((item) => item.disposed)).toBe(true);
+    expect(createdMaterials.every((item) => item.disposed)).toBe(true);
+  });
+
   it('does not introduce roof geometry or an independent renderer/animation loop', async () => {
     const source = await Bun.file(new URL('../public/js/temple-environment.js', import.meta.url)).text();
     expect(source).not.toMatch(/RoofGeometry|createRoof|new THREE\.WebGLRenderer|requestAnimationFrame/);
