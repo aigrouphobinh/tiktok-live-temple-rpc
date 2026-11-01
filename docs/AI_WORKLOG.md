@@ -1,3 +1,9 @@
+### 2026-11-01 — Balance Buddha focal and rim lighting
+- After the aged-gilt material update, the 9:16 capture showed clipped highlights across the Buddha's face and torso.
+- Reduce the dedicated Buddha point light and statue rim light while retaining the warm moving gift/aura response.
+- Keep altar spots, global ambience, shadow-map budgets, geometry, and performance profile unchanged.
+- Require unit tests and Low / Medium / High visual captures before merge.
+
 ### 2026-11-01 — Refine Buddha gilt-bronze PBR finish
 - The bundled MIA scan is now centered and widened for the 9:16 altar composition.
 - Refine its fallback gold from bright/yellow and low-roughness toward a deeper aged-gilt bronze: slightly higher metalness, broader roughness, reduced emissive lift, and a restrained environment intensity when supported by the imported material.
