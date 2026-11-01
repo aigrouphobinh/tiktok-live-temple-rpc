@@ -438,3 +438,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Gift groups automatically release their gain node after the sound tail; explicit cancellation fades the group over 25 ms and disconnects it shortly afterward. Existing standalone audio method calls remain compatible when no group ID is supplied.
 - Wired the gift engine's effect-generation token through the SFX dispatcher and cancel the previous group when a new gift takes ownership. Added dispatcher regression coverage for group-ID routing and targeted cancellation.
 - Source-level checks confirmed all six gift sound methods use their group output and the effect engine passes IDs for launch/impact/chime events. Await GitHub Actions for unit/syntax validation; browser audio interruption and listening tests remain outstanding.
+
+
+### Gift SFX cancellation CI and browser syntax coverage — 2026-11-01
+- GitHub Actions run `41258156866` completed successfully on workflow commit `51df2d7909dbcd7a9e45d2355aa8e907fa773795`. The Bun unit-test step and expanded JavaScript syntax step both passed.
+- Expanded CI syntax coverage to include the browser audio engine, gift SFX dispatcher, gift action engine and live controller in addition to the server entry point and legacy payload parser. This closes the earlier gap where browser audio syntax was not checked by CI.
+- The code is committed directly to `main`. This confirms unit/syntax checks only; browser audio output, interruption fade behavior and actual listening/device tests remain outstanding.
