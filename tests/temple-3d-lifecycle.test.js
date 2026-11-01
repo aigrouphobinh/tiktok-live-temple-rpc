@@ -47,7 +47,7 @@ describe('Three.js lifecycle recovery', () => {
 
   it('integrates the Agent 3 environment once using the active render profile', () => {
     expect(source).toContain("import { createTempleEnvironment } from './temple-environment.js';");
-    expect(source.match(/createTempleEnvironment\\(\\{/g)).toHaveLength(1);
+    expect(source.split('createTempleEnvironment({')).toHaveLength(2);
     const integrationStart = source.indexOf('const templeEnvironment = createTempleEnvironment({');
     const integrationEnd = source.indexOf('});', integrationStart);
     const integration = source.slice(integrationStart, integrationEnd);
