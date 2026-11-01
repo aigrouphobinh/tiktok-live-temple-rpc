@@ -19,7 +19,7 @@ function logAuditPhase(profile, phase, details = {}) {
   console.log(`[Temple 3D audit] ${new Date().toISOString()} profile=${profile} phase=${phase} ${JSON.stringify(details)}`);
 }
 
-async function waitForReliableRendererSample(samples, minimumCount, timeoutMs = 60000) {
+async function waitForReliableRendererSample(samples, minimumCount, timeoutMs = 120000) {
   const startedAt = Date.now();
   const isReliable = (sample) => sample
     && sample.sampleQuality !== 'insufficient'
