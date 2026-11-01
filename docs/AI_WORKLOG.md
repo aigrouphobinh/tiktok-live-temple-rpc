@@ -977,3 +977,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a restrained, phase-offset head tilt and slightly deeper appreciative nod so surrounding devotees feel responsive without moving their planted roots or becoming perfectly synchronized.
 - Kept GLB rigs untouched because their actual face/eye/brow controls remain unverified; the procedural fallback owns these expressions.
 - Added source regression assertions and CI guards for pupil, brow and head movement. Browser rendering still needs visual confirmation with the deployed scene/model.
+
+
+### 2026-11-01 — Stagger congregation gift reactions and pulse altar lighting
+- Added a deterministic phase-based 0–420ms start delay per avatar so the congregation responds as a soft wave instead of a synchronized group.
+- Gift combo updates preserve each active reaction's start time while extending its end time and upgrading intensity when a stronger profile arrives.
+- Added a duration-aware reaction envelope shared by face, body and hand controllers; delayed reactions remain at rest until their scheduled start.
+- The peak active congregation response now adds a restrained warm pulse to the Buddha key light and altar fill, returning automatically to the existing baseline.
+- Added source regression coverage and CI guards. No new lights, shadow casters, timers or GLB rig assumptions were introduced; browser visual confirmation remains outstanding.
