@@ -57,7 +57,7 @@ describe('Three.js scene performance safeguards', () => {
 describe('Three.js opt-in GPU diagnostics', () => {
   it('reports renderer draw calls, triangles and resource counts only when stats=1', () => {
     expect(source).toContain("const statsEnabled = modelParams.get('stats') === '1';");
-    expect(source).toContain("console.info('[Temple3D] GPU frame stats'");
+    expect(source).toContain("console.info('[Temple3D] Frame diagnostics'");
     expect(source).toContain('drawCalls: info.render.calls');
     expect(source).toContain('triangles: info.render.triangles');
     expect(source).toContain('geometries: info.memory.geometries');
