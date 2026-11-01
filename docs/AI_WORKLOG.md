@@ -1,3 +1,8 @@
+### 2026-11-01 — Cancel stale fades when reusing GLB animation actions
+- AnimationMixer caches clip actions. Rapid state changes can return to an action that is still fading out from an interrupted transition, leaving the intended idle/walk/bow clip at a reduced weight.
+- Cancel pending fades and restore full action weight before reusing a cached action; also cancel any previous fade before scheduling the outgoing action's fade-out.
+- Added source-level regression assertions for both reused and outgoing actions. Real-time visual transition checks still require a bundled rigged GLB.
+
 ### 2026-11-01 — Normalize whitespace in GLB animation clip names
 - Animation exports can include tabs, line breaks or repeated spaces in clip labels. Normalize all whitespace runs after separator conversion so token-boundary matching remains reliable across exporter naming formats.
 - Added a regression fixture with mixed tabs/newlines and repeated spaces; matching remains token-based and does not broaden partial-word matches.
