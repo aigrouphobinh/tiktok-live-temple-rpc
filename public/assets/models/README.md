@@ -30,6 +30,18 @@ If it still does not appear, open DevTools → Network and check whether
 the deployed public directory; a 200 followed by a loader error usually means
 the GLB is malformed or references unsupported external resources.
 
+### Supplied custom model metadata
+
+The uploaded `buddha.glb` file identifies itself in its embedded glTF metadata as:
+- Title: **Buddha**
+- Creator: **Thunk3D** (Sketchfab account: Lily.Qin1)
+- Source: https://sketchfab.com/3d-models/buddha-c6a1ed475b324b9cbb72d9ba85d674b5
+- License: **CC BY 4.0**. Preserve creator attribution and link to the source when distributing or publicly displaying the model.
+- File size: approximately 54.6 MiB; 21 mesh primitives and approximately 2.08 million triangles.
+- Textures: none embedded; the mesh uses a neutral white material, so the runtime applies the temple's aged-gold PBR finish.
+
+The uploaded binary is inspected locally but is not yet committed to this repository. Add it at the path above before expecting the custom model to load in a deployed build.
+
 ### Bundled models
 
 Preferred model (user-selected): **Gold Buddha Statue — Kenny Hsieh**

@@ -2039,7 +2039,7 @@ async function boot() {
           console.warn('[Temple3D] User-provided buddha.glb is invalid; trying bundled Buddha assets:', customError);
         }
       } else {
-        console.info('[Temple3D] No user-provided buddha.glb found; trying bundled Buddha assets.');
+        console.info('[Temple3D] No user-provided buddha.glb found; skipping its load request and trying bundled Buddha assets.');
       }
 
       // Preserve compatibility with the previously bundled Kenny Hsieh asset.
@@ -2074,9 +2074,12 @@ async function boot() {
         asset.dispose();
         return;
       }
-      // Preserve Kenny Hsieh's authored materials; only tint the neutral CC0 scan.
-      if (assetSource === 'mia-cc0-gilt-bronze') {
+      // The supplied Thunk3D scan is a neutral white photogrammetry mesh.
+      // Apply the same restrained aged-gold PBR finish used by the public-domain scan.
+      if (assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze') {
         applyGiltFinish(asset.root);
+      }
+      if (assetSource === 'mia-cc0-gilt-bronze') {
         // The museum scan reads slightly narrow in the 9:16 altar composition.
         // Widen only the horizontal axis; preserve height, ground contact and center.
         const originalCenter = new THREE.Box3()

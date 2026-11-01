@@ -357,6 +357,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(customPreflightIndex).toBeLessThan(customIndex);
     expect(loader).toContain("const customUrl = '/assets/models/buddha.glb'");
     expect(loader).toContain("assetSource = 'user-custom'");
+    expect(loader).toContain("assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze'");
+    expect(loader).toContain("applyGiltFinish(asset.root)");
     const preflightIndex = loader.indexOf("await isLocalModelAvailable(selectedUrl)");
     const fallbackPreflightIndex = loader.indexOf("await isLocalModelAvailable(fallbackUrl)");
     expect(preflightIndex).toBeGreaterThanOrEqual(0);
