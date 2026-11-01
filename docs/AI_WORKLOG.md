@@ -1097,3 +1097,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a restrained pair of curved upper-chest pleats linking the neckline drape to the existing diagonal chest folds.
 - Added thin ivory ridges to catch the existing light without changing the statue silhouette, materials or lighting setup.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Layer the Buddha's side-torso and elbow robe folds
+- Added paired short side-torso pleats and lower elbow compression folds to bridge the upper-arm drape into the resting forearms.
+- Added fine ivory ridges while reusing the existing robe-fold helper and materials.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
