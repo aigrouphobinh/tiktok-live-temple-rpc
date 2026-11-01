@@ -88,6 +88,21 @@ async function boot() {
   const buddhaLight = new THREE.PointLight(0xffb94e, 95, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
+  // Layered altar lighting: two soft, non-shadow-casting spots shape the focal area
+  // without changing the fixed master camera or adding expensive shadow maps.
+  const altarTargets = [];
+  for (const x of [-4.2, 4.2]) {
+    const target = new THREE.Object3D();
+    target.position.set(0, 2.8, -8.1); scene.add(target); altarTargets.push(target);
+    const spot = new THREE.SpotLight(0xffd18a, 34, 20, Math.PI / 5.2, 0.72, 1.4);
+    spot.position.set(x, 9.1, -2.8);
+    spot.target = target;
+    spot.castShadow = false;
+    scene.add(spot);
+  }
+  const altarFill = new THREE.PointLight(0xff8f42, 18, 9, 2);
+  altarFill.position.set(0, 2.8, -5.4); scene.add(altarFill);
+
   // Courtyard floor, raised processional path and inlaid gold borders.
   plane(22, 36, mats.stone, 0, -0.18, 1);
   // Instance the courtyard tiles: hundreds of repeated meshes become two draw calls.
@@ -210,6 +225,9 @@ async function boot() {
     cylinder(0.16, 0.2, 0.22, mats.goldBright, x, 1.98, 0.05, offeringTable, 20);
     sphere(0.075, flameMaterial, x, 2.17, 0.05, 0.72, 1.5, 0.72, offeringTable);
   }
+  const offeringFlames = offeringTable.children.filter((child) => child.material === flameMaterial);
+  const offeringGlow = new THREE.PointLight(0xffa044, 7, 5, 2);
+  offeringGlow.position.set(0, 2.6, -5.8); world.add(offeringGlow);
 
   // Layered lotus pedestal.
   cylinder(2.05, 1.8, 0.55, mats.wood, 0, 1.0, -8.25, world, 48);
@@ -532,6 +550,8 @@ async function boot() {
       }
     }
     lanterns.forEach((light, i) => { light.intensity = 12 + Math.sin(elapsed * 0.003 + i) * 2; });
+    offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
+    offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
     dust.rotation.y += dt * 0.000018;
     for (let i = effects.length - 1; i >= 0; i--) {
       const effect = effects[i]; effect.elapsed += dt;
