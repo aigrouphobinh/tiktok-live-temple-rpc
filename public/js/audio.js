@@ -343,7 +343,7 @@ class TempleAudioEngine {
       const gain = this.ctx.createGain();
       gain.gain.setValueAtTime(1, this.ctx.currentTime);
       gain.connect(this.sfxGain || this.ctx.destination);
-      group = { gain, timer: null };
+      group = { gain, timer: null, sources: new Set() };
       this.giftSfxGroups.set(key, group);
     }
     clearTimeout(group.timer);
@@ -355,6 +355,19 @@ class TempleAudioEngine {
     return group.gain;
   }
 
+  trackGiftSfxSource(groupId, source) {
+    if (groupId == null || groupId === '' || !source) return false;
+    const group = this.giftSfxGroups.get(String(groupId));
+    if (!group) return false;
+    group.sources.add(source);
+    const onended = source.onended;
+    source.onended = (event) => {
+      group.sources.delete(source);
+      if (typeof onended === 'function') onended.call(source, event);
+    };
+    return true;
+  }
+
   cancelGiftSfxGroup(groupId) {
     if (groupId == null || groupId === '') return false;
     const key = String(groupId);
@@ -362,6 +375,9 @@ class TempleAudioEngine {
     if (!group) return false;
     clearTimeout(group.timer);
     const now = this.ctx?.currentTime || 0;
+    for (const source of group.sources) {
+      try { source.stop(now); } catch (_) {}
+    }
     try {
       group.gain.gain.cancelScheduledValues(now);
       group.gain.gain.setValueAtTime(group.gain.gain.value, now);
@@ -404,6 +420,7 @@ class TempleAudioEngine {
       filter.connect(gain);
       gain.connect(output);
       noise.onended = () => { noise.disconnect(); filter.disconnect(); gain.disconnect(); };
+      this.trackGiftSfxSource(groupId, noise);
       noise.start(now);
       noise.stop(now + 0.74);
     } catch (_) {}
@@ -443,6 +460,8 @@ class TempleAudioEngine {
 
       noise.onended = () => { noise.disconnect(); lowpass.disconnect(); noiseGain.disconnect(); };
       sub.onended = () => { sub.disconnect(); subGain.disconnect(); };
+      this.trackGiftSfxSource(groupId, noise);
+      this.trackGiftSfxSource(groupId, sub);
       noise.start(now);
       noise.stop(now + 0.92);
       sub.start(now);
@@ -472,6 +491,7 @@ class TempleAudioEngine {
       filter.connect(gain);
       gain.connect(output);
       source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+      this.trackGiftSfxSource(groupId, source);
       source.start(now);
       source.stop(now + 1.12);
     } catch (_) {}
@@ -507,6 +527,7 @@ class TempleAudioEngine {
         osc.connect(gain);
         gain.connect(filter);
         osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        this.trackGiftSfxSource(groupId, osc);
         osc.start(now);
         osc.stop(now + 1.0);
       });
@@ -532,6 +553,7 @@ class TempleAudioEngine {
         osc.connect(gain);
         gain.connect(output);
         osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        this.trackGiftSfxSource(groupId, osc);
         osc.start(start);
         osc.stop(start + 0.66);
       });
@@ -556,6 +578,7 @@ class TempleAudioEngine {
         osc.connect(gain);
         gain.connect(output);
         osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        this.trackGiftSfxSource(groupId, osc);
         osc.start(start);
         osc.stop(start + 0.45);
       });
