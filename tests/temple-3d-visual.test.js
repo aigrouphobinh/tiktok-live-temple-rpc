@@ -86,6 +86,17 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
   });
 
+  it('models the bell, wooden fish and fortune cylinder as 3D sanctuary props', async () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('function makeRitualStation(x, z, kind)');
+    expect(scene).toContain("makeRitualStation(-7.1, -0.8, 'bell')");
+    expect(scene).toContain("makeRitualStation(7.1, -0.8, 'woodfish')");
+    expect(scene).toContain("makeRitualStation(7.1, -5.0, 'fortune')");
+    expect(scene).toContain('const ritualStations = [];');
+    expect(scene).toContain('camera.position.set(0, 10.5, 23);');
+    expect(scene).toContain('camera.lookAt(0, 4.4, -5.5);');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
