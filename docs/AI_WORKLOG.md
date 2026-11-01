@@ -1111,6 +1111,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
 
 
+### 2026-11-01 — Add the Buddha's forehead urna relief
+- Added a small, stone-on-stone urna with a shallow shadow cradle and restrained ivory highlight.
+- Kept the mark centered on the forehead and deliberately avoided a metallic or gem-like appearance.
+- Added source regression coverage; no silhouette, camera, lighting, animation or material palette changes.
+
 ### 2026-11-01 — Add subtle mineral roughness variation to the Buddha stone
 - Added a dedicated high-value roughness texture for the ivory statue, shadow grooves and carved highlights so broad stone forms respond to light with restrained surface variation.
 - Kept the existing deterministic bump grain, stone colors, roughness baselines and lighting intact; the extra 64×64 map is shared across the three statue materials.

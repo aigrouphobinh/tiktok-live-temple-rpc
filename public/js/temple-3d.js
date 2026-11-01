@@ -1016,6 +1016,22 @@ async function boot() {
   statueLine([[-0.13,4.315,0.686],[0,4.325,0.718],[0.13,4.315,0.686]],0.011,mats.statueLight);
   statueLine([[0,4.78,0.69],[0.02,4.55,0.76],[-0.06,4.48,0.72]],0.035,mats.statueLight);
   statueLine([[-0.16,4.34,0.66],[0,4.30,0.72],[0.16,4.34,0.66]],0.024,mats.statueShadow);
+  // The Buddha's urna is a restrained stone relief, not a metallic jewel.
+  // A shallow shadow cradle and tiny ivory rise keep the forehead mark legible at portrait scale.
+  statueLine([
+    [-0.026, 5.025, 0.535],
+    [-0.018, 5.042, 0.545],
+    [0, 5.047, 0.55],
+    [0.018, 5.042, 0.545],
+    [0.026, 5.025, 0.535]
+  ], 0.0055, mats.statueShadow);
+  statueLine([
+    [-0.015, 5.047, 0.548],
+    [0, 5.052, 0.553],
+    [0.015, 5.047, 0.548]
+  ], 0.004, mats.statueLight);
+  sphere(0.019, mats.statueLight, 0, 5.03, 0.557, 0.82, 1.12, 0.48, statue);
+
   // Hands rest together in a meditation mudra above the crossed legs.
   sphere(0.22,mats.statueLight,-0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.22,mats.statueLight,0.2,2.72,0.72,1.2,0.42,0.7,statue);
