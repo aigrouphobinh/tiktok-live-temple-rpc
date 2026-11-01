@@ -2449,7 +2449,7 @@ async function boot() {
         : null;
       const frameTimeP50Ms = percentile(0.50);
       const frameTimeP95Ms = percentile(0.95);
-      console.info('[Temple3D] GPU frame stats', {
+      console.info('[Temple3D] Frame diagnostics', {
         drawCalls: info.render.calls,
         triangles: info.render.triangles,
         geometries: info.memory.geometries,
