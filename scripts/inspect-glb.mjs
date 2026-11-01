@@ -16,17 +16,19 @@ export function parseGLB(input) {
   const version = bytes.readUInt32LE(4);
   if (version !== 2) throw new Error(`Unsupported GLB version: ${version} (expected 2).`);
   const declaredLength = bytes.readUInt32LE(8);
-  if (declaredLength > bytes.length || declaredLength < 20) {
+  if (declaredLength !== bytes.length || declaredLength < 20) {
     throw new Error('GLB header length does not match the file size.');
   }
 
   let offset = 12;
   let document = null;
-  while (offset + 8 <= declaredLength) {
+  while (offset < declaredLength) {
+    if (offset + 8 > declaredLength) throw new Error('GLB chunk header is truncated.');
     const chunkLength = bytes.readUInt32LE(offset);
     const chunkType = bytes.readUInt32LE(offset + 4);
     const chunkStart = offset + 8;
     const chunkEnd = chunkStart + chunkLength;
+    if (chunkLength % 4 !== 0) throw new Error('GLB chunk length must be 4-byte aligned.');
     if (chunkEnd > declaredLength) throw new Error('GLB chunk exceeds the declared file length.');
     if (chunkType === JSON_CHUNK && document === null) {
       const rawJson = bytes.toString('utf8', chunkStart, chunkEnd).replace(/[\0\s]+$/u, '');
