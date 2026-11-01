@@ -35,6 +35,51 @@ describe('TikTok gift payload normalization', () => {
     }, 'viewer')).toMatchObject({ giftId: '888', giftName: 'Dragon', diamondCount: 500 });
   });
 
+  it('normalizes legacy snake_case gift and combo fields', () => {
+    const payload = normalizeGiftPayload({
+      giftId: 909,
+      gift: {
+        gift_id: 909,
+        gift_type: 1,
+        diamond_count: 25,
+        repeat_count: 4,
+        repeat_end: 1,
+        group_id: 'combo-legacy',
+        name: 'Legacy Dragon'
+      }
+    }, 'viewer');
+
+    expect(payload).toMatchObject({
+      giftId: '909',
+      giftName: 'Legacy Dragon',
+      diamondCount: 25,
+      repeatCount: 4,
+      repeatEnd: true,
+      giftType: 1,
+      streakable: true,
+      groupId: 'combo-legacy'
+    });
+  });
+
+  it('reads top-level snake_case combo fields and string final flags', () => {
+    expect(normalizeGiftPayload({
+      gift_id: 910,
+      gift_type: 1,
+      giftName: 'Legacy Rose',
+      diamondCount: 1,
+      repeat_count: 3,
+      repeat_end: 'true',
+      group_id: 'top-level-combo'
+    }, 'viewer')).toMatchObject({
+      giftId: '910',
+      giftName: 'Legacy Rose',
+      repeatCount: 3,
+      repeatEnd: true,
+      streakable: true,
+      groupId: 'top-level-combo'
+    });
+  });
+
   it('uses gift name in fallback combo identity when TikTok omits giftId and groupId', () => {
     const payload = normalizeGiftPayload({
       giftDetails: { giftName: 'Donut', diamondCount: 30, giftType: 1 },
