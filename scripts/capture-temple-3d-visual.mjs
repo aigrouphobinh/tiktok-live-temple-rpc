@@ -117,7 +117,7 @@ try {
             errors.push(text);
           }
         }
-        if (message.text().includes('[Temple3D] GPU frame stats')) {
+        if (message.text().includes('[Temple3D] Frame diagnostics')) {
           try {
             const args = message.args();
             const payload = await args[1]?.jsonValue();
