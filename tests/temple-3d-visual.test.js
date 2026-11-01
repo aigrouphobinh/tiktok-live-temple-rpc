@@ -12,6 +12,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
+  it('adds animated blinking, eye gaze and a restrained bow expression to procedural faces', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const eyeWhites = [], eyePupils = [];');
+    expect(scene).toContain('eyeWhites, eyePupils, smile,');
+    expect(scene).toContain('const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;');
+    expect(scene).toContain('avatar.eyeWhites[index].scale.y = eyeOpen;');
+    expect(scene).toContain('avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006;');
+    expect(scene).toContain('avatar.smile.scale.y = 1 - avatar.bowAmount * 0.12;');
+  });
+
   it('builds articulated palms and fingers for the procedural devotee', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const leftHand = new THREE.Group();');
