@@ -45,6 +45,12 @@ jobs:
           grep -Fq 'new THREE.SpotLight' public/js/temple-3d.js &&
           grep -Fq 'offeringFlames.forEach' public/js/temple-3d.js &&
           grep -Fq 'function playWorldGiftAction(action)' public/js/temple-3d.js &&
+          grep -Fq "import('three/addons/loaders/GLTFLoader.js')" public/js/temple-3d.js &&
+          grep -Fq 'SkeletonUtils.clone(asset.scene)' public/js/temple-3d.js &&
+          grep -Fq 'https://gobkit.com/freebies/animal/Corgi.glb' public/js/temple-3d.js &&
+          grep -Fq 'https://gobkit.com/freebies/animal/Duck.glb' public/js/temple-3d.js &&
+          grep -Fq 'mainDevoteeFallback.visible = false' public/js/temple-3d.js &&
+          grep -Fq 'three/addons/' public/index.html &&
           grep -Fq "action === 'rocket'" public/js/temple-3d.js &&
           grep -Fq "action === 'dragon'" public/js/temple-3d.js &&
           grep -Fq "action === 'donut'" public/js/temple-3d.js &&
