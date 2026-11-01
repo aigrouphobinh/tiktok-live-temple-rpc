@@ -365,6 +365,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       // Coalesce cumulative connector frames for a single streakable gift.
       if (streakCoalescer.shouldCoalesce(event)) {
         showComboPulse(event.giftComboDelta || 1);
+        window.dispatchEvent(new CustomEvent('temple:gift-reaction', { detail: { action, reactionProfile: resolveGiftReactionProfile(event) } }));
         return { allowWalker: false, coalescedCombo: true, action, state: machine.snapshot() };
       }
       const interruptedEvent = machine.snapshot().active;
