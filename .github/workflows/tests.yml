@@ -21,8 +21,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
       - name: Run unit tests
         run: bun test
-      - name: Check JavaScript syntax
+      - name: Check browser entrypoints and JavaScript syntax
         run: >-
+          grep -Fq '<script type="module" src="/js/live.js"></script>' public/index.html &&
+          ! grep -Fq '<script src="/js/live.js"></script>' public/index.html &&
           node --check server.js &&
           node --check lib/tiktok-gift-payload.cjs &&
           node --check public/js/audio.js &&
