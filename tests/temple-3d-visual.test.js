@@ -245,7 +245,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-6');
+    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-7');
   });
 
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
@@ -897,4 +897,13 @@ it('adds instanced raised gold midribs to both lotus petal rings', () => {
   expect(scene).toContain('petalVeins.setMatrixAt(i, transform.matrix);');
   expect(scene).toContain('ring.add(redPetals, goldPetals, petalVeins);');
   expect(scene).toContain('petals.castShadow = false;');
+});
+
+
+it('shows a designed and truthful empty state for the 3D merit panel', () => {
+  expect(css).toContain('.stage-9x16.temple-3d-mode .hud-lb-list:empty::before');
+  expect(css).toContain('.stage-9x16.temple-3d-mode .hud-lb-list:empty::after');
+  expect(css).toContain('Chưa có lượt cúng dường\\A Mỗi tấm lòng đều được trân trọng');
+  expect(css).toContain('white-space: pre-line;');
+  expect(css).toContain('border: 1px solid rgba(230, 190, 119, .34);');
 });
