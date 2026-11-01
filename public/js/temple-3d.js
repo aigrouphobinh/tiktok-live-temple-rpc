@@ -1254,8 +1254,14 @@ async function boot() {
           rightLegRest: bones.rightLeg?.rotation.clone()
         };
       }
-      console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; clips:`,
+      console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; mapped clips:`,
         Object.entries(gltfActions).filter(([, clip]) => clip).map(([name, clip]) => `${name}=${clip.name}`),
+        'available clips:', animations.map((clip) => ({
+          name: clip.name || '(unnamed)',
+          duration: Number.isFinite(clip.duration) ? Number(clip.duration.toFixed(2)) : null,
+          tracks: clip.tracks.length,
+          targets: [...new Set(clip.tracks.map((track) => track.name.split('.')[0]))].slice(0, 12)
+        })),
         'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})
           .filter(([key, value]) => !key.endsWith('Rest') && value?.isBone)
           .map(([key, value]) => [key, value.name])));
