@@ -8,6 +8,7 @@ import { disposeThreeSceneResources } from './three-resource-utils.js';
 export async function loadGLTFAsset(url, {
   targetHeight = 1.7,
   centerXZ = true,
+  maxShadowTriangles = 250000,
   onProgress
 } = {}) {
   if (typeof url !== 'string' || !url.startsWith('/assets/models/') || url.startsWith('//')) {
@@ -15,6 +16,9 @@ export async function loadGLTFAsset(url, {
   }
   if (!Number.isFinite(targetHeight) || targetHeight <= 0) {
     throw new RangeError('targetHeight must be a positive finite number.');
+  }
+  if (!Number.isFinite(maxShadowTriangles) || maxShadowTriangles < 0) {
+    throw new RangeError('maxShadowTriangles must be a non-negative finite number.');
   }
 
   const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
@@ -50,9 +54,20 @@ export async function loadGLTFAsset(url, {
     );
     root.updateMatrixWorld(true);
 
+    let triangleCount = 0;
     root.traverse((node) => {
       if (!node.isMesh) return;
-      node.castShadow = true;
+      const position = node.geometry?.getAttribute?.('position');
+      const indexCount = node.geometry?.index?.count;
+      triangleCount += Math.floor((Number.isFinite(indexCount) ? indexCount : position?.count || 0) / 3);
+    });
+    // Large scanned statues can contain millions of triangles. Keep them visible
+    // and able to receive shadows, but avoid submitting the entire scan to shadow
+    // maps, which multiplies vertex work on mobile GPUs.
+    const castsShadow = triangleCount <= maxShadowTriangles;
+    root.traverse((node) => {
+      if (!node.isMesh) return;
+      node.castShadow = castsShadow;
       node.receiveShadow = true;
       // Keep imported tangent/normal and material data intact; no destructive merge.
     });
@@ -74,6 +89,8 @@ export async function loadGLTFAsset(url, {
     sourceBounds,
     sourceSize,
     scale,
+    triangleCount,
+    castsShadow: triangleCount <= maxShadowTriangles,
     dispose() {
       if (disposed) return;
       disposed = true;
