@@ -45,9 +45,25 @@ class TempleAudioEngine {
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+    // Route every synthesized SFX through one shared dynamics stage. Several
+    // layered sounds (e.g. explosion noise + sub, or a multi-part bell) can
+    // otherwise sum above full scale when effects overlap.
+    if (!this.sfxOutput) {
+      if (typeof this.ctx.createDynamicsCompressor === 'function') {
+        this.sfxOutput = this.ctx.createDynamicsCompressor();
+        this.sfxOutput.threshold.setValueAtTime(-8, this.ctx.currentTime);
+        this.sfxOutput.knee.setValueAtTime(12, this.ctx.currentTime);
+        this.sfxOutput.ratio.setValueAtTime(10, this.ctx.currentTime);
+        this.sfxOutput.attack.setValueAtTime(0.003, this.ctx.currentTime);
+        this.sfxOutput.release.setValueAtTime(0.22, this.ctx.currentTime);
+        this.sfxOutput.connect(this.ctx.destination);
+      } else {
+        this.sfxOutput = this.ctx.destination;
+      }
+    }
     if (!this.sfxGain) {
       this.sfxGain = this.ctx.createGain();
-      this.sfxGain.connect(this.ctx.destination);
+      this.sfxGain.connect(this.sfxOutput);
     }
     this.sfxGain.gain.setTargetAtTime(this.sfxEnabled ? this.sfxVolume : 0, this.ctx.currentTime, 0.025);
     this.unlocked = true;
