@@ -187,8 +187,14 @@ try {
         profileReport.modelLoadError = error.message;
       }
 
-      // Capture one renderer sample for the idle-scene baseline.
-      const idleStats = await waitForRendererSample(rendererStatsSamples, 1);
+      // The renderer may emit an initial sample while the procedural statue is
+      // still visible. Start the idle baseline only from a fresh sample after
+      // the optional GLB has reached its settled source state.
+      const samplesBeforeIdle = rendererStatsSamples.length;
+      const idleStats = await waitForRendererSample(
+        rendererStatsSamples,
+        samplesBeforeIdle + 1
+      );
       const samplesBeforeGiftBurst = rendererStatsSamples.length;
 
       // Sustain the gift burst until a *new* renderer diagnostic is observed.

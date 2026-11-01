@@ -953,4 +953,17 @@ it('validates gift-burst renderer cost against each profile idle baseline', () =
   expect(auditScript).toContain('const idleDrawCallsStrictlyIncrease = idleDrawCalls.every(Number.isFinite)');
   expect(auditScript).toContain('maxDrawCallsBudget: 1200');
   expect(auditScript).not.toContain('giftBurstEffectsIncreaseByTier');
+  const modelSettledIndex = auditScript.indexOf(
+    '() => window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== undefined'
+  );
+  const idleSampleCountIndex = auditScript.indexOf(
+    'const samplesBeforeIdle = rendererStatsSamples.length;'
+  );
+  const idleSampleWaitIndex = auditScript.indexOf(
+    'samplesBeforeIdle + 1'
+  );
+  expect(modelSettledIndex).toBeGreaterThanOrEqual(0);
+  expect(idleSampleCountIndex).toBeGreaterThan(modelSettledIndex);
+  expect(idleSampleWaitIndex).toBeGreaterThan(idleSampleCountIndex);
+  expect(auditScript).not.toContain('waitForRendererSample(rendererStatsSamples, 1)');
 });
