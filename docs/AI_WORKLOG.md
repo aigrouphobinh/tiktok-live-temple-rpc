@@ -356,3 +356,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - `CharacterStateMachine.interrupt()` now accepts a valid gift effect during `COOLDOWN`, reclaims stage ownership, and leaves the interrupted devotee queue intact for the next handoff.
 - Added a regression test for Rocket completion → Dragon arriving during cooldown → original devotee A resuming ahead of B.
 - Source and test committed directly to `main`. Bun/CI execution and browser timing validation are still pending; this is not a runtime pass claim.
+
+
+### Zero-capacity interruption queue guard — 2026-11-01
+- Fixed an overflow in `CharacterStateMachine.interrupt()`: when `maxQueue=0`, the previous code still unshifted the interrupted active devotee after attempting to evict from an empty queue.
+- Gift interruption still takes stage ownership, but the interrupted visit is retained only when the configured waiting queue has capacity. A zero-capacity queue now remains empty instead of violating its bound.
+- The existing zero-capacity regression test asserts this invariant. Source has been committed directly to `main`; Bun/CI execution and browser behavior are not yet verified.
