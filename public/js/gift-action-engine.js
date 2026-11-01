@@ -1,6 +1,7 @@
 import { CharacterStateMachine } from './character-state-machine.js';
 import { resolveGiftAction } from './gift-action-rules.js';
 import { GiftStreakCoalescer } from './gift-streak-coalescer.js';
+import { GiftEffectRegistry } from './gift-effect-registry.js';
 
 /**
  * Single-owner visual controller for the central devotee.
@@ -25,8 +26,7 @@ import { GiftStreakCoalescer } from './gift-streak-coalescer.js';
   let cooldownTimer = 0;
   let effectToken = 0;
   let characterAnimation = null;
-  const effectAnimations = new Set();
-  const effectElements = new Set();
+  const effectRegistry = new GiftEffectRegistry();
 
   function playGiftSound(type) {
     window.dispatchEvent(new CustomEvent('temple:gift-sfx', { detail: { type } }));
@@ -39,24 +39,15 @@ import { GiftStreakCoalescer } from './gift-streak-coalescer.js';
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
     layer.appendChild(el);
-    effectElements.add(el);
     return el;
   }
 
   function removeAfter(el, animation) {
-    effectAnimations.add(animation);
-    animation.finished.catch(() => {}).finally(() => {
-      effectAnimations.delete(animation);
-      effectElements.delete(el);
-      el.remove();
-    });
+    effectRegistry.track(el, animation);
   }
 
   function clearActiveEffects() {
-    effectAnimations.forEach((animation) => animation.cancel());
-    effectAnimations.clear();
-    effectElements.forEach((element) => element.remove());
-    effectElements.clear();
+    effectRegistry.clear();
   }
 
   function animateCharacter(keyframes, duration) {
