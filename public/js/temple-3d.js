@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingStep } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
@@ -1092,14 +1092,19 @@ async function boot() {
     }
     const leftLeg = new THREE.Group(); leftLeg.position.set(-0.13,0.48,0); root.add(leftLeg);
     const rightLeg = new THREE.Group(); rightLeg.position.set(0.13,0.48,0); root.add(rightLeg);
-    for(const [pivot,side] of [[leftLeg,-1],[rightLeg,1]]){
-      cylinder(0.105,0.12,0.48,denim,0,-0.22,0,pivot,12);
-      const shoe=sphere(0.13,white,0,-0.48,0.09,1.35,0.55,1.9,pivot);
+    const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);
+    const rightKnee = new THREE.Group(); rightKnee.position.y = -0.24; rightLeg.add(rightKnee);
+    const leftFoot = new THREE.Group(); leftFoot.position.y = -0.24; leftKnee.add(leftFoot);
+    const rightFoot = new THREE.Group(); rightFoot.position.y = -0.24; rightKnee.add(rightFoot);
+    for(const [upper,lower,foot,side] of [[leftLeg,leftKnee,leftFoot,-1],[rightLeg,rightKnee,rightFoot,1]]){
+      cylinder(0.105,0.12,0.25,denim,0,-0.12,0,upper,12);
+      cylinder(0.095,0.11,0.25,denim,0,-0.12,0,lower,12);
+      const shoe=sphere(0.13,white,0,-0.025,0.09,1.35,0.55,1.9,foot);
       shoe.rotation.y=side*0.04;
     }
     root.scale.setScalar(height/1.72);
     const avatar = {
-      root, upperBody, head, leftArm, rightArm, leftLeg, rightLeg,
+      root, upperBody, head, leftArm, rightArm, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0
@@ -1219,7 +1224,11 @@ async function boot() {
           leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml', 'lupperarm', 'larm', 'jbiplupperarm'],
           rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr', 'rupperarm', 'rarm', 'jbiprupperarm'],
           leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg', 'jbiplupperleg'],
-          rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg', 'jbiprupperleg']
+          leftKnee: ['leftlowerleg', 'leftcalf', 'leftshin', 'lowerlegleft', 'calfleft', 'shinleft', 'lowerlegl', 'calfl', 'shinl', 'llowerleg', 'lcalf', 'lshin', 'jbipllowerleg'],
+          leftFoot: ['leftfoot', 'footleft', 'footl', 'lfoot', 'jbiplfoot'],
+          rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg', 'jbiprupperleg'],
+          rightKnee: ['rightlowerleg', 'rightcalf', 'rightshin', 'lowerlegright', 'calfright', 'shinright', 'lowerlegr', 'calfr', 'shinr', 'rlowerleg', 'rcalf', 'rshin', 'jbiprlowerleg'],
+          rightFoot: ['rightfoot', 'footright', 'footr', 'rfoot', 'jbiprfoot']
         };
         const boneScores = {};
         model.traverse((node) => {
@@ -1251,8 +1260,16 @@ async function boot() {
           rightArmRest: bones.rightArm?.rotation.clone(),
           leftLeg: bones.leftLeg,
           rightLeg: bones.rightLeg,
+          leftKnee: bones.leftKnee,
+          rightKnee: bones.rightKnee,
+          leftFoot: bones.leftFoot,
+          rightFoot: bones.rightFoot,
           leftLegRest: bones.leftLeg?.rotation.clone(),
-          rightLegRest: bones.rightLeg?.rotation.clone()
+          rightLegRest: bones.rightLeg?.rotation.clone(),
+          leftKneeRest: bones.leftKnee?.rotation.clone(),
+          rightKneeRest: bones.rightKnee?.rotation.clone(),
+          leftFootRest: bones.leftFoot?.rotation.clone(),
+          rightFootRest: bones.rightFoot?.rotation.clone()
         };
       }
       console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; mapped clips:`,
@@ -1274,14 +1291,20 @@ async function boot() {
   function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1) {
     const rig = avatar.gltfRig;
     if (!rig) return;
-    const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
-    const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);
+    const leftPose = getFootPlantingPose(gaitPhase + avatar.phase);
+    const rightPose = getFootPlantingPose(gaitPhase + avatar.phase + Math.PI);
+    const leftStep = leftPose.step;
+    const rightStep = rightPose.step;
     const amount = 0.34 * weight;
     // Preserve the idle clip's evaluated pose when one exists. With no clips,
     // return to the captured rest pose instead of freezing on the last gait.
     const base = (bone, rest) => avatar.gltfActions?.idle ? bone?.rotation.x : rest?.x;
     if (rig.leftLeg && rig.leftLegRest) rig.leftLeg.rotation.x = base(rig.leftLeg, rig.leftLegRest) - leftStep * amount;
     if (rig.rightLeg && rig.rightLegRest) rig.rightLeg.rotation.x = base(rig.rightLeg, rig.rightLegRest) - rightStep * amount;
+    if (rig.leftKnee && rig.leftKneeRest) rig.leftKnee.rotation.x = base(rig.leftKnee, rig.leftKneeRest) + leftPose.kneeFlex * weight;
+    if (rig.rightKnee && rig.rightKneeRest) rig.rightKnee.rotation.x = base(rig.rightKnee, rig.rightKneeRest) + rightPose.kneeFlex * weight;
+    if (rig.leftFoot && rig.leftFootRest) rig.leftFoot.rotation.x = base(rig.leftFoot, rig.leftFootRest) + leftStep * amount * 0.45 - leftPose.kneeFlex * weight * 0.65;
+    if (rig.rightFoot && rig.rightFootRest) rig.rightFoot.rotation.x = base(rig.rightFoot, rig.rightFootRest) + rightStep * amount * 0.45 - rightPose.kneeFlex * weight * 0.65;
     if (rig.leftArm && rig.leftArmRest) rig.leftArm.rotation.x = base(rig.leftArm, rig.leftArmRest) + rightStep * amount * 0.62;
     if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + leftStep * amount * 0.62;
   }
@@ -1309,8 +1332,16 @@ async function boot() {
     }
     avatar.leftArm.rotation.x = walking ? rightStep*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
     avatar.rightArm.rotation.x = walking ? leftStep*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
+    const leftPose = getFootPlantingPose(gaitPhase + avatar.phase);
+    const rightPose = getFootPlantingPose(gaitPhase + avatar.phase + Math.PI);
     avatar.leftLeg.rotation.x = walking ? -leftStep*0.48 : 0;
     avatar.rightLeg.rotation.x = walking ? -rightStep*0.48 : 0;
+    avatar.leftKnee.rotation.x = walking ? leftPose.kneeFlex : 0;
+    avatar.rightKnee.rotation.x = walking ? rightPose.kneeFlex : 0;
+    avatar.leftFoot.rotation.x = walking ? leftStep*0.22 - leftPose.kneeFlex*0.65 : 0;
+    avatar.rightFoot.rotation.x = walking ? rightStep*0.22 - rightPose.kneeFlex*0.65 : 0;
+    avatar.leftFoot.position.y = -0.24 + (walking ? leftPose.footLift : 0);
+    avatar.rightFoot.position.y = -0.24 + (walking ? rightPose.footLift : 0);
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
     avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
   }
