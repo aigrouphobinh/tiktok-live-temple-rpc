@@ -762,6 +762,16 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds layered side-torso and lower-elbow robe folds on both sides', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// A short side-torso pleat and lower elbow fold create a quiet layered transition.');
+  expect(scene).toContain('[side * 0.48, 3.48, 0.71]');
+  expect(scene).toContain('[side * 0.66, 3.33, 0.67]');
+  expect(scene).toContain('[side * 0.56, 3.105, 0.635]');
+  expect(scene).toContain('sideTorsoPleatRidgeMesh');
+  expect(scene).toContain('elbowLowerFoldMesh');
+});
+
 it('adds fine paired upper-chest pleats with restrained ivory ridges to the Buddha robe', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// Fine upper-chest pleats carry the robe\'s drape from the neckline into the chest.');
