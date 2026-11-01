@@ -430,6 +430,11 @@ async function boot() {
   const devoteeAvatars = [];
   function makeHumanAvatar(height = 1.55) {
     const root = new THREE.Group();
+    // Upper body pivots at the waist so the devotee bows naturally instead of
+    // rotating the entire body around the feet (which makes the knees clip the floor).
+    const upperBody = new THREE.Group();
+    upperBody.position.y = 0.48;
+    root.add(upperBody);
     const pink = new THREE.MeshStandardMaterial({color:0xe978a5,roughness:0.82});
     const pinkDark = new THREE.MeshStandardMaterial({color:0xb94f7c,roughness:0.86});
     const denim = new THREE.MeshStandardMaterial({color:0x315f9c,roughness:0.9});
@@ -437,9 +442,9 @@ async function boot() {
     const hair = new THREE.MeshStandardMaterial({color:0x39231d,roughness:0.9});
     const white = new THREE.MeshStandardMaterial({color:0xf2eee8,roughness:0.65});
     const eye = new THREE.MeshStandardMaterial({color:0x201b1a,roughness:0.6});
-    const torso = sphere(0.27,pink,0,0.88,0,1.08,1.25,0.68,root);
-    sphere(0.12,pinkDark,0,0.72,0,1.08,0.45,0.72,root);
-    const head = new THREE.Group(); head.position.set(0,1.28,0.02); root.add(head);
+    const torso = sphere(0.27,pink,0,0.40,0,1.08,1.25,0.68,upperBody);
+    sphere(0.12,pinkDark,0,0.24,0,1.08,0.45,0.72,upperBody);
+    const head = new THREE.Group(); head.position.set(0,0.80,0.02); upperBody.add(head);
     sphere(0.27,skin,0,0,0,0.88,1.08,0.78,head);
     sphere(0.29,hair,0,0.12,-0.09,0.98,1.18,0.86,head);
     // Long back hair and shoulder-length side locks match the reference avatar silhouette.
@@ -460,8 +465,8 @@ async function boot() {
     sphere(0.035,skin,0,-0.045,0.25,0.7,0.7,0.7,head);
     const smile = new THREE.Mesh(new THREE.TorusGeometry(0.075,0.012,6,18,Math.PI),pinkDark);
     smile.position.set(0,-0.105,0.235); smile.rotation.z=Math.PI; head.add(smile);
-    const leftArm = new THREE.Group(); leftArm.position.set(-0.29,1.05,0); root.add(leftArm);
-    const rightArm = new THREE.Group(); rightArm.position.set(0.29,1.05,0); root.add(rightArm);
+    const leftArm = new THREE.Group(); leftArm.position.set(-0.29,0.57,0); upperBody.add(leftArm);
+    const rightArm = new THREE.Group(); rightArm.position.set(0.29,0.57,0); upperBody.add(rightArm);
     for(const [pivot,side] of [[leftArm,-1],[rightArm,1]]){
       const sleeve=cylinder(0.105,0.12,0.42,pink,0,-0.2,0,pivot,12); sleeve.rotation.z=side*0.18;
       sphere(0.075,skin,0,-0.43,0.02,0.9,1,0.9,pivot);
@@ -474,7 +479,7 @@ async function boot() {
       shoe.rotation.y=side*0.04;
     }
     root.scale.setScalar(height/1.72);
-    return {root,head,leftArm,rightArm,leftLeg,rightLeg,phase:Math.random()*Math.PI*2};
+    return {root,upperBody,head,leftArm,rightArm,leftLeg,rightLeg,phase:Math.random()*Math.PI*2};
   }
   function animateHuman(avatar, time, walking = false) {
     const swing = Math.sin(time*0.009 + avatar.phase);
@@ -742,7 +747,8 @@ async function boot() {
       if (travel >= 1 && !devoteeState.bowAt) devoteeState.bowAt = now;
       if (devoteeState.bowAt) {
         const bow = Math.min(1, (now - devoteeState.bowAt) / 650);
-        mainDevotee.rotation.x = -bow * 0.62;
+        mainHuman.upperBody.rotation.x = -bow * 0.72;
+       mainHuman.head.rotation.x = bow * 0.16;
       }
       if (now > ritualUntil) {
         devoteeState.active = false;
