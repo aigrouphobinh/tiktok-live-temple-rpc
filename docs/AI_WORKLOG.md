@@ -450,3 +450,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added deterministic tests against the real `TempleAudioEngine` implementation using a mocked Web Audio gain node and controllable timers. Coverage verifies per-effect output reuse/isolation, targeted fade and disconnect, idempotent cancellation, idle-timeout extension when another sound joins an effect, and safe handling of missing IDs.
 - GitHub Actions run `41263192693` passed both `bun test` and the expanded JavaScript syntax check.
 - These tests validate gain-group resource ownership and cleanup deterministically; they do not substitute for listening tests or browser/device audio verification.
+
+
+### Stop active Web Audio sources when a gift effect is superseded — 2026-11-01
+- Gift SFX groups now retain references to their active BufferSource/Oscillator nodes. Cancelling a superseded effect stops those sources immediately while the group's gain fades over 25 ms; the existing `onended` cleanup still disconnects each source's local filter/gain nodes and removes its group reference.
+- Applied tracking to Rocket launch, both Explosion layers, Dragon whoosh/roar, Rose chime and Donut chime. Background ambience, temple percussion, and TTS sources are deliberately not registered in gift groups.
+- Added deterministic regression coverage proving cancellation stops sources only for the targeted effect and that ended sources are removed from the group set.
+- GitHub Actions run `41263244511` (source change) and `41263253560` (source plus tests) both passed the Bun unit-test step and JavaScript syntax check.
+- Runtime listening and real browser interruption checks remain outstanding.
