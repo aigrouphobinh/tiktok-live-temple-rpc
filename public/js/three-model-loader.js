@@ -24,35 +24,44 @@ export async function loadGLTFAsset(url, {
   const root = new THREE.Group();
   root.name = 'normalized-gltf-asset';
   root.add(gltf.scene);
-  root.updateMatrixWorld(true);
 
-  const sourceBounds = new THREE.Box3().setFromObject(root);
-  if (sourceBounds.isEmpty()) throw new Error(`GLB scene is empty: ${url}`);
-  const sourceSize = sourceBounds.getSize(new THREE.Vector3());
-  if (!Number.isFinite(sourceSize.y) || sourceSize.y <= 1e-5) {
-    throw new Error(`GLB has invalid vertical bounds: ${url}`);
+  try {
+    root.updateMatrixWorld(true);
+    const sourceBounds = new THREE.Box3().setFromObject(root);
+    if (sourceBounds.isEmpty()) throw new Error(`GLB scene is empty: ${url}`);
+    const sourceSize = sourceBounds.getSize(new THREE.Vector3());
+    if (!Number.isFinite(sourceSize.y) || sourceSize.y <= 1e-5) {
+      throw new Error(`GLB has invalid vertical bounds: ${url}`);
+    }
+
+    const scale = targetHeight / sourceSize.y;
+    root.scale.setScalar(scale);
+    root.updateMatrixWorld(true);
+
+    const normalizedBounds = new THREE.Box3().setFromObject(root);
+    const center = normalizedBounds.getCenter(new THREE.Vector3());
+    root.position.set(
+      centerXZ ? -center.x : 0,
+      -normalizedBounds.min.y,
+      centerXZ ? -center.z : 0
+    );
+    root.updateMatrixWorld(true);
+
+    root.traverse((node) => {
+      if (!node.isMesh) return;
+      node.castShadow = true;
+      node.receiveShadow = true;
+      // Keep imported tangent/normal and material data intact; no destructive merge.
+    });
+  } catch (error) {
+    // A malformed/empty GLB must not strand decoded GPU resources before fallback.
+    disposeThreeSceneResources(root);
+    throw error;
   }
 
-  const scale = targetHeight / sourceSize.y;
-  root.scale.setScalar(scale);
-  root.updateMatrixWorld(true);
-
-  const normalizedBounds = new THREE.Box3().setFromObject(root);
-  const center = normalizedBounds.getCenter(new THREE.Vector3());
-  root.position.set(
-    centerXZ ? -center.x : 0,
-    -normalizedBounds.min.y,
-    centerXZ ? -center.z : 0
-  );
-  root.updateMatrixWorld(true);
-
-  root.traverse((node) => {
-    if (!node.isMesh) return;
-    node.castShadow = true;
-    node.receiveShadow = true;
-    // Keep imported tangent/normal and material data intact; no destructive merge.
-  });
-
+  const sourceBounds = new THREE.Box3().setFromObject(root);
+  const sourceSize = sourceBounds.getSize(new THREE.Vector3());
+  const scale = root.scale.x;
   const animations = Array.isArray(gltf.animations) ? gltf.animations : [];
   const mixer = animations.length ? new THREE.AnimationMixer(root) : null;
   let disposed = false;
