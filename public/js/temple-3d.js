@@ -287,6 +287,75 @@ async function boot() {
     petal.rotation.y = -a;
   }
 
+  // Sculpted upright lotus leaves: one shared curved surface, instanced in two
+  // nested rings to create a layered throne without dozens of individual draws.
+  function createLotusPetalGeometry() {
+    const lengthSegments = 12;
+    const widthSegments = 8;
+    const positions = [];
+    const indices = [];
+    for (let row = 0; row <= lengthSegments; row++) {
+      const t = row / lengthSegments;
+      const taper = Math.pow(Math.sin(Math.PI * t), 0.72);
+      const halfWidth = 0.34 * taper * (0.84 + 0.16 * t);
+      for (let column = 0; column <= widthSegments; column++) {
+        const u = (column / widthSegments) * 2 - 1;
+        const ridge = Math.max(0, 1 - u * u);
+        positions.push(
+          u * halfWidth,
+          t,
+          0.08 + 0.19 * Math.sin(Math.PI * t) + 0.07 * ridge * Math.sin(Math.PI * t)
+        );
+      }
+    }
+    for (let row = 0; row < lengthSegments; row++) {
+      for (let column = 0; column < widthSegments; column++) {
+        const a = row * (widthSegments + 1) + column;
+        const b = a + widthSegments + 1;
+        const c = a + 1;
+        const d = b + 1;
+        indices.push(a, c, b, c, d, b);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+  const lotusPetalGeometry = createLotusPetalGeometry();
+  function createLotusPetalRing(count, radius, y, size, lean = 0.08) {
+    const redCount = Math.ceil(count / 2);
+    const goldCount = Math.floor(count / 2);
+    const redPetals = new THREE.InstancedMesh(lotusPetalGeometry, mats.redBright, redCount);
+    const goldPetals = new THREE.InstancedMesh(lotusPetalGeometry, mats.goldBright, goldCount);
+    const redSlots = [];
+    const goldSlots = [];
+    const transform = new THREE.Object3D();
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      transform.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      transform.rotation.set(Math.cos(angle) * lean, Math.PI / 2 - angle, Math.sin(angle) * lean);
+      transform.scale.set(size, size, size);
+      transform.updateMatrix();
+      if (i % 2 === 0) {
+        redPetals.setMatrixAt(redSlots.length, transform.matrix);
+        redSlots.push(i);
+      } else {
+        goldPetals.setMatrixAt(goldSlots.length, transform.matrix);
+        goldSlots.push(i);
+      }
+    }
+    for (const petals of [redPetals, goldPetals]) {
+      petals.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+      petals.castShadow = true;
+      petals.receiveShadow = false;
+    }
+    lotusThrone.add(redPetals, goldPetals);
+  }
+  createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1);
+  createLotusPetalRing(12, 1.12, 0.1, 0.78, 0.06);
+
   // Seated stone Buddha statue: sculpted silhouette, robe folds, calm face and halo.
   const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); world.add(statue);
   // Cross-legged lotus posture and layered robe silhouette.
