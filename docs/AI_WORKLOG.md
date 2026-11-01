@@ -1019,3 +1019,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Switched red lacquer surfaces to MeshPhysicalMaterial with restrained clearcoat so highlights read as polished lacquer rather than flat red paint.
 - Kept gold metalness and base palette intact while introducing subtle roughness variation. Existing stone bump detail remains unchanged.
 - Added source regression coverage and CI guards. Browser visual/material validation remains outstanding.
+
+
+### 2026-11-01 — Add brass rosette reliefs to altar side panels
+- Added five evenly spaced brass rosettes to each recessed cinnabar side panel, each with a small ruby-red centre for a traditional ornamental rhythm.
+- Uses two fixed InstancedMesh batches (10 rings + 10 gems) and static instance matrices, avoiding dozens of separate draw calls.
+- Decorations sit within the existing panel framing and do not alter the camera, altar dimensions or roofless temple silhouette.
+- Added source regression tests and CI guards; browser visual validation remains outstanding.
