@@ -12,6 +12,7 @@ class TempleAudioEngine {
     this.sfxEnabled = localStorage.getItem('temple_sfx_enabled') !== 'false';
     this.sfxVolume = Math.max(0, Math.min(1, Number(localStorage.getItem('temple_sfx_vol') ?? 0.8) || 0));
     this.sfxGain = null;
+    this.giftSfxGroups = new Map();
     this.bgMusicEnabled = true;
     this.ttsEnabled = true;
     this.ttsVoice = 'maichi';
@@ -334,6 +335,46 @@ class TempleAudioEngine {
   // --------------------------------------------------------------------------
   // 6. GIFT GAMEPLAY SOUND EFFECTS (Web Audio synthesis; no external assets)
   // --------------------------------------------------------------------------
+  getGiftSfxOutput(groupId) {
+    if (groupId == null || groupId === '') return this.sfxGain || this.ctx.destination;
+    const key = String(groupId);
+    let group = this.giftSfxGroups.get(key);
+    if (!group) {
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(1, this.ctx.currentTime);
+      gain.connect(this.sfxGain || this.ctx.destination);
+      group = { gain, timer: null };
+      this.giftSfxGroups.set(key, group);
+    }
+    clearTimeout(group.timer);
+    group.timer = setTimeout(() => {
+      if (this.giftSfxGroups.get(key) !== group) return;
+      this.giftSfxGroups.delete(key);
+      try { group.gain.disconnect(); } catch (_) {}
+    }, 1800);
+    return group.gain;
+  }
+
+  cancelGiftSfxGroup(groupId) {
+    if (groupId == null || groupId === '') return false;
+    const key = String(groupId);
+    const group = this.giftSfxGroups.get(key);
+    if (!group) return false;
+    clearTimeout(group.timer);
+    const now = this.ctx?.currentTime || 0;
+    try {
+      group.gain.gain.cancelScheduledValues(now);
+      group.gain.gain.setValueAtTime(group.gain.gain.value, now);
+      group.gain.gain.linearRampToValueAtTime(0.0001, now + 0.025);
+    } catch (_) {}
+    group.timer = setTimeout(() => {
+      if (this.giftSfxGroups.get(key) !== group) return;
+      this.giftSfxGroups.delete(key);
+      try { group.gain.disconnect(); } catch (_) {}
+    }, 40);
+    return true;
+  }
+
   createNoiseBuffer(seconds = 0.5) {
     const ctx = this.ensureContext();
     const length = Math.max(1, Math.floor(ctx.sampleRate * seconds));
@@ -343,11 +384,12 @@ class TempleAudioEngine {
     return buffer;
   }
 
-  playRocketLaunch() {
+  playRocketLaunch(, groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
       const now = ctx.currentTime;
+      const output = this.getGiftSfxOutput(groupId);
       const noise = ctx.createBufferSource();
       noise.buffer = this.createNoiseBuffer(0.72);
       const filter = ctx.createBiquadFilter();
@@ -360,18 +402,19 @@ class TempleAudioEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(this.sfxGain || ctx.destination);
+      gain.connect(output);
       noise.onended = () => { noise.disconnect(); filter.disconnect(); gain.disconnect(); };
       noise.start(now);
       noise.stop(now + 0.74);
     } catch (_) {}
   }
 
-  playExplosion(intensity = 1) {
+  playExplosion(intensity = 1, groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
       const now = ctx.currentTime;
+      const output = this.getGiftSfxOutput(groupId);
       const amount = Math.max(0.35, Math.min(1.25, Number(intensity) || 1));
       const noise = ctx.createBufferSource();
       noise.buffer = this.createNoiseBuffer(0.95);
@@ -385,7 +428,7 @@ class TempleAudioEngine {
       noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.88);
       noise.connect(lowpass);
       lowpass.connect(noiseGain);
-      noiseGain.connect(this.sfxGain || ctx.destination);
+      noiseGain.connect(output);
 
       const sub = ctx.createOscillator();
       const subGain = ctx.createGain();
@@ -396,7 +439,7 @@ class TempleAudioEngine {
       subGain.gain.linearRampToValueAtTime(0.34 * amount, now + 0.012);
       subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
       sub.connect(subGain);
-      subGain.connect(this.sfxGain || ctx.destination);
+      subGain.connect(output);
 
       noise.onended = () => { noise.disconnect(); lowpass.disconnect(); noiseGain.disconnect(); };
       sub.onended = () => { sub.disconnect(); subGain.disconnect(); };
@@ -407,11 +450,12 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playDragonWhoosh() {
+  playDragonWhoosh(, groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
       const now = ctx.currentTime;
+      const output = this.getGiftSfxOutput(groupId);
       const source = ctx.createBufferSource();
       source.buffer = this.createNoiseBuffer(1.15);
       const filter = ctx.createBiquadFilter();
@@ -426,18 +470,19 @@ class TempleAudioEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
       source.connect(filter);
       filter.connect(gain);
-      gain.connect(this.sfxGain || ctx.destination);
+      gain.connect(output);
       source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
       source.start(now);
       source.stop(now + 1.12);
     } catch (_) {}
   }
 
-  playDragonRoar() {
+  playDragonRoar(, groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
       const now = ctx.currentTime;
+      const output = this.getGiftSfxOutput(groupId);
       const filter = ctx.createBiquadFilter();
       const master = ctx.createGain();
       filter.type = 'lowpass';
@@ -447,7 +492,7 @@ class TempleAudioEngine {
       master.gain.linearRampToValueAtTime(0.11, now + 0.09);
       master.gain.exponentialRampToValueAtTime(0.0001, now + 0.98);
       filter.connect(master);
-      master.connect(this.sfxGain || ctx.destination);
+      master.connect(output);
       [
         { type: 'sawtooth', start: 118, end: 54, level: 0.55 },
         { type: 'triangle', start: 174, end: 82, level: 0.28 }
@@ -469,11 +514,12 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playRoseChime() {
+  playRoseChime(, groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
       const now = ctx.currentTime;
+      const output = this.getGiftSfxOutput(groupId);
       [659.25, 783.99, 987.77].forEach((freq, index) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -484,7 +530,7 @@ class TempleAudioEngine {
         gain.gain.linearRampToValueAtTime(0.055, start + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.62);
         osc.connect(gain);
-        gain.connect(this.sfxGain || ctx.destination);
+        gain.connect(output);
         osc.onended = () => { osc.disconnect(); gain.disconnect(); };
         osc.start(start);
         osc.stop(start + 0.66);
@@ -492,11 +538,12 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playDonutChime() {
+  playDonutChime(, groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
       const now = ctx.currentTime;
+      const output = this.getGiftSfxOutput(groupId);
       [784, 988, 1175].forEach((freq, index) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -507,7 +554,7 @@ class TempleAudioEngine {
         gain.gain.linearRampToValueAtTime(0.075, start + 0.012);
         gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.42);
         osc.connect(gain);
-        gain.connect(this.sfxGain || ctx.destination);
+        gain.connect(output);
         osc.onended = () => { osc.disconnect(); gain.disconnect(); };
         osc.start(start);
         osc.stop(start + 0.45);
