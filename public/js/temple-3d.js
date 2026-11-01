@@ -815,6 +815,23 @@ async function boot() {
   hairCurls.castShadow = true;
   hairCurls.receiveShadow = false;
   statue.add(hairCurls);
+  // Continue the curled cap down both temples with a compact shared-mesh batch.
+  const templeCurlCount = 8;
+  const templeCurls = new THREE.InstancedMesh(hairCurlGeometry, mats.statueShadow, templeCurlCount);
+  const templeCurlTransform = new THREE.Object3D();
+  let templeCurlIndex = 0;
+  for (const side of [-1, 1]) {
+    for (let row = 0; row < 4; row++) {
+      templeCurlTransform.position.set(side * (0.53 - row * 0.018), 5.13 - row * 0.105, 0.36 + row * 0.035);
+      templeCurlTransform.scale.set(0.78, 0.82, 0.72);
+      templeCurlTransform.updateMatrix();
+      templeCurls.setMatrixAt(templeCurlIndex++, templeCurlTransform.matrix);
+    }
+  }
+  templeCurls.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  templeCurls.castShadow = true;
+  templeCurls.receiveShadow = false;
+  statue.add(templeCurls);
   sphere(0.1,mats.statueStone,0,5.78,0.02,1,1.1,1,statue);
   // Calm eyes, brows, nose and lips, carved shallow into the stone.
   const statueLine=(points,radius,material=mats.statueShadow)=>{
