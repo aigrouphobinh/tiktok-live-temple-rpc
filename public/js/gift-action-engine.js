@@ -1,5 +1,6 @@
 import { CharacterStateMachine } from './character-state-machine.js';
 import { resolveGiftAction } from './gift-action-rules.js';
+import { GiftStreakCoalescer } from './gift-streak-coalescer.js';
 
 /**
  * Single-owner visual controller for the central devotee.
@@ -17,7 +18,7 @@ import { resolveGiftAction } from './gift-action-rules.js';
   const machine = new CharacterStateMachine({ maxQueue: 40 });
   const WALK_EVENTS = new Set(['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune']);
   const EFFECT_DURATION = { rocket: 4050, dragon: 4200, donut: 3650, rose: 2600 };
-  const recentStreakEffects = new Map();
+  const streakCoalescer = new GiftStreakCoalescer({ ttlMs: 5000, maxEntries: 200 });
   let activeTimer = 0;
   let phaseTimers = [];
   let effectTimer = 0;
@@ -325,23 +326,9 @@ import { resolveGiftAction } from './gift-action-rules.js';
 
     if (action) {
       // Coalesce cumulative connector frames for a single streakable gift.
-      const streakKey = event.giftStreakable && event.giftGroupId ? String(event.giftGroupId) : '';
-      if (streakKey) {
-        const now = Date.now();
-        for (const [key, timestamp] of recentStreakEffects) {
-          if (now - timestamp > 5000) recentStreakEffects.delete(key);
-        }
-        const previous = recentStreakEffects.get(streakKey);
-        const isFinalFrame = event.giftRepeatEnd === true;
-        if (previous && now - previous <= 5000) {
-          if (isFinalFrame) recentStreakEffects.delete(streakKey);
-          else recentStreakEffects.set(streakKey, now);
-          showComboPulse(event.giftComboDelta || 1);
-          return { allowWalker: false, coalescedCombo: true, action, state: machine.snapshot() };
-        }
-        if (isFinalFrame) recentStreakEffects.delete(streakKey);
-        else recentStreakEffects.set(streakKey, now);
-        while (recentStreakEffects.size > 200) recentStreakEffects.delete(recentStreakEffects.keys().next().value);
+      if (streakCoalescer.shouldCoalesce(event)) {
+        showComboPulse(event.giftComboDelta || 1);
+        return { allowWalker: false, coalescedCombo: true, action, state: machine.snapshot() };
       }
       const interruptedEvent = machine.snapshot().active;
       const result = machine.interrupt(action, event);
