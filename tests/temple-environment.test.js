@@ -114,7 +114,9 @@ describe('Temple environment architecture module', () => {
     expect(rosettes.matrices.map((matrix) => matrix.position[0]).sort((a, b) => a - b))
       .toEqual([-5.15, 5.15]);
     expect(rosettes.matrices.every((matrix) => matrix.rotation.every((value) => value === 0))).toBe(true);
-    expect(gems.matrices.every((matrix) => matrix.position[2] > -9.385
+    expect(rosettes.matrices.every((matrix) => matrix.position[1] === 7.82
+      && matrix.position[2] > -9.64)).toBe(true);
+    expect(gems.matrices.every((matrix) => matrix.position[2] > -9.6
       && matrix.rotation[2] > 0)).toBe(true);
     result.dispose();
   });
