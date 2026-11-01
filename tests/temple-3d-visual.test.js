@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
+import { findBestAnimationClip } from '../public/js/three-animation-utils.js';
 
 const css = readFileSync(new URL('../public/css/live.css', import.meta.url), 'utf8');
 
@@ -229,11 +230,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("track.name.split('.')[0]");
   });
 
-  it('recognizes more descriptive locomotion, rest and prostration clip names', () => {
-    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('/idle|stand|breath|resting/i');
-    expect(scene).toContain('/walk|walking|run|approach|locomotion|move|travel/i');
-    expect(scene).toContain('/bow|pray|prayer|worship|kneel|prostrate/i');
+  it('recognizes descriptive locomotion, rest and prostration clip names', () => {
+    const clips = [
+      { name: 'Standing Idle' },
+      { name: 'Walk Forward' },
+      { name: 'Prayer-Kneel' }
+    ];
+    const actions = findBestAnimationClip(clips);
+    expect(actions.idle).toBe(clips[0]);
+    expect(actions.walk).toBe(clips[1]);
+    expect(actions.bow).toBe(clips[2]);
   });
 
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
@@ -284,9 +290,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("import('three/addons/utils/SkeletonUtils.js')");
     expect(scene).toContain('allHumanAvatars.map(() => clone(asset.root))');
     expect(scene).toContain('new THREE.AnimationMixer(model)');
-    expect(scene).toContain('findClip(/idle|stand|breath|resting/i)');
-    expect(scene).toContain('findClip(/walk|walking|run|approach|locomotion|move|travel/i)');
-    expect(scene).toContain('findClip(/bow|pray|prayer|worship|kneel|prostrate/i)');
+    expect(scene).toContain('findBestAnimationClip(animations)');
+
+
     expect(scene).toContain('function applyHumanBow(avatar, amount)');
     expect(scene).toContain("Optional devotee GLB unavailable; keeping procedural characters");
     expect(scene).toContain('void upgradeDevoteesFromGLB()');
