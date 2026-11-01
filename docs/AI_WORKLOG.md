@@ -1109,3 +1109,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added paired shallow wrist creases with ivory edge highlights to connect the resting forearms into the joined hands.
 - Added a subtle palm crease on each hand while preserving the existing finger and thumb contours and meditation mudra.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add subtle mineral roughness variation to the Buddha stone
+- Added a dedicated high-value roughness texture for the ivory statue, shadow grooves and carved highlights so broad stone forms respond to light with restrained surface variation.
+- Kept the existing deterministic bump grain, stone colors, roughness baselines and lighting intact; the extra 64×64 map is shared across the three statue materials.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
