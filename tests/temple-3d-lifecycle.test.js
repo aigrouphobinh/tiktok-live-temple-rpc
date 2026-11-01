@@ -4,6 +4,24 @@ import { readFileSync } from 'node:fs';
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
 
 describe('Three.js lifecycle recovery', () => {
+  it('attaches the environment architecture once to the existing world', () => {
+    expect(source).toContain("import { createTempleEnvironment } from './temple-environment.js';");
+    expect(source.match(/createTempleEnvironment\\(\\{/g)).toHaveLength(1);
+    expect(source.indexOf('scene.add(world);')).toBeLessThan(source.indexOf('createTempleEnvironment({'));
+    expect(source).toContain('scene: world,');
+    expect(source).toContain('gallerySurfaceY: 0.0825');
+    expect(source).toContain('detailLevel: environmentDetailLevel');
+  });
+
+  it('disposes the environment layer before disposing shared scene resources', () => {
+    const cleanupStart = source.indexOf('function releaseWorldResources()');
+    const cleanupEnd = source.indexOf('function onVisibilityChange()', cleanupStart);
+    const cleanup = source.slice(cleanupStart, cleanupEnd);
+    expect(cleanup).toContain('templeEnvironment.dispose();');
+    expect(cleanup.indexOf('templeEnvironment.dispose();'))
+      .toBeLessThan(cleanup.indexOf('disposeThreeSceneResources(scene);'));
+  });
+
   it('uses one idempotent cleanup path for context loss and page teardown', () => {
     expect(source).toContain('let resourcesDisposed = false;');
     expect(source).toContain('function releaseWorldResources()');
