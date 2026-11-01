@@ -1,3 +1,8 @@
+### 2026-11-01 — Add articulated hands to the procedural prayer pose
+- Replaced mitten-like hand spheres with paired palm groups, four separated fingers and thumbs on the procedural devotee.
+- Added small wrist counter-rotations driven by the same upper-body bow blend, keeping the hand gesture aligned as the arms reach forward.
+- Kept the GLB skeleton path unchanged; the new geometry is limited to the procedural fallback and remains covered by scene tests and CI guards.
+
 ### 2026-11-01 — Articulate the upper body during the kneeling bow
 - Added a pure procedural upper-body pose helper that blends torso inclination, head counterbalance and both arm reaches from kneel and bow weights.
 - Connected the helper to the main procedural devotee's bow pose so the hands reach forward as the torso inclines; standing and idle poses return to neutral.
