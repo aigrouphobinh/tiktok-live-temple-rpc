@@ -137,6 +137,17 @@ async function boot() {
   box(5.8, 0.12, 27, mats.red, 0, -0.02, 3);
   box(0.12, 0.035, 27, mats.gold, -2.82, 0.06, 3);
   box(0.12, 0.035, 27, mats.gold, 2.82, 0.06, 3);
+  // Low stone curbs and a second fine brass inlay frame the processional carpet.
+  // Their restrained height preserves the open sightline from the fixed camera.
+  for (const side of [-1, 1]) {
+    box(0.22, 0.16, 27.2, mats.stone, side * 3.08, 0.025, 3);
+    box(0.035, 0.025, 27.0, mats.goldBright, side * 3.19, 0.115, 3);
+    box(1.05, 0.045, 27.0, mats.woodLight, side * 3.82, -0.105, 3);
+  }
+  // Broad threshold slabs visually anchor the near end of the aisle.
+  for (const z of [16.8, 17.45]) {
+    box(6.45, 0.07, 0.12, mats.gold, 0, 0.045, z);
+  }
   for (let z = -9; z < 16; z += 2.2) {
     box(5.4, 0.035, 0.045, mats.goldBright, 0, 0.07, z);
   }
