@@ -1270,23 +1270,36 @@ async function boot() {
     }
   }
 
+  function getFootPlantingStep(phase) {
+    const cycle = ((phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const stance = 0.62;
+    const progress = cycle / (Math.PI * 2);
+    if (progress < stance) return -1 + 2 * (progress / stance);
+    const swing = (progress - stance) / (1 - stance);
+    const eased = swing * swing * (3 - 2 * swing);
+    return 1 - 2 * eased;
+  }
+
   function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1) {
     const rig = avatar.gltfRig;
     if (!rig) return;
-    const swing = Math.sin(gaitPhase + avatar.phase);
+    const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
+    const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);
     const amount = 0.34 * weight;
     // Preserve the idle clip's evaluated pose when one exists. With no clips,
     // return to the captured rest pose instead of freezing on the last gait.
     const base = (bone, rest) => avatar.gltfActions?.idle ? bone?.rotation.x : rest?.x;
-    if (rig.leftLeg && rig.leftLegRest) rig.leftLeg.rotation.x = base(rig.leftLeg, rig.leftLegRest) + swing * amount;
-    if (rig.rightLeg && rig.rightLegRest) rig.rightLeg.rotation.x = base(rig.rightLeg, rig.rightLegRest) - swing * amount;
-    if (rig.leftArm && rig.leftArmRest) rig.leftArm.rotation.x = base(rig.leftArm, rig.leftArmRest) - swing * amount * 0.62;
-    if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + swing * amount * 0.62;
+    if (rig.leftLeg && rig.leftLegRest) rig.leftLeg.rotation.x = base(rig.leftLeg, rig.leftLegRest) - leftStep * amount;
+    if (rig.rightLeg && rig.rightLegRest) rig.rightLeg.rotation.x = base(rig.rightLeg, rig.rightLegRest) - rightStep * amount;
+    if (rig.leftArm && rig.leftArmRest) rig.leftArm.rotation.x = base(rig.leftArm, rig.leftArmRest) + rightStep * amount * 0.62;
+    if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + leftStep * amount * 0.62;
   }
 
   function animateHuman(avatar, time, walking = false, walkPhase = null) {
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
     const swing = Math.sin(gaitPhase + avatar.phase);
+    const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
+    const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);
     if (avatar.gltfRoot) {
       const mode = walking ? 'walk' : avatar.bowing ? 'bow' : 'idle';
       playGLTFHumanAction(avatar, mode);
@@ -1303,10 +1316,10 @@ async function boot() {
       avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
       return;
     }
-    avatar.leftArm.rotation.x = walking ? swing*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
-    avatar.rightArm.rotation.x = walking ? -swing*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
-    avatar.leftLeg.rotation.x = walking ? -swing*0.48 : 0;
-    avatar.rightLeg.rotation.x = walking ? swing*0.48 : 0;
+    avatar.leftArm.rotation.x = walking ? rightStep*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
+    avatar.rightArm.rotation.x = walking ? leftStep*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
+    avatar.leftLeg.rotation.x = walking ? -leftStep*0.48 : 0;
+    avatar.rightLeg.rotation.x = walking ? -rightStep*0.48 : 0;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
     avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
   }
