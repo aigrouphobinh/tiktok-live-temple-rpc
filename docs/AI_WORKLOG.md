@@ -535,3 +535,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a small diamond-shaped central gold seal and four matching studs; retained the original table footprint, burner, vases, fruit and flame positions.
 - Added a focused visual regression test for the new tabletop furniture details.
 - Camera and ritual hit meshes are unchanged.
+
+### 2026-11-01 — Sculpted lotus throne petals
+- Kept the existing lotus pedestal footprint and added two upright petal tiers around it.
+- Petals use one custom tapered, curved BufferGeometry with computed normals; red and gold petals are split into instanced meshes and use static instance matrices.
+- Outer ring: 16 petals at the original throne perimeter. Inner ring: 12 smaller petals. No camera, statue placement or ritual interaction changes.
+- Added visual regression assertions for the custom geometry, two instanced material groups and tier setup.
+- Actual browser render still needs visual confirmation; automated checks are running.
