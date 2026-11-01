@@ -27,7 +27,7 @@ Updated: 2026-11-01
 
 - Added a Three.js import map pinned to the same r180.0 build used by the 3D scene, plus the matching GLTFLoader and SkeletonUtils addons.
 - The 3D congregation now creates eight animal anchor positions instead of eighteen rough human-shaped placeholders. Corgi is the lead visitor; Duck is used as a secondary variant when its GLB loads.
-- The active ritual visitor uses the same rigged Corgi (Duck fallback) and switches between the named `walk` and `idle` clips. Each skinned copy is cloned with SkeletonUtils and normalized to the fixed elevated 9:16 camera scale.
+- The active ritual visitor uses the same rigged Corgi (Duck fallback) and switches between the named `walk` and `idle` clips. Each skinned copy is cloned with SkeletonUtils and normalized to the fixed elevated 9:16 camera scale. Idle loops have slight per-character phase and speed variation so the congregation does not animate in lockstep.
 - The primitive figures remain as graceful local fallbacks if either bundled model fails to load. The scene does not wait for the local assets before becoming ready.
 - Corgi and Duck GLBs are now vendored under `public/assets/animals/` and served by the game's own static server; the game no longer contacts Gobkit at runtime. Their CC0 1.0 licence and source provenance are included alongside the assets. No browser/WebGL visual inspection has been performed in this environment.
 
