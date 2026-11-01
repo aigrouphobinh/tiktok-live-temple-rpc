@@ -46,7 +46,7 @@ async function boot() {
   scene.fog = new THREE.FogExp2(0x241006, 0.018);
   const camera = new THREE.PerspectiveCamera(40, 1080 / 1920, 0.1, 140);
   camera.position.set(0, 11.5, 27);
-  camera.lookAt(0, 3.2, -5.5);
+  camera.lookAt(0, -1.0, -5.5);
 
   const mats = {
     wood: new THREE.MeshStandardMaterial({ color: 0x48200e, roughness: 0.55, metalness: 0.18 }),
