@@ -262,8 +262,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
     expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
     expect(scene).toContain('const rightKnee = new THREE.Group(); rightKnee.position.y = -0.24; rightLeg.add(rightKnee);');
-    expect(scene).toContain('avatar.leftKnee.rotation.x = walking ? leftPose.kneeFlex : 0;');
-    expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + (walking ? leftPose.footLift : 0);');
+    expect(scene).toContain('avatar.leftKnee.rotation.x = leftFootPose.kneeRotationX;');
+    expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;');
     expect(scene.match(/avatar\.root\.position\.y = walking \? 0/g)).toHaveLength(2);
     expect(scene).toContain('leftKnee: bones.leftKnee');
     expect(scene).toContain('leftFoot: bones.leftFoot');
