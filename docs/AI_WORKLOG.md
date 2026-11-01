@@ -579,3 +579,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Both decorations use static InstancedMesh batches with shared geometry/materials; decorative instances do not cast additional shadows and have no per-frame update cost.
 - Kept the statue, lotus throne, fixed camera and ritual interactions in place.
 - Added regression assertions for instance counts, static usage and shadow settings. Browser appearance and mobile GPU performance still need local visual review.
+
+
+### 2026-11-01 — Optimize the Buddha hair-curl detail
+- Replaced 24 individually-created curl meshes on the Buddha's hair cap with one InstancedMesh using a single shared sphere geometry and the same row layout, positions and scale.
+- Kept the curls static and retained shadow casting; the detail is now submitted as one mesh batch instead of 24 separate meshes.
+- Added a source regression test for the 24-instance layout, static usage and shadow flags.
+- Appearance should remain equivalent; browser render and mobile GPU profiling still need local verification.
