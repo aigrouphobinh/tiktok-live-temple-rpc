@@ -699,7 +699,23 @@ async function boot() {
   robeFold([[0.58,4.0,0.18],[0.7,3.55,0.48],[0.5,3.1,0.67],[0.15,2.65,0.72],[-0.42,2.34,0.55]],0.035);
   for (let k=0;k<5;k++) {
     const x=-0.42+k*0.21;
-    robeFold([[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]],0.022);
+    const lapFoldPoints = [[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]];
+    robeFold(lapFoldPoints,0.022);
+    const lapFoldHighlight = new THREE.CatmullRomCurve3(lapFoldPoints.map(([px, py, pz]) =>
+      new THREE.Vector3(px + 0.028, py + 0.012, pz + 0.018)
+    ));
+    const lapFoldGroove = new THREE.CatmullRomCurve3(lapFoldPoints.map(([px, py, pz]) =>
+      new THREE.Vector3(px - 0.026, py - 0.012, pz + 0.008)
+    ));
+    const highlightMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(lapFoldHighlight, 24, 0.008, 6, false), mats.statueLight
+    );
+    const grooveMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(lapFoldGroove, 24, 0.007, 6, false), mats.statueShadow
+    );
+    highlightMesh.castShadow = grooveMesh.castShadow = false;
+    highlightMesh.receiveShadow = grooveMesh.receiveShadow = false;
+    statue.add(highlightMesh, grooveMesh);
   }
   // Small paired elbow creases connect the upper-arm drape to the resting forearms.
   for (const side of [-1, 1]) {
