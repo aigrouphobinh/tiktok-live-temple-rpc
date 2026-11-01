@@ -1079,19 +1079,36 @@ async function boot() {
   sphere(0.22,mats.statueLight,-0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.22,mats.statueLight,0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.1,mats.statueStone,0,2.82,0.82,1,0.8,0.7,statue);
-  // Fine finger creases define the joined hands without changing the meditation pose.
+  // Individually modeled finger ridges make the meditation mudra readable at portrait scale.
+  // Each hand keeps a soft, continuous palm while four shallow finger forms sit on its surface.
   for (const side of [-1, 1]) {
-    for (let finger = 0; finger < 3; finger++) {
-      const x = side * 0.2 + (finger - 1) * 0.055;
+    for (let finger = 0; finger < 4; finger++) {
+      const x = side * (0.105 + finger * 0.045);
+      const y = 2.675 + finger * 0.012;
+      const z = 0.846 - finger * 0.012;
       statueLine([
-        [x - 0.025, 2.68, 0.858],
-        [x, 2.705, 0.875],
-        [x + 0.025, 2.73, 0.858]
-      ], 0.008);
+        [x - side * 0.018, y - 0.012, z],
+        [x, y + 0.012, z + 0.022],
+        [x + side * 0.018, y + 0.025, z + 0.006]
+      ], 0.018, mats.statueLight);
+      // A fine crease at each knuckle gives the fingers a carved, not mechanical, finish.
+      statueLine([
+        [x - side * 0.012, y + 0.005, z + 0.021],
+        [x, y + 0.012, z + 0.024],
+        [x + side * 0.012, y + 0.005, z + 0.021]
+      ], 0.0055, mats.statueShadow);
     }
   }
-  // A soft raised contour separates the thumbs at the centre of the mudra.
-  statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.012,mats.statueLight);
+  // The paired thumbs rise toward one another and meet gently at the centre.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.28, 2.72, 0.84],
+      [side * 0.2, 2.79, 0.875],
+      [side * 0.105, 2.82, 0.895],
+      [side * 0.025, 2.835, 0.9]
+    ], 0.025, mats.statueLight);
+  }
+  statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.009,mats.statueShadow);
   // Fine wrist transitions and palm creases finish the joined meditation hands.
   for (const side of [-1, 1]) {
     const wristCrease = [
