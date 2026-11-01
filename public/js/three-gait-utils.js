@@ -66,6 +66,43 @@ export function getHumanFootPose({ mode = 'idle', phase = 0, blend = 1 } = {}) {
   };
 }
 
+
+/**
+ * Timeline for the altar visit: approach, settle into a kneel, then bow.
+ * Times are milliseconds relative to arrival; outputs are safe blend weights.
+ */
+export function getRitualPoseState({
+  travel = 0,
+  elapsedAfterArrival = 0,
+  remainingMs = 7800,
+  kneelInMs = 320,
+  bowDelayMs = 900,
+  bowInMs = 650,
+  exitFadeMs = 650
+} = {}) {
+  const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const smoothstep = (value) => {
+    const t = clamp01(value);
+    return t * t * (3 - 2 * t);
+  };
+  const progress = Number.isFinite(travel) ? clamp01(travel) : 0;
+  const elapsed = Number.isFinite(elapsedAfterArrival) ? Math.max(0, elapsedAfterArrival) : 0;
+  const remaining = Number.isFinite(remainingMs) ? Math.max(0, remainingMs) : 0;
+  const hasArrived = progress >= 1;
+  const kneelBlend = hasArrived
+    ? smoothstep(elapsed / Math.max(1, kneelInMs)) * smoothstep(remaining / Math.max(1, exitFadeMs))
+    : 0;
+  const bowAmount = hasArrived
+    ? smoothstep((elapsed - bowDelayMs) / Math.max(1, bowInMs))
+      * smoothstep(remaining / Math.max(1, exitFadeMs))
+    : 0;
+  return {
+    walking: progress < 0.92,
+    kneelBlend,
+    bowAmount
+  };
+}
+
 export function getFootPlantingStep(phase) {
   return getFootPlantingPose(phase).step;
 }
