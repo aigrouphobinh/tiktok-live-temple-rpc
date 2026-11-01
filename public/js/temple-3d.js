@@ -958,6 +958,12 @@ async function boot() {
   ushnishaCurls.castShadow = true;
   ushnishaCurls.receiveShadow = false;
   statue.add(ushnishaCurls);
+  // The nose is modeled as a continuous stone volume first; fine lines only describe its transitions.
+  sphere(0.085, mats.statueStone, 0, 4.515, 0.69, 0.62, 1.45, 0.68, statue);
+  sphere(0.075, mats.statueStone, 0, 4.425, 0.725, 0.92, 0.78, 0.72, statue);
+  for (const side of [-1, 1]) {
+    sphere(0.052, mats.statueStone, side * 0.092, 4.435, 0.69, 0.92, 0.72, 0.68, statue);
+  }
   // Calm eyes, brows, nose and lips, carved shallow into the stone.
   const statueLine=(points,radius,material=mats.statueShadow)=>{
     const curve=new THREE.CatmullRomCurve3(points.map(([x,y,z])=>new THREE.Vector3(x,y,z)));
