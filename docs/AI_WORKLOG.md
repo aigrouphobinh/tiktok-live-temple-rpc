@@ -609,3 +609,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Reused the existing robeFold helper and statue shadow material; no new lights, shadow casters, or frame-loop updates.
 - Added a source regression test for both fold paths.
 - Visual overlap and depth still need local browser review in `?3d=1`.
+
+
+
+### 2026-11-01 — Refine the Buddha meditation mudra
+- Added six fine finger crease curves across the paired hands and a subtle raised contour at the thumbs to clarify the joined meditation gesture.
+- Reused the existing statueLine helper and statue materials; the pose and hand silhouettes remain unchanged.
+- Added a source regression test for the finger and thumb details.
+- Local browser inspection is still required to confirm the fine lines remain legible at the fixed camera distance.
