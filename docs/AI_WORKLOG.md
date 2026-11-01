@@ -1047,3 +1047,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Each petal ring uses one InstancedMesh for all veins, keeping the detail batched (28 total across the two rings) and static.
 - Disabled vein shadow casting to avoid extra shadow-map cost; petal geometry, opening animation, throne and camera remain unchanged.
 - Added source regression coverage and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Refine the Buddha-to-lotus transition
+- Added two restrained front-facing fillets along the lower seated Buddha base, with their depth sampled from the existing ellipsoid so the trim follows the sculpted surface.
+- Paired a fine warm-gold band with a slimmer stone highlight to visually connect the statue base to the layered lotus throne without changing statue proportions or camera framing.
+- Both curves are static, cast no shadows and add no lights; existing petal animation and gift effects remain unchanged.
+- Added source regression coverage and CI guards; browser visual validation remains outstanding.
