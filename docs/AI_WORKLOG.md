@@ -1,3 +1,10 @@
+### 2026-11-01 — Let devotees acknowledge incoming TikTok gifts
+- Added a bounded 1.8-second reaction envelope with eased attack/release and safe handling of invalid timing values.
+- Incoming supported gift actions now extend a shared acknowledgement window for all procedural devotees.
+- Procedural characters make a restrained head turn and appreciative tilt; repeated gifts extend the response rather than stacking animation state.
+- GLB animation remains untouched pending visual inspection of the selected rig.
+- Added unit/scene tests and CI guards for the reaction timing and integration.
+
 ### 2026-11-01 — Add breathing and subtle head motion to procedural devotees
 - Added low-amplitude torso breathing on the torso mesh rather than the avatar root, preserving the planted feet and kneeling height compensation.
 - Added restrained head pitch drift alongside the existing gaze motion; bow pose continues to be driven by the ritual upper-body controller.
