@@ -1,3 +1,9 @@
+### 2026-11-01 — Add a two-hand thank-you gesture for gift reactions
+- Procedural devotees now raise and bring both forearms inward so their palms meet near chest height during the existing gift acknowledgement window.
+- The gesture uses the same eased reaction blend, includes a very small appreciative pulse, and derives from the current ritual pose each frame to prevent rotational drift.
+- The main altar devotee reapplies the gesture after the bow controller; imported GLB rigs remain untouched until their axes and rest pose are visually inspected.
+- Added scene assertions and CI guards for both arm rotations and hand tilt.
+
 ### 2026-11-01 — Let devotees acknowledge incoming TikTok gifts
 - Added a bounded 1.8-second reaction envelope with eased attack/release and safe handling of invalid timing values.
 - Incoming supported gift actions now extend a shared acknowledgement window for all procedural devotees.
