@@ -519,8 +519,8 @@ describe('3D sanctuary visual treatment', () => {
 
   it('uses warm ivory stone for the Buddha and the aureole in the reference palette', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('color: 0xa99b84');
-    expect(scene).toContain('color: 0x5e4d3a');
+    expect(scene).toContain('color: 0x98866d');
+    expect(scene).toContain('color: 0x493724');
     expect(scene).toContain('color: 0xd9c7a5');
     expect(scene).toContain('color:0xa59a83');
   });
@@ -555,7 +555,8 @@ describe('3D sanctuary visual treatment', () => {
   it('keeps low-cost ambient incense wisps moving above the altar burner', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const incenseSmokeGeometry = new THREE.SphereGeometry(0.105, 8, 6)');
-    expect(scene).toContain('const incenseWisps = Array.from({ length: 6 }');
+    expect(scene).toContain("const incenseWispCount = renderProfile.tier === 'low' ? 3");
+    expect(scene).toContain("const incenseWisps = Array.from({ length: incenseWispCount }");
     expect(scene).toContain('function updateIncenseWisps(time)');
     expect(scene).toContain('wisp.material.opacity = 0.105 * envelope');
     expect(scene).toContain('updateIncenseWisps(now);');
@@ -911,8 +912,8 @@ it('shows a designed and truthful empty state for the 3D merit panel', () => {
 
 it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0xa99b84, roughness: 0.94 })');
-  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x5e4d3a, roughness: 0.96 })');
+  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0x98866d, roughness: 0.92 })');
+  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x493724, roughness: 0.96 })');
   expect(scene).toContain('statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 })');
   expect(scene).toContain('new THREE.PointLight(0xffd1a0, 23, 18, 2)');
   expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
