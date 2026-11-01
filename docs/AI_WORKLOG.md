@@ -403,3 +403,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Code and tests committed directly to `main`. GitHub Actions validation is pending; real connector reconnect behavior and browser runtime remain unverified.
 
 - Follow-up hardening: all event handlers and async connect completion now verify connection ownership. Late gifts/social events and stale connect/disconnect callbacks from an old connection cannot mutate the new session or consume its combo tracker.
+
+
+### Duplicate cumulative TikTok gift frame deduplication — 2026-11-01
+- Fixed a reward-accounting edge case in `getGiftComboDelta`: repeated non-final frames with the same cumulative `repeatCount` previously returned a minimum delta of 1 and could credit the same gift more than once.
+- The tracker now returns only the positive difference from the last cumulative count; exact duplicates and out-of-order lower counts return zero. Final frames always clear the group, including duplicate final frames.
+- Added regression coverage for repeated count 1, progression to count 3, duplicate count 3, and a final frame that repeats the existing count.
+- Committed code and tests directly to `main`; GitHub Actions validation is pending. This covers connector-frame deduplication logic, not a live connector capture.
