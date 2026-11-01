@@ -72,6 +72,13 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 6. Update this log with changed files, commit SHA, checks, issues and next task.
 7. Do not claim code was pushed or tests passed unless confirmed.
 
+## Session update — 2026-11-01 (scene texture disposal)
+- CI confirmed PASS for shoulder contour regression fix (`c3619ec`).
+- Added `disposeThreeSceneResources` for full-scene teardown. It deduplicates textures referenced by material properties, disposes them once, and reuses the existing geometry/material cleanup. Transient effects keep using `disposeThreeObjectTree` so shared scene textures are not accidentally released early.
+- Wired full WebGL scene cleanup (pagehide/context loss) to dispose scene textures, including the shared procedural stone bump texture and GLB material maps.
+- Added regression coverage for shared texture deduplication and invalid roots.
+- Validation: pending CI workflow.
+
 ## Session log — 2026-11-01
 
 ### Optional Three.js layer — initial implementation
