@@ -1,7 +1,7 @@
-### 2026-11-01 — Evaluate a wider portrait camera with the portrait-framed environment
-- Created an isolated camera experiment at 44° FOV, position (0, 12, 30), looking at (0, 2.6, -5.5).
-- Goal: reveal more of the side colonnade and processional floor while retaining the 9:16 stage and roofless silhouette.
-- Kept this as a visual-audit candidate only; do not merge unless the screenshot preserves readable Buddha/altar scale.
+### 2026-11-01 — Tune the portrait camera toward a balanced architectural frame
+- Replaced the wide 44° candidate with an intermediate 40° FOV, camera position (0, 11.5, 27), looking at (0, 3.2, -5.5).
+- The adjustment brings the camera closer and reduces the wide-angle scale loss while retaining the expanded portrait side-colonnade view.
+- Kept as an isolated visual-audit candidate until the 1080×1920 screenshot is reviewed against the current main scene.
 
 ### 2026-11-01 — Integrate device render profiles into the 3D scene
 - The scene now resolves one device profile at boot and uses it for pixel ratio, the main directional shadow-map size and the independent environment detail preset.
