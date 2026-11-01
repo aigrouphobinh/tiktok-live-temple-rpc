@@ -1118,7 +1118,7 @@ async function boot() {
     }
     root.scale.setScalar(height/1.72);
     const avatar = {
-      root, upperBody, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
+      root, upperBody, torso, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0
@@ -1396,7 +1396,13 @@ async function boot() {
     avatar.rightFoot.rotation.x = rightFootPose.footRotationX;
     avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;
     avatar.rightFoot.position.y = -0.24 + rightFootPose.footLift;
+    const breathCycle = time * 0.00135 + avatar.phase;
+    const breath = Math.sin(breathCycle);
+    // Keep breathing on the torso mesh so the waist pivot and kneeling feet stay planted.
+    avatar.torso.scale.y = 1 + breath * 0.012;
+    avatar.torso.position.y = 0.40 + breath * 0.0025;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
+    avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012;
     const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;
     const blinkPulse = Math.max(0, 1 - Math.abs(blinkCycle - 0.12) / 0.12);
     const blink = Math.min(1, blinkPulse * 0.94 + avatar.kneelBlend * 0.12);
