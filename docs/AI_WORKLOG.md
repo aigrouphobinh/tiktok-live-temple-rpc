@@ -809,3 +809,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Updated the deterministic clip matcher to assign each imported animation clip to at most one state (idle, walk or bow), preventing a broadly named clip from accidentally driving multiple states.
 - Kept best-candidate scoring and deterministic source-order tie-breaking; normalized separators before matching token boundaries.
 - Added a regression test for an ambiguous `Idle Walk` clip alongside a dedicated walking clip.
+
+
+### 2026-11-01 — Expand GLB animation naming coverage
+- Added common gerund and spelling variants for idle breathing and ritual poses: `breathing`, `bowing`, `praying`, `kneeling`, `worshipping` and `worshiping`.
+- Added regression tests for breathing loops, bowing clips and prayer/kneeling exports.
+- Kept token-boundary matching and unique clip assignment intact; this broadens supported labels without reverting to substring matching.
