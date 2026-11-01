@@ -15,7 +15,7 @@ describe('3D sanctuary visual treatment', () => {
   it('turns procedural devotees toward incoming gifts with a bounded head acknowledgement', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('giftReactionUntil: 0');
-    expect(scene).toContain('const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);');
+    expect(scene).toContain('const giftReaction = getAvatarGiftReactionBlend(avatar, time) * (avatar.giftReactionProfile?.intensity || 0.55);');
     expect(scene).toContain('avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;');
     expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * Math.sin(avatar.phase) * 0.035;');
     expect(scene).toContain('const resolved = profile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
@@ -502,7 +502,7 @@ describe('3D sanctuary visual treatment', () => {
   it('softens shadow acne and animates independent warm temple light sources', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;');
-    expect(scene).toContain('buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6;');
+    expect(scene).toContain('buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;');
     expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2;');
     expect(scene).toContain('Math.sin(elapsed * 0.007 + i) * 0.35');
   });
