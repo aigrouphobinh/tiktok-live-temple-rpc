@@ -1962,34 +1962,52 @@ async function boot() {
   // Diagnostics are opt-in so normal live sessions pay no logging overhead.
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
+
+  // Probe optional same-origin GLBs before GLTFLoader requests them. A missing
+  // preferred asset is a normal fallback state, not a browser-level 404 error.
+  async function isLocalModelAvailable(url) {
+    const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    return response.ok;
+  }
+
   async function upgradeBuddhaFromGLB() {
     let asset;
     let assetSource = 'procedural';
     try {
       const { loadGLTFAsset } = await import('./three-model-loader.js');
-      try {
-        // The user-selected Kenny Hsieh model always has priority when present.
-        asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
-          targetHeight: 5.88,
-          centerXZ: true
-        });
-        assetSource = 'kenny-hsieh';
-        console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
-      } catch (selectedError) {
-        console.warn('[Temple3D] Selected Kenny Hsieh Buddha unavailable; trying the CC0 gilt-bronze scan:', selectedError);
+      const selectedUrl = '/assets/models/buddha-selected.glb';
+      const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';
+
+      // The user-selected Kenny Hsieh model has priority when its local file exists.
+      if (await isLocalModelAvailable(selectedUrl)) {
         try {
-          asset = await loadGLTFAsset('/assets/models/buddha-cc0-fallback.glb', {
+          asset = await loadGLTFAsset(selectedUrl, {
             targetHeight: 5.88,
             centerXZ: true
           });
-          assetSource = 'mia-cc0-gilt-bronze';
-          console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
-        } catch (fallbackError) {
+          assetSource = 'kenny-hsieh';
+          console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
+        } catch (selectedError) {
+          console.warn('[Temple3D] Selected Kenny Hsieh Buddha is invalid; trying the CC0 gilt-bronze scan:', selectedError);
+        }
+      } else {
+        console.info('[Temple3D] Selected Kenny Hsieh GLB is not vendored yet; skipping its load request.');
+      }
+
+      if (!asset) {
+        if (!(await isLocalModelAvailable(fallbackUrl))) {
           window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
-          console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', fallbackError);
+          console.warn('[Temple3D] Optional Buddha GLB files are not available; keeping procedural statue.');
           return;
         }
+        asset = await loadGLTFAsset(fallbackUrl, {
+          targetHeight: 5.88,
+          centerXZ: true
+        });
+        assetSource = 'mia-cc0-gilt-bronze';
+        console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
       }
+
       if (disposed) {
         asset.dispose();
         return;
