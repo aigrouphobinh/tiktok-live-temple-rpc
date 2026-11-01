@@ -1,3 +1,8 @@
+### 2026-11-01 — Evaluate a wider portrait camera with the portrait-framed environment
+- Created an isolated camera experiment at 44° FOV, position (0, 12, 30), looking at (0, 2.6, -5.5).
+- Goal: reveal more of the side colonnade and processional floor while retaining the 9:16 stage and roofless silhouette.
+- Kept this as a visual-audit candidate only; do not merge unless the screenshot preserves readable Buddha/altar scale.
+
 ### 2026-11-01 — Integrate device render profiles into the 3D scene
 - The scene now resolves one device profile at boot and uses it for pixel ratio, the main directional shadow-map size and the independent environment detail preset.
 - Low tier keeps a 1x pixel ratio and uses a 512² directional shadow map plus low environment detail; medium/high retain the existing 1024² shadow map with matching environment detail.
