@@ -168,8 +168,9 @@ describe('Temple environment architecture module', () => {
     expect(result.metadata.galleryScreenCount).toBe(2);
     const lowNames = [];
     result.group.traverse((object) => { if (object.name) lowNames.push(object.name); });
-    expect(lowNames).not.toContain('TempleColumnFrontPlaques');
-    expect(lowNames).not.toContain('TempleColumnFrontGems');
+    expect(lowNames).toContain('TempleColumnFrontPlaques');
+    expect(lowNames).toContain('TempleColumnFrontGems');
+    expect(lowNames).not.toContain('TempleCapitalCorbels');
     expect(result.group.userData.roofless).toBe(true);
     result.dispose();
   });
