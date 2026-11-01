@@ -1,3 +1,7 @@
+### 2026-11-01 — Normalize whitespace in GLB animation clip names
+- Animation exports can include tabs, line breaks or repeated spaces in clip labels. Normalize all whitespace runs after separator conversion so token-boundary matching remains reliable across exporter naming formats.
+- Added a regression fixture with mixed tabs/newlines and repeated spaces; matching remains token-based and does not broaden partial-word matches.
+
 ### 2026-11-01 — Add procedural gait fallback for rigged GLBs without walk clips
 - Rigged character assets may include an armature but no walking animation. The previous behavior reused the idle clip while the avatar translated along the aisle, making the character slide.
 - Added conservative left/right upper-leg and counter-swing arm bone mapping, capturing each bone's rest rotation and applying a time-based gait only when the GLB lacks a walk clip.
