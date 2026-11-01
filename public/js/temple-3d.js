@@ -183,7 +183,8 @@ async function boot() {
   key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
   key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
   scene.add(key);
-  // A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.\n  const buddhaLight = new THREE.PointLight(0xffd1a0, 23, 18, 2);
+  // A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.
+  const buddhaLight = new THREE.PointLight(0xffd1a0, 23, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
   // A restrained rear-side rim separates the ivory statue from the dark altar.
