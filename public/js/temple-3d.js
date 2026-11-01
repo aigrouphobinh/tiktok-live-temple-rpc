@@ -435,8 +435,15 @@ async function boot() {
       box(0.72, 0.12, 0.72, mats.gold, 0, 0.6, 0, lantern);
       box(0.55, 1.05, 0.55, mats.ivory, 0, 0, 0, lantern);
       box(0.72, 0.12, 0.72, mats.goldBright, 0, -0.58, 0, lantern);
-      const light = new THREE.PointLight(0xffb84d, 13, 5, 2); light.position.set(0, 0, 0); lantern.add(light);
-      lanterns.push(light);
+      // Four distributed point lights illuminate all eight lanterns. The
+      // remaining fixtures stay visible through their ivory emissive surfaces
+      // and the scene's existing key/fill lights, avoiding eight extra lights.
+      if (z === -7 || z === 5) {
+        const light = new THREE.PointLight(0xffb84d, 13, 5, 2);
+        light.position.set(0, 0, 0);
+        lantern.add(light);
+        lanterns.push(light);
+      }
     }
   }
 
