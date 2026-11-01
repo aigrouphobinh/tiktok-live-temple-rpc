@@ -579,8 +579,12 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
 
       case 'grandCeremony': {
         if (!giftActionResult.coalescedCombo) {
-          audio.playTempleBell(1.2);
-          setTimeout(() => audio.playTempleBell(1.1), 900);
+          // Special gift actions own their sound design; keep the generic
+          // double-bell cue only for ceremonies without a mapped gift action.
+          if (!giftActionResult.action) {
+            audio.playTempleBell(1.2);
+            setTimeout(() => audio.playTempleBell(1.1), 900);
+          }
           particles.spawnGrandCeremonyRain();
           pulseHallBowing();
           showGrandCeremonyBanner(ev.user, ev.giftName, ev.merit);
