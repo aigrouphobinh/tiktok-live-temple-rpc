@@ -300,11 +300,11 @@ async function boot() {
       const halfWidth = 0.34 * taper * (0.84 + 0.16 * t);
       for (let column = 0; column <= widthSegments; column++) {
         const u = (column / widthSegments) * 2 - 1;
-        const ridge = Math.max(0, 1 - u * u);
+        const petalRidge = Math.max(0, 1 - u * u);
         positions.push(
           u * halfWidth,
           t,
-          0.08 + 0.19 * Math.sin(Math.PI * t) + 0.07 * ridge * Math.sin(Math.PI * t)
+          0.08 + 0.19 * Math.sin(Math.PI * t) + 0.07 * petalRidge * Math.sin(Math.PI * t)
         );
       }
     }
