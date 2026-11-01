@@ -1172,9 +1172,10 @@ async function boot() {
 
   async function upgradeDevoteesFromGLB() {
     try {
-      const [{ loadGLTFAsset }, { clone }] = await Promise.all([
+      const [{ loadGLTFAsset }, { clone }, { findBestAnimationClip }] = await Promise.all([
         import('./three-model-loader.js'),
-        import('three/addons/utils/SkeletonUtils.js')
+        import('three/addons/utils/SkeletonUtils.js'),
+        import('./three-animation-utils.js')
       ]);
       const asset = await loadGLTFAsset('/assets/models/devotee-selected.glb', {
         targetHeight: 1.72,
@@ -1187,12 +1188,7 @@ async function boot() {
       asset.root.visible = false;
       world.add(asset.root);
       const animations = asset.animations || [];
-      const findClip = (pattern) => animations.find((clip) => pattern.test(clip.name || '')) || null;
-      const gltfActions = {
-        idle: findClip(/idle|stand|breath|resting/i),
-        walk: findClip(/walk|walking|run|approach|locomotion|move|travel/i),
-        bow: findClip(/bow|pray|prayer|worship|kneel|prostrate/i)
-      };
+      const gltfActions = findBestAnimationClip(animations);
       const replacements = allHumanAvatars.map(() => clone(asset.root));
       for (const [avatarIndex, avatar] of allHumanAvatars.entries()) {
         // Keep procedural fallback nodes attached but hidden: their primitive
