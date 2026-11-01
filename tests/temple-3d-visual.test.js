@@ -91,6 +91,11 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('lotusSparkMaterial.opacity = auraPulse * 0.88;');
     expect(scene).toContain('lotusSparkGeometry.attributes.position.needsUpdate = true;');
     expect(scene).toContain('lotusSparkPositions[offset + 1] = 0.32 + progress * 3.55;');
+    expect(scene).toContain('const statueRimLight = new THREE.DirectionalLight(0xffc982, 1.05);');
+    expect(scene).toContain('statueRimLight.castShadow = false;');
+    expect(scene).toContain('statueRimLight.intensity = 1.05 + auraPulse * 1.35;');
+    expect(scene).toContain('mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;');
+    expect(scene).toContain('mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;');
   });
 
   it('stagger congregation gift reactions and pulse altar lighting with the shared response', () => {
