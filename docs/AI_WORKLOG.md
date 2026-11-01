@@ -417,3 +417,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The server now broadcasts a targeted `temple.gift-streak-end` notification for a dropped duplicate final frame. The browser clears only that `groupId`; it does not create a second ritual, gift effect, or reward.
 - Added a public `clearStreak(groupId)` method to the coalescer and regression tests proving targeted cleanup preserves other active group IDs and permits immediate reuse.
 - Code, tests and this worklog entry are committed directly to `main`. GitHub Actions run `41257702835` completed successfully on the worklog commit: Bun unit tests and server-side JavaScript syntax checks passed. Real connector and browser runtime behavior remain unverified.
+
+
+### Timer ownership and stale callback guards — 2026-11-01
+- Added a ritual-generation token to `gift-action-engine.js`. Approach/offering/bowing/completion callbacks now verify that they still belong to the current devotee before mutating the state machine.
+- Starting a gift effect invalidates the prior ritual generation, so a timer callback already queued by the browser cannot complete a later devotee or advance an interrupted ritual.
+- Added the matching effect-token check to the cooldown handoff callback. A superseding gift invalidates an already-queued cooldown callback as well as clearing its timer handle.
+- This hardens rapid gift supersession and ritual handoff at the timer-ownership boundary. GitHub Actions validation is pending; browser race reproduction and live runtime remain unverified.
