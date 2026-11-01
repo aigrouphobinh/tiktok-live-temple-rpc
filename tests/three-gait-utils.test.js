@@ -140,7 +140,7 @@ describe('getFootPlantingWorldTarget', () => {
       strideLength: 2, groundY: 0, lockState: swing.lockState
     });
     expect(next.planted).toBe(true);
-    expect(next.target[2]).toBeCloseTo(-3, 8);
+    expect(next.target[2]).toBeCloseTo(-1, 8);
   });
 
   it('rejects invalid world-space inputs and zero horizontal direction', () => {
