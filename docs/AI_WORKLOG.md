@@ -484,3 +484,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added `public/favicon.svg` and linked it from the main page, replacing the browser's implicit missing `/favicon.ico` request.
 - CI now asserts the favicon link/file exists and that browser JavaScript no longer references the absent `bg_chant.m4a` asset.
 - This removes the two reported 404 causes. The synthesized ambient loop is tonal ambience, not a recorded Buddhist chant; adding a real licensed/owned chant recording remains a separate content task. These fixes do not address the separate requirement for a persistent full 3D temple scene.
+
+### Add persistent procedural Three.js sanctuary — 2026-11-01
+- Confirmed the user's observation: the prior `?3d=1` implementation created an empty transparent scene at idle and only rendered transient gift/ritual effects. The original 2D background image and DOM composition remained unchanged, so normal 2D and 3D modes looked identical until an event fired.
+- Added persistent Three.js geometry at scene boot: symmetric temple pillars and lintel, layered lotus throne, seated Amitabha silhouette with head/ears/robe, radial halo, sculpted hair curls, and foreground altar rail. These meshes are present before any RPC or gift arrives and render in the existing 9:16 stage coordinate system.
+- Kept the existing 2D image/DOM scene intact as the fallback, preserved the fixed elevated frontal sanctuary composition, and retained all existing ritual/gift effects. No camera-controller behavior was changed.
+- Updated pagehide cleanup to dispose the complete Three.js scene tree, including persistent geometry/materials.
+- Added CI assertions that the persistent scene geometry remains present and the Three.js module parses.
+- Scope note: this is the first persistent procedural 3D pass, not yet a production-quality detailed temple asset pack. It overlays stylized 3D geometry on the existing artwork; detailed imported temple/Buddha models, texture matching, responsive device profiling, and visual verification in a real browser remain open.
