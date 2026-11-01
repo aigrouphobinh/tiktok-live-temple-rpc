@@ -1,4 +1,4 @@
-import { disposeThreeObjectTree } from './three-resource-utils.js';
+import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
@@ -1560,7 +1560,7 @@ async function boot() {
       world.remove(effect.object);
       disposeThreeObjectTree(effect.object);
     }
-    disposeThreeObjectTree(scene);
+    disposeThreeSceneResources(scene);
     renderer.dispose();
   }
   function onVisibilityChange() { if (document.hidden) stop(); else start(); }
