@@ -50,15 +50,15 @@ describe('GLB inspector', () => {
   });
 
   it('rejects truncated chunk headers and chunks extending past the file', () => {
-    const truncatedHeader = Buffer.alloc(16);
+    const truncatedHeader = Buffer.alloc(21);
     truncatedHeader.writeUInt32LE(0x46546c67, 0);
     truncatedHeader.writeUInt32LE(2, 4);
-    truncatedHeader.writeUInt32LE(16, 8);
+    truncatedHeader.writeUInt32LE(21, 8);
     expect(() => parseGLB(truncatedHeader)).toThrow('GLB chunk header is truncated.');
 
     const oversized = makeGlb({ asset: { version: '2.0' } });
     oversized.writeUInt32LE(0xfffffff0, 12);
-    expect(() => parseGLB(oversized)).toThrow('GLB chunk length must be 4-byte aligned.');
+    expect(() => parseGLB(oversized)).toThrow('GLB chunk exceeds the declared file length.');
   });
 
   it('rejects unaligned GLB chunks', () => {
