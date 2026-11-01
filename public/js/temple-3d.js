@@ -1602,10 +1602,10 @@ async function boot() {
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
     if (devoteeState.active) {
       const travel = Math.min(1, (now - devoteeState.startedAt) / devoteeState.duration);
-      // Tie fallback footfalls to world-space travel so feet cycle with translation.
-       const walkPhase = (travel * 11.2 / 2.2) * Math.PI * 2;
-       animateHuman(mainHuman, now, travel < 0.92, walkPhase);
       const eased = travel * travel * (3 - 2 * travel);
+      // Use eased world-space distance, matching the actual translation below.
+      const walkPhase = (eased * 11.2 / 2.2) * Math.PI * 2;
+      animateHuman(mainHuman, now, travel < 0.92, walkPhase);
       mainDevotee.position.z = 7.5 - eased * 11.2;
       mainDevotee.scale.setScalar(1 - eased * 0.18);
       if (travel >= 1 && !devoteeState.bowAt) devoteeState.bowAt = now;
