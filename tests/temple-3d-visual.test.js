@@ -12,6 +12,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
+  it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, smile,');
+    expect(scene).toContain('const breathCycle = time * 0.00135 + avatar.phase;');
+    expect(scene).toContain('avatar.torso.scale.y = 1 + breath * 0.012;');
+    expect(scene).toContain('avatar.torso.position.y = 0.40 + breath * 0.0025;');
+    expect(scene).toContain('avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012;');
+    expect(scene).toContain('avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
+  });
+
   it('adds animated blinking, eye gaze and a restrained bow expression to procedural faces', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const eyeWhites = [], eyePupils = [];');
