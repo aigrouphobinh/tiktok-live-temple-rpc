@@ -34,6 +34,38 @@ export function getFootPlantingPose(phase) {
   };
 }
 
+
+/**
+ * Return procedural leg/foot offsets for a named character state.
+ * Angles are additive local-X offsets from the procedural rig's neutral pose.
+ * GLB rigs deliberately use their own animation/diagnostic path until axes are verified.
+ */
+export function getHumanFootPose({ mode = 'idle', phase = 0, blend = 1 } = {}) {
+  const amount = Number.isFinite(blend) ? Math.min(1, Math.max(0, blend)) : 0;
+  const safePhase = Number.isFinite(phase) ? phase : 0;
+  if (mode === 'kneel') {
+    return {
+      hipRotationX: -0.28 * amount,
+      kneeRotationX: 1.18 * amount,
+      footRotationX: -0.72 * amount,
+      footLift: 0,
+      planted: true
+    };
+  }
+  if (mode !== 'walk') {
+    return { hipRotationX: 0, kneeRotationX: 0, footRotationX: 0, footLift: 0, planted: true };
+  }
+  const pose = getFootPlantingPose(safePhase);
+  const step = pose.step;
+  return {
+    hipRotationX: -step * 0.48 * amount,
+    kneeRotationX: pose.kneeFlex * amount,
+    footRotationX: (step * 0.22 - pose.kneeFlex * 0.65) * amount,
+    footLift: pose.footLift * amount,
+    planted: pose.isStance
+  };
+}
+
 export function getFootPlantingStep(phase) {
   return getFootPlantingPose(phase).step;
 }
