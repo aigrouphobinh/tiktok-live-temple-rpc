@@ -492,6 +492,27 @@ async function boot() {
   createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1);
   createLotusPetalRing(12, 1.12, 0.1, 0.78, 0.06);
 
+  // A fixed, low-cost point cloud carries warm sparks from the lotus toward
+  // the Buddha halo during special gifts. Buffers are reused every frame.
+  const lotusSparkCount = 32;
+  const lotusSparkPositions = new Float32Array(lotusSparkCount * 3);
+  const lotusSparkPhases = new Float32Array(lotusSparkCount);
+  const lotusSparkSpeeds = new Float32Array(lotusSparkCount);
+  const lotusSparkRadii = new Float32Array(lotusSparkCount);
+  for (let i = 0; i < lotusSparkCount; i++) {
+    lotusSparkPhases[i] = i / lotusSparkCount;
+    lotusSparkSpeeds[i] = 0.16 + (i % 5) * 0.025;
+    lotusSparkRadii[i] = 1.08 + (i % 4) * 0.11;
+  }
+  const lotusSparkGeometry = new THREE.BufferGeometry();
+  lotusSparkGeometry.setAttribute('position', new THREE.BufferAttribute(lotusSparkPositions, 3));
+  const lotusSparkMaterial = new THREE.PointsMaterial({
+    color: 0xffd58a, size: 0.085, transparent: true, opacity: 0,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true
+  });
+  const lotusSparks = new THREE.Points(lotusSparkGeometry, lotusSparkMaterial);
+  lotusThrone.add(lotusSparks);
+
   // Seated stone Buddha statue: sculpted silhouette, robe folds, calm face and halo.
   const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); world.add(statue);
   // Cross-legged lotus posture and layered robe silhouette.
@@ -1828,6 +1849,19 @@ async function boot() {
       avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0
     ), 0);
     const auraPulse = specialGiftGlow * (0.94 + Math.sin(elapsed * 0.008) * 0.06);
+    lotusSparkMaterial.opacity = auraPulse * 0.88;
+    if (auraPulse > 0.001) {
+      for (let i = 0; i < lotusSparkCount; i++) {
+        const progress = (lotusSparkPhases[i] + elapsed * 0.00001 * lotusSparkSpeeds[i]) % 1;
+        const angle = lotusSparkPhases[i] * Math.PI * 2 + elapsed * 0.0007 * lotusSparkSpeeds[i];
+        const radius = lotusSparkRadii[i] * (1 - progress * 0.58);
+        const offset = i * 3;
+        lotusSparkPositions[offset] = Math.cos(angle) * radius;
+        lotusSparkPositions[offset + 1] = 0.32 + progress * 3.55;
+        lotusSparkPositions[offset + 2] = Math.sin(angle) * radius;
+      }
+      lotusSparkGeometry.attributes.position.needsUpdate = true;
+    }
     // Parent-group scaling opens both instanced petal tiers without rewriting
     // per-petal matrices or allocating objects in the render loop.
     lotusPetalRings.forEach((ring, index) => {
