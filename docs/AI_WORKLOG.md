@@ -1012,3 +1012,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Special-gift reactions now gently lift the rim light, gold trim emissive response, and a restrained stone emissive response using the existing shared gift envelope.
 - Initialized stone emissive color once during setup; render loop only adjusts scalar intensities. No extra shadow maps or per-frame material allocations.
 - Added source regression tests and CI guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add procedural temple material detail
+- Added small deterministic 64×64 roughness textures for timber grain, red lacquer and gilded metal; textures use repeat wrapping and mipmaps, with no external image assets.
+- Switched red lacquer surfaces to MeshPhysicalMaterial with restrained clearcoat so highlights read as polished lacquer rather than flat red paint.
+- Kept gold metalness and base palette intact while introducing subtle roughness variation. Existing stone bump detail remains unchanged.
+- Added source regression coverage and CI guards. Browser visual/material validation remains outstanding.
