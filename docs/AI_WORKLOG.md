@@ -185,7 +185,7 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 ### Remaining game implementation backlog
 - [x] Add a persisted SFX master toggle and independent SFX volume control routed through a shared Web Audio gain node.
 - [x] Improve Rocket VFX with a procedural exhaust trail, impact flash, shockwave, smoke puffs and debris; align impact origin to the projectile's final stage position.
-- [ ] Replace emoji placeholders for Rocket, Dragon and Donut with consistent free/licensed or procedural game-style assets.
+- [x] Replace emoji placeholders for Rocket, Dragon and Donut with procedural CSS game-style sprites (source implemented; browser appearance still requires verification).
 - [ ] Add Dragon impact/roar layer and Donut movement/chase polish; verify no effects overlap the altar, Buddha, HUD, or central devotee incorrectly.
 - [x] Add display-name based Rose/hoa hồng action with petal VFX and a soft chime; numeric gift ID remains unassigned pending real LIVE evidence.
 - [ ] Add Heart/Butterfly and other lower-tier behaviors only after exact display names are observed.
@@ -260,3 +260,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - This is display-name-only visual routing. It does not assign numeric TikTok gift IDs, alter coin/merit accounting, or change server reward behavior.
 - Files committed directly to `main`. Re-run the repository Bun test workflow and inspect the Actions result; no test pass is claimed until the run is observed.
 - Runtime validation remains outstanding for actual TikTok LIVE display names, combo frames, animation cancellation, sound mix and browser rendering.
+
+
+### Gift action resolver source verification — 2026-11-01
+- Confirmed the new resolver and browser engine/test files parse with V8 syntax compilation after removing module import/export declarations for the syntax-only check.
+- Ran 11 in-memory resolver cases covering all eight intended aliases plus unknown/partial-word rejection; all 11 matched expected routing. This is a focused assertion, not execution of the Bun test runner.
+- Confirmed the GitHub Actions workflow is configured for all branch pushes and runs `bun test`; the latest commit combined status returned no status entries yet. Do not claim CI passed until an Actions run/check appears.
+- Updated the sprite backlog checkbox to reflect that Rocket, Dragon and Donut source sprites are implemented; visual/browser validation remains open.
