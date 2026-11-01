@@ -84,6 +84,14 @@ export class CharacterStateMachine {
       return { interrupted: true, resumesCooldown: true, action };
     }
 
+    if (!this.active && this.state === 'IDLE') {
+      // Gifts remain first-class world actions even when nobody is at the altar.
+      // The normal effect/cooldown lifecycle still serializes incoming gifts.
+      this.effect = { action, priority, event: giftEvent };
+      this.state = 'INTERRUPTED';
+      return { interrupted: true, startsWithoutCharacter: true, action };
+    }
+
     if (!this.active) return { interrupted: false, reason: 'no_active_character' };
 
     // Preserve the interrupted devotee only when the waiting queue has
