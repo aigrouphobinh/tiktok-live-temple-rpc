@@ -306,6 +306,29 @@ async function boot() {
     ray.position.set(Math.cos(a)*2.2,Math.sin(a)*2.2,0);
     ray.rotation.z=a-Math.PI/2;halo.add(ray);
   }
+  // Repeating carved flame leaves turn the plain disc into a traditional aureole.
+  for(let n=0;n<12;n++){
+    const a=n*Math.PI/6;
+    const flameShape=new THREE.Shape();
+    flameShape.moveTo(-0.13,-0.12);
+    flameShape.quadraticCurveTo(-0.22,0.12,0,0.42);
+    flameShape.quadraticCurveTo(0.22,0.12,0.13,-0.12);
+    flameShape.quadraticCurveTo(0,-0.02,-0.13,-0.12);
+    const flameMesh=new THREE.Mesh(new THREE.ShapeGeometry(flameShape),haloStone);
+    flameMesh.position.set(Math.cos(a)*1.72,Math.sin(a)*1.72,0.055);
+    flameMesh.rotation.z=a-Math.PI/2;
+    halo.add(flameMesh);
+    const vein=new THREE.Mesh(new THREE.TubeGeometry(
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0,-0.08,0.07),
+        new THREE.Vector3(0.015,0.08,0.07),
+        new THREE.Vector3(0,0.28,0.07)
+      ]),10,0.012,6,false
+    ),mats.statueLight);
+    vein.position.copy(flameMesh.position);
+    vein.rotation.z=flameMesh.rotation.z;
+    halo.add(vein);
+  }
 
   // Main hall architecture: paired carved pillars, crossbeams, layered roof.
   for (const x of [-7.2, 7.2]) {
