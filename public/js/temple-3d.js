@@ -1076,9 +1076,14 @@ async function boot() {
       const fringe=sphere(0.105,hair,x,y,0.22,sx,0.72,0.42,head);
       fringe.rotation.z=-x*0.8;
     }
+    const eyeWhites = [], eyePupils = [];
     for(const side of [-1,1]){
-      sphere(0.052,white,side*0.105,0.045,0.22,1,1,0.45,head);
-      sphere(0.026,eye,side*0.105,0.045,0.247,1,1,0.45,head);
+      const eyeGroup = new THREE.Group(); eyeGroup.position.set(side*0.105,0.045,0.22); head.add(eyeGroup);
+      const sclera = sphere(0.052,white,0,0,0,1,1,0.45,eyeGroup);
+      const pupil = sphere(0.026,eye,0,0,0.027,1,1,0.45,eyeGroup);
+      eyeWhites.push(sclera); eyePupils.push(pupil);
+      const brow=sphere(0.052,hair,side*0.105,0.115,0.205,1.25,0.22,0.35,head);
+      brow.rotation.z=-side*0.12;
       sphere(0.035,skin,side*0.265,-0.02,0.05,0.7,0.7,0.7,head);
     }
     sphere(0.035,skin,0,-0.045,0.25,0.7,0.7,0.7,head);
@@ -1113,7 +1118,7 @@ async function boot() {
     }
     root.scale.setScalar(height/1.72);
     const avatar = {
-      root, upperBody, head, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
+      root, upperBody, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0
@@ -1392,6 +1397,16 @@ async function boot() {
     avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;
     avatar.rightFoot.position.y = -0.24 + rightFootPose.footLift;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
+    const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;
+    const blinkPulse = Math.max(0, 1 - Math.abs(blinkCycle - 0.12) / 0.12);
+    const blink = Math.min(1, blinkPulse * 0.94 + avatar.kneelBlend * 0.12);
+    for (let index=0; index<avatar.eyeWhites.length; index++) {
+      const eyeOpen = 1 - blink * 0.9;
+      avatar.eyeWhites[index].scale.y = eyeOpen;
+      avatar.eyePupils[index].scale.y = eyeOpen;
+      avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006;
+    }
+    avatar.smile.scale.y = 1 - avatar.bowAmount * 0.12;
     avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
   }
   function makeDevotee(x,z,scale=1) {
