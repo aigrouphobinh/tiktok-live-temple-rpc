@@ -36,7 +36,13 @@ class FakeObject3D {
     callback(this);
     this.children.forEach((child) => child.traverse ? child.traverse(callback) : callback(child));
   }
-  updateMatrix() {}
+  updateMatrix() {
+    this.matrix = {
+      position: this.position.values ? [...this.position.values] : [0, 0, 0],
+      rotation: this.rotation.values ? [...this.rotation.values] : [0, 0, 0],
+      scale: this.scale.values ? [...this.scale.values] : [1, 1, 1]
+    };
+  }
 }
 class FakeMesh extends FakeObject3D {
   constructor(geometry, material) { super(); this.geometry = geometry; this.material = material; }
@@ -46,7 +52,8 @@ class FakeInstancedMesh extends FakeMesh {
     super(geometry, material);
     this.count = count;
     this.instanceMatrix = { setUsage() {}, needsUpdate: false };
-    this.setMatrixAt = () => {};
+    this.matrices = [];
+    this.setMatrixAt = (index, matrix) => { this.matrices[index] = matrix; };
   }
 }
 const fakeTHREE = {
@@ -130,17 +137,20 @@ describe('Temple environment architecture module', () => {
 
   it('keeps peripheral floor inlays flush with the raised gallery surface', () => {
     const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
-    const inlays = [];
+    const batches = new Map();
     result.group.traverse((object) => {
-      const args = object.geometry?.args;
-      if (object.material?.name === 'TempleEnvironment_bronze'
-        && args?.[1] === 0.035
-        && (args?.[0] === 1.28 || args?.[2] === 1.28)) {
-        inlays.push(object);
-      }
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
     });
-    expect(inlays).toHaveLength(16);
-    inlays.forEach((mesh) => expect(mesh.position.values[1]).toBeCloseTo(0.1));
+    const horizontal = batches.get('TempleFloorInlayHorizontal');
+    const vertical = batches.get('TempleFloorInlayVertical');
+    const studs = batches.get('TempleFloorInlayStuds');
+    expect(horizontal?.count).toBe(8);
+    expect(vertical?.count).toBe(8);
+    expect(studs?.count).toBe(8);
+    for (const batch of [horizontal, vertical]) {
+      expect(batch.matrices.every((matrix) => Math.abs(matrix.position[1] - 0.1) < 1e-8)).toBe(true);
+    }
+    expect(studs.matrices.every((matrix) => Math.abs(matrix.position[1] - 0.13) < 1e-8)).toBe(true);
     result.dispose();
   });
 
