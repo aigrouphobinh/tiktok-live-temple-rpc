@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
@@ -1366,16 +1366,17 @@ async function boot() {
     }
     avatar.leftArm.rotation.x = walking ? rightStep*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
     avatar.rightArm.rotation.x = walking ? leftStep*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
-    const leftPose = getFootPlantingPose(gaitPhase + avatar.phase);
-    const rightPose = getFootPlantingPose(gaitPhase + avatar.phase + Math.PI);
-    avatar.leftLeg.rotation.x = walking ? -leftStep*0.48 : 0;
-    avatar.rightLeg.rotation.x = walking ? -rightStep*0.48 : 0;
-    avatar.leftKnee.rotation.x = walking ? leftPose.kneeFlex : 0;
-    avatar.rightKnee.rotation.x = walking ? rightPose.kneeFlex : 0;
-    avatar.leftFoot.rotation.x = walking ? leftStep*0.22 - leftPose.kneeFlex*0.65 : 0;
-    avatar.rightFoot.rotation.x = walking ? rightStep*0.22 - rightPose.kneeFlex*0.65 : 0;
-    avatar.leftFoot.position.y = -0.24 + (walking ? leftPose.footLift : 0);
-    avatar.rightFoot.position.y = -0.24 + (walking ? rightPose.footLift : 0);
+    const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';
+    const leftFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase });
+    const rightFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI });
+    avatar.leftLeg.rotation.x = leftFootPose.hipRotationX;
+    avatar.rightLeg.rotation.x = rightFootPose.hipRotationX;
+    avatar.leftKnee.rotation.x = leftFootPose.kneeRotationX;
+    avatar.rightKnee.rotation.x = rightFootPose.kneeRotationX;
+    avatar.leftFoot.rotation.x = leftFootPose.footRotationX;
+    avatar.rightFoot.rotation.x = rightFootPose.footRotationX;
+    avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;
+    avatar.rightFoot.position.y = -0.24 + rightFootPose.footLift;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
     avatar.root.position.y = walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012;
   }
