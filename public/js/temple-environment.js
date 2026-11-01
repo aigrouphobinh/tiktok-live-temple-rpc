@@ -192,16 +192,7 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     instanceBatchCount += 1;
   };
 
-  const addTorusBatch = (
-    name,
-    radius,
-    tube,
-    material,
-    transforms,
-    radialSegments = 6,
-    tubularSegments = 20,
-    orientation = [Math.PI / 2, 0, 0]
-  ) => {
+  const addTorusBatch = (name, radius, tube, material, transforms, radialSegments = 6, tubularSegments = 20) => {
     if (!transforms.length || typeof THREE.InstancedMesh !== 'function' || typeof THREE.Object3D !== 'function') {
       transforms.forEach((position) => {
         const ring = addMesh(
@@ -210,7 +201,7 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
           material,
           position
         );
-        if (ring.rotation && typeof ring.rotation.set === 'function') ring.rotation.set(...orientation);
+        if (ring.rotation) ring.rotation.x = Math.PI / 2;
       });
       return;
     }
@@ -223,7 +214,7 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     const transform = new THREE.Object3D();
     transforms.forEach((position, index) => {
       transform.position.set(position[0], position[1], position[2]);
-      transform.rotation.set(...orientation);
+      transform.rotation.set(Math.PI / 2, 0, 0);
       transform.updateMatrix();
       instances.setMatrixAt(index, transform.matrix);
     });
@@ -344,7 +335,7 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     const upperBeamTransforms = [];
     const bracketTransforms = [];
     const collarPositions = [];
-    const frontRosettePositions = [];
+    const frontPlaqueTransforms = [];
     const frontGemTransforms = [];
 
     for (const x of settings.columnXs) {
@@ -356,11 +347,14 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         collarPositions.push([x, 7.43, z]);
 
         if (settings.detailLevel !== 'low') {
-          // Mount a small lotus seal on the clear front of each upper shaft, mirrored inward.
+          // Ruby-and-brass diamond plaques echo the outer hall pillars, mirrored inward.
           const inwardOffset = x < 0 ? 0.2 : -0.2;
-          frontRosettePositions.push([x + inwardOffset, 6.2, z + 0.48]);
+          frontPlaqueTransforms.push({
+            position: [x + inwardOffset, 6.2, z + 0.445],
+            rotation: [0, 0, Math.PI / 4]
+          });
           frontGemTransforms.push({
-            position: [x + inwardOffset, 6.2, z + 0.505],
+            position: [x + inwardOffset, 6.2, z + 0.48],
             rotation: [0, 0, Math.PI / 4]
           });
           for (const direction of [-1, 1]) {
@@ -381,18 +375,9 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     addBoxBatch('TempleCapitalLacquerStacks', [1.38, 0.12, 1.38], materials.lacquer, lacquerTransforms);
     addBoxBatch('TempleCapitalUpperBeams', [1.55, 0.16, 0.72], materials.agedWood, upperBeamTransforms);
     addTorusBatch('TempleCapitalCollars', 0.57, 0.022, materials.mutedGold, collarPositions, 6, 24);
-    if (frontRosettePositions.length) {
-      addTorusBatch(
-        'TempleCapitalFrontRosettes',
-        0.095,
-        0.018,
-        materials.bronze,
-        frontRosettePositions,
-        8,
-        24,
-        [0, 0, 0]
-      );
-      addBoxBatch('TempleCapitalFrontGems', [0.11, 0.11, 0.04], materials.goldBright, frontGemTransforms);
+    if (frontPlaqueTransforms.length) {
+      addBoxBatch('TempleColumnFrontPlaques', [0.18, 0.18, 0.04], materials.goldBright, frontPlaqueTransforms);
+      addBoxBatch('TempleColumnFrontGems', [0.095, 0.095, 0.045], materials.redBright, frontGemTransforms);
     }
     if (bracketTransforms.length) {
       addBoxBatch('TempleCapitalCorbels', [0.24, 0.58, 0.34], materials.darkWood, bracketTransforms);
