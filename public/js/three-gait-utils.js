@@ -1,4 +1,14 @@
 export function getFootPlantingPose(phase) {
+  if (!Number.isFinite(phase)) {
+    return {
+      step: 0,
+      kneeFlex: 0,
+      footLift: 0,
+      swingProgress: 0,
+      stanceProgress: 0,
+      isStance: true
+    };
+  }
   const cycle = ((phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
   const stance = 0.62;
   const progress = cycle / (Math.PI * 2);
