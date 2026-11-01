@@ -48,7 +48,10 @@ jobs:
           grep -Fq "import('three/addons/loaders/GLTFLoader.js')" public/js/temple-3d.js &&
           grep -Fq 'SkeletonUtils.clone(asset.scene)' public/js/temple-3d.js &&
           grep -Fq 'https://gobkit.com/freebies/animal/Corgi.glb' public/js/temple-3d.js &&
-          grep -Fq 'https://gobkit.com/freebies/animal/Duck.glb' public/js/temple-3d.js &&
+          grep -Fq "'/assets/animals/Corgi.glb'" public/js/temple-3d.js &&
+          grep -Fq "'/assets/animals/Duck.glb'" public/js/temple-3d.js &&
+          ! grep -Fq 'https://gobkit.com/freebies/animal/' public/js/temple-3d.js &&
+          node -e "const fs=require('fs'); for (const f of ['public/assets/animals/Corgi.glb','public/assets/animals/Duck.glb']) { const b=fs.readFileSync(f); if (b.toString('ascii',0,4)!=='glTF' || b.length>150000) throw new Error('Invalid or oversized GLB: '+f); }" &&
           grep -Fq 'mainDevoteeFallback.visible = false' public/js/temple-3d.js &&
           grep -Fq 'three/addons/' public/index.html &&
           grep -Fq "action === 'rocket'" public/js/temple-3d.js &&
