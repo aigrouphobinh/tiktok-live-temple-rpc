@@ -762,6 +762,17 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds paired stone highlights and shadow grooves to the Buddha lap robe folds', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const lapFoldPoints = [[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]];');
+  expect(scene).toContain('const lapFoldHighlight = new THREE.CatmullRomCurve3');
+  expect(scene).toContain('const lapFoldGroove = new THREE.CatmullRomCurve3');
+  expect(scene).toContain('new THREE.TubeGeometry(lapFoldHighlight, 24, 0.008, 6, false)');
+  expect(scene).toContain('new THREE.TubeGeometry(lapFoldGroove, 24, 0.007, 6, false)');
+  expect(scene).toContain('statue.add(highlightMesh, grooveMesh);');
+});
+
+
 it('adds curved carved fillets across the lower Buddha base to blend into the lotus throne', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('const statueBaseBandPoints = [];');
