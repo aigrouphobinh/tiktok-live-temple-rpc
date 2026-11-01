@@ -522,3 +522,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Bumped the live stylesheet cache key to `3d-ritual-console-20261101-6`.
 - Added visual regression assertions for the frame, palette and stylesheet cache key.
 - Browser rendering and device-specific visual inspection remain unverified; automated CI is the next check.
+
+### 2026-11-01 — Add layered altar screen depth
+- Added inset cinnabar back panels to both side bays of the rear altar screen.
+- Added slim antique-gold inner mouldings and small corner studs to make the lattice bays read as framed architectural niches.
+- Geometry is static and uses existing shared sanctuary materials; no new animation loop, external asset or camera adjustment.
+- Added a visual regression test covering the niche backing, mouldings and decorative studs.
+- Next check: verify the latest GitHub Actions run and continue with the altar/offerings composition.
