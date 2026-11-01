@@ -463,7 +463,7 @@ async function boot() {
   sphere(0.11, mats.redBright, 0, 1.76, 0, 1, 1, 1, burner);
 
   // Three ritual stations are modeled as actual sanctuary props, not flat HUD icons.
-  // They sit on the side galleries so the fixed central altar sightline stays open.
+  // They sit just inside the side colonnade, within the fixed portrait camera frustum.
   const ritualStations = [];
   function makeRitualStation(x, z, kind) {
     const station = new THREE.Group();
@@ -517,9 +517,9 @@ async function boot() {
     }
     ritualStations.push(station);
   }
-  makeRitualStation(-7.1, -0.8, 'bell');
-  makeRitualStation(7.1, -0.8, 'woodfish');
-  makeRitualStation(7.1, -5.0, 'fortune');
+  makeRitualStation(-3.75, -1.2, 'bell');
+  makeRitualStation(3.75, -1.2, 'woodfish');
+  makeRitualStation(3.75, -5.4, 'fortune');
 
   // Raycast the visible 3D props so the world itself becomes the ritual menu.
   // The existing ritual event bus remains the single source of action behavior.
