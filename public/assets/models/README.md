@@ -48,7 +48,7 @@ Preferred model (user-selected): **Gold Buddha Statue — Kenny Hsieh**
 - https://sketchfab.com/3d-models/gold-buddha-statue-641d85153dd849d3b33bb69bd3ff6748
 - Model UID: `641d85153dd849d3b33bb69bd3ff6748`
 - Published license: **CC BY**; retain attribution to Kenny Hsieh and link to the Sketchfab model wherever the asset is distributed or shown.
-- Expected file: `buddha-selected.glb`; the loader tries this file first.
+- Expected file: `buddha-selected.glb`; the loader tries the user-supplied `buddha.glb` first, then this bundled model.
 
 Bundled public fallback: **Seated Buddha, date unknown — Minneapolis Institute of Art**
 - Original record: https://zenodo.org/records/10337923 (DOI: `10.5281/zenodo.10337923`)
