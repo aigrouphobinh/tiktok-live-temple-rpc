@@ -79,6 +79,10 @@ jobs:
           grep -Fq 'const panelRosetteGeometry = new THREE.TorusGeometry(0.085, 0.012, 6, 20)' public/js/temple-3d.js &&
           grep -Fq 'new THREE.InstancedMesh(panelRosetteGeometry, mats.goldBright, 10)' public/js/temple-3d.js &&
           grep -Fq 'world.add(panelRosettes, panelGems)' public/js/temple-3d.js &&
+          grep -Fq 'const columnPlaqueGeometry = new THREE.BoxGeometry(0.16, 0.16, 0.035)' public/js/temple-3d.js &&
+          grep -Fq 'new THREE.InstancedMesh(columnPlaqueGeometry, mats.goldBright, 10 * 3)' public/js/temple-3d.js &&
+          grep -Fq 'new THREE.InstancedMesh(columnPlaqueGemGeometry, mats.redBright, 10 * 3)' public/js/temple-3d.js &&
+          grep -Fq 'world.add(columnPlaques, columnPlaqueGems)' public/js/temple-3d.js &&
           grep -Fq 'function getAvatarGiftReactionBlend(avatar, time)' public/js/temple-3d.js &&
           grep -Fq 'avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs' public/js/temple-3d.js &&
           grep -Fq 'congregationGiftGlow * 4.5' public/js/temple-3d.js &&
