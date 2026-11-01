@@ -540,6 +540,7 @@ async function boot() {
   const ritualRaycaster = new THREE.Raycaster();
   const ritualPointer = new THREE.Vector2();
   let hoveredRitualStation = null;
+  let pressedRitualStation = null;
 
   function ritualStationAtPointer(event) {
     const rect = canvas.getBoundingClientRect();
@@ -604,21 +605,34 @@ async function boot() {
     setHoveredRitualStation(ritualStationAtPointer(event));
   }
 
+  function onWorldPointerDown(event) {
+    if (!event.isPrimary || event.button !== 0) return;
+    pressedRitualStation = ritualStationAtPointer(event);
+  }
+
   function onWorldPointerUp(event) {
     if (!event.isPrimary || event.button !== 0) return;
     const station = ritualStationAtPointer(event);
-    if (!station) return;
+    const pressedStation = pressedRitualStation;
+    pressedRitualStation = null;
+    if (!station || station !== pressedStation) return;
     const action = ritualActionByKind[station.userData.ritualKind];
     if (action) {
       window.dispatchEvent(new CustomEvent('temple:ritual', { detail: { type: action } }));
     }
   }
 
+  function onWorldPointerCancel() {
+    pressedRitualStation = null;
+  }
+
   function onWorldPointerLeave() {
     setHoveredRitualStation(null);
   }
   canvas.addEventListener('pointermove', onWorldPointerMove, { passive: true });
+  canvas.addEventListener('pointerdown', onWorldPointerDown);
   canvas.addEventListener('pointerup', onWorldPointerUp);
+  canvas.addEventListener('pointercancel', onWorldPointerCancel);
   canvas.addEventListener('pointerleave', onWorldPointerLeave);
 
   // Stylized human devotees replace the temporary animal crowd.
@@ -997,7 +1011,9 @@ async function boot() {
     window.removeEventListener('temple:ritual', onTempleRitual);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
     canvas.removeEventListener('pointermove', onWorldPointerMove);
+    canvas.removeEventListener('pointerdown', onWorldPointerDown);
     canvas.removeEventListener('pointerup', onWorldPointerUp);
+    canvas.removeEventListener('pointercancel', onWorldPointerCancel);
     canvas.removeEventListener('pointerleave', onWorldPointerLeave);
     canvas.style.cursor = '';
     document.removeEventListener('visibilitychange', onVisibilityChange);
