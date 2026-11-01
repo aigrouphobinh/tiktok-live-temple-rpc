@@ -452,6 +452,33 @@ async function boot() {
     const x=-0.42+k*0.21;
     robeFold([[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]],0.022);
   }
+  // A raised hem and its shallow shadow groove make the lap robe read as layered stone.
+  const robeHemCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.82, 2.34, 0.45),
+    new THREE.Vector3(-0.62, 2.16, 0.68),
+    new THREE.Vector3(-0.28, 2.08, 0.82),
+    new THREE.Vector3(0, 2.06, 0.85),
+    new THREE.Vector3(0.28, 2.08, 0.82),
+    new THREE.Vector3(0.62, 2.16, 0.68),
+    new THREE.Vector3(0.82, 2.34, 0.45)
+  ]);
+  const robeHem = new THREE.Mesh(
+    new THREE.TubeGeometry(robeHemCurve, 48, 0.032, 8, false),
+    mats.statueLight
+  );
+  robeHem.castShadow = true;
+  robeHem.receiveShadow = false;
+  statue.add(robeHem);
+  const robeHemGrooveCurve = new THREE.CatmullRomCurve3(
+    robeHemCurve.getPoints(24).map((point) => new THREE.Vector3(point.x, point.y - 0.075, point.z - 0.018))
+  );
+  const robeHemGroove = new THREE.Mesh(
+    new THREE.TubeGeometry(robeHemGrooveCurve, 48, 0.014, 6, false),
+    mats.statueShadow
+  );
+  robeHemGroove.castShadow = false;
+  robeHemGroove.receiveShadow = false;
+  statue.add(robeHemGroove);
   // Neck, head, elongated ears and ushnisha.
   cylinder(0.28,0.32,0.42,mats.statueStone,0,4.05,0,statue,24);
   sphere(0.63,mats.statueStone,0,4.62,0.02,0.88,1.08,0.78,statue);
