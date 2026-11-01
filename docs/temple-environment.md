@@ -52,6 +52,18 @@ templeEnvironment.dispose();
 
 The returned `group` is attached to the supplied scene. The module never owns or disposes the scene, renderer, camera, or externally supplied resources.
 
+## Detail presets
+
+The detail preset changes the number of decorative batches while keeping the structural column shafts, fluting, gallery screen frame, and floor-inlay rails intact:
+
+| Preset | Decorative detail |
+| --- | --- |
+| `low` | Omits capital corbels, gallery lattice, column-base studs, and floor-inlay studs. |
+| `medium` | Includes capital corbels and gallery lattice; omits the two stud groups. |
+| `high` | Includes all supported decorative details, including both stud groups. |
+
+Use `low` for constrained devices, `medium` as a balanced option, and `high` for the full architectural treatment. The preset does not change the scene, camera, renderer, or animation lifecycle.
+
 ## Returned metadata
 
 - `metadata.roofless`: always `true`.
