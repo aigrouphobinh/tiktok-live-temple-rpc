@@ -193,6 +193,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('sphere(0.019, mats.statueLight, 0, 5.03, 0.557, 0.82, 1.12, 0.48, statue);');
   });
 
+  it('adds two instanced curl courses that follow the Buddha ushnisha surface', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const ushnishaCurlPolarAngles = [0.56, 0.98];');
+    expect(scene).toContain('const ushnishaCurlCounts = [8, 12];');
+    expect(scene).toContain("ushnishaCurls.name = 'BuddhaUshnishaCurls';");
+    expect(scene).toContain('ushnishaCurls.instanceMatrix.needsUpdate = true;');
+    expect(scene).toContain('0.2952 * sinPolar * Math.cos(angle)');
+    expect(scene).toContain('0.02 + 0.2808 * sinPolar * Math.sin(angle)');
+  });
+
   it('adds instanced brass collars to the foot and crown of each timber column', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('new THREE.TorusGeometry(0.49, 0.035, 8, 24)');
