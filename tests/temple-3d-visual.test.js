@@ -179,6 +179,22 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain('disposeThreeSceneResources(root)');
   });
 
+  it('recognizes common Mixamo and side-suffixed GLB bone naming conventions', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml']");
+    expect(scene).toContain("rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr']");
+    expect(scene).toContain("leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl']");
+    expect(scene).toContain("rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr']");
+    expect(scene).toContain('aliases.some((alias) => name === alias || name.endsWith(alias))');
+  });
+
+  it('recognizes more descriptive locomotion, rest and prostration clip names', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('/idle|stand|breath|resting/i');
+    expect(scene).toContain('/walk|walking|run|approach|locomotion|move|travel/i');
+    expect(scene).toContain('/bow|pray|prayer|worship|kneel|prostrate/i');
+  });
+
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function applyGLTFFallbackWalk(avatar, time, weight = 1)');
