@@ -1,3 +1,9 @@
+### 2026-11-01 — Finalize the three-agent environment integration
+- Merged Agent 3's portrait inner-column plaques, with both static batches retained on low-detail devices, plus the column-toggle/resource-ownership fixes from PR #17.
+- Structural shafts/flutes now remain present independently of decorative footings; cleanup disposes only module-owned resources and construction-failure cleanup is covered by regression tests.
+- Agent 1, Agent 2 and Agent 3 working branches were synchronized to the same mainline commit.
+- CI is being rerun on the fully integrated main branch; Chromium visual checks remain software-rendered and do not replace target GPU/OBS validation.
+
 ### 2026-11-01 — Preserve lightweight plaques in the low-detail profile
 - The Chromium audit uses the low environment-detail tier, which had been suppressing the two new plaque batches entirely.
 - Keep the gold/ruby plaques enabled on all tiers (two static instance batches); continue omitting the larger corbels on low-tier devices.
