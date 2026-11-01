@@ -539,6 +539,28 @@ async function boot() {
   columnFlutes.receiveShadow = true;
   world.add(columnFlutes);
 
+  // Slim brass collars finish the foot and crown of each timber column.
+  // One instanced batch keeps this architectural polish to a single extra draw call.
+  const columnCollarGeometry = new THREE.TorusGeometry(0.49, 0.035, 8, 24);
+  const columnCollars = new THREE.InstancedMesh(columnCollarGeometry, mats.goldBright, 10 * 2);
+  const collarTransform = new THREE.Object3D();
+  let collarIndex = 0;
+  for (const x of [-7.2, 7.2]) {
+    for (const z of [-10, -4, 2, 8, 13]) {
+      for (const y of [0.86, 7.18]) {
+        collarTransform.position.set(x, y, z);
+        collarTransform.rotation.set(Math.PI / 2, 0, 0);
+        collarTransform.scale.set(1, 1, 1);
+        collarTransform.updateMatrix();
+        columnCollars.setMatrixAt(collarIndex++, collarTransform.matrix);
+      }
+    }
+  }
+  columnCollars.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  columnCollars.castShadow = false;
+  columnCollars.receiveShadow = true;
+  world.add(columnCollars);
+
   // Keep the central sightline to the Buddha open. Full-width crossbeams and
   // the low ceiling slab previously projected as opaque black bands over the altar.
   for (const z of [-10, -4, 2, 8, 13]) {
