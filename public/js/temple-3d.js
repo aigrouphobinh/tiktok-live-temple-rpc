@@ -335,14 +335,17 @@ async function boot() {
     color: 0xb98538, roughness: 0.42, metalness: 0.62
   });
   // Keep the near half open: the fixed camera looks into the sanctuary from +Z.
-  const roofStartZ = -13, roofEndZ = 3.5, roofLength = roofEndZ - roofStartZ;
+  // Stop the roof behind the altar so its underside cannot cut across the Buddha/camera sightline.
+  const roofStartZ = -13, roofEndZ = -1.5, roofLength = roofEndZ - roofStartZ;
+  const roofCenterZ = (roofStartZ + roofEndZ) / 2;
+  const roofHalfLength = roofLength / 2;
   function makeCurvedRoofSide(side) {
     const columns = 20, rows = 28;
     const positions = [], uvs = [], indices = [];
     for (let row = 0; row <= rows; row++) {
       const v = row / rows;
       const z = roofStartZ + v * roofLength;
-      const endLift = Math.pow(Math.abs((z + 4.75) / 8.25), 4) * 0.82;
+      const endLift = Math.pow(Math.abs((z - roofCenterZ) / roofHalfLength), 4) * 0.82;
       for (let column = 0; column <= columns; column++) {
         const u = column / columns;
         const x = side * u * 9.0;
@@ -384,15 +387,16 @@ async function boot() {
       const seamMesh = new THREE.Mesh(new THREE.TubeGeometry(seamCurve, 24, 0.018, 5, false), roofTrim);
       seamMesh.castShadow = true; world.add(seamMesh);
     }
-    const eave = box(0.22, 0.28, 28.1, mats.red, side * 8.95, 9.72, 1);
+    // Eaves follow the roof's real bounds; the old oversized beams extended into the camera foreground.
+    const eave = box(0.22, 0.28, roofLength, mats.red, side * 8.95, 9.72, roofCenterZ);
     eave.rotation.z = side * -0.025;
-    const goldEdge = box(0.09, 0.09, 27.9, roofTrim, side * 9.08, 9.82, 1);
+    const goldEdge = box(0.09, 0.09, roofLength, roofTrim, side * 9.08, 9.82, roofCenterZ);
     goldEdge.rotation.z = side * -0.025;
   }
   makeCurvedRoofSide(-1);
   makeCurvedRoofSide(1);
   // Ridge cap and ornamental end finials.
-  const ridge = cylinder(0.22, 0.22, roofLength + 0.2, mats.redBright, 0, 11.25, -4.75, world, 32);
+  const ridge = cylinder(0.22, 0.22, roofLength + 0.2, mats.redBright, 0, 11.25, roofCenterZ, world, 32);
   ridge.rotation.x = Math.PI / 2;
   for (const z of [roofStartZ, roofEndZ]) {
     const finial = sphere(0.25, roofTrim, 0, 11.28, z, 1.3, 0.8, 1.2);
