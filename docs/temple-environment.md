@@ -6,7 +6,7 @@ Agent 3 delivers an independent architectural-detail layer for the existing roof
 
 The module enriches the existing colonnade and galleries without replacing the scene, renderer, camera, lighting, or animation loop.
 
-- Two complete portrait-framed timber side columns with layered stone/lacquer plinths, aged-bronze collars, capital stacks, corbels, static gilded fluting and small brass rosettes with bright-gold diamond centres on the audience-facing red lacquer capital bands.
+- Two complete portrait-framed timber side columns with layered stone/lacquer plinths, aged-bronze collars, capital stacks, corbels, static gilded fluting and small brass rosettes with bright-gold diamond centres on the audience-facing upper column shafts.
 - Timber capital stacks and restrained corbel brackets aligned to the existing column grid.
 - Paired carved relief screens extending the altar backdrop into the visible left/right margins.
 - Low-profile bronze floor inlays set flush on the visible side-deck strips beside the central processional aisle.
