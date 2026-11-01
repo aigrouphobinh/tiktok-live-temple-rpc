@@ -1,3 +1,10 @@
+### 2026-11-01 — Close imported GLB texture lifecycle
+- Found that GLB teardown used the transient-object disposer, which releases geometries/materials but intentionally leaves textures alone.
+- Switched GLB model disposal to the full scene-resource disposer so imported base-color, normal, emissive and other material textures are released with the model.
+- Kept idempotent teardown and mixer action shutdown; retained same-origin /assets/models/ loading restriction.
+- Added regression tests for texture-aware disposal, URL restriction and idempotency.
+- CI validation pending; actual GLB load/unload profiling remains pending until licensed model assets are added.
+
 # AI Worklog — TikTok Live Temple RPC
 
 ## Repository
