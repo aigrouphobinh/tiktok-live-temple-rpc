@@ -1026,3 +1026,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Uses two fixed InstancedMesh batches (10 rings + 10 gems) and static instance matrices, avoiding dozens of separate draw calls.
 - Decorations sit within the existing panel framing and do not alter the camera, altar dimensions or roofless temple silhouette.
 - Added source regression tests and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add ruby-and-brass carved plaques to temple pillars
+- Added three small diamond plaques down the camera-facing side of each of the ten timber pillars, with gold surrounds and ruby centres.
+- Uses two static InstancedMesh batches (30 plaques + 30 centres), preserving the pillar silhouette and avoiding per-frame work.
+- Kept the roofless hall, existing column fluting/collars, lighting and camera unchanged.
+- Added source regression coverage and CI guards; browser visual validation remains outstanding.
