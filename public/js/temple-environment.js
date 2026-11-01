@@ -346,16 +346,18 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         upperBeamTransforms.push({ position: [x, 7.82, z] });
         collarPositions.push([x, 7.43, z]);
 
+        // Keep these two tiny static plaque batches on low-end devices as well.
+        // Only the more substantial corbel geometry is omitted in low detail.
+        frontPlaqueTransforms.push({
+          position: [x, 6.2, z + 0.48],
+          rotation: [0, 0, Math.PI / 4]
+        });
+        frontGemTransforms.push({
+          position: [x, 6.2, z + 0.515],
+          rotation: [0, 0, Math.PI / 4]
+        });
+
         if (settings.detailLevel !== 'low') {
-          // Ruby-and-brass plaques align to the shaft centreline, matching the outer hall pillars.
-          frontPlaqueTransforms.push({
-            position: [x, 6.2, z + 0.48],
-            rotation: [0, 0, Math.PI / 4]
-          });
-          frontGemTransforms.push({
-            position: [x, 6.2, z + 0.515],
-            rotation: [0, 0, Math.PI / 4]
-          });
           for (const direction of [-1, 1]) {
             bracketTransforms.push({
               position: [x + direction * 0.56, 7.34, z],
