@@ -70,12 +70,23 @@ The module adds no objects in front of the Buddha or altar and does not add a ro
 - `dispose()` is safe to call repeatedly and detaches only this module's group.
 - A compatible Three.js namespace and a scene exposing `add()` / `remove()` are required.
 
-## Coordinator integration notes
+## Coordinator integration
 
-1. Import this module from the existing Three.js boot flow after the base sanctuary structure has been created.
-2. Call `createTempleEnvironment({ THREE, scene, config })` once per scene instance.
-3. Keep the returned handle in the scene lifecycle owner.
-4. Call `dispose()` from the existing scene teardown/context-loss cleanup path.
-5. Do not create a second renderer, scene, light rig, or animation loop for this module.
+The existing `public/js/temple-3d.js` boot flow now imports and creates this layer once, attaching it to the existing `world` group:
 
-Agent 3 intentionally does not edit shared integration files. Coordinator owns the integration change.
+```js
+const templeEnvironment = createTempleEnvironment({
+  THREE,
+  scene: world,
+  config: {
+    detailLevel: environmentDetailLevel,
+    gallerySurfaceY: 0.0825
+  }
+});
+```
+
+The detail preset is selected from the device memory/core profile: low for constrained devices, medium for mainstream devices, and high for capable devices. The floor inlay surface is aligned to the existing raised side-gallery deck at Y = 0.0825.
+
+The handle remains owned by the existing scene boot lifecycle. The shared `releaseWorldResources()` path calls `templeEnvironment.dispose()` before the general scene-resource traversal. This path is used by both WebGL context-loss recovery and page teardown.
+
+The integration reuses the existing renderer, scene, camera, lighting rig, visibility handling, resize handler, and animation loop. It does not add another render loop or lighting rig.
