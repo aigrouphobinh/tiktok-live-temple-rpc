@@ -88,7 +88,7 @@ async function boot() {
   key.position.set(-7, 15, 8); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); key.shadow.camera.left = -14; key.shadow.camera.right = 14;
   key.shadow.camera.top = 18; key.shadow.camera.bottom = -18; scene.add(key);
-  const buddhaLight = new THREE.PointLight(0xffb94e, 95, 18, 2);
+  const buddhaLight = new THREE.PointLight(0xe5eaed, 34, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
   // Layered altar lighting: two soft, non-shadow-casting spots shape the focal area
@@ -442,12 +442,19 @@ async function boot() {
     const head = new THREE.Group(); head.position.set(0,1.28,0.02); root.add(head);
     sphere(0.27,skin,0,0,0,0.88,1.08,0.78,head);
     sphere(0.29,hair,0,0.12,-0.09,0.98,1.18,0.86,head);
+    // Long back hair and shoulder-length side locks match the reference avatar silhouette.
+    sphere(0.27,hair,0,-0.25,-0.11,0.92,1.55,0.72,head);
+    sphere(0.13,hair,-0.22,-0.25,0.015,0.62,1.75,0.78,head);
+    sphere(0.13,hair,0.22,-0.25,0.015,0.62,1.75,0.78,head);
     sphere(0.25,skin,0,0.02,0.06,0.9,1.0,0.78,head);
-    sphere(0.13,hair,-0.22,-0.18,-0.01,0.62,1.4,0.72,head);
-    sphere(0.13,hair,0.22,-0.18,-0.01,0.62,1.4,0.72,head);
+    // Soft fringe pieces sit above the forehead without covering the eyes.
+    for (const [x,y,sx] of [[-0.13,0.19,0.58],[0,0.22,0.62],[0.13,0.19,0.58]]) {
+      const fringe=sphere(0.105,hair,x,y,0.22,sx,0.72,0.42,head);
+      fringe.rotation.z=-x*0.8;
+    }
     for(const side of [-1,1]){
-      sphere(0.045,white,side*0.105,0.045,0.22,1,1,0.45,head);
-      sphere(0.022,eye,side*0.105,0.045,0.245,1,1,0.45,head);
+      sphere(0.052,white,side*0.105,0.045,0.22,1,1,0.45,head);
+      sphere(0.026,eye,side*0.105,0.045,0.247,1,1,0.45,head);
       sphere(0.035,skin,side*0.265,-0.02,0.05,0.7,0.7,0.7,head);
     }
     sphere(0.035,skin,0,-0.045,0.25,0.7,0.7,0.7,head);
