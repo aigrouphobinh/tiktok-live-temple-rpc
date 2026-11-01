@@ -764,6 +764,37 @@ async function boot() {
     elbowRidge.castShadow = false;
     elbowRidge.receiveShadow = false;
     statue.add(elbowRidge);
+    // A short side-torso pleat and lower elbow fold create a quiet layered transition.
+    const sideTorsoPleat = [
+      [side * 0.48, 3.48, 0.71],
+      [side * 0.57, 3.42, 0.72],
+      [side * 0.66, 3.33, 0.67]
+    ];
+    robeFold(sideTorsoPleat, 0.01);
+    const sideTorsoPleatRidge = new THREE.CatmullRomCurve3(sideTorsoPleat.map(([x, y, z]) =>
+      new THREE.Vector3(x - side * 0.016, y + 0.014, z + 0.012)
+    ));
+    const sideTorsoPleatRidgeMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(sideTorsoPleatRidge, 16, 0.006, 6, false), mats.statueLight
+    );
+    sideTorsoPleatRidgeMesh.castShadow = false;
+    sideTorsoPleatRidgeMesh.receiveShadow = false;
+    statue.add(sideTorsoPleatRidgeMesh);
+    const elbowLowerFold = [
+      [side * 0.56, 3.105, 0.635],
+      [side * 0.66, 3.085, 0.645],
+      [side * 0.75, 3.115, 0.585]
+    ];
+    robeFold(elbowLowerFold, 0.009);
+    const elbowLowerFoldRidge = new THREE.CatmullRomCurve3(elbowLowerFold.map(([x, y, z]) =>
+      new THREE.Vector3(x, y + 0.018, z + 0.01)
+    ));
+    const elbowLowerFoldMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(elbowLowerFoldRidge, 16, 0.0055, 6, false), mats.statueLight
+    );
+    elbowLowerFoldMesh.castShadow = false;
+    elbowLowerFoldMesh.receiveShadow = false;
+    statue.add(elbowLowerFoldMesh);
   }
   // Two restrained chest folds follow the robe diagonally toward the lap.
   robeFold([[-0.38,3.28,0.69],[-0.12,3.18,0.77],[0.16,3.04,0.75],[0.39,2.9,0.67]],0.018);
