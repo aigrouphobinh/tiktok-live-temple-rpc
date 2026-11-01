@@ -560,6 +560,14 @@ async function boot() {
     return geometry;
   }
   const lotusPetalGeometry = createLotusPetalGeometry();
+  // A fine raised midrib follows the sculpted crown of each petal.
+  const lotusVeinCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.1, 0.17),
+    new THREE.Vector3(0, 0.34, 0.275),
+    new THREE.Vector3(0, 0.58, 0.31),
+    new THREE.Vector3(0, 0.9, 0.17)
+  ]);
+  const lotusVeinGeometry = new THREE.TubeGeometry(lotusVeinCurve, 16, 0.009, 5, false);
   const lotusPetalRings = [];
   function createLotusPetalRing(count, radius, y, size, lean = 0.08) {
     const ring = new THREE.Group();
@@ -569,6 +577,7 @@ async function boot() {
     const goldCount = Math.floor(count / 2);
     const redPetals = new THREE.InstancedMesh(lotusPetalGeometry, mats.redBright, redCount);
     const goldPetals = new THREE.InstancedMesh(lotusPetalGeometry, mats.goldBright, goldCount);
+    const petalVeins = new THREE.InstancedMesh(lotusVeinGeometry, mats.goldBright, count);
     const redSlots = [];
     const goldSlots = [];
     const transform = new THREE.Object3D();
@@ -578,6 +587,7 @@ async function boot() {
       transform.rotation.set(Math.cos(angle) * lean, Math.PI / 2 - angle, Math.sin(angle) * lean);
       transform.scale.set(size, size, size);
       transform.updateMatrix();
+      petalVeins.setMatrixAt(i, transform.matrix);
       if (i % 2 === 0) {
         redPetals.setMatrixAt(redSlots.length, transform.matrix);
         redSlots.push(i);
@@ -586,12 +596,12 @@ async function boot() {
         goldSlots.push(i);
       }
     }
-    for (const petals of [redPetals, goldPetals]) {
+    for (const petals of [redPetals, goldPetals, petalVeins]) {
       petals.instanceMatrix.setUsage(THREE.StaticDrawUsage);
-      petals.castShadow = true;
+      petals.castShadow = false;
       petals.receiveShadow = false;
     }
-    ring.add(redPetals, goldPetals);
+    ring.add(redPetals, goldPetals, petalVeins);
     return ring;
   }
   createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1);
