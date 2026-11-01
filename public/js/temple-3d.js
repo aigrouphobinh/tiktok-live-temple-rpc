@@ -508,6 +508,27 @@ async function boot() {
     const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, radius, 8, false), mats.statueShadow);
     mesh.castShadow = true; statue.add(mesh); return mesh;
   };
+  // Paired shoulder-to-elbow contours define the robe-covered upper arms.
+  for (const side of [-1, 1]) {
+    const armEdge = [
+      [side * 0.55, 3.92, 0.35],
+      [side * 0.72, 3.72, 0.48],
+      [side * 0.78, 3.42, 0.52],
+      [side * 0.69, 3.12, 0.56],
+      [side * 0.48, 2.88, 0.62]
+    ];
+    robeFold(armEdge, 0.016);
+    const armRidge = new THREE.CatmullRomCurve3(armEdge.map(([x, y, z]) =>
+      new THREE.Vector3(x - side * 0.045, y + 0.018, z + 0.018)
+    ));
+    const armRidgeMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(armRidge, 28, 0.01, 6, false),
+      mats.statueLight
+    );
+    armRidgeMesh.castShadow = false;
+    armRidgeMesh.receiveShadow = false;
+    statue.add(armRidgeMesh);
+  }
   robeFold([[-0.58,4.02,0.18],[-0.44,3.55,0.57],[-0.18,3.02,0.72],[0.34,2.52,0.67],[0.72,2.25,0.4]],0.045);
   robeFold([[0.58,4.0,0.18],[0.7,3.55,0.48],[0.5,3.1,0.67],[0.15,2.65,0.72],[-0.42,2.34,0.55]],0.035);
   for (let k=0;k<5;k++) {
