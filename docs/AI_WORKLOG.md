@@ -769,3 +769,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Replaced narrow left/right bone-name checks with normalized aliases covering Mixamo-style prefixes and common Blender side suffixes (.L/.R).
 - Added regression checks for the supported naming patterns.
 - The actual selected GLB has not yet been available for a local asset-level inspection in this session; browser validation is still required to confirm its exact skeleton and clip names.
+
+
+### 2026-11-01 — Add VRM and Unity skeleton aliases
+- Extended GLB bone lookup to recognize VRM-style `J_Bip_L/R_*` and Unity-style side-prefixed names after normalization, plus numbered spine joints and neck fallback.
+- Added regression assertions for the additional aliases.
+- Repository tree currently contains no tracked `.glb` under `public/assets/models`; the selected runtime asset must be supplied/deployed to verify the real skeleton and animations in-browser.
