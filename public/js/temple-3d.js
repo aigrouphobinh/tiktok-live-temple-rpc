@@ -388,7 +388,11 @@ async function boot() {
   const incenseSmokeMaterial = new THREE.MeshBasicMaterial({
     color: 0xd8cbb8, transparent: true, opacity: 0.0, depthWrite: false
   });
-  const incenseWisps = Array.from({ length: 6 }, (_, index) => {
+  // Incense is ambient decoration: scale its transparent draw calls with the
+  // selected device tier while preserving a visible plume on low-end devices.
+  const incenseWispCount = renderProfile.tier === 'low' ? 3
+    : renderProfile.tier === 'medium' ? 4 : 6;
+  const incenseWisps = Array.from({ length: incenseWispCount }, (_, index) => {
     const wisp = new THREE.Mesh(incenseSmokeGeometry, incenseSmokeMaterial.clone());
     wisp.scale.set(0.72 + (index % 3) * 0.18, 1.9 + (index % 2) * 0.45, 0.72 + (index % 2) * 0.12);
     wisp.userData.phase = index / 6;
@@ -665,8 +669,7 @@ async function boot() {
   }
   statue.add(statueBaseBand, statueBaseHighlight);
   sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);
-  // Add a continuous shoulder mantle beneath the neck so the Buddha reads as a
-  // solid carved figure at 9:16 stream scale, not only as fine robe outlines.
+  // A continuous shoulder mantle gives the upper body a clear carved silhouette at portrait scale.
   sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);
   // A shallow curved neckline softens the join between neck, shoulders and chest.
   const necklineCurve = new THREE.CatmullRomCurve3([
