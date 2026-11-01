@@ -312,3 +312,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added deterministic state-machine tests proving equal-priority gifts do not supersede the active effect and are replayed in arrival order.
 - Added coverage that queued effects are ordered by descending priority while preserving FIFO order within each priority tier.
 - These tests exercise the pure state machine only; Bun execution/CI and browser timing behavior are not claimed until observed.
+
+### Priority-aware gift queue overflow — 2026-11-01
+- Fixed a bounded-queue edge case: when the waiting gift-effect queue is full, a newly arriving stronger gift now replaces the lowest-priority waiting effect instead of being rejected behind weaker queued work.
+- Equal-priority arrivals remain FIFO; lower/equal-priority arrivals are still rejected when the queue is full. The currently playing effect is never displaced by this overflow rule.
+- Added a regression test proving Donut can replace a queued Rose at capacity while Rocket remains active; existing overflow coverage continues to assert that a lower-priority Rose cannot displace a queued Donut.
+- Source and test changes are committed directly to `main`. CI/test execution and browser/TikTok LIVE behavior have not yet been verified for these commits.
