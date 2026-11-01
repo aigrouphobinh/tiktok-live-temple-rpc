@@ -544,3 +544,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Actual browser render still needs visual confirmation; automated checks are running.
 
 - CI follow-up: the first run was blocked by a legacy static guard that treats the identifier `const ridge =` as a removed roof-construction marker. Renamed the petal-local variable to `petalRidge`; latest run `41272003700` passed with 110 tests across 14 files (0 failures).
+
+
+## 2026-11-01 — Ambient incense atmosphere
+- Added six persistent low-poly incense wisps above the bronze burner. Wisps rise, drift sideways, fade in/out, and gently swell on a repeating phase.
+- Reuses one sphere geometry and one transparent material; no per-frame mesh/material allocation and no new camera or interaction behavior.
+- Added visual regression coverage for the persistent particle setup and frame update.
+- Browser render still requires local visual confirmation at `?3d=1`.
