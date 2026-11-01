@@ -649,3 +649,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Both curves use existing statue stone materials and do not cast shadows, preserving the current lighting and fixed silhouette.
 - Added source regression coverage for the two static curves.
 - Browser render review remains necessary to confirm the contour reads as carved stone rather than a separate collar.
+
+
+
+### 2026-11-01 — Define the Buddha upper-arm robe silhouette
+- Added paired subtle dark contours from each shoulder toward the elbow and fine offset ivory ridges to describe the robe-covered upper arms.
+- Kept the lines close to the existing body silhouette and disabled shadow casting on the highlight ridges.
+- Added source regression coverage for both sides and their static geometry.
+- Browser render inspection remains necessary to confirm the contours sit naturally against the torso at the fixed camera distance.
