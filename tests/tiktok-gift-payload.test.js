@@ -101,6 +101,16 @@ describe('TikTok gift payload normalization', () => {
     expect(getGiftComboDelta(tracker, { ...base, repeatCount: 1, repeatEnd: true })).toBe(1);
   });
 
+  it('starts a fresh combo after the connection-scoped tracker is reset', () => {
+    const tracker = new Map();
+    const payload = { groupId: 'viewer|5655', streakable: true, repeatCount: 1, repeatEnd: false };
+
+    expect(getGiftComboDelta(tracker, payload)).toBe(1);
+    expect(getGiftComboDelta(tracker, { ...payload, repeatCount: 3 })).toBe(2);
+    tracker.clear(); // same lifecycle reset used when TikTok disconnects/reconnects
+    expect(getGiftComboDelta(tracker, payload)).toBe(1);
+  });
+
   it('does not retain state for non-streakable gifts', () => {
     const tracker = new Map();
     expect(getGiftComboDelta(tracker, {
