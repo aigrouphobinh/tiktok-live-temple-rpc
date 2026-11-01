@@ -1033,3 +1033,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Uses two static InstancedMesh batches (30 plaques + 30 centres), preserving the pillar silhouette and avoiding per-frame work.
 - Kept the roofless hall, existing column fluting/collars, lighting and camera unchanged.
 - Added source regression coverage and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add lotus-seed plaques to the Buddha pedestal
+- Added seven ruby-centred brass diamond plaques across the camera-facing red band of the lotus pedestal.
+- Each plaque's depth follows the curved cylindrical surface, keeping the details visually seated on the band.
+- Uses two static InstancedMesh batches; existing trim rings, 32 brass studs, lotus petals, lighting and camera remain unchanged.
+- Added source regression coverage and CI guards; browser visual validation remains outstanding.
