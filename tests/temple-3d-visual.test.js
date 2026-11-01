@@ -337,7 +337,7 @@ describe('3D sanctuary visual treatment', () => {
   it('keeps the procedural statue as fallback and gates local GLB replacement behind models=1', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("get('models') === '1'");
-    expect(scene).toContain("loadGLTFAsset('/assets/models/buddha-selected.glb'");
+    expect(scene).toContain('await isLocalModelAvailable(selectedUrl)');
     expect(scene).toContain('if (disposed) {');
     expect(scene).toContain('statue.add(asset.root)');
     expect(scene).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
@@ -356,7 +356,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(preflightIndex).toBeGreaterThanOrEqual(0);
     expect(preflightIndex).toBeLessThan(selectedIndex);
     expect(fallbackPreflightIndex).toBeLessThan(fallbackIndex);
-    expect(loader).toContain("method: 'HEAD'");
+    expect(scene).toContain("method: 'HEAD'");
     expect(loader).toContain('skipping its load request');
     expect(scene).toContain("modelParams.get('buddha') === '1'");
     expect(scene).toContain('modelsRequested || buddhaModelRequested');
