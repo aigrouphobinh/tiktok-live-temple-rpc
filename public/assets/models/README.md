@@ -6,25 +6,29 @@ attribution terms have been checked.
 
 ## Buddha statue
 
-When the user-provided, rights-cleared GLB for the selected Sketchfab model is
-available, place it here as:
-
-`buddha-selected.glb`
-
-Selected source (user-approved): **Gold Buddha Statue — Kenny Hsieh**
+Preferred model (user-selected): **Gold Buddha Statue — Kenny Hsieh**
 - https://sketchfab.com/3d-models/gold-buddha-statue-641d85153dd849d3b33bb69bd3ff6748
 - Model UID: `641d85153dd849d3b33bb69bd3ff6748`
 - Published license: **CC BY**; retain attribution to Kenny Hsieh and link to the Sketchfab model wherever the asset is distributed or shown.
-- Download status: not yet vendored. Sketchfab's official Download API requires an authenticated Sketchfab account and an eligible downloadable model. Do not use viewer extraction or third-party rippers.
-- Expected local file: `public/assets/models/buddha-selected.glb` (self-contained GLB preferred).
+- Expected file: `buddha-selected.glb`; the loader tries this file first.
+
+Bundled public fallback: **Seated Buddha, date unknown — Minneapolis Institute of Art**
+- Original record: https://zenodo.org/records/10337923 (DOI: `10.5281/zenodo.10337923`)
+- Source model: https://sketchfab.com/3d-models/seated-buddha-date-unknown-c1c3d5a4878c42778eceded83673dea7
+- The Artheon Buddhist & Hindu 3D scan catalogue lists this individual work as **CC0**. The Zenodo record identifies the object as a gilt-bronze Seated Buddha in the Minneapolis Institute of Art collection.
+- Downloaded file: `buddha-cc0-fallback.glb` (5.5 MB); MD5 `a00f6c35ae853c830faff61404265c5c`.
+- The fallback is only used when `buddha-selected.glb` is absent or fails to load. Keep the original collection/source credit with the asset.
+
+The GitHub Actions workflow `.github/workflows/fetch-buddha-cc0-fallback.yml` downloads this public GLB, verifies the published MD5, inspects the glTF structure and commits the binary to the feature branch. Do not use viewer extraction or third-party rippers for the preferred Kenny Hsieh model.
 
 The character GLB is expected at `devotee-selected.glb`; the loader normalizes it to 1.72 world units and clones the rig for every devotee. Animation clips are detected by names containing idle/stand/breath, walk/run/approach and bow/pray/worship/kneel. The procedural character remains visible if loading fails or `models=1` is omitted.
 
 The optional loader normalizes the statue to approximately 5.88 world units high,
 centers it on X/Z and grounds it at local Y=0. The statue wrapper remains at the
 existing altar transform. To preview the optional bundled model, open the 3D
-scene with both query parameters: `?3d=1&models=1`. Without the file or without
-`models=1`, the current procedural statue remains active.
+scene with both query parameters: `?3d=1&models=1`. The loader tries
+`buddha-selected.glb` first, then `buddha-cc0-fallback.glb`; the procedural
+statue remains active if neither file loads or `models=1` is omitted.
 
 ## Human devotee
 
