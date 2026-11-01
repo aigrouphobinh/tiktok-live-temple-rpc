@@ -350,3 +350,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The interruption listener already clears prostration timers, removes the carpet-walk class and sets the central sprite to the neutral kneeling pose. The old follow-up write changed it back to `walk1`, contradicting that ownership handoff.
 - Gift choreography now retains the central sprite until effect completion/cooldown hands it back to the queued devotee.
 - Source change committed directly to `main`. Browser verification of rapid Rocket → Dragon → Donut → Rose interruption and pose recovery remains pending; no visual/runtime pass is claimed.
+
+### Gift arriving during character cooldown — 2026-11-01
+- Closed a timing gap in the 650 ms handoff after the final gift effect. Previously, a new gift arriving while the state machine was in `COOLDOWN` had no active character/effect to interrupt and could fall through as an ordinary queued visit, losing its special gift choreography.
+- `CharacterStateMachine.interrupt()` now accepts a valid gift effect during `COOLDOWN`, reclaims stage ownership, and leaves the interrupted devotee queue intact for the next handoff.
+- Added a regression test for Rocket completion → Dragon arriving during cooldown → original devotee A resuming ahead of B.
+- Source and test committed directly to `main`. Bun/CI execution and browser timing validation are still pending; this is not a runtime pass claim.
