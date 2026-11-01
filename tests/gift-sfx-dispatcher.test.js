@@ -9,19 +9,28 @@ describe('dispatchGiftSfx', () => {
       'playDragonRoar', 'playDonutChime', 'playRoseChime'
     ].map((name) => [name, (...args) => calls.push([name, ...args])]));
 
+    const effectId = 42;
     for (const type of [
       'rocket-launch', 'explosion', 'dragon-whoosh',
       'dragon-roar', 'donut-chime', 'rose-chime'
-    ]) expect(dispatchGiftSfx(audio, type)).toBe(true);
+    ]) expect(dispatchGiftSfx(audio, type, effectId)).toBe(true);
 
     expect(calls).toEqual([
-      ['playRocketLaunch'],
-      ['playExplosion', 1],
-      ['playDragonWhoosh'],
-      ['playDragonRoar'],
-      ['playDonutChime'],
-      ['playRoseChime']
+      ['playRocketLaunch', effectId],
+      ['playExplosion', 1, effectId],
+      ['playDragonWhoosh', effectId],
+      ['playDragonRoar', effectId],
+      ['playDonutChime', effectId],
+      ['playRoseChime', effectId]
     ]);
+  });
+
+  it('cancels only the requested gift sound group', () => {
+    const cancelled = [];
+    const audio = { cancelGiftSfxGroup: (id) => { cancelled.push(id); return true; } };
+    expect(dispatchGiftSfx(audio, 'cancel', 7)).toBe(true);
+    expect(cancelled).toEqual([7]);
+    expect(dispatchGiftSfx({}, 'cancel', 7)).toBe(false);
   });
 
   it('ignores unknown sound names without invoking audio methods', () => {
