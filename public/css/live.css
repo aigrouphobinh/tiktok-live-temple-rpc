@@ -1899,3 +1899,17 @@ body.obs-mode .stage-wrapper {
     transition: none;
   }
 }
+
+
+/* Cinematic scene finish — 3D mode only. The soft edge falloff adds depth,
+   protects HUD contrast, and leaves the central Buddha/altar unobscured. */
+.stage-9x16.temple-3d-mode::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 43%, transparent 42%, rgba(8, 4, 3, .16) 76%, rgba(5, 3, 3, .42) 100%),
+    linear-gradient(180deg, rgba(8, 4, 3, .22) 0%, transparent 17%, transparent 72%, rgba(7, 4, 3, .38) 100%);
+}
