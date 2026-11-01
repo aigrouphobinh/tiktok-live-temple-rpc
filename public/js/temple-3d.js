@@ -1978,12 +1978,15 @@ async function boot() {
         if (!material) continue;
         // The public MIA scan is a neutral/light scan of a gilt-bronze object.
         // Apply a restrained gold PBR finish while preserving its texture maps.
-        if (material.color) material.color.setHex(0xd8a63d);
-        if ('metalness' in material) material.metalness = 0.64;
-        if ('roughness' in material) material.roughness = 0.32;
+        if (material.color) material.color.setHex(0xc99a3c);
+        // A slightly broader highlight and lower self-glow read closer to aged
+        // gilt bronze under the temple's warm key lights, not polished plastic.
+        if ('metalness' in material) material.metalness = 0.68;
+        if ('roughness' in material) material.roughness = 0.42;
+        if ('envMapIntensity' in material) material.envMapIntensity = 1.15;
         if (material.emissive) {
-          material.emissive.setHex(0x382006);
-          material.emissiveIntensity = 0.08;
+          material.emissive.setHex(0x241304);
+          material.emissiveIntensity = 0.035;
         }
         material.needsUpdate = true;
       }
