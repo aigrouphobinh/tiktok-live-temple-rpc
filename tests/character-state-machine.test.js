@@ -42,6 +42,32 @@ describe('CharacterStateMachine', () => {
     expect(machine.finishCooldown().event.user).toBe('A');
   });
 
+  it('keeps a gift arriving during cooldown as an effect and resumes the interrupted devotee afterward', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.request(devotee('B'));
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+    expect(machine.finishEffect()).toMatchObject({ cooldown: true });
+    expect(machine.snapshot().state).toBe('COOLDOWN');
+
+    const result = machine.interrupt('dragon', { giftName: 'Dragon' });
+    expect(result).toMatchObject({
+      interrupted: true,
+      resumesCooldown: true,
+      action: 'dragon'
+    });
+    expect(machine.snapshot()).toMatchObject({
+      state: 'INTERRUPTED',
+      active: null,
+      effect: 'dragon',
+      queueLength: 2
+    });
+
+    machine.finishEffect();
+    expect(machine.finishCooldown().event.user).toBe('A');
+    expect(machine.snapshot().active.user).toBe('A');
+  });
+
   it('prioritizes Rocket over Donut while an effect is already playing', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
