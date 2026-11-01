@@ -19,10 +19,10 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;');
     expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * Math.sin(avatar.phase) * 0.035;');
     expect(scene).toContain('const resolved = profile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
-    expect(scene).toContain('const reactionUntil = performance.now() + resolved.durationMs;');
+    expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
     expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
     expect(scene).toContain('for (const avatar of allHumanAvatars) {');
-    expect(scene).toContain('avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
+    expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
     expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
   });
 
@@ -503,7 +503,7 @@ describe('3D sanctuary visual treatment', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;');
     expect(scene).toContain('buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;');
-    expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2;');
+    expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
     expect(scene).toContain('Math.sin(elapsed * 0.007 + i) * 0.35');
   });
 
