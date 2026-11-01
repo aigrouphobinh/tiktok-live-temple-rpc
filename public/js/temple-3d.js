@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getRitualPoseState } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
@@ -1107,7 +1107,7 @@ async function boot() {
       root, upperBody, head, leftArm, rightArm, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
-      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0
+      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0
     };
     allHumanAvatars.push(avatar);
     return avatar;
@@ -1367,8 +1367,8 @@ async function boot() {
     avatar.leftArm.rotation.x = walking ? rightStep*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
     avatar.rightArm.rotation.x = walking ? leftStep*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
     const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';
-    const leftFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase });
-    const rightFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI });
+    const leftFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });
+    const rightFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });
     avatar.leftLeg.rotation.x = leftFootPose.hipRotationX;
     avatar.rightLeg.rotation.x = rightFootPose.hipRotationX;
     avatar.leftKnee.rotation.x = leftFootPose.kneeRotationX;
@@ -1392,7 +1392,7 @@ async function boot() {
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
   const mainHuman=makeHumanAvatar(1.72);mainDevotee.add(mainHuman.root);
-  const devoteeState={active:false,startedAt:0,duration:2600,bowAt:0};
+  const devoteeState={active:false,startedAt:0,duration:2600,arrivedAt:0};
 
   // Prayer flags, side screens and lotus planters give the hall a lived-in scale.
   for (const x of [-6.2, 6.2]) {
@@ -1639,9 +1639,12 @@ async function boot() {
       mainDevotee.rotation.x = 0;
       mainHuman.upperBody.rotation.x = 0;
       mainHuman.head.rotation.x = 0;
+      mainHuman.kneeling = false;
+      mainHuman.kneelBlend = 0;
+      applyHumanBow(mainHuman, 0);
       devoteeState.active = true;
       devoteeState.startedAt = performance.now();
-      devoteeState.bowAt = 0;
+      devoteeState.arrivedAt = 0;
     }
     else if (event.type === 'ringBell') { makeRing(-3.75, 1.85, -1.2, 0xffe18a); }
     else if (event.type === 'strikeWoodenFish') { makeRing(3.75, 0.9, -1.2); }
@@ -1675,21 +1678,24 @@ async function boot() {
       const eased = travel * travel * (3 - 2 * travel);
       // Use eased world-space distance, matching the actual translation below.
       const walkPhase = (eased * 11.2 / 2.2) * Math.PI * 2;
-      animateHuman(mainHuman, now, travel < 0.92, walkPhase);
+      if (travel >= 1 && !devoteeState.arrivedAt) devoteeState.arrivedAt = now;
+      const ritualPose = getRitualPoseState({
+        travel,
+        elapsedAfterArrival: devoteeState.arrivedAt ? now - devoteeState.arrivedAt : 0,
+        remainingMs: ritualUntil - now
+      });
+      mainHuman.kneelBlend = ritualPose.kneelBlend;
+      mainHuman.kneeling = ritualPose.kneelBlend > 0.035;
+      animateHuman(mainHuman, now, ritualPose.walking, walkPhase);
       mainDevotee.position.z = 7.5 - eased * 11.2;
       mainDevotee.scale.setScalar(1 - eased * 0.18);
-      if (travel >= 1 && !devoteeState.bowAt) devoteeState.bowAt = now;
-      if (devoteeState.bowAt) {
-        const bowInProgress = Math.min(1, (now - devoteeState.bowAt) / 650);
-        const bowOutProgress = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;
-        // Smooth both ends so the torso/neck do not snap into or out of a bow.
-        const bowIn = bowInProgress * bowInProgress * (3 - 2 * bowInProgress);
-        const bowOut = bowOutProgress * bowOutProgress * (3 - 2 * bowOutProgress);
-        const bow = bowIn * bowOut;
-        applyHumanBow(mainHuman, bow);
-      }
+      // The same eased timeline drives the procedural bow and GLB bow state.
+      applyHumanBow(mainHuman, ritualPose.bowAmount);
       if (now > ritualUntil) {
         devoteeState.active = false;
+        mainHuman.kneeling = false;
+        mainHuman.kneelBlend = 0;
+        applyHumanBow(mainHuman, 0);
         mainDevotee.visible = false;
       }
     }
