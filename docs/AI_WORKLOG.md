@@ -1073,3 +1073,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added shallow paired nose-wing and nostril creases, short philtrum contours and a soft upper-lip highlight.
 - Kept the existing face silhouette and serene expression; details reuse the existing statueLine helper and stone materials.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Refine the Buddha's closed eyelids
+- Added shallow upper-lid folds, small light-catching lower transitions and restrained outer eye-corner creases on both sides.
+- Preserved the closed meditative gaze and existing facial silhouette; reused statueLine and existing stone materials.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
