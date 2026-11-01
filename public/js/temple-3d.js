@@ -640,6 +640,7 @@ async function boot() {
   // is local, deterministic and does not depend on a third-party model host.
   const devotees = [];
   const devoteeAvatars = [];
+  const allHumanAvatars = [];
   function makeHumanAvatar(height = 1.55) {
     const root = new THREE.Group();
     // The altar is at -Z; turn the avatar away from the +Z camera so devotees face it.
@@ -693,10 +694,128 @@ async function boot() {
       shoe.rotation.y=side*0.04;
     }
     root.scale.setScalar(height/1.72);
-    return {root,upperBody,head,leftArm,rightArm,leftLeg,rightLeg,phase:Math.random()*Math.PI*2};
+    const avatar = {
+      root, upperBody, head, leftArm, rightArm, leftLeg, rightLeg,
+      phase: Math.random() * Math.PI * 2,
+      gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
+      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0
+    };
+    allHumanAvatars.push(avatar);
+    return avatar;
   }
+
+  function playGLTFHumanAction(avatar, mode) {
+    if (!avatar.gltfMixer || !avatar.gltfActions) return false;
+    const clip = avatar.gltfActions[mode] || (mode !== 'idle' ? avatar.gltfActions.idle : null);
+    if (!clip) return false;
+    if (avatar.gltfActionName === mode) return true;
+    const next = avatar.gltfMixer.clipAction(clip);
+    if (mode === 'bow' && clip === avatar.gltfActions.bow) {
+      next.setLoop(THREE.LoopOnce, 1);
+      next.clampWhenFinished = true;
+    } else {
+      next.setLoop(THREE.LoopRepeat, Infinity);
+      next.clampWhenFinished = false;
+    }
+    next.reset().fadeIn(0.18).play();
+    if (avatar.gltfCurrentAction) avatar.gltfCurrentAction.fadeOut(0.18);
+    avatar.gltfCurrentAction = next;
+    avatar.gltfActionName = mode;
+    return true;
+  }
+
+  function applyHumanBow(avatar, amount) {
+    avatar.bowing = amount > 0.035;
+    avatar.bowAmount = amount;
+    if (avatar.gltfRoot) {
+      if (avatar.gltfActions?.bow) return;
+      const rig = avatar.gltfRig;
+      if (rig?.spine) {
+        rig.spine.rotation.x = rig.spineRest.x - amount * 0.58;
+      }
+      if (rig?.head) {
+        rig.head.rotation.x = rig.headRest.x + amount * 0.16;
+      }
+      if (rig?.leftArm) rig.leftArm.rotation.z = rig.leftArmRest.z + amount * 0.22;
+      if (rig?.rightArm) rig.rightArm.rotation.z = rig.rightArmRest.z - amount * 0.22;
+      return;
+    }
+    avatar.upperBody.rotation.x = -amount * 0.72;
+    avatar.head.rotation.x = amount * 0.16;
+    avatar.leftArm.rotation.z = amount * 0.34;
+    avatar.rightArm.rotation.z = -amount * 0.34;
+  }
+
+  async function upgradeDevoteesFromGLB() {
+    try {
+      const [{ loadGLTFAsset }, { clone }] = await Promise.all([
+        import('./three-model-loader.js'),
+        import('three/addons/utils/SkeletonUtils.js')
+      ]);
+      const asset = await loadGLTFAsset('/assets/models/devotee-selected.glb', {
+        targetHeight: 1.72,
+        centerXZ: true
+      });
+      if (disposed) return;
+      const animations = asset.animations || [];
+      const findClip = (pattern) => animations.find((clip) => pattern.test(clip.name || '')) || null;
+      const gltfActions = {
+        idle: findClip(/idle|stand|breath/i),
+        walk: findClip(/walk|walking|run|approach/i),
+        bow: findClip(/bow|pray|prayer|worship|kneel/i)
+      };
+      for (const avatar of allHumanAvatars) {
+        for (const child of [...avatar.root.children]) {
+          avatar.root.remove(child);
+          disposeThreeObjectTree(child);
+        }
+        const model = clone(asset.root);
+        avatar.root.add(model);
+        avatar.gltfRoot = model;
+        avatar.gltfActions = gltfActions;
+        avatar.gltfMixer = animations.length ? new THREE.AnimationMixer(model) : null;
+        avatar.gltfActionName = null;
+        avatar.gltfCurrentAction = null;
+        avatar.gltfLastTime = 0;
+        const bones = {};
+        model.traverse((node) => {
+          if (!node.isBone) return;
+          const name = (node.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (/spine|chest|upperbody/.test(name)) bones.spine = node;
+          if (/^(head|mixamorighead)$/.test(name)) bones.head = node;
+          if (/leftupperarm|leftarm/.test(name)) bones.leftArm = node;
+          if (/rightupperarm|rightarm/.test(name)) bones.rightArm = node;
+        });
+        avatar.gltfRig = {
+          spine: bones.spine,
+          head: bones.head,
+          leftArm: bones.leftArm,
+          rightArm: bones.rightArm,
+          spineRest: bones.spine?.rotation.clone(),
+          headRest: bones.head?.rotation.clone(),
+          leftArmRest: bones.leftArm?.rotation.clone(),
+          rightArmRest: bones.rightArm?.rotation.clone()
+        };
+      }
+      console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; clips:`,
+        Object.entries(gltfActions).filter(([, clip]) => clip).map(([name, clip]) => `${name}=${clip.name}`));
+    } catch (error) {
+      console.warn('[Temple3D] Optional devotee GLB unavailable; keeping procedural characters:', error);
+    }
+  }
+
   function animateHuman(avatar, time, walking = false) {
     const swing = Math.sin(time*0.009 + avatar.phase);
+    if (avatar.gltfRoot) {
+      const mode = walking ? 'walk' : avatar.bowing ? 'bow' : 'idle';
+      playGLTFHumanAction(avatar, mode);
+      const delta = avatar.gltfLastTime ? Math.min(0.05, Math.max(0, (time - avatar.gltfLastTime) / 1000)) : 1 / 30;
+      avatar.gltfMixer?.update(delta);
+      avatar.gltfLastTime = time;
+      if (avatar.bowing && !avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowAmount);
+      avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
+      return;
+    }
     avatar.leftArm.rotation.x = walking ? swing*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
     avatar.rightArm.rotation.x = walking ? -swing*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
     avatar.leftLeg.rotation.x = walking ? -swing*0.48 : 0;
@@ -1002,11 +1121,7 @@ async function boot() {
         const bowIn = Math.min(1, (now - devoteeState.bowAt) / 650);
         const bowOut = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;
         const bow = bowIn * bowOut;
-        mainHuman.upperBody.rotation.x = -bow * 0.72;
-        mainHuman.head.rotation.x = bow * 0.16;
-        // Bring both hands slightly inward during the bow, then release smoothly.
-        mainHuman.leftArm.rotation.z = bow * 0.34;
-        mainHuman.rightArm.rotation.z = -bow * 0.34;
+        applyHumanBow(mainHuman, bow);
       }
       if (now > ritualUntil) {
         devoteeState.active = false;
@@ -1081,6 +1196,9 @@ async function boot() {
   window.__TEMPLE_3D_READY__ = true;
   window.dispatchEvent(new Event('temple:3d-ready'));
   start();
-  if (modelsRequested) void upgradeBuddhaFromGLB();
+  if (modelsRequested) {
+    void upgradeBuddhaFromGLB();
+    void upgradeDevoteesFromGLB();
+  }
   console.info('[Temple3D] Full sanctuary world ready (?3d=1), with human devotees and stone Buddha.');
 }
