@@ -501,3 +501,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added scene fog, warm lighting, shadows, tone mapping, responsive renderer sizing, a 30 FPS cap, WebGL-loss fallback, and full resource disposal on pagehide.
 - The camera remains an elevated fixed master view; the existing subtle ritual-only camera director is retained.
 - Validation still pending in an actual browser/WebGL session and on lower-powered devices. This is a procedural 3D world pass, not yet a detailed scanned/artist-authored asset pack; visual tuning, model fidelity, and device profiling remain open.
+
+
+### Immersive 3D broadcast HUD redesign — 2026-11-01
+- Redesigned the 3D-only top status and bottom broadcast HUD with a dark translucent glass treatment, restrained gold borders, clearer live/merit hierarchy, and more compact gift cards/leaderboard typography.
+- Added a visible 3D SANCTUARY mode label so the operator can distinguish the active 3D presentation at a glance.
+- All new selectors are scoped under .temple-3d-mode; the original 2D HUD styles and layout remain unchanged. No scene geometry, game event mapping, or camera behavior was changed in this UI-only pass.
+- Added CI assertions for the 3D HUD selectors and mode label. Await Actions for the workflow result; no local browser screenshot or OBS/TikTok runtime test is claimed.
