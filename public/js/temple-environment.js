@@ -259,6 +259,7 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     instanceBatchCount += 1;
   };
 
+  // Structural shafts and flutes are independent of optional base-footing decoration.
   const buildColumnShafts = () => {
     const shaftPositions = [];
     const flutePositions = [];
