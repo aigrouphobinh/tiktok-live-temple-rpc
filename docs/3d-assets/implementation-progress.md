@@ -48,7 +48,7 @@ Updated: 2026-11-01
 
 ## Not yet verified
 
-- No third-party GLB has been downloaded, vendored, or loaded by the runtime.
+- Corgi and Duck are now loaded at runtime from Gobkit's public CC0 URLs; the GLBs are not yet vendored locally and therefore require internet access.
 - No actual browser screenshot or WebGL visual inspection has been performed for these latest changes.
 - No mobile GPU/frame-time/draw-call profile has been recorded.
 - No real TikTok LIVE payload test has been performed.
@@ -59,7 +59,7 @@ Updated: 2026-11-01
 1. Visually inspect the open-roof sightline, curved roof, offering props and layered altar lighting from the fixed elevated camera.
 2. Inspect the individual Thai seated Buddha CC0 record and file; integrate only after pose, license, scale and texture checks.
 3. Replace the primitive Buddha blockout with a reviewed, correctly licensed seated Buddha GLB or a higher-quality custom model.
-4. Replace the placeholder devotees with a rigged, respectful lay-devotee model while preserving the existing ritual timings and animation events.
+4. Inspect Corgi and Duck in the actual fixed 9:16 browser camera; tune their scale, spacing and animation transitions, then vendor the approved GLBs locally so the game no longer depends on a third-party asset host.
 5. Add asset loading failure handling and performance budgets, then perform actual browser/device validation.
 6. Verify 3D gift reaction timing and composition in-browser alongside the existing CSS effects; tune depth/scale only after visual inspection.
 7. Test rocket, dragon, donut and rose payloads both with an active devotee and with an empty altar; confirm one 3D reaction per started effect and no camera movement.
