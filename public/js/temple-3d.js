@@ -1,6 +1,6 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
 import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from './three-gait-utils.js';
-import { getTemplePixelRatio } from './temple-render-quality.js';
+import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 
 /**
@@ -24,14 +24,15 @@ if (enabled && stage && canvas) {
 
 async function boot() {
   const THREE = await import('three');
-  const renderer = new THREE.WebGLRenderer({
-    canvas, alpha: false, antialias: true, powerPreference: 'high-performance'
-  });
-  renderer.setPixelRatio(getTemplePixelRatio({
+  const renderProfile = getTempleRenderProfile({
     devicePixelRatio: window.devicePixelRatio || 1,
     deviceMemory: navigator.deviceMemory,
     hardwareConcurrency: navigator.hardwareConcurrency
-  }));
+  });
+  const renderer = new THREE.WebGLRenderer({
+    canvas, alpha: false, antialias: true, powerPreference: 'high-performance'
+  });
+  renderer.setPixelRatio(renderProfile.pixelRatio);
   renderer.setSize(1080, 1920, false);
   renderer.setClearColor(0x160904, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -178,7 +179,7 @@ async function boot() {
   const ambient = new THREE.AmbientLight(0xffc777, 0.55); scene.add(ambient);
   const key = new THREE.DirectionalLight(0xffd28a, 3.0);
   key.position.set(-7, 15, 8); key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024); key.shadow.camera.left = -14; key.shadow.camera.right = 14;
+  key.shadow.mapSize.set(renderProfile.shadowMapSize, renderProfile.shadowMapSize); key.shadow.camera.left = -14; key.shadow.camera.right = 14;
   key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
   key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
   scene.add(key);
@@ -2207,7 +2208,7 @@ async function boot() {
   const templeEnvironment = createTempleEnvironment({
     THREE,
     scene,
-    config: { detailLevel: 'high' }
+    config: { detailLevel: renderProfile.environmentDetail }
   });
 
   function frame(now) {
