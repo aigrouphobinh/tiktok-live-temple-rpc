@@ -248,6 +248,13 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("import { getFootPlantingStep } from './three-gait-utils.js';");
     expect(scene).toContain('const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);');
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
+    expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
+    expect(scene).toContain('const rightKnee = new THREE.Group(); rightKnee.position.y = -0.24; rightLeg.add(rightKnee);');
+    expect(scene).toContain('avatar.leftKnee.rotation.x = walking ? leftPose.kneeFlex : 0;');
+    expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + (walking ? leftPose.footLift : 0);');
+    expect(scene).toContain('leftKnee: bones.leftKnee');
+    expect(scene).toContain('leftFoot: bones.leftFoot');
+    expect(scene).toContain('rig.leftKnee.rotation.x = base(rig.leftKnee, rig.leftKneeRest) + leftPose.kneeFlex * weight;');
     expect(scene).toContain('const walkTarget = walking && !avatar.gltfActions?.walk ? 1 : 0;');
     expect(scene).toContain('const walkBlend = 1 - Math.exp(-delta / 0.16);');
     expect(scene).toContain('avatar.gltfWalkBlend += (walkTarget - avatar.gltfWalkBlend) * walkBlend;');
