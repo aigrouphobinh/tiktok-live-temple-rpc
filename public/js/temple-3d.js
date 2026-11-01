@@ -97,6 +97,8 @@ async function boot() {
     material.roughness = material === mats.statueLight ? 0.92 : 0.98;
     material.needsUpdate = true;
   }
+  mats.statueStone.emissive.setHex(0x241507);
+  mats.statueStone.emissiveIntensity = 0.035;
 
   const world = new THREE.Group();
   scene.add(world);
@@ -1888,7 +1890,6 @@ async function boot() {
     // and gilded trim catch the special-gift beat without a full-scene flash.
     statueRimLight.intensity = 1.05 + auraPulse * 1.35;
     mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;
-    mats.statueStone.emissive.setHex(0x241507);
     mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;
     buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;
     altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
