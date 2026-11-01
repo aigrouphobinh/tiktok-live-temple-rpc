@@ -17,7 +17,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('giftReactionUntil: 0');
     expect(scene).toContain('const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);');
     expect(scene).toContain('avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;');
-    expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * 0.018;');
+    expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * Math.sin(avatar.phase) * 0.035;');
     expect(scene).toContain('const resolved = profile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
     expect(scene).toContain('const reactionUntil = performance.now() + resolved.durationMs;');
     expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
@@ -69,7 +69,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, smile,');
+    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile,');
     expect(scene).toContain('const breathCycle = time * 0.00135 + avatar.phase;');
     expect(scene).toContain('avatar.torso.scale.y = 1 + breath * 0.012;');
     expect(scene).toContain('avatar.torso.position.y = 0.40 + breath * 0.0025;');
@@ -79,7 +79,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('adds animated blinking, eye gaze and a restrained bow expression to procedural faces', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('const eyeWhites = [], eyePupils = [];');
+    expect(scene).toContain('const eyeWhites = [], eyePupils = [], eyebrows = [];');
     expect(scene).toContain('eyeWhites, eyePupils, eyebrows, smile,');
     expect(scene).toContain('const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;');
     expect(scene).toContain('avatar.eyeWhites[index].scale.y = eyeOpen;');
@@ -96,7 +96,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const rightHand = new THREE.Group();');
     expect(scene).toContain('Small articulated palms and separated fingers keep the prayer gesture readable at scene scale.');
     expect(scene).toContain('for(let finger=0;finger<4;finger++){');
-    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand,');
+    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand,');
     expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18;');
     expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.armOpen * 0.18;');
   });
