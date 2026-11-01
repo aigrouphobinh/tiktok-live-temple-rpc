@@ -11,10 +11,13 @@ const GIFT_SFX_METHODS = Object.freeze({
  * Dispatch a whitelisted gift sound to the audio engine.
  * Unknown names and unavailable methods are ignored safely.
  */
-export function dispatchGiftSfx(audio, type) {
+export function dispatchGiftSfx(audio, type, effectId) {
+  if (type === 'cancel') {
+    return Boolean(audio && typeof audio.cancelGiftSfxGroup === 'function' && audio.cancelGiftSfxGroup(effectId));
+  }
   const method = GIFT_SFX_METHODS[type];
   if (!method || !audio || typeof audio[method] !== 'function') return false;
-  if (type === 'explosion') audio[method](1);
-  else audio[method]();
+  if (type === 'explosion') audio[method](1, effectId);
+  else audio[method](effectId);
   return true;
 }
