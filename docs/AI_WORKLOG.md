@@ -542,3 +542,5 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Outer ring: 16 petals at the original throne perimeter. Inner ring: 12 smaller petals. No camera, statue placement or ritual interaction changes.
 - Added visual regression assertions for the custom geometry, two instanced material groups and tier setup.
 - Actual browser render still needs visual confirmation; automated checks are running.
+
+- CI follow-up: the first run was blocked by a legacy static guard that treats the identifier `const ridge =` as a removed roof-construction marker. Renamed the petal-local variable to `petalRidge`; latest run `41272003700` passed with 110 tests across 14 files (0 failures).
