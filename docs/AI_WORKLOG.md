@@ -548,6 +548,6 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 
 ## 2026-11-01 — Ambient incense atmosphere
 - Added six persistent low-poly incense wisps above the bronze burner. Wisps rise, drift sideways, fade in/out, and gently swell on a repeating phase.
-- Reuses one sphere geometry and one transparent material; no per-frame mesh/material allocation and no new camera or interaction behavior.
+- Reuses one sphere geometry with six lightweight materials so each wisp can fade independently; no per-frame mesh/material allocation and no new camera or interaction behavior.
 - Added visual regression coverage for the persistent particle setup and frame update.
 - Browser render still requires local visual confirmation at `?3d=1`.
