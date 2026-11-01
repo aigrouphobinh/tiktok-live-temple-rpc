@@ -1268,7 +1268,11 @@ async function boot() {
 
   // Optional, local-only GLB replacement. The procedural Buddha remains the
   // default and stays visible until the selected, rights-cleared file loads.
-  const modelsRequested = new URLSearchParams(location.search).get('models') === '1';
+  const modelParams = new URLSearchParams(location.search);
+  const modelsRequested = modelParams.get('models') === '1';
+  // Diagnostics are opt-in so normal live sessions pay no logging overhead.
+  const statsEnabled = modelParams.get('stats') === '1';
+  let lastStatsAt = 0;
   async function upgradeBuddhaFromGLB() {
     try {
       const { loadGLTFAsset } = await import('./three-model-loader.js');
@@ -1538,6 +1542,18 @@ async function boot() {
       if (p >= 1) { world.remove(effect.object); disposeThreeObjectTree(effect.object); effects.splice(i, 1); }
     }
     renderer.render(scene, camera);
+    if (statsEnabled && now - lastStatsAt >= 5000) {
+      const info = renderer.info;
+      console.info('[Temple3D] GPU frame stats', {
+        drawCalls: info.render.calls,
+        triangles: info.render.triangles,
+        geometries: info.memory.geometries,
+        textures: info.memory.textures,
+        activeEffects: effects.length,
+        pixelRatio: renderer.getPixelRatio()
+      });
+      lastStatsAt = now;
+    }
     if (!effects.length && now > ritualUntil && elapsed > 60000) elapsed = 0;
   }
   function start() { if (!disposed && !document.hidden && !raf) raf = requestAnimationFrame(frame); }
