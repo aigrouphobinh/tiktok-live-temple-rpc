@@ -948,8 +948,10 @@ it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
 
 it('validates gift-burst renderer cost against each profile idle baseline', () => {
   const auditScript = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
-  expect(auditScript).toContain('giftBurstDrawCallsIncreased: Number.isFinite(idleStats?.drawCalls)');
-  expect(auditScript).toContain('stressStats.drawCalls > idleStats.drawCalls');
+  expect(auditScript).toContain('giftBurstDrawCallsMeasured: Number.isFinite(idleStats?.drawCalls)');
+  expect(auditScript).not.toContain('stressStats.drawCalls > idleStats.drawCalls');
+  expect(auditScript).not.toContain('giftBurstDrawCallsIncreased');
+  expect(auditScript).not.toContain('&& report.summary.idleDrawCallsStrictlyIncrease');
   expect(auditScript).toContain('const idleDrawCallsStrictlyIncrease = idleDrawCalls.every(Number.isFinite)');
   expect(auditScript).toContain('maxDrawCallsBudget: 1200');
   expect(auditScript).not.toContain('giftBurstEffectsIncreaseByTier');
