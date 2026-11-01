@@ -551,3 +551,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Reuses one sphere geometry with six lightweight materials so each wisp can fade independently; no per-frame mesh/material allocation and no new camera or interaction behavior.
 - Added visual regression coverage for the persistent particle setup and frame update.
 - Browser render still requires local visual confirmation at `?3d=1`.
+
+
+## 2026-11-01 — Warm lighting and shadow refinement
+- Tuned the existing directional shadow bias/normal bias and soft radius to reduce surface shadow acne without adding another shadow-casting light.
+- Added subtle independent breathing to the Buddha focal light, altar fill and lantern point lights to create a warmer living-light atmosphere.
+- Kept the fixed camera and limited shadow rendering to the existing key light.
+- Added regression assertions for shadow tuning and light animation; browser visual verification remains outstanding.
