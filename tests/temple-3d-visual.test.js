@@ -762,6 +762,14 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('refines the Buddha closed eyelids with shallow upper folds and outer corners', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// Fine upper-lid folds and outer eye corners define the closed, meditative gaze.');
+  expect(scene).toContain('[side * 0.31, 4.81, 0.665]');
+  expect(scene).toContain('[side * 0.39, 4.735, 0.625]');
+  expect(scene).toContain('[side * 0.53, 4.745, 0.52]');
+});
+
 it('adds subtle nose-wing, nostril and philtrum carving to the Buddha face', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// Refine the nose wings and philtrum with restrained, shallow stone carving.');
