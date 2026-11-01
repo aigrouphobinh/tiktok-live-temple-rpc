@@ -364,7 +364,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain("assetSource = 'mia-cc0-gilt-bronze'");
     expect(loader).toContain("assetSource === 'mia-cc0-gilt-bronze'");
     expect(scene).toContain('function applyGiltFinish(root)');
-    expect(scene).toContain('material.color.setHex(0xd8a63d)');
+    expect(scene).toContain('material.color.setHex(0xc99a3c)');
     expect(scene).toContain('material.metalness = 0.64');
     expect(scene).toContain('material.roughness = 0.32');
     expect(loader).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
