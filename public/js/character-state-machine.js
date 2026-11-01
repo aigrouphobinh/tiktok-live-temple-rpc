@@ -51,12 +51,26 @@ export class CharacterStateMachine {
         this.state = 'INTERRUPTED';
         return { interrupted: true, superseded: true, previous: previous.action, action };
       }
+      let evicted = null;
       if (this.effectQueue.length >= this.maxQueue) {
-        return { interrupted: false, reason: 'effect_queue_full' };
+        // The queue is already priority-sorted (highest first), so its tail
+        // is the lowest-priority waiting effect. Replace it only when the
+        // incoming gift has strictly higher priority; equal-tier arrivals
+        // retain FIFO order and lower tiers cannot displace earlier gifts.
+        const lowest = this.effectQueue[this.effectQueue.length - 1];
+        if (priority <= lowest.priority) {
+          return { interrupted: false, reason: 'effect_queue_full' };
+        }
+        evicted = this.effectQueue.pop();
       }
       this.effectQueue.push({ action, priority, event: giftEvent });
       this.effectQueue.sort((a, b) => b.priority - a.priority);
-      return { interrupted: false, queuedEffect: true, position: this.effectQueue.length };
+      return {
+        interrupted: false,
+        queuedEffect: true,
+        position: this.effectQueue.findIndex((item) => item.event === giftEvent) + 1,
+        ...(evicted ? { evictedAction: evicted.action } : {})
+      };
     }
 
     if (!this.active) return { interrupted: false, reason: 'no_active_character' };
