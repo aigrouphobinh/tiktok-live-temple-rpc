@@ -1,3 +1,9 @@
+### 2026-11-01 — Add subtle facial life to procedural devotees
+- Added independent eye groups, brows and retained references to sclera, pupils and smile for procedural avatars.
+- Added deterministic phase-offset blinking, tiny gaze drift and a restrained smile response during bowing.
+- Kept the GLB path unchanged; facial animation currently targets the procedural fallback until imported face rigs are inspected.
+- Added scene assertions and CI guards for the new facial animation.
+
 ### 2026-11-01 — Add articulated hands to the procedural prayer pose
 - Replaced mitten-like hand spheres with paired palm groups, four separated fingers and thumbs on the procedural devotee.
 - Added small wrist counter-rotations driven by the same upper-body bow blend, keeping the hand gesture aligned as the arms reach forward.
