@@ -19,7 +19,7 @@ describe('Three.js scene performance safeguards', () => {
 
   it('keeps the fixed elevated portrait camera and 30fps frame cap', () => {
     expect(source).toContain('camera.position.set(0, 11.75, 28.5);');
-    expect(source).toContain('camera.lookAt(0, 0, -5.5);');
+    expect(source).toContain('camera.lookAt(0, -1.0, -5.5);');
     expect(source).toContain('if (now - lastFrame < 33) return;');
   });
   it('adapts render pixel ratio to device capacity without exceeding 1.25x', async () => {
@@ -34,7 +34,7 @@ describe('Three.js scene performance safeguards', () => {
   it('keeps the sanctuary roofless and preserves the open altar sightline', () => {
     expect(source).not.toMatch(/makeCurvedRoofSide|roofTile|roofTrim|roofStartZ|const ridge =/);
     expect(source).toContain('Open-air sanctuary: keep the upper sightline clear');
-    expect(source).toContain('camera.lookAt(0, 0, -5.5);');
+    expect(source).toContain('camera.lookAt(0, -1.0, -5.5);');
   });
 
 });
