@@ -805,21 +805,40 @@ async function boot() {
   }
   function start() { if (!disposed && !document.hidden && !raf) raf = requestAnimationFrame(frame); }
   function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+  let resourcesDisposed = false;
+  function releaseWorldResources() {
+    if (resourcesDisposed) return;
+    resourcesDisposed = true;
+    for (const effect of effects.splice(0)) {
+      world.remove(effect.object);
+      disposeThreeObjectTree(effect.object);
+    }
+    disposeThreeObjectTree(scene);
+    renderer.dispose();
+  }
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
   window.addEventListener('resize', () => {
+    if (disposed) return;
     camera.aspect = 1080 / 1920; camera.updateProjectionMatrix();
     renderer.setSize(1080, 1920, false);
   });
   canvas.addEventListener('webglcontextlost', (event) => {
-    event.preventDefault(); stop(); canvas.hidden = true;
+    // Do not attempt to render into a lost context. Release CPU-side references
+    // and fall back to the known-good 2D stage; a page reload can create a fresh
+    // WebGL context if the user explicitly enables 3D again.
+    event.preventDefault();
+    disposed = true;
+    stop();
+    releaseWorldResources();
+    canvas.hidden = true;
     stage.classList.remove('temple-3d-mode');
     window.__TEMPLE_3D_READY__ = false;
     window.dispatchEvent(new Event('temple:3d-unavailable'));
   });
   window.addEventListener('pagehide', () => {
-    disposed = true; stop();
-    for (const effect of effects.splice(0)) { world.remove(effect.object); disposeThreeObjectTree(effect.object); }
-    disposeThreeObjectTree(scene); renderer.dispose();
+    disposed = true;
+    stop();
+    releaseWorldResources();
   }, { once: true });
 
   canvas.hidden = false;
