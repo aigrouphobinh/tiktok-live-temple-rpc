@@ -639,7 +639,7 @@ async function boot() {
   lotusThrone.add(lotusSparks);
 
   // Seated stone Buddha statue: sculpted silhouette, robe folds, calm face and halo.
-  const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); statue.scale.set(1.08, 1, 1.04); world.add(statue);
+  const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); statue.scale.set(1.16, 1, 1.04); world.add(statue);
   // Cross-legged lotus posture and layered robe silhouette.
   sphere(1.12, mats.statueStone, 0, 1.45, 0.12, 1.35, 0.42, 0.82, statue);
   sphere(0.78, mats.statueStone, 0, 2.18, -0.02, 0.9, 1.15, 0.72, statue);
@@ -668,9 +668,9 @@ async function boot() {
     detail.receiveShadow = false;
   }
   statue.add(statueBaseBand, statueBaseHighlight);
-  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);
+  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.16, 1.2, 0.9, statue);
   // A continuous shoulder mantle gives the upper body a clear carved silhouette at portrait scale.
-  sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);
+  sphere(0.8, mats.statueStone, 0, 3.72, -0.015, 1.18, 0.72, 0.8, statue);
   // A shallow curved neckline softens the join between neck, shoulders and chest.
   const necklineCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-0.48, 3.98, 0.43),
@@ -881,7 +881,11 @@ async function boot() {
   statue.add(robeHemGroove);
   // Neck, head, elongated ears and ushnisha.
   cylinder(0.28,0.32,0.42,mats.statueStone,0,4.05,0,statue,24);
-  sphere(0.63,mats.statueStone,0,4.62,0.02,0.88,1.08,0.78,statue);
+  sphere(0.66,mats.statueStone,0,4.62,0.02,0.98,1.1,0.82,statue);
+  // Soft cheek and chin masses turn the face from a narrow mask into a fuller, calm sculpture.
+  sphere(0.25, mats.statueStone, -0.285, 4.49, 0.49, 0.9, 0.72, 0.72, statue);
+  sphere(0.25, mats.statueStone, 0.285, 4.49, 0.49, 0.9, 0.72, 0.72, statue);
+  sphere(0.22, mats.statueStone, 0, 4.32, 0.49, 0.82, 0.58, 0.72, statue);
   sphere(0.36,mats.statueShadow,0,5.42,0.02,0.82,0.72,0.78,statue);
   sphere(0.13,mats.statueStone,-0.62,4.55,0.02,0.55,1.2,0.62,statue);
   sphere(0.13,mats.statueStone,0.62,4.55,0.02,0.55,1.2,0.62,statue);
