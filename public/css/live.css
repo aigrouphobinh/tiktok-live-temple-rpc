@@ -1360,3 +1360,182 @@ body.obs-mode .stage-wrapper {
 .stage-9x16.temple-3d-mode #fortuneModal {
   z-index: 30;
 }
+
+
+/* ==========================================================================
+   IMMERSIVE SANCTUARY HUD — 3D MODE ONLY
+   The 2D broadcast layout is intentionally left unchanged.
+   ========================================================================== */
+.stage-9x16.temple-3d-mode {
+  background:
+    radial-gradient(ellipse at 50% 12%, rgba(194, 126, 45, 0.16), transparent 42%),
+    #100805;
+}
+.stage-9x16.temple-3d-mode .minimal-top-bar {
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  align-items: flex-start;
+  gap: 18px;
+}
+.stage-9x16.temple-3d-mode .live-pill {
+  min-height: 58px;
+  padding: 9px 20px 9px 15px;
+  gap: 12px;
+  border: 1px solid rgba(255, 218, 145, 0.42);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(34, 17, 11, 0.88), rgba(12, 8, 7, 0.72));
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.3), inset 0 1px rgba(255, 245, 218, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-size: 16px;
+  letter-spacing: 0.8px;
+}
+.stage-9x16.temple-3d-mode .live-pill::after {
+  content: '3D SANCTUARY';
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  margin-left: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 211, 119, 0.38);
+  border-radius: 999px;
+  background: rgba(181, 111, 28, 0.2);
+  color: #ffe1a0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+}
+.stage-9x16.temple-3d-mode .mini-stat-pill {
+  min-height: 54px;
+  padding: 8px 18px;
+  border: 1px solid rgba(255, 218, 145, 0.34);
+  border-radius: 17px;
+  background: rgba(20, 12, 8, 0.72);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 245, 218, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f7e6c5;
+  font-size: 15px;
+}
+.stage-9x16.temple-3d-mode .live-dot {
+  box-shadow: 0 0 0 5px rgba(255, 74, 55, 0.13), 0 0 16px rgba(255, 74, 55, 0.55);
+}
+.stage-9x16.temple-3d-mode .live-dot.connected {
+  box-shadow: 0 0 0 5px rgba(46, 204, 113, 0.13), 0 0 16px rgba(46, 204, 113, 0.55);
+}
+.stage-9x16.temple-3d-mode .bottom-hud-bar {
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  height: 208px;
+  grid-template-columns: 1.55fr 0.92fr;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid rgba(255, 218, 145, 0.3);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(26, 15, 10, 0.82), rgba(10, 8, 7, 0.76));
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 244, 219, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.stage-9x16.temple-3d-mode .hud-active-notice {
+  height: 48px;
+  flex: 0 0 48px;
+  justify-content: flex-start;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 215, 137, 0.22);
+  border-radius: 13px;
+  background: rgba(255, 231, 184, 0.07);
+  color: #ffe7b2;
+  font-size: 15px;
+  letter-spacing: 0.15px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-cards {
+  gap: 9px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 211, 130, 0.28);
+  border-radius: 15px;
+  background: linear-gradient(155deg, rgba(113, 63, 28, 0.32), rgba(22, 13, 9, 0.68));
+  box-shadow: inset 0 1px rgba(255, 247, 222, 0.1);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  top: -34px;
+  width: 88px;
+  height: 88px;
+  border: 1px solid rgba(255, 224, 161, 0.12);
+  border-radius: 50%;
+  box-shadow: 0 0 0 12px rgba(255, 224, 161, 0.025), 0 0 0 24px rgba(255, 224, 161, 0.02);
+  pointer-events: none;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 225, 161, 0.72);
+  background: linear-gradient(155deg, rgba(151, 94, 40, 0.4), rgba(28, 16, 10, 0.78));
+}
+.stage-9x16.temple-3d-mode .gift-coin-tag {
+  color: #d9c39c;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.stage-9x16.temple-3d-mode .gift-card-body {
+  position: relative;
+  z-index: 1;
+  gap: 8px;
+}
+.stage-9x16.temple-3d-mode .gift-emoji {
+  font-size: 30px;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+}
+.stage-9x16.temple-3d-mode .gift-title {
+  color: #ffe5ae;
+  font-size: 17px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 211, 130, 0.24);
+  border-radius: 16px;
+  background: rgba(255, 231, 184, 0.055);
+}
+.stage-9x16.temple-3d-mode .hud-lb-header {
+  color: #ffe2a7;
+  font-size: 16px;
+  letter-spacing: 1.8px;
+}
+.stage-9x16.temple-3d-mode .leader-item {
+  font-size: 13px;
+}
+.stage-9x16.temple-3d-mode .leader-rank {
+  width: 19px;
+  height: 19px;
+  font-size: 11px;
+}
+.stage-9x16.temple-3d-mode .leader-name {
+  color: #f5e7d0;
+}
+.stage-9x16.temple-3d-mode .leader-merit {
+  color: #ffd77d;
+}
+.stage-9x16.temple-3d-mode #grandCeremonyBanner {
+  border-radius: 22px;
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.48), 0 0 35px rgba(255, 190, 75, 0.22);
+  backdrop-filter: blur(12px);
+}
+.stage-9x16.temple-3d-mode #fortuneModal {
+  backdrop-filter: blur(12px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-9x16.temple-3d-mode .hud-gift-card {
+    transition: none;
+  }
+}
