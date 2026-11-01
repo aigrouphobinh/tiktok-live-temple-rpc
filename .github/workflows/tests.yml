@@ -52,6 +52,8 @@ jobs:
           ! grep -Fq '/assets/animals/' public/js/temple-3d.js &&
           grep -Fq 'Keep the central sightline to the Buddha open' public/js/temple-3d.js &&
           grep -Fq 'mats.statueStone' public/js/temple-3d.js &&
+          grep -Fq 'PointLight(0xe5eaed, 34, 18, 2)' public/js/temple-3d.js &&
+          grep -Fq 'Long back hair and shoulder-length side locks' public/js/temple-3d.js &&
           grep -Fq 'three/addons/' public/index.html &&
           grep -Fq "action === 'rocket'" public/js/temple-3d.js &&
           grep -Fq "action === 'dragon'" public/js/temple-3d.js &&
