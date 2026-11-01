@@ -271,7 +271,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(action).toContain('next.stopFading().setEffectiveWeight(1);');
     expect(action).toContain('if (current && current !== next) current.stopFading().fadeOut(0.18);');
     expect(action).toContain('avatar.gltfCurrentClip = clip;');
-    expect(action).toContain('avatar.gltfCurrentAction?.fadeOut(0.18);');
+    expect(action).toContain('avatar.gltfCurrentAction?.stopFading().fadeOut(0.18);');
     expect(scene).toContain('avatar.gltfCurrentClip = null;');
   });
 
