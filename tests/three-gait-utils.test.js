@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -55,6 +55,40 @@ describe('getFootPlantingPose', () => {
       });
       expect(getFootPlantingStep(phase)).toBe(0);
     }
+  });
+});
+
+describe('getHumanFootPose', () => {
+  it('keeps idle and bow foot poses neutral and grounded', () => {
+    for (const mode of ['idle', 'bow']) {
+      expect(getHumanFootPose({ mode })).toEqual({
+        hipRotationX: 0, kneeRotationX: 0, footRotationX: 0, footLift: 0, planted: true
+      });
+    }
+  });
+
+  it('bends the procedural leg chain into a grounded kneeling pose', () => {
+    const pose = getHumanFootPose({ mode: 'kneel' });
+    expect(pose.hipRotationX).toBeCloseTo(-0.28, 8);
+    expect(pose.kneeRotationX).toBeCloseTo(1.18, 8);
+    expect(pose.footRotationX).toBeCloseTo(-0.72, 8);
+    expect(pose.footLift).toBe(0);
+    expect(pose.planted).toBe(true);
+  });
+
+  it('scales walking joint offsets and foot lift by the blend weight', () => {
+    const full = getHumanFootPose({ mode: 'walk', phase: Math.PI, blend: 1 });
+    const half = getHumanFootPose({ mode: 'walk', phase: Math.PI, blend: 0.5 });
+    expect(half.hipRotationX).toBeCloseTo(full.hipRotationX * 0.5, 8);
+    expect(half.kneeRotationX).toBeCloseTo(full.kneeRotationX * 0.5, 8);
+    expect(half.footRotationX).toBeCloseTo(full.footRotationX * 0.5, 8);
+    expect(half.footLift).toBeCloseTo(full.footLift * 0.5, 8);
+  });
+
+  it('clamps blend weights and treats invalid values as neutral', () => {
+    expect(getHumanFootPose({ mode: 'kneel', blend: 4 }).kneeRotationX).toBeCloseTo(1.18, 8);
+    expect(getHumanFootPose({ mode: 'kneel', blend: NaN }).kneeRotationX).toBe(0);
+    expect(getHumanFootPose({ mode: 'walk', phase: Infinity }).footLift).toBe(0);
   });
 });
 
