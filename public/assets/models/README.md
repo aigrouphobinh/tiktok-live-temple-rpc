@@ -6,6 +6,32 @@ attribution terms have been checked.
 
 ## Buddha statue
 
+### Add your own Buddha model
+
+To use a custom GLB, place the file at this exact repository path:
+
+```text
+public/assets/models/buddha.glb
+```
+
+The runtime checks this file first when the Buddha preview is enabled. If it is
+missing or invalid, it falls back to the bundled models below and finally keeps
+the procedural custom statue. The filename is case-sensitive.
+
+After adding the file, commit and deploy the repository, then open:
+
+```text
+?3d=1&buddha=1
+```
+
+The file must be a self-contained binary glTF (GLB), with textures embedded.
+If it still does not appear, open DevTools → Network and check whether
+`/assets/models/buddha.glb` returns HTTP 200. A 404 means the file is not in
+the deployed public directory; a 200 followed by a loader error usually means
+the GLB is malformed or references unsupported external resources.
+
+### Bundled models
+
 Preferred model (user-selected): **Gold Buddha Statue — Kenny Hsieh**
 - https://sketchfab.com/3d-models/gold-buddha-statue-641d85153dd849d3b33bb69bd3ff6748
 - Model UID: `641d85153dd849d3b33bb69bd3ff6748`
@@ -17,7 +43,7 @@ Bundled public fallback: **Seated Buddha, date unknown — Minneapolis Institute
 - Source model: https://sketchfab.com/3d-models/seated-buddha-date-unknown-c1c3d5a4878c42778eceded83673dea7
 - The exact Artheon artwork record lists this individual scan as **CC0 (Public Domain)**: https://www.artheonmuseum.org/artwork/seated-buddha-date-unknown-c1c3d5. The Artheon Buddhist & Hindu catalogue also lists it as CC0. The Zenodo record identifies the object as a gilt-bronze Seated Buddha in the Minneapolis Institute of Art collection and hosts the binary, but its own Rights field does not state the license.
 - Downloaded file: `buddha-cc0-fallback.glb` (5.5 MB); MD5 `a00f6c35ae853c830faff61404265c5c`.
-- The fallback is only used when `buddha-selected.glb` is absent or fails to load. Keep the original collection/source credit with the asset.
+- The fallback is used when `buddha.glb` and `buddha-selected.glb` are absent or fail to load. Keep the original collection/source credit with the asset.
 
 The GitHub Actions workflow `.github/workflows/fetch-buddha-cc0-fallback.yml` downloads this public GLB, verifies the published MD5, inspects the glTF structure and commits the binary to the feature branch. Do not use viewer extraction or third-party rippers for the preferred Kenny Hsieh model.
 
