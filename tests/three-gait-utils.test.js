@@ -160,6 +160,7 @@ describe('applyTwoBoneIKToBones', () => {
   class Vector3 {
     constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
     clone() { return new Vector3(this.x, this.y, this.z); }
+    copy(v) { this.x=v.x;this.y=v.y;this.z=v.z;return this; }
     sub(v) { this.x -= v.x; this.y -= v.y; this.z -= v.z; return this; }
     add(v) { this.x += v.x; this.y += v.y; this.z += v.z; return this; }
     normalize() { const n = Math.hypot(this.x, this.y, this.z) || 1; this.x /= n; this.y /= n; this.z /= n; return this; }
@@ -211,7 +212,6 @@ describe('applyTwoBoneIKToBones', () => {
   const THREE = { Vector3, Quaternion };
   function makeChain() {
     const root=new Node(true),knee=new Node(true),ankle=new Node(true),rig=new Node();
-    knee.position.set?.(0,-1,0);
     knee.position=new Vector3(0,-1,0);ankle.position=new Vector3(0,-1,0);
     root.add(knee);knee.add(ankle);rig.add(root);
     return {root,knee,ankle,rig};
