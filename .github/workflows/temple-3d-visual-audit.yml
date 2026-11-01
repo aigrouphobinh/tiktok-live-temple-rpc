@@ -41,7 +41,7 @@ jobs:
 
       - name: Start application server
         run: |
-          PORT=3000 bun run server.js > /tmp/temple-server.log 2>&1 &
+          DISABLE_TIKTOK_AUTOCONNECT=1 DISABLE_ZEROTTS_WORKER=1 PORT=3000 bun run server.js > /tmp/temple-server.log 2>&1 &
           echo $! > /tmp/temple-server.pid
           for attempt in $(seq 1 45); do
             if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
