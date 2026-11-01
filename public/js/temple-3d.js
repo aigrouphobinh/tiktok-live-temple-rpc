@@ -150,6 +150,32 @@ async function boot() {
     }
   }
   sphere(0.055, mats.goldBright, 0, 4.12, 0.72, 1, 1, 0.4, statue);
+  // Calm Amitabha facial features: closed eyes, brows, nose and a soft smile.
+  const faceLine = (points, radius, material) => {
+    const curve = new THREE.CatmullRomCurve3(points.map(([x, y, z]) => new THREE.Vector3(x, y, z)));
+    const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 18, radius, 8, false), material);
+    line.castShadow = true; statue.add(line); return line;
+  };
+  for (const side of [-1, 1]) {
+    faceLine([
+      [side * 0.48, 4.27, 0.61],
+      [side * 0.34, 4.30, 0.70],
+      [side * 0.20, 4.28, 0.73],
+      [side * 0.12, 4.25, 0.72]
+    ], 0.025, mats.dark);
+    faceLine([
+      [side * 0.43, 4.13, 0.65],
+      [side * 0.30, 4.10, 0.735],
+      [side * 0.17, 4.10, 0.75]
+    ], 0.018, mats.dark);
+  }
+  sphere(0.075, mats.goldBright, 0, 4.14, 0.755, 0.72, 1.0, 0.5, statue);
+  faceLine([[ -0.17, 3.91, 0.70], [0, 3.88, 0.79], [0.17, 3.91, 0.70]], 0.025, mats.wood);
+  faceLine([[-0.19, 3.76, 0.67], [0, 3.72, 0.73], [0.19, 3.76, 0.67]], 0.022, mats.red);
+  // Hands rest in a meditation mudra at the center of the lap.
+  sphere(0.22, mats.ivory, -0.19, 2.72, 0.73, 1.2, 0.48, 0.65, statue);
+  sphere(0.22, mats.ivory, 0.19, 2.72, 0.73, 1.2, 0.48, 0.65, statue);
+  sphere(0.11, mats.skin, 0, 2.82, 0.80, 1.0, 0.75, 0.7, statue);
   // Large halo, behind the statue, with radial rays.
   const halo = new THREE.Group(); halo.position.set(0, 5.95, -8.75); world.add(halo);
   const haloRing = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.09, 12, 96), mats.goldBright);
