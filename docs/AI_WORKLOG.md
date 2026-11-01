@@ -458,3 +458,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added deterministic regression coverage proving cancellation stops sources only for the targeted effect and that ended sources are removed from the group set.
 - GitHub Actions run `41263244511` (source change) and `41263253560` (source plus tests) both passed the Bun unit-test step and JavaScript syntax check.
 - Runtime listening and real browser interruption checks remain outstanding.
+
+
+### Bound gift effect DOM/animation lifecycle — 2026-11-01
+- Added a configurable capacity to `GiftEffectRegistry` (default 120 active animation/element pairs). When the cap is exceeded, the oldest effect is cancelled and its DOM node is removed immediately; the newest effects remain active.
+- Duplicate animation registrations are rejected so one animation cannot accumulate duplicate completion handlers. Natural completion, explicit clear, capacity eviction and cancellation all use guarded cleanup; stale promise callbacks cannot remove a newer registration.
+- Added tests for capacity eviction, cancellation, natural completion, duplicate/invalid registrations, invalid limits, and repeated clearing.
+- CI validation is triggered by the direct-to-main commits. This is deterministic lifecycle coverage; browser stress testing and actual TikTok LIVE runtime checks remain outstanding.
