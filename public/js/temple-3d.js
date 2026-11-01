@@ -129,11 +129,19 @@ async function boot() {
     instances.instanceMatrix.setUsage(THREE.StaticDrawUsage);
     instances.castShadow = false;
     instances.receiveShadow = true;
+    const tilePalette = index === 0
+      ? [0x77736d, 0x817c73, 0x898276, 0x706d68, 0x928878]
+      : [0x48200e, 0x512713, 0x5a2c16, 0x60331a, 0x42200f];
+    const tileColors = tilePalette.map((color) => new THREE.Color(color));
     tilePositions[index].forEach(([x, y, z], instanceIndex) => {
       tileTransform.position.set(x, y, z);
       tileTransform.updateMatrix();
       instances.setMatrixAt(instanceIndex, tileTransform.matrix);
+      // Subtle per-tile tint breaks up the repeated grid without extra draw calls.
+      const paletteIndex = (instanceIndex * 7 + Math.round((x + 9) * 3) + Math.round((z + 14) * 5)) % tileColors.length;
+      instances.setColorAt(instanceIndex, tileColors[paletteIndex]);
     });
+    if (instances.instanceColor) instances.instanceColor.needsUpdate = true;
     world.add(instances);
   });
   box(5.8, 0.12, 27, mats.red, 0, -0.02, 3);
