@@ -1378,7 +1378,7 @@ async function boot() {
     avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;
     avatar.rightFoot.position.y = -0.24 + rightFootPose.footLift;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
-    avatar.root.position.y = walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012;
+    avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
   }
   function makeDevotee(x,z,scale=1) {
     const group=new THREE.Group();group.position.set(x,0.02,z);group.scale.setScalar(scale);world.add(group);
