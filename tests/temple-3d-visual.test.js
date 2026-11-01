@@ -176,7 +176,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain("import('three/addons/loaders/GLTFLoader.js')");
     expect(loader).toContain('root.scale.setScalar(scale)');
     expect(loader).toContain('-normalizedBounds.min.y');
-    expect(loader).toContain('disposeThreeObjectTree(root)');
+    expect(loader).toContain('disposeThreeSceneResources(root)');
   });
 
   it('supports optional rigged devotee GLBs while preserving procedural fallback', () => {
