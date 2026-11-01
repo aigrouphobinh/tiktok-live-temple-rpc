@@ -29,6 +29,15 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('columnFlutes.castShadow = false');
   });
 
+  it('adds instanced brass collars to the foot and crown of each timber column', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('new THREE.TorusGeometry(0.49, 0.035, 8, 24)');
+    expect(scene).toContain('new THREE.InstancedMesh(columnCollarGeometry, mats.goldBright, 10 * 2)');
+    expect(scene).toContain('for (const y of [0.86, 7.18])');
+    expect(scene).toContain('columnCollars.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
+    expect(scene).toContain('world.add(columnCollars)');
+  });
+
   it('frames the processional carpet with low curbs and brass inlay', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('box(0.22, 0.16, 27.2, mats.stone, side * 3.08, 0.025, 3)');
