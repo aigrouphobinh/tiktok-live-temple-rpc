@@ -10,7 +10,7 @@ The module enriches the existing colonnade and galleries without replacing the s
 - Timber capital stacks and restrained corbel brackets aligned to the existing column grid.
 - Open carved gallery screens placed in the outer gallery bays.
 - Low-profile bronze floor inlays that remain outside the central processional aisle.
-- Shared primitive geometry and InstancedMesh batches for repeated details.
+- Shared primitive geometry and InstancedMesh batches for repeated details; instance matrices are marked for GPU upload after population.
 - Idempotent disposal of all geometry and materials owned by this module.
 
 No roof, ceiling, cross-scene lighting, texture download, or new dependency is introduced.
