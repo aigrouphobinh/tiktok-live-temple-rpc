@@ -362,3 +362,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Fixed an overflow in `CharacterStateMachine.interrupt()`: when `maxQueue=0`, the previous code still unshifted the interrupted active devotee after attempting to evict from an empty queue.
 - Gift interruption still takes stage ownership, but the interrupted visit is retained only when the configured waiting queue has capacity. A zero-capacity queue now remains empty instead of violating its bound.
 - The existing zero-capacity regression test asserts this invariant. Source has been committed directly to `main`; Bun/CI execution and browser behavior are not yet verified.
+
+
+### Interrupted devotee priority at full queue — 2026-11-01
+- Added a regression test for a full devotee queue when a gift interrupts the active character.
+- The test asserts the active/interrupted devotee is placed at the front, the newest waiting entry is evicted to preserve the configured capacity, and the original FIFO order of the remaining waiting character is retained.
+- Test source committed directly to `main`. Bun/CI execution and browser behavior are not claimed as verified.
