@@ -21,5 +21,11 @@ jobs:
         uses: oven-sh/setup-bun@v2
       - name: Run unit tests
         run: bun test
-      - name: Check server-side JavaScript syntax
-        run: node --check server.js && node --check lib/tiktok-gift-payload.cjs
+      - name: Check JavaScript syntax
+        run: >-
+          node --check server.js &&
+          node --check lib/tiktok-gift-payload.cjs &&
+          node --check public/js/audio.js &&
+          node --input-type=module --check < public/js/gift-sfx-dispatcher.js &&
+          node --input-type=module --check < public/js/gift-action-engine.js &&
+          node --input-type=module --check < public/js/live.js
