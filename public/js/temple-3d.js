@@ -1327,7 +1327,7 @@ async function boot() {
       // Apply zero as well as non-zero bow amounts so a manual bow pose always
       // blends back to rest when the ritual state ends and no bow clip exists.
       if (!avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowing ? avatar.bowAmount : 0);
-      avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
+      avatar.root.position.y = walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012;
       return;
     }
     avatar.leftArm.rotation.x = walking ? rightStep*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
