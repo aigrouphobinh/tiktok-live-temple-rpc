@@ -364,6 +364,33 @@ async function boot() {
       cylinder(0.47, 0.47, 0.18, mats.red, x, 5.4, z, world, 24);
     }
   }
+  // Fine gilded fluting on the timber columns: one instanced draw call
+  // keeps the repeated architectural detail inexpensive on live-stream devices.
+  const columnFluteGeometry = new THREE.CylinderGeometry(0.012, 0.012, 5.9, 6);
+  const columnFlutes = new THREE.InstancedMesh(
+    columnFluteGeometry, mats.goldBright, 10 * 8
+  );
+  const fluteTransform = new THREE.Object3D();
+  let fluteIndex = 0;
+  for (const x of [-7.2, 7.2]) {
+    for (const z of [-10, -4, 2, 8, 13]) {
+      for (let rib = 0; rib < 8; rib++) {
+        const angle = rib * Math.PI / 4;
+        fluteTransform.position.set(
+          x + Math.cos(angle) * 0.432,
+          4.05,
+          z + Math.sin(angle) * 0.432
+        );
+        fluteTransform.updateMatrix();
+        columnFlutes.setMatrixAt(fluteIndex++, fluteTransform.matrix);
+      }
+    }
+  }
+  columnFlutes.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  columnFlutes.castShadow = false;
+  columnFlutes.receiveShadow = true;
+  world.add(columnFlutes);
+
   // Keep the central sightline to the Buddha open. Full-width crossbeams and
   // the low ceiling slab previously projected as opaque black bands over the altar.
   for (const z of [-10, -4, 2, 8, 13]) {
