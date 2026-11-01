@@ -34,6 +34,8 @@ jobs:
           node --input-type=module --check < public/js/gift-sfx-dispatcher.js &&
           node --input-type=module --check < public/js/gift-action-engine.js &&
           node --input-type=module --check < public/js/live.js &&
+          grep -Fq 'Persistent 3D sanctuary' public/js/temple-3d.js &&
+          grep -Fq 'new THREE.TorusGeometry(164' public/js/temple-3d.js &&
           node --input-type=module --check < public/js/temple-3d.js &&
           node --input-type=module --check < public/js/camera-controller.js &&
           node --input-type=module --check < public/js/three-resource-utils.js
