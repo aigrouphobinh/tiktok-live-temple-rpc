@@ -985,3 +985,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a duration-aware reaction envelope shared by face, body and hand controllers; delayed reactions remain at rest until their scheduled start.
 - The peak active congregation response now adds a restrained warm pulse to the Buddha key light and altar fill, returning automatically to the existing baseline.
 - Added source regression coverage and CI guards. No new lights, shadow casters, timers or GLB rig assumptions were introduced; browser visual confirmation remains outstanding.
+
+
+### 2026-11-01 — Add a special-gift Buddha halo and lotus aura
+- Added two reusable additive torus meshes: one around the Buddha's carved aureole and one around the existing lotus throne.
+- The aura is driven only by the active `special` gift reaction profile, with a subtle pulse, gentle scale expansion and a short-lived boost to the existing halo point light.
+- Normal gifts retain the existing lighting; no new point lights, particle systems, timers or per-frame geometry allocations were added.
+- Added visual-source regression assertions and CI guards. Browser rendering and performance still need confirmation on the live 3D scene.
