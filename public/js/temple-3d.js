@@ -430,6 +430,8 @@ async function boot() {
   const devoteeAvatars = [];
   function makeHumanAvatar(height = 1.55) {
     const root = new THREE.Group();
+    // The altar is at -Z; turn the avatar away from the +Z camera so devotees face it.
+    root.rotation.y = Math.PI;
     // Upper body pivots at the waist so the devotee bows naturally instead of
     // rotating the entire body around the feet (which makes the knees clip the floor).
     const upperBody = new THREE.Group();
@@ -748,9 +750,14 @@ async function boot() {
       mainDevotee.scale.setScalar(1 - eased * 0.18);
       if (travel >= 1 && !devoteeState.bowAt) devoteeState.bowAt = now;
       if (devoteeState.bowAt) {
-        const bow = Math.min(1, (now - devoteeState.bowAt) / 650);
+        const bowIn = Math.min(1, (now - devoteeState.bowAt) / 650);
+        const bowOut = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;
+        const bow = bowIn * bowOut;
         mainHuman.upperBody.rotation.x = -bow * 0.72;
-       mainHuman.head.rotation.x = bow * 0.16;
+        mainHuman.head.rotation.x = bow * 0.16;
+        // Bring both hands slightly inward during the bow, then release smoothly.
+        mainHuman.leftArm.rotation.z = bow * 0.34;
+        mainHuman.rightArm.rotation.z = -bow * 0.34;
       }
       if (now > ritualUntil) {
         devoteeState.active = false;
