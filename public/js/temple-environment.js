@@ -335,6 +335,8 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     const upperBeamTransforms = [];
     const bracketTransforms = [];
     const collarPositions = [];
+    const frontPlaqueTransforms = [];
+    const frontGemTransforms = [];
 
     for (const x of settings.columnXs) {
       for (const z of settings.columnZs) {
@@ -343,6 +345,17 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
         lacquerTransforms.push({ position: [x, 7.69, z] });
         upperBeamTransforms.push({ position: [x, 7.82, z] });
         collarPositions.push([x, 7.43, z]);
+
+        // Keep these two tiny static plaque batches on low-end devices as well.
+        // Only the more substantial corbel geometry is omitted in low detail.
+        frontPlaqueTransforms.push({
+          position: [x, 6.2, z + 0.48],
+          rotation: [0, 0, Math.PI / 4]
+        });
+        frontGemTransforms.push({
+          position: [x, 6.2, z + 0.515],
+          rotation: [0, 0, Math.PI / 4]
+        });
 
         if (settings.detailLevel !== 'low') {
           for (const direction of [-1, 1]) {
@@ -363,6 +376,10 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     addBoxBatch('TempleCapitalLacquerStacks', [1.38, 0.12, 1.38], materials.lacquer, lacquerTransforms);
     addBoxBatch('TempleCapitalUpperBeams', [1.55, 0.16, 0.72], materials.agedWood, upperBeamTransforms);
     addTorusBatch('TempleCapitalCollars', 0.57, 0.022, materials.mutedGold, collarPositions, 6, 24);
+    if (frontPlaqueTransforms.length) {
+      addBoxBatch('TempleColumnFrontPlaques', [0.18, 0.18, 0.04], materials.goldBright, frontPlaqueTransforms);
+      addBoxBatch('TempleColumnFrontGems', [0.095, 0.095, 0.045], materials.redBright, frontGemTransforms);
+    }
     if (bracketTransforms.length) {
       addBoxBatch('TempleCapitalCorbels', [0.24, 0.58, 0.34], materials.darkWood, bracketTransforms);
     }

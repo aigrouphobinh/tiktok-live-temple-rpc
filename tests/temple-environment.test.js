@@ -91,11 +91,33 @@ describe('Temple environment architecture module', () => {
     result.group.traverse((object) => { if (object.name) names.push(object.name); });
     expect(names).toContain('TempleColumnBaseRings');
     expect(names).toContain('TempleCapitalCorbels');
+    expect(names).toContain('TempleColumnFrontPlaques');
+    expect(names).toContain('TempleColumnFrontGems');
     expect(names).toContain('TempleGalleryLattice');
     expect(names).toContain('TempleGalleryScreenRails');
     expect(names).toContain('TempleColumnBaseStoneFootings');
     expect(names).toContain('TemplePortraitColumnShafts');
     expect(names).toContain('TemplePortraitColumnFlutes');
+    result.dispose();
+  });
+
+  it('adds paired front-facing lotus seals to the portrait column capitals', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const batches = new Map();
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
+    });
+    const plaques = batches.get('TempleColumnFrontPlaques');
+    const gems = batches.get('TempleColumnFrontGems');
+    expect(plaques?.count).toBe(2);
+    expect(gems?.count).toBe(2);
+    expect(plaques.matrices.map((matrix) => matrix.position[0]).sort((a, b) => a - b))
+      .toEqual([-5.15, 5.15]);
+    expect(plaques.matrices.every((matrix) => matrix.position[1] === 6.2
+      && matrix.position[2] > -9.55
+      && Math.abs(matrix.rotation[2] - Math.PI / 4) < 1e-8)).toBe(true);
+    expect(gems.matrices.every((matrix) => matrix.position[2] > -9.52
+      && Math.abs(matrix.rotation[2] - Math.PI / 4) < 1e-8)).toBe(true);
     result.dispose();
   });
 
@@ -144,6 +166,11 @@ describe('Temple environment architecture module', () => {
     expect(result.metadata.detailLevel).toBe('low');
     expect(result.metadata.columnCount).toBe(6);
     expect(result.metadata.galleryScreenCount).toBe(2);
+    const lowNames = [];
+    result.group.traverse((object) => { if (object.name) lowNames.push(object.name); });
+    expect(lowNames).toContain('TempleColumnFrontPlaques');
+    expect(lowNames).toContain('TempleColumnFrontGems');
+    expect(lowNames).not.toContain('TempleCapitalCorbels');
     expect(result.group.userData.roofless).toBe(true);
     result.dispose();
   });

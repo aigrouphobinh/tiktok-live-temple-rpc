@@ -1,3 +1,36 @@
+### 2026-11-01 — Preserve lightweight plaques in the low-detail profile
+- The Chromium audit uses the low environment-detail tier, which had been suppressing the two new plaque batches entirely.
+- Keep the gold/ruby plaques enabled on all tiers (two static instance batches); continue omitting the larger corbels on low-tier devices.
+- Updated the low-detail regression test to assert that plaques remain visible while corbels stay disabled.
+
+### 2026-11-01 — Align shaft plaques to the cylinder centreline
+- The close-up showed the prior inward offset put the plaque behind the curved shaft surface. Re-aligned the plaque to the shaft centreline, matching the existing outer-pillar badge placement.
+- Moved the ruby centre slightly forward from the gold diamond plate so it layers cleanly in depth.
+- Updated placement tests to assert the symmetric centreline coordinates and front Z offsets.
+
+### 2026-11-01 — Match upper-shaft plaques to the existing hall pillar motif
+- Replaced the low-contrast torus seal with a visible two-tone diamond plaque on the exposed upper shaft of each inner column.
+- The gold outer diamond and ruby centre reuse the existing temple palette and mirror inward toward the aisle, matching the established outer-pillar ornament language.
+- Both layers are static InstancedMesh batches; the ornaments remain disabled on low-detail devices.
+- Removed the no-longer-needed torus orientation extension and kept its original horizontal-ring behavior unchanged.
+
+### 2026-11-01 — Move ornamental seals to exposed upper column shafts
+- Two screenshot reviews showed that the capital faces were occluded by overlapping stack geometry. Moved the paired seals onto the clear front surface of the upper shafts at Y=6.2.
+- Mirrored each seal inward toward the processional aisle, keeping the left/right composition symmetrical.
+- Enlarged the bronze ring and bright-gold diamond centre so the detail reads at the 1080×1920 portrait capture scale.
+- The feature remains two static instance batches and is disabled in the low-detail tier.
+
+### 2026-11-01 — Seat the capital rosettes on the visible lacquer band
+- The first screenshot review showed the initial rosette was hidden by a forward lacquer layer. Repositioned the ornament onto the visible red capital band (Y=7.69, front Z face).
+- Switched to a bronze outer ring with a bright-gold diamond centre for clear contrast against the red lacquer.
+- Kept the pair instanced and excluded them from the low-detail tier. Updated regression coverage for face placement and the low-tier fallback.
+
+### 2026-11-01 — Add front-facing lotus seals to the timber capitals
+- Added one restrained brass torus rosette with a lacquer diamond centre to the front face of each visible portrait capital's upper beam.
+- The rosettes use two static InstancedMesh batches and shared cached primitive geometry; no new materials, lights, animation, external assets or roof geometry are introduced.
+- Extended the torus batch helper with an optional orientation while preserving its existing horizontal-ring default.
+- Added regression tests for the paired capital seals, front-facing orientation and instance upload.
+
 ### 2026-11-01 — Reduce upper negative space without widening the lens
 - Kept the 42° FOV and camera position (0, 11.75, 28.5); adjusted only the look-at Y from 0 to -1.5.
 - This is an intermediate target between the centered FOV42 crop and the more aggressively lowered 44° / Y=-2 experiment.
