@@ -23,7 +23,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
     expect(scene).toContain('for (const avatar of allHumanAvatars) {');
     expect(scene).toContain('avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
-    expect(scene).toContain('if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;');
+    expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
   });
 
   it('updates gratitude intensity for combo frames without replaying the world gift effect', () => {
