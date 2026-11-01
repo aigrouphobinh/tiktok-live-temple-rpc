@@ -1326,3 +1326,37 @@ body.obs-mode .stage-wrapper {
   border-radius: 50%;
   box-shadow: 0 0 24px rgba(255,150,55,.85), inset 0 0 18px rgba(255,230,160,.65);
 }
+
+/* Full-world 3D mode: remove the 2D illustration/sprite stack so it cannot
+   double-render over the real perspective scene. Keep only live HUD overlays. */
+.stage-9x16.temple-3d-mode {
+  background: #160904;
+  isolation: isolate;
+}
+.stage-9x16.temple-3d-mode .sanctuary-bg-img,
+.stage-9x16.temple-3d-mode .buddha-halo-system,
+.stage-9x16.temple-3d-mode .lotus-hand-halo,
+.stage-9x16.temple-3d-mode .sacred-light-beam,
+.stage-9x16.temple-3d-mode .incense-burner-zone,
+.stage-9x16.temple-3d-mode .ritual-hotspot,
+.stage-9x16.temple-3d-mode .central-worshipper,
+.stage-9x16.temple-3d-mode .vip-cushions-layer,
+.stage-9x16.temple-3d-mode .congregation-hall,
+.stage-9x16.temple-3d-mode .carpet-walker-layer,
+.stage-9x16.temple-3d-mode .sky-lanterns-layer,
+.stage-9x16.temple-3d-mode #templeCanvas {
+  display: none !important;
+}
+.stage-9x16.temple-3d-mode #temple3dCanvas {
+  display: block !important;
+  z-index: 0;
+}
+.stage-9x16.temple-3d-mode .temple-camera-rig {
+  z-index: 0;
+}
+.stage-9x16.temple-3d-mode .minimal-top-bar,
+.stage-9x16.temple-3d-mode .bottom-hud-bar,
+.stage-9x16.temple-3d-mode #grandCeremonyBanner,
+.stage-9x16.temple-3d-mode #fortuneModal {
+  z-index: 30;
+}
