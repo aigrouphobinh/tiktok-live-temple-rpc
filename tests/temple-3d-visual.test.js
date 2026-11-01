@@ -111,6 +111,21 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('canvas.removeEventListener(\'pointermove\', onWorldPointerMove)');
   });
 
+  it('animates each physical ritual prop when its matching ritual event fires', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("station.userData.ritualKind = kind;");
+    expect(scene).toContain('station.userData.animation.bellPivot = bellPivot');
+    expect(scene).toContain('station.userData.animation.malletPivot = malletPivot');
+    expect(scene).toContain('station.userData.animation.fortuneDrum = fortuneDrum');
+    expect(scene).toContain("ringBell: 'bell'");
+    expect(scene).toContain("strikeWoodenFish: 'woodfish'");
+    expect(scene).toContain("drawFortune: 'fortune'");
+    expect(scene).toContain('animation.bellPivot.rotation.z = Math.sin(progress * Math.PI * 8)');
+    expect(scene).toContain('animation.malletPivot.rotation.z = Math.sin(progress * Math.PI * 4)');
+    expect(scene).toContain('animation.fortuneDrum.rotation.y = Math.PI * 2 * 3 * spinEase');
+    expect(scene).toContain('updateRitualStationAnimations(now)');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
