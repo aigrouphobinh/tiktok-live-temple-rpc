@@ -335,7 +335,7 @@ async function boot() {
     halo.add(vein);
   }
 
-  // Main hall architecture: paired carved pillars, crossbeams, layered roof.
+  // Main hall architecture: paired carved pillars and short side crossbeams; roof intentionally removed.
   for (const x of [-7.2, 7.2]) {
     for (const z of [-10, -4, 2, 8, 13]) {
       cylinder(0.42, 0.5, 8.2, mats.woodLight, x, 4.05, z, world, 24);
@@ -350,87 +350,7 @@ async function boot() {
     box(1.6,0.28,0.42,mats.wood, -7.2,8.15,z);
     box(1.6,0.28,0.42,mats.wood, 7.2,8.15,z);
   }
-  // Gold rafters remain above the camera's sanctuary sightline.
-  for (let z = -11; z <= 12; z += 2.8) {
-    box(1.2,0.09,0.16,mats.gold,-7.2,9.95,z);
-    box(1.2,0.09,0.16,mats.gold,7.2,9.95,z);
-  }
-  // Curved tiled roof: a continuous pitched surface with raised corner eaves.
-  const roofTile = new THREE.MeshStandardMaterial({
-    color: 0x76202a, roughness: 0.78, metalness: 0.08, side: THREE.DoubleSide
-  });
-  const roofTrim = new THREE.MeshStandardMaterial({
-    color: 0xb98538, roughness: 0.42, metalness: 0.62
-  });
-  // Keep the near half open: the fixed camera looks into the sanctuary from +Z.
-  // Stop the roof behind the altar so its underside cannot cut across the Buddha/camera sightline.
-  const roofStartZ = -15.5, roofEndZ = -4, roofLength = roofEndZ - roofStartZ;
-  const roofCenterZ = (roofStartZ + roofEndZ) / 2;
-  const roofHalfLength = roofLength / 2;
-  const roofHalfWidth = 7.8;
-  function makeCurvedRoofSide(side) {
-    const columns = 20, rows = 28;
-    const positions = [], uvs = [], indices = [];
-    for (let row = 0; row <= rows; row++) {
-      const v = row / rows;
-      const z = roofStartZ + v * roofLength;
-      const endLift = Math.pow(Math.abs((z - roofCenterZ) / roofHalfLength), 4) * 0.82;
-      for (let column = 0; column <= columns; column++) {
-        const u = column / columns;
-        const x = side * u * roofHalfWidth;
-        const y = 11.15 - 1.72 * u + 0.24 * u * u + endLift * u * u;
-        positions.push(x, y, z);
-        uvs.push(u, v);
-      }
-    }
-    for (let row = 0; row < rows; row++) {
-      for (let column = 0; column < columns; column++) {
-        const a = row * (columns + 1) + column;
-        const b = a + columns + 1;
-        indices.push(a, b, a + 1, b, b + 1, a + 1);
-      }
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    const roof = new THREE.Mesh(geometry, roofTile);
-    roof.castShadow = true; roof.receiveShadow = true; world.add(roof);
-
-    // Subtle raised tile seams follow the roof pitch; keep count low for mobile GPUs.
-    for (let seam = 1; seam < 9; seam++) {
-      const u = seam / 9;
-      const points = [];
-      for (let step = 0; step <= 12; step++) {
-        const v = step / 12;
-        const z = roofStartZ + v * roofLength;
-        const endLift = Math.pow(Math.abs((z - roofCenterZ) / roofHalfLength), 4) * 0.82;
-        points.push(new THREE.Vector3(
-          side * u * roofHalfWidth,
-          11.18 - 1.72 * u + 0.24 * u * u + endLift * u * u,
-          z
-        ));
-      }
-      const seamCurve = new THREE.CatmullRomCurve3(points);
-      const seamMesh = new THREE.Mesh(new THREE.TubeGeometry(seamCurve, 24, 0.018, 5, false), roofTrim);
-      seamMesh.castShadow = true; world.add(seamMesh);
-    }
-    // Eaves follow the roof's real bounds; the old oversized beams extended into the camera foreground.
-    const eave = box(0.22, 0.28, roofLength, mats.red, side * (roofHalfWidth - 0.05), 9.72, roofCenterZ);
-    eave.rotation.z = side * -0.025;
-    const goldEdge = box(0.09, 0.09, roofLength, roofTrim, side * (roofHalfWidth + 0.08), 9.82, roofCenterZ);
-    goldEdge.rotation.z = side * -0.025;
-  }
-  makeCurvedRoofSide(-1);
-  makeCurvedRoofSide(1);
-  // Ridge cap and ornamental end finials.
-  const ridge = cylinder(0.22, 0.22, roofLength + 0.2, mats.redBright, 0, 11.25, roofCenterZ, world, 32);
-  ridge.rotation.x = Math.PI / 2;
-  for (const z of [roofStartZ, roofEndZ]) {
-    const finial = sphere(0.25, roofTrim, 0, 11.28, z, 1.3, 0.8, 1.2);
-    finial.rotation.z = z < 0 ? -0.22 : 0.22;
-  }
+  // Open-air sanctuary: keep the upper sightline clear while the side pillars frame the altar.
 
   // Lanterns with warm emissive cores along the side aisles.
   const lanterns = [];
