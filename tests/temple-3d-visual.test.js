@@ -762,6 +762,14 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds gentle cheekbone highlights and jaw transition grooves to the Buddha face', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('// Soft cheekbone highlights and jaw transitions give the face a gently sculpted profile.');
+  expect(scene).toContain('[side * 0.37, 4.565, 0.635]');
+  expect(scene).toContain('[side * 0.34, 4.245, 0.625]');
+  expect(scene).toContain('[side * 0.2, 4.17, 0.68]');
+});
+
 it('refines the Buddha closed eyelids with shallow upper folds and outer corners', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// Fine upper-lid folds and outer eye corners define the closed, meditative gaze.');
