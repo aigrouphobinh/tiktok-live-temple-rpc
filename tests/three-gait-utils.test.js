@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getRitualPoseState } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -55,6 +55,31 @@ describe('getFootPlantingPose', () => {
       });
       expect(getFootPlantingStep(phase)).toBe(0);
     }
+  });
+});
+
+describe('getHumanUpperPose', () => {
+  it('keeps the upper body neutral when the avatar is standing', () => {
+    expect(getHumanUpperPose()).toEqual({
+      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0
+    });
+  });
+
+  it('reaches both arms forward and inclines the torso during a kneeling bow', () => {
+    const pose = getHumanUpperPose({ kneelBlend: 1, bowAmount: 1 });
+    expect(pose.torsoLean).toBeCloseTo(-0.92, 8);
+    expect(pose.headCounter).toBeCloseTo(0.22, 8);
+    expect(pose.armReach).toBeCloseTo(-0.82, 8);
+    expect(pose.armOpen).toBeCloseTo(0.42, 8);
+  });
+
+  it('clamps blend weights and treats invalid values as neutral', () => {
+    expect(getHumanUpperPose({ kneelBlend: 3, bowAmount: -2 })).toEqual({
+      torsoLean: -0.2, headCounter: 0.06, armReach: -0.7, armOpen: 0.08
+    });
+    expect(getHumanUpperPose({ kneelBlend: NaN, bowAmount: Infinity })).toEqual({
+      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0
+    });
   });
 });
 
