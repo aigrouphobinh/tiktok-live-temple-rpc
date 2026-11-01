@@ -244,13 +244,16 @@ describe('3D sanctuary visual treatment', () => {
 
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('function applyGLTFFallbackWalk(avatar, time, weight = 1)');
+    expect(scene).toContain('function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1)');
     expect(scene).toContain('const walkTarget = walking && !avatar.gltfActions?.walk ? 1 : 0;');
     expect(scene).toContain('const walkBlend = 1 - Math.exp(-delta / 0.16);');
     expect(scene).toContain('avatar.gltfWalkBlend += (walkTarget - avatar.gltfWalkBlend) * walkBlend;');
-    expect(scene).toContain('applyGLTFFallbackWalk(avatar, time, avatar.gltfWalkBlend)');
+    expect(scene).toContain('applyGLTFFallbackWalk(avatar, gaitPhase, avatar.gltfWalkBlend)');
     expect(scene).toContain('const base = (bone, rest) => avatar.gltfActions?.idle ? bone?.rotation.x : rest?.x;');
     expect(scene).toContain('avatar.gltfWalkBlend = 0;');
+    expect(scene).toContain('function animateHuman(avatar, time, walking = false, walkPhase = null)');
+    expect(scene).toContain('const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;');
+    expect(scene).toContain('const walkPhase = (travel * 11.2 / 2.2) * Math.PI * 2;');
   });
 
   it('returns a manually posed GLB bow to rest when the bow state ends', () => {
