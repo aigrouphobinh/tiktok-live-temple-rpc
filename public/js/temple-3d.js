@@ -1603,8 +1603,11 @@ async function boot() {
       mainDevotee.scale.setScalar(1 - eased * 0.18);
       if (travel >= 1 && !devoteeState.bowAt) devoteeState.bowAt = now;
       if (devoteeState.bowAt) {
-        const bowIn = Math.min(1, (now - devoteeState.bowAt) / 650);
-        const bowOut = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;
+        const bowInProgress = Math.min(1, (now - devoteeState.bowAt) / 650);
+        const bowOutProgress = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;
+        // Smooth both ends so the torso/neck do not snap into or out of a bow.
+        const bowIn = bowInProgress * bowInProgress * (3 - 2 * bowInProgress);
+        const bowOut = bowOutProgress * bowOutProgress * (3 - 2 * bowOutProgress);
         const bow = bowIn * bowOut;
         applyHumanBow(mainHuman, bow);
       }
