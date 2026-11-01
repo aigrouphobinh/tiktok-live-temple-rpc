@@ -1160,6 +1160,11 @@ async function boot() {
         centerXZ: true
       });
       if (disposed) { asset.dispose(); return; }
+      // SkeletonUtils.clone shares immutable geometry/material/texture resources
+      // with the source GLB. Keep that source attached but hidden so the single
+      // scene-level disposer owns both source and avatar clones without leaks.
+      asset.root.visible = false;
+      world.add(asset.root);
       const animations = asset.animations || [];
       const findClip = (pattern) => animations.find((clip) => pattern.test(clip.name || '')) || null;
       const gltfActions = {
