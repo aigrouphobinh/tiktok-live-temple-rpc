@@ -1,3 +1,9 @@
+### 2026-11-01 — Match upper-shaft plaques to the existing hall pillar motif
+- Replaced the low-contrast torus seal with a visible two-tone diamond plaque on the exposed upper shaft of each inner column.
+- The gold outer diamond and ruby centre reuse the existing temple palette and mirror inward toward the aisle, matching the established outer-pillar ornament language.
+- Both layers are static InstancedMesh batches; the ornaments remain disabled on low-detail devices.
+- Removed the no-longer-needed torus orientation extension and kept its original horizontal-ring behavior unchanged.
+
 ### 2026-11-01 — Move ornamental seals to exposed upper column shafts
 - Two screenshot reviews showed that the capital faces were occluded by overlapping stack geometry. Moved the paired seals onto the clear front surface of the upper shafts at Y=6.2.
 - Mirrored each seal inward toward the processional aisle, keeping the left/right composition symmetrical.
