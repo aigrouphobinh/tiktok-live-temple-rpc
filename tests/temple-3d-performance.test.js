@@ -22,4 +22,13 @@ describe('Three.js scene performance safeguards', () => {
     expect(source).toContain('camera.lookAt(0, 4.4, -5.5);');
     expect(source).toContain('if (now - lastFrame < 33) return;');
   });
+  it('adapts render pixel ratio to device capacity without exceeding 1.25x', async () => {
+    const { getTemplePixelRatio } = await import('../public/js/temple-render-quality.js');
+    expect(getTemplePixelRatio({ devicePixelRatio: 2, deviceMemory: 4, hardwareConcurrency: 8 })).toBe(1);
+    expect(getTemplePixelRatio({ devicePixelRatio: 2, deviceMemory: 8, hardwareConcurrency: 8 })).toBe(1.25);
+    expect(getTemplePixelRatio({ devicePixelRatio: 1, deviceMemory: 8, hardwareConcurrency: 8 })).toBe(1);
+    expect(getTemplePixelRatio({ devicePixelRatio: 2, hardwareConcurrency: 8 })).toBe(1.25);
+    expect(getTemplePixelRatio({ devicePixelRatio: 2, deviceMemory: 8, hardwareConcurrency: 2 })).toBe(1);
+  });
+
 });
