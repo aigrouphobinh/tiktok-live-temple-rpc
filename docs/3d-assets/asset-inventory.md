@@ -1,6 +1,6 @@
 # 3D Sanctuary Asset Inventory
 
-Status: research inventory only. No third-party model has been downloaded or integrated by this document.
+Status: character integration in progress. The Corgi and Duck GLBs are wired into the 3D devotee loader from Gobkit's public CC0 URLs; they are not yet vendored locally. Architectural and Buddha candidates below remain research-only.
 
 ## Visual direction
 
@@ -18,6 +18,9 @@ Build a Vietnamese / East Asian Buddhist main hall, not a generic fantasy temple
 | Buddhist sculpture references | [Artheon Buddhist & Hindu 3D scans](https://www.artheonmuseum.org/3d/culture/buddhist-and-hindu) | 290 scans; per-model format and size vary | Collection lists individual museum objects with CC0 or CC BY-SA labels; check the exact source record and license per selected object | Potential source for a Buddha focal model/reference. Do not assume every item is CC0; choose only a clearly CC0 record and inspect geometry/pose before use. |
 | Seated Buddha candidate | [Artheon Buddhist & Hindu scans — 10th C CE Thai Seated Buddha](https://www.artheonmuseum.org/3d/culture/buddhist-and-hindu) | Collection entry; exact downloadable file format/size still to inspect | Collection index labels this individual entry CC0; confirm the object's own museum record and download terms before vendoring | Stronger cultural/pose match than generic human statues. Candidate only; inspect seated posture, robe silhouette, face, texture resolution and triangle count before integration. |
 | Generic character base (not a monk/devotee as-is) | [Kenney asset library](https://kenney.nl/assets) | Pack-dependent; some animated character packs are FBX/PNG | Kenney support says assets on its asset pages are CC0 | Only a rig/animation reference. A respectful Vietnamese lay devotee in blue/grey clothing still needs a custom skin/model and visual review. |
+
+| Animated visitor / lead devotee | [Gobkit Animal Pack Vol.1 — Corgi](https://gobkit.itch.io/gobkit-free-animal-pack) | GLB; public manifest URL | Pack and per-model manifest state CC0 1.0; rigged with named idle / attack / dead / walk clips | Integrated as the lead visitor and first crowd variant; runtime currently fetches the public GLB URL, not a local vendored copy. |
+| Animated visitor / secondary devotee | [Gobkit Animal Pack Vol.1 — Duck](https://gobkit.itch.io/gobkit-free-animal-pack) | GLB; public manifest URL | Pack and per-model manifest state CC0 1.0; rigged with named idle / attack / dead / walk clips | Integrated as a secondary crowd variant; runtime currently fetches the public GLB URL, not a local vendored copy. |
 
 ## Required custom models — no suitable exact model verified yet
 
