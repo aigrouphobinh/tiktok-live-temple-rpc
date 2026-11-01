@@ -23,15 +23,11 @@ class TempleAudioEngine {
     this.bgBaseVolume = Number.isFinite(savedMusicVol) ? Math.max(0, Math.min(1, savedMusicVol)) : 0.65;
     this.ttsVolume = Number.isFinite(savedTtsVol) ? Math.max(0, Math.min(1, savedTtsVol)) : 0.95;
 
-    this.useSynthMusicFallback = false;
+    // No bundled chant recording exists in public/assets yet. Use the
+    // generated ambient loop directly instead of requesting a guaranteed 404.
+    this.useSynthMusicFallback = true;
     this.synthBgTimer = null;
-    this.bgAudio = new Audio('/assets/bg_chant.m4a');
-    this.bgAudio.loop = true;
-    this.bgAudio.preload = 'auto';
-    this.bgAudio.volume = this.bgBaseVolume;
-    this.bgAudio.onerror = () => {
-      this.useSynthMusicFallback = true;
-    };
+    this.bgAudio = null;
     this.ttsQueue = [];
     this.ttsPlaying = false;
     this.currentAudio = null;
