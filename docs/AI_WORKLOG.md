@@ -1,3 +1,9 @@
+### 2026-11-01 — Add breathing and subtle head motion to procedural devotees
+- Added low-amplitude torso breathing on the torso mesh rather than the avatar root, preserving the planted feet and kneeling height compensation.
+- Added restrained head pitch drift alongside the existing gaze motion; bow pose continues to be driven by the ritual upper-body controller.
+- Kept imported GLB animation untouched until the selected rig's rest pose and axes are visually inspected.
+- Added scene assertions and CI guards for breathing and head motion.
+
 ### 2026-11-01 — Add subtle facial life to procedural devotees
 - Added independent eye groups, brows and retained references to sclera, pupils and smile for procedural avatars.
 - Added deterministic phase-offset blinking, tiny gaze drift and a restrained smile response during bowing.
