@@ -91,6 +91,31 @@ describe('gift SFX group lifecycle', () => {
     expect(engine.cancelGiftSfxGroup(21)).toBe(false);
   });
 
+  it('stops only the cancelled effect sources and releases their references on ended', () => {
+    const { engine } = createEngineHarness();
+    engine.getGiftSfxOutput(25);
+    engine.getGiftSfxOutput(26);
+    let endedCount = 0;
+    const firstSource = {
+      stopCalls: [],
+      onended() { endedCount++; },
+      stop(time) { this.stopCalls.push(time); }
+    };
+    const otherSource = { stopCalls: [], stop(time) { this.stopCalls.push(time); } };
+
+    expect(engine.trackGiftSfxSource(25, firstSource)).toBe(true);
+    expect(engine.trackGiftSfxSource(26, otherSource)).toBe(true);
+    expect(engine.giftSfxGroups.get('25').sources.has(firstSource)).toBe(true);
+
+    expect(engine.cancelGiftSfxGroup(25)).toBe(true);
+    expect(firstSource.stopCalls).toEqual([10]);
+    expect(otherSource.stopCalls).toEqual([]);
+    firstSource.onended({ type: 'ended' });
+    expect(endedCount).toBe(1);
+    expect(engine.giftSfxGroups.get('25').sources.size).toBe(0);
+    expect(engine.giftSfxGroups.get('26').sources.has(otherSource)).toBe(true);
+  });
+
   it('extends idle cleanup when another sound joins the same effect', () => {
     const { engine, timers, cleared, nodes } = createEngineHarness();
     const output = engine.getGiftSfxOutput(31);
