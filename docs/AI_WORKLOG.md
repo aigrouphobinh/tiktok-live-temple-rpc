@@ -1005,3 +1005,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added one fixed 32-point additive particle cloud attached to the lotus throne; sparks spiral upward from the petals toward the Buddha halo while a special-gift reaction is active.
 - Reuses typed position/phase/speed/radius buffers and updates positions in place; opacity follows the existing special-gift envelope and returns to zero outside it.
 - No per-frame geometry/material/vector allocation, timers, or additional lights. Added source regression coverage and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Refine Buddha rim lighting and gilded highlights
+- Added one low-intensity, non-shadow-casting warm directional rim light aimed at the Buddha to separate the ivory silhouette from the dark altar.
+- Special-gift reactions now gently lift the rim light, gold trim emissive response, and a restrained stone emissive response using the existing shared gift envelope.
+- Initialized stone emissive color once during setup; render loop only adjusts scalar intensities. No extra shadow maps or per-frame material allocations.
+- Added source regression tests and CI guards. Browser visual validation remains outstanding.
