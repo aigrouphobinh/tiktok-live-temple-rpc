@@ -750,3 +750,13 @@ it('adds instanced brass rosettes and ruby centres to the altar side panels', ()
   expect(scene).toContain('panelRosettes.instanceMatrix.setUsage(THREE.StaticDrawUsage);');
   expect(scene).toContain('world.add(panelRosettes, panelGems);');
 });
+
+
+it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('const columnPlaqueGeometry = new THREE.BoxGeometry(0.16, 0.16, 0.035);');
+  expect(scene).toContain('new THREE.InstancedMesh(columnPlaqueGeometry, mats.goldBright, 10 * 3)');
+  expect(scene).toContain('new THREE.InstancedMesh(columnPlaqueGemGeometry, mats.redBright, 10 * 3)');
+  expect(scene).toContain('for (const y of [1.55, 4.05, 6.55])');
+  expect(scene).toContain('world.add(columnPlaques, columnPlaqueGems);');
+});
