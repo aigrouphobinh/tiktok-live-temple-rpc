@@ -81,6 +81,10 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('haloGiftAuraMaterial.opacity = auraPulse * 0.42;');
     expect(scene).toContain('lotusGiftAuraMaterial.opacity = auraPulse * 0.34;');
     expect(scene).toContain('haloGlow.intensity = 8 + auraPulse * 13;');
+    expect(scene).toContain('const lotusPetalRings = [];');
+    expect(scene).toContain('lotusPetalRings.push(ring);');
+    expect(scene).toContain('ring.scale.set(1 + opening, 1, 1 + opening);');
+    expect(scene).toContain('const opening = auraPulse * (index === 0 ? 0.13 : 0.09);');
   });
 
   it('stagger congregation gift reactions and pulse altar lighting with the shared response', () => {
