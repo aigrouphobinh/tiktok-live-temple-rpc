@@ -31,8 +31,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   let characterAnimation = null;
   const effectRegistry = new GiftEffectRegistry();
 
-  function playGiftSound(type) {
-    window.dispatchEvent(new CustomEvent('temple:gift-sfx', { detail: { type } }));
+  function playGiftSound(type, effectId) {
+    window.dispatchEvent(new CustomEvent('temple:gift-sfx', { detail: { type, effectId } }));
   }
 
   function createEffect(className, symbol, x, y) {
@@ -80,7 +80,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   }
 
   function playRocket(token) {
-    playGiftSound('rocket-launch');
+    playGiftSound('rocket-launch', token);
     const rocket = createEffect('gift-rocket', '', 95, 1010);
     const flight = rocket.animate([
       { transform: 'translate3d(0, 0, 0) rotate(-24deg) scale(.65)', opacity: 0 },
@@ -103,7 +103,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     }
 
     scheduleEffectCallback(token, () => {
-      playGiftSound('explosion');
+      playGiftSound('explosion', token);
       const blast = createEffect('gift-blast', '💥', 595, 1010);
       blast.style.fontSize = '112px';
       blast.style.filter = 'drop-shadow(0 0 18px rgba(255,190,55,.95))';
@@ -176,7 +176,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   }
 
   function playDragon(token) {
-    playGiftSound('dragon-whoosh');
+    playGiftSound('dragon-whoosh', token);
     const dragon = createEffect('gift-dragon', '', 65, 820);
     const flight = dragon.animate([
       { transform: 'translate3d(0,0,0) scale(.35) rotate(-12deg)', opacity: 0 },
@@ -193,7 +193,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     ], { duration: 1700, delay: 650, easing: 'ease-out', fill: 'forwards' });
     removeAfter(wind, gust);
     scheduleEffectCallback(token, () => {
-      playGiftSound('dragon-roar');
+      playGiftSound('dragon-roar', token);
       const impact = createEffect('gift-dragon-impact', '', 540, 955);
       const impactAnim = impact.animate([
         { transform: 'scale(.25)', opacity: .9 },
@@ -209,8 +209,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     ], 3200);
   }
 
-  function playRose() {
-    playGiftSound('rose-chime');
+  function playRose(token) {
+    playGiftSound('rose-chime', token);
     const rose = createEffect('gift-rose-main', '🌹', 540, 850);
     const main = rose.animate([
       { transform: 'translate3d(0,35px,0) scale(.35) rotate(-18deg)', opacity: 0 },
@@ -242,8 +242,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     removeAfter(pulse, anim);
   }
 
-  function playDonut() {
-    playGiftSound('donut-chime');
+  function playDonut(token) {
+    playGiftSound('donut-chime', token);
     // Keep the treat on the upper-middle lane: it teases the devotee without
     // sweeping across the altar, Buddha focal point, or fixed HUD.
     const donut = createEffect('gift-donut', '', 70, 790);
@@ -310,6 +310,11 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   }
 
   function beginEffect(action) {
+    // Fade only the superseded gift's sound group; background music and TTS
+    // remain on their independent playback paths.
+    if (effectToken > 0) {
+      window.dispatchEvent(new CustomEvent('temple:gift-sfx', { detail: { type: 'cancel', effectId: effectToken } }));
+    }
     // Invalidate any ritual callback that may already be queued by the browser.
     ritualToken++;
     clearTimeout(activeTimer);
@@ -328,8 +333,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     showActionLabel(action);
     if (action === 'rocket') playRocket(token);
     else if (action === 'dragon') playDragon(token);
-    else if (action === 'donut') playDonut();
-    else if (action === 'rose') playRose();
+    else if (action === 'donut') playDonut(token);
+    else if (action === 'rose') playRose(token);
 
     effectTimer = window.setTimeout(() => {
       if (token !== effectToken) return;
