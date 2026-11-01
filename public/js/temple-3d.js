@@ -402,6 +402,15 @@ async function boot() {
   pedestalStuds.receiveShadow = true;
   world.add(pedestalStuds);
   const lotusThrone = new THREE.Group(); lotusThrone.position.set(0, 1.7, -8.25); world.add(lotusThrone);
+  // Special gifts briefly reveal a soft gold aura around the lotus without adding lights.
+  const lotusGiftAuraMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffc978, transparent: true, opacity: 0, depthWrite: false,
+    blending: THREE.AdditiveBlending, side: THREE.DoubleSide
+  });
+  const lotusGiftAura = new THREE.Mesh(new THREE.TorusGeometry(1.78, 0.035, 8, 96), lotusGiftAuraMaterial);
+  lotusGiftAura.rotation.x = Math.PI / 2;
+  lotusGiftAura.position.y = 0.24;
+  lotusThrone.add(lotusGiftAura);
   for (let i = 0; i < 16; i++) {
     const a = i * Math.PI / 8;
     const petal = sphere(0.55, i % 2 ? mats.redBright : mats.goldBright,
@@ -715,6 +724,13 @@ async function boot() {
   }
   haloBeads.instanceMatrix.setUsage(THREE.StaticDrawUsage);
   halo.add(haloBeads);
+  const haloGiftAuraMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffd58a, transparent: true, opacity: 0, depthWrite: false,
+    blending: THREE.AdditiveBlending, side: THREE.DoubleSide
+  });
+  const haloGiftAura = new THREE.Mesh(new THREE.TorusGeometry(2.48, 0.055, 8, 112), haloGiftAuraMaterial);
+  haloGiftAura.position.z = 0.08;
+  halo.add(haloGiftAura);
   const haloGlow = new THREE.PointLight(0xffbd69, 8, 7, 2);
   haloGlow.position.set(0, 5.25, -8.55);
   world.add(haloGlow);
@@ -1802,6 +1818,16 @@ async function boot() {
       peak,
       getAvatarGiftReactionBlend(avatar, now) * (avatar.giftReactionProfile?.intensity || 0.55)
     ), 0);
+    const specialGiftGlow = allHumanAvatars.reduce((peak, avatar) => Math.max(
+      peak,
+      avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0
+    ), 0);
+    const auraPulse = specialGiftGlow * (0.94 + Math.sin(elapsed * 0.008) * 0.06);
+    haloGiftAuraMaterial.opacity = auraPulse * 0.42;
+    haloGiftAura.scale.setScalar(1 + auraPulse * 0.12);
+    lotusGiftAuraMaterial.opacity = auraPulse * 0.34;
+    lotusGiftAura.scale.setScalar(1 + auraPulse * 0.18);
+    haloGlow.intensity = 8 + auraPulse * 13;
     buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;
     altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
