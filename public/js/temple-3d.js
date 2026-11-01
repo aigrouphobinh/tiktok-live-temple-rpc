@@ -1270,10 +1270,10 @@ async function boot() {
     }
   }
 
-  function applyGLTFFallbackWalk(avatar, time, weight = 1) {
+  function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1) {
     const rig = avatar.gltfRig;
     if (!rig) return;
-    const swing = Math.sin(time * 0.009 + avatar.phase);
+    const swing = Math.sin(gaitPhase + avatar.phase);
     const amount = 0.34 * weight;
     // Preserve the idle clip's evaluated pose when one exists. With no clips,
     // return to the captured rest pose instead of freezing on the last gait.
@@ -1284,8 +1284,9 @@ async function boot() {
     if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = base(rig.rightArm, rig.rightArmRest) + swing * amount * 0.62;
   }
 
-  function animateHuman(avatar, time, walking = false) {
-    const swing = Math.sin(time*0.009 + avatar.phase);
+  function animateHuman(avatar, time, walking = false, walkPhase = null) {
+    const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
+    const swing = Math.sin(gaitPhase + avatar.phase);
     if (avatar.gltfRoot) {
       const mode = walking ? 'walk' : avatar.bowing ? 'bow' : 'idle';
       playGLTFHumanAction(avatar, mode);
@@ -1295,7 +1296,7 @@ async function boot() {
       const walkTarget = walking && !avatar.gltfActions?.walk ? 1 : 0;
       const walkBlend = 1 - Math.exp(-delta / 0.16);
       avatar.gltfWalkBlend += (walkTarget - avatar.gltfWalkBlend) * walkBlend;
-      if (!avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, time, avatar.gltfWalkBlend);
+      if (!avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, gaitPhase, avatar.gltfWalkBlend);
       // Apply zero as well as non-zero bow amounts so a manual bow pose always
       // blends back to rest when the ritual state ends and no bow clip exists.
       if (!avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowing ? avatar.bowAmount : 0);
@@ -1601,7 +1602,9 @@ async function boot() {
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
     if (devoteeState.active) {
       const travel = Math.min(1, (now - devoteeState.startedAt) / devoteeState.duration);
-      animateHuman(mainHuman, now, travel < 0.92);
+      // Tie fallback footfalls to world-space travel so feet cycle with translation.
+       const walkPhase = (travel * 11.2 / 2.2) * Math.PI * 2;
+       animateHuman(mainHuman, now, travel < 0.92, walkPhase);
       const eased = travel * travel * (3 - 2 * travel);
       mainDevotee.position.z = 7.5 - eased * 11.2;
       mainDevotee.scale.setScalar(1 - eased * 0.18);
