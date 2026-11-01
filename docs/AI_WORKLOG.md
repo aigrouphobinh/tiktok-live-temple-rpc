@@ -1,3 +1,8 @@
+### 2026-11-01 — Seat the capital rosettes on the visible lacquer band
+- The first screenshot review showed the initial rosette was hidden by a forward lacquer layer. Repositioned the ornament onto the visible red capital band (Y=7.69, front Z face).
+- Switched to a bronze outer ring with a bright-gold diamond centre for clear contrast against the red lacquer.
+- Kept the pair instanced and excluded them from the low-detail tier. Updated regression coverage for face placement and the low-tier fallback.
+
 ### 2026-11-01 — Add front-facing lotus seals to the timber capitals
 - Added one restrained brass torus rosette with a lacquer diamond centre to the front face of each visible portrait capital's upper beam.
 - The rosettes use two static InstancedMesh batches and shared cached primitive geometry; no new materials, lights, animation, external assets or roof geometry are introduced.
