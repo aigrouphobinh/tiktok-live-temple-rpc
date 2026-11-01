@@ -17,6 +17,12 @@ describe('GLB animation clip matching', () => {
     expect(actions.bow).toBe(bow);
   });
 
+  it('normalizes repeated whitespace, tabs and newlines in exported clip names', () => {
+    const idle = { name: 'Armature|Mixamo.com|  Idle\\t\\nLoop' };
+    const actions = findBestAnimationClip([idle]);
+    expect(actions.idle).toBe(idle);
+  });
+
   it('recognizes gerund forms used by common animation exports', () => {
     const idle = { name: 'Breathing Loop' };
     const bow = { name: 'Bowing_Gently' };
