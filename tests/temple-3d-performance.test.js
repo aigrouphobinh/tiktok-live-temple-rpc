@@ -55,6 +55,14 @@ describe('Three.js scene performance safeguards', () => {
 });
 
 
+describe('Buddha GLB mesh budget diagnostics', () => {
+  it('reports the loaded model triangle and shadow budget', () => {
+    expect(source).toContain("console.info('[Temple3D] Buddha mesh budget'");
+    expect(source).toContain('triangles: asset.triangleCount');
+    expect(source).toContain('castsShadow: asset.castsShadow');
+  });
+});
+
 describe('Three.js opt-in GPU diagnostics', () => {
   it('resets frame samples across tab visibility pauses', () => {
     expect(source).toContain('function resetFrameDiagnostics()');
