@@ -633,3 +633,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added fine temple arcs to visually connect the curled hair cap with the head silhouette.
 - Reused the existing statueLine helper and existing statue materials; no lighting, camera or animation changes.
 - Added source regression coverage. Browser render inspection remains necessary for final proportion and visibility review.
+
+
+
+### 2026-11-01 — Add subtle mineral grain to the Buddha stone
+- Generated a deterministic 64×64 grayscale DataTexture in memory and applied it as a low-strength bump map to the three statue stone materials.
+- Tuned roughness to keep the statue matte and reduce the smooth, plastic-like highlight response.
+- No external texture asset, extra light, or per-frame allocation was introduced; texture generation happens once during scene setup.
+- Added source regression coverage. Browser render inspection is still required to confirm grain scale and visual subtlety at runtime.
