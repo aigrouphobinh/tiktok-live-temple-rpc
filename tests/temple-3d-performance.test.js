@@ -64,6 +64,12 @@ describe('Three.js opt-in GPU diagnostics', () => {
     expect(source).toContain('textures: info.memory.textures');
     expect(source).toContain('activeEffects: effects.length');
     expect(source).toContain('now - lastStatsAt >= 5000');
+    expect(source).toContain('frameIntervals.push(now - lastRenderedFrameAt);');
+    expect(source).toContain('frameSamples: sortedIntervals.length');
+    expect(source).toContain('observedFps:');
+    expect(source).toContain('frameTimeP50Ms');
+    expect(source).toContain('frameTimeP95Ms');
+    expect(source).toContain('if (frameIntervals.length > 300) frameIntervals.shift();');
   });
 });
 
