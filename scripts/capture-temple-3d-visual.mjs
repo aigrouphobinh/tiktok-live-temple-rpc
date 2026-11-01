@@ -294,21 +294,41 @@ try {
     console.log(`[Temple 3D audit] ${scenario.id}: ${profileReport.checks.passed ? 'PASS' : 'FAIL'}`);
   }
 
-  const byTier = Object.fromEntries(report.profiles.map((profile) => [
+  const idleDrawCallsByTier = Object.fromEntries(report.profiles.map((profile) => [
     profile.id,
-    profile.rendererStats?.drawCalls ?? null
+    profile.rendererStats?.idle?.drawCalls ?? null
   ]));
-  const drawCalls = [byTier.low, byTier.medium, byTier.high];
+  const giftBurstDrawCallsByTier = Object.fromEntries(report.profiles.map((profile) => [
+    profile.id,
+    profile.rendererStats?.giftBurst?.drawCalls ?? null
+  ]));
+  const giftBurstActiveEffectsByTier = Object.fromEntries(report.profiles.map((profile) => [
+    profile.id,
+    profile.rendererStats?.giftBurst?.activeEffects ?? null
+  ]));
+  const idleDrawCalls = [idleDrawCallsByTier.low, idleDrawCallsByTier.medium, idleDrawCallsByTier.high];
+  const giftBurstDrawCalls = [
+    giftBurstDrawCallsByTier.low,
+    giftBurstDrawCallsByTier.medium,
+    giftBurstDrawCallsByTier.high
+  ];
   report.summary = {
     passed: report.profiles.length === scenarios.length
       && report.profiles.every((profile) => profile.checks.passed),
     allProfilesPassed: report.profiles.length === scenarios.length
       && report.profiles.every((profile) => profile.checks.passed),
-    drawCallsByTier: byTier,
-    drawCallsStrictlyIncrease: drawCalls.every(Number.isFinite)
-      && drawCalls[0] < drawCalls[1]
-      && drawCalls[1] < drawCalls[2]
+    drawCallsByTier: idleDrawCallsByTier,
+    idleDrawCallsStrictlyIncrease: idleDrawCalls.every(Number.isFinite)
+      && idleDrawCalls[0] < idleDrawCalls[1]
+      && idleDrawCalls[1] < idleDrawCalls[2],
+    giftBurstDrawCallsByTier,
+    giftBurstActiveEffectsByTier,
+    giftBurstDrawCallsStrictlyIncrease: giftBurstDrawCalls.every(Number.isFinite)
+      && giftBurstDrawCalls[0] < giftBurstDrawCalls[1]
+      && giftBurstDrawCalls[1] < giftBurstDrawCalls[2]
   };
+  // Keep the original summary field name for consumers of the first profile audit.
+  report.summary.drawCallsStrictlyIncrease = report.summary.idleDrawCallsStrictlyIncrease;
 
   // Preserve the original single-profile report fields for older artifact consumers.
   const defaultProfile = report.profiles.find((profile) => profile.id === 'high')
@@ -323,7 +343,12 @@ try {
 
   // A stable detail profile should submit progressively more batches at higher tiers.
   report.summary.passed = report.summary.allProfilesPassed
-    && report.summary.drawCallsStrictlyIncrease;
+    && report.summary.drawCallsStrictlyIncrease
+    && report.profiles.every((profile) =>
+      profile.checks.giftBurstStatsCaptured
+      && profile.checks.giftBurstHadActiveEffects
+      && profile.checks.giftBurstIncreasedDrawCalls
+    );
 
   await writeFile(
     `${artifactDir}/temple-3d-visual-report.json`,
