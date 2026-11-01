@@ -1350,6 +1350,7 @@ body.obs-mode .stage-wrapper {
 .stage-9x16.temple-3d-mode #temple3dCanvas {
   display: block !important;
   pointer-events: auto;
+  touch-action: manipulation;
   z-index: 0;
 }
 .stage-9x16.temple-3d-mode .temple-camera-rig {
