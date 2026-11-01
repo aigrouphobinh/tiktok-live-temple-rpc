@@ -130,3 +130,63 @@ export function getFootPlantingWorldTarget({
     lockState: { wasStance: false, lockedTarget: null }
   };
 }
+
+/**
+ * Apply a solved two-bone chain to a Three.js upper/lower bone pair.
+ * The foot/ankle joint is the lower bone's child. Segment lengths are measured
+ * from the current world pose, so avatar scaling is naturally respected.
+ */
+export function applyTwoBoneIKToBones(THREE, upperBone, lowerBone, footBone, target, pole) {
+  if (!THREE?.Vector3 || !THREE?.Quaternion || !upperBone?.isBone
+    || !lowerBone?.isBone || !footBone?.isBone
+    || !Array.isArray(target) || target.length !== 3 || !target.every(Number.isFinite)
+    || !Array.isArray(pole) || pole.length !== 3 || !pole.every(Number.isFinite)) return null;
+
+  const rootPosition = new THREE.Vector3();
+  const kneePosition = new THREE.Vector3();
+  const anklePosition = new THREE.Vector3();
+  upperBone.updateWorldMatrix(true, false);
+  lowerBone.updateWorldMatrix(true, false);
+  footBone.updateWorldMatrix(true, false);
+  upperBone.getWorldPosition(rootPosition);
+  lowerBone.getWorldPosition(kneePosition);
+  footBone.getWorldPosition(anklePosition);
+  const upperLength = rootPosition.distanceTo(kneePosition);
+  const lowerLength = kneePosition.distanceTo(anklePosition);
+  if (upperLength <= 1e-6 || lowerLength <= 1e-6) return null;
+
+  const solved = solveTwoBoneIK({
+    root: rootPosition.toArray(),
+    target,
+    pole,
+    upperLength,
+    lowerLength
+  });
+  if (!solved) return null;
+
+  const aimBone = (bone, child, desiredEnd) => {
+    bone.updateWorldMatrix(true, false);
+    child.updateWorldMatrix(true, false);
+    const start = bone.getWorldPosition(new THREE.Vector3());
+    const end = child.getWorldPosition(new THREE.Vector3());
+    const currentDirection = end.sub(start).normalize();
+    const desiredDirection = new THREE.Vector3(...desiredEnd).sub(
+      bone.getWorldPosition(new THREE.Vector3())
+    ).normalize();
+    if (currentDirection.lengthSq() < 1e-10 || desiredDirection.lengthSq() < 1e-10) return false;
+
+    const worldRotation = bone.getWorldQuaternion(new THREE.Quaternion());
+    const delta = new THREE.Quaternion().setFromUnitVectors(currentDirection, desiredDirection);
+    worldRotation.premultiply(delta);
+    const parentRotation = bone.parent
+      ? bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert()
+      : new THREE.Quaternion();
+    bone.quaternion.copy(parentRotation.multiply(worldRotation));
+    bone.updateWorldMatrix(true, false);
+    return true;
+  };
+
+  if (!aimBone(upperBone, lowerBone, solved.knee)) return null;
+  if (!aimBone(lowerBone, footBone, solved.target)) return null;
+  return solved;
+}
