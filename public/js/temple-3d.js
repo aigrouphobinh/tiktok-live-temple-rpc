@@ -756,7 +756,7 @@ async function boot() {
         targetHeight: 1.72,
         centerXZ: true
       });
-      if (disposed) return;
+      if (disposed) { asset.dispose(); return; }
       const animations = asset.animations || [];
       const findClip = (pattern) => animations.find((clip) => pattern.test(clip.name || '')) || null;
       const gltfActions = {
@@ -764,12 +764,13 @@ async function boot() {
         walk: findClip(/walk|walking|run|approach/i),
         bow: findClip(/bow|pray|prayer|worship|kneel/i)
       };
-      for (const avatar of allHumanAvatars) {
+      const replacements = allHumanAvatars.map(() => clone(asset.root));
+      for (const [avatarIndex, avatar] of allHumanAvatars.entries()) {
         for (const child of [...avatar.root.children]) {
           avatar.root.remove(child);
           disposeThreeObjectTree(child);
         }
-        const model = clone(asset.root);
+        const model = replacements[avatarIndex];
         avatar.root.add(model);
         avatar.gltfRoot = model;
         avatar.gltfActions = gltfActions;
