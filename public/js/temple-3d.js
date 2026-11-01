@@ -1122,14 +1122,18 @@ async function boot() {
     const isBow = mode === 'bow' && clip === avatar.gltfActions.bow;
     const current = avatar.gltfCurrentAction;
     if (current && avatar.gltfCurrentClip === clip) {
-      // Several state names can resolve to the same idle clip. Keep its
-      // existing action alive instead of fading that action out against itself.
+      // Several state names can resolve to the same idle clip. Cancel any
+      // interrupted fade before reusing the action, or it may keep fading out.
+      current.stopFading().setEffectiveWeight(1);
       current.setLoop(isBow ? THREE.LoopOnce : THREE.LoopRepeat, isBow ? 1 : Infinity);
       current.clampWhenFinished = isBow;
       avatar.gltfActionName = mode;
       return true;
     }
     const next = avatar.gltfMixer.clipAction(clip);
+    // Actions are cached by the mixer. A quick A -> B -> A transition can
+    // otherwise reuse an action that still has a previous fade scheduled.
+    next.stopFading().setEffectiveWeight(1);
     if (isBow) {
       next.setLoop(THREE.LoopOnce, 1);
       next.clampWhenFinished = true;
@@ -1138,7 +1142,7 @@ async function boot() {
       next.clampWhenFinished = false;
     }
     next.reset().fadeIn(0.18).play();
-    if (current && current !== next) current.fadeOut(0.18);
+    if (current && current !== next) current.stopFading().fadeOut(0.18);
     avatar.gltfCurrentAction = next;
     avatar.gltfCurrentClip = clip;
     avatar.gltfActionName = mode;
