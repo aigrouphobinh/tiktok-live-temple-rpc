@@ -56,6 +56,20 @@ describe('Three.js scene performance safeguards', () => {
 
 
 describe('Three.js opt-in GPU diagnostics', () => {
+  it('resets frame samples across tab visibility pauses', () => {
+    expect(source).toContain('function resetFrameDiagnostics()');
+    const resetStart = source.indexOf('function resetFrameDiagnostics()');
+    const resetEnd = source.indexOf('\n  }', resetStart);
+    const reset = source.slice(resetStart, resetEnd);
+    expect(reset).toContain('frameIntervals.length = 0;');
+    expect(reset).toContain('lastRenderedFrameAt = 0;');
+    expect(reset).toContain('frameWindowStartedAt = 0;');
+    expect(reset).toContain('lastStatsAt = 0;');
+    const visibilityStart = source.indexOf('function onVisibilityChange()');
+    const visibilityEnd = source.indexOf('function onWindowResize()', visibilityStart);
+    expect(source.slice(visibilityStart, visibilityEnd)).toContain('resetFrameDiagnostics();');
+  });
+
   it('reports renderer draw calls, triangles and resource counts only when stats=1', () => {
     expect(source).toContain("const statsEnabled = modelParams.get('stats') === '1';");
     expect(source).toContain("console.info('[Temple3D] Frame diagnostics'");
