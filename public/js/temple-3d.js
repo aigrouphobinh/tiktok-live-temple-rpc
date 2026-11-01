@@ -1186,9 +1186,9 @@ async function boot() {
       const animations = asset.animations || [];
       const findClip = (pattern) => animations.find((clip) => pattern.test(clip.name || '')) || null;
       const gltfActions = {
-        idle: findClip(/idle|stand|breath/i),
-        walk: findClip(/walk|walking|run|approach/i),
-        bow: findClip(/bow|pray|prayer|worship|kneel/i)
+        idle: findClip(/idle|stand|breath|resting/i),
+        walk: findClip(/walk|walking|run|approach|locomotion|move|travel/i),
+        bow: findClip(/bow|pray|prayer|worship|kneel|prostrate/i)
       };
       const replacements = allHumanAvatars.map(() => clone(asset.root));
       for (const [avatarIndex, avatar] of allHumanAvatars.entries()) {
@@ -1207,15 +1207,23 @@ async function boot() {
         avatar.gltfLastTime = 0;
         avatar.gltfWalkBlend = 0;
         const bones = {};
+        const normalizedBoneName = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const boneAliases = {
+          spine: ['spine', 'chest', 'upperbody'],
+          head: ['head'],
+          leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml'],
+          rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr'],
+          leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl'],
+          rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr']
+        };
         model.traverse((node) => {
           if (!node.isBone) return;
-          const name = (node.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-          if (/spine|chest|upperbody/.test(name)) bones.spine = node;
-          if (/^(head|mixamorighead)$/.test(name)) bones.head = node;
-          if (/leftupperarm|leftarm/.test(name)) bones.leftArm = node;
-          if (/rightupperarm|rightarm/.test(name)) bones.rightArm = node;
-          if (/leftupperleg|leftupleg|leftthigh|leftleg/.test(name)) bones.leftLeg = node;
-          if (/rightupperleg|rightupleg|rightthigh|rightleg/.test(name)) bones.rightLeg = node;
+          const name = normalizedBoneName(node.name);
+          for (const [slot, aliases] of Object.entries(boneAliases)) {
+            if (!bones[slot] && aliases.some((alias) => name === alias || name.endsWith(alias))) {
+              bones[slot] = node;
+            }
+          }
         });
         avatar.gltfRig = {
           spine: bones.spine,
