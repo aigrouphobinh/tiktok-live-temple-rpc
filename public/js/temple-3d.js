@@ -1194,6 +1194,8 @@ async function boot() {
           if (/^(head|mixamorighead)$/.test(name)) bones.head = node;
           if (/leftupperarm|leftarm/.test(name)) bones.leftArm = node;
           if (/rightupperarm|rightarm/.test(name)) bones.rightArm = node;
+          if (/leftupperleg|leftupleg|leftthigh|leftleg/.test(name)) bones.leftLeg = node;
+          if (/rightupperleg|rightupleg|rightthigh|rightleg/.test(name)) bones.rightLeg = node;
         });
         avatar.gltfRig = {
           spine: bones.spine,
@@ -1203,7 +1205,11 @@ async function boot() {
           spineRest: bones.spine?.rotation.clone(),
           headRest: bones.head?.rotation.clone(),
           leftArmRest: bones.leftArm?.rotation.clone(),
-          rightArmRest: bones.rightArm?.rotation.clone()
+          rightArmRest: bones.rightArm?.rotation.clone(),
+          leftLeg: bones.leftLeg,
+          rightLeg: bones.rightLeg,
+          leftLegRest: bones.leftLeg?.rotation.clone(),
+          rightLegRest: bones.rightLeg?.rotation.clone()
         };
       }
       console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; clips:`,
@@ -1211,6 +1217,17 @@ async function boot() {
     } catch (error) {
       console.warn('[Temple3D] Optional devotee GLB unavailable; keeping procedural characters:', error);
     }
+  }
+
+  function applyGLTFFallbackWalk(avatar, time) {
+    const rig = avatar.gltfRig;
+    if (!rig) return;
+    const swing = Math.sin(time * 0.009 + avatar.phase);
+    const amount = 0.34;
+    if (rig.leftLeg && rig.leftLegRest) rig.leftLeg.rotation.x = rig.leftLegRest.x + swing * amount;
+    if (rig.rightLeg && rig.rightLegRest) rig.rightLeg.rotation.x = rig.rightLegRest.x - swing * amount;
+    if (rig.leftArm && rig.leftArmRest) rig.leftArm.rotation.x = rig.leftArmRest.x - swing * amount * 0.62;
+    if (rig.rightArm && rig.rightArmRest) rig.rightArm.rotation.x = rig.rightArmRest.x + swing * amount * 0.62;
   }
 
   function animateHuman(avatar, time, walking = false) {
@@ -1221,6 +1238,7 @@ async function boot() {
       const delta = avatar.gltfLastTime ? Math.min(0.05, Math.max(0, (time - avatar.gltfLastTime) / 1000)) : 1 / 30;
       avatar.gltfMixer?.update(delta);
       avatar.gltfLastTime = time;
+      if (walking && !avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, time);
       if (avatar.bowing && !avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowAmount);
       avatar.root.position.y = walking ? Math.abs(swing)*0.035 : Math.sin(time*0.0015+avatar.phase)*0.012;
       return;
