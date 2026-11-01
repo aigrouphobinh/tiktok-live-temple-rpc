@@ -384,7 +384,7 @@ class TempleAudioEngine {
     return buffer;
   }
 
-  playRocketLaunch(, groupId) {
+  playRocketLaunch(groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
@@ -450,7 +450,7 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playDragonWhoosh(, groupId) {
+  playDragonWhoosh(groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
@@ -477,7 +477,7 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playDragonRoar(, groupId) {
+  playDragonRoar(groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
@@ -514,7 +514,7 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playRoseChime(, groupId) {
+  playRoseChime(groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
@@ -538,7 +538,7 @@ class TempleAudioEngine {
     } catch (_) {}
   }
 
-  playDonutChime(, groupId) {
+  playDonutChime(groupId) {
     if (!this.sfxEnabled) return;
     try {
       const ctx = this.ensureContext();
