@@ -29,6 +29,26 @@ jobs:
             --output public/assets/models/buddha-cc0-fallback.glb
           echo "a00f6c35ae853c830faff61404265c5c  public/assets/models/buddha-cc0-fallback.glb" | md5sum --check -
 
+      - name: Inspect the downloaded GLB
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/inspect-glb.mjs public/assets/models/buddha-cc0-fallback.glb
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            import { parseGLB } from './scripts/inspect-glb.mjs';
+            const report = parseGLB(fs.readFileSync('public/assets/models/buddha-cc0-fallback.glb'));
+            if (report.meshes < 1 || report.triangleEstimate < 1) throw new Error('GLB has no renderable triangles');
+            if (report.externalUris.length) throw new Error('GLB references external resources');
+            console.log('GLB integrity checks passed:', JSON.stringify({
+              meshes: report.meshes,
+              triangles: report.triangleEstimate,
+              materials: report.materials,
+              textures: report.textures,
+              animations: report.animations.length
+            }));
+          "
+
       - name: Commit verified model to this feature branch
         shell: bash
         run: |
