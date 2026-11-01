@@ -1539,3 +1539,155 @@ body.obs-mode .stage-wrapper {
     transition: none;
   }
 }
+
+/* Clean livestream HUD refresh — 3D sanctuary only.
+   Preserve the legacy 2D broadcast UI and make more of the portrait scene visible. */
+.stage-9x16.temple-3d-mode .minimal-top-bar {
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  gap: 8px;
+}
+.stage-9x16.temple-3d-mode .live-pill {
+  min-height: 38px;
+  padding: 6px 11px;
+  gap: 8px;
+  border-color: rgba(226, 190, 126, .24);
+  border-radius: 12px;
+  background: rgba(18, 13, 11, .72);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
+  font-size: 11px;
+  letter-spacing: .15px;
+}
+.stage-9x16.temple-3d-mode .live-pill::after {
+  min-height: 19px;
+  margin-left: 3px;
+  padding: 0 7px;
+  font-size: 8px;
+  letter-spacing: .7px;
+}
+.stage-9x16.temple-3d-mode .mini-stat-pill {
+  min-height: 36px;
+  padding: 5px 10px;
+  border-color: rgba(226, 190, 126, .2);
+  border-radius: 12px;
+  background: rgba(18, 13, 11, .68);
+  box-shadow: none;
+  font-size: 10px;
+}
+.stage-9x16.temple-3d-mode .bottom-hud-bar {
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  height: 142px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, .82fr);
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(224, 190, 133, .22);
+  border-radius: 17px;
+  background: linear-gradient(155deg, rgba(25, 19, 16, .9), rgba(13, 11, 10, .88));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.stage-9x16.temple-3d-mode .hud-left-col {
+  min-width: 0;
+  gap: 7px;
+}
+.stage-9x16.temple-3d-mode .hud-active-notice {
+  min-width: 0;
+  height: 29px;
+  min-height: 29px;
+  flex: 0 0 29px;
+  padding: 0 9px;
+  gap: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 190, 126, .15);
+  border-radius: 9px;
+  background: rgba(255, 245, 224, .045);
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.stage-9x16.temple-3d-mode .hud-gift-cards {
+  min-height: 0;
+  flex: 1 1 auto;
+  gap: 6px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card {
+  min-height: 0;
+  padding: 8px 7px;
+  border: 1px solid rgba(226, 190, 126, .18);
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(91, 57, 34, .34), rgba(22, 17, 14, .62));
+  box-shadow: none;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card::after {
+  display: none;
+}
+.stage-9x16.temple-3d-mode .gift-coin-tag {
+  font-size: 8px;
+  letter-spacing: .45px;
+}
+.stage-9x16.temple-3d-mode .gift-card-body {
+  gap: 5px;
+}
+.stage-9x16.temple-3d-mode .gift-emoji {
+  font-size: 21px;
+  filter: none;
+}
+.stage-9x16.temple-3d-mode .gift-title {
+  font-size: 10px;
+  line-height: 1.15;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(226, 190, 126, .16);
+  border-radius: 11px;
+  background: rgba(255, 245, 224, .035);
+}
+.stage-9x16.temple-3d-mode .hud-lb-header {
+  margin-bottom: 5px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.stage-9x16.temple-3d-mode .leader-item {
+  min-height: 17px;
+  gap: 5px;
+  font-size: 9px;
+  line-height: 1.15;
+}
+.stage-9x16.temple-3d-mode .leader-rank {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  font-size: 8px;
+}
+.stage-9x16.temple-3d-mode .leader-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stage-9x16.temple-3d-mode .leader-merit {
+  flex: 0 0 auto;
+  font-size: 9px;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .bottom-hud-bar {
+    left: 9px;
+    right: 9px;
+    bottom: 9px;
+    height: 128px;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, .78fr);
+    gap: 6px;
+    padding: 6px;
+  }
+  .stage-9x16.temple-3d-mode .hud-active-notice {
+    font-size: 9px;
+  }
+  .stage-9x16.temple-3d-mode .gift-title {
+    font-size: 9px;
+  }
+}
