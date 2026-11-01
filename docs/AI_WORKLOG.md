@@ -1103,3 +1103,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added paired short side-torso pleats and lower elbow compression folds to bridge the upper-arm drape into the resting forearms.
 - Added fine ivory ridges while reusing the existing robe-fold helper and materials.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Refine the Buddha's meditation wrists and palms
+- Added paired shallow wrist creases with ivory edge highlights to connect the resting forearms into the joined hands.
+- Added a subtle palm crease on each hand while preserving the existing finger and thumb contours and meditation mudra.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
