@@ -768,6 +768,24 @@ async function boot() {
   // Two restrained chest folds follow the robe diagonally toward the lap.
   robeFold([[-0.38,3.28,0.69],[-0.12,3.18,0.77],[0.16,3.04,0.75],[0.39,2.9,0.67]],0.018);
   robeFold([[-0.3,3.12,0.73],[-0.04,3.02,0.79],[0.22,2.88,0.73],[0.43,2.76,0.62]],0.014);
+  // Fine upper-chest pleats carry the robe's drape from the neckline into the chest.
+  for (const side of [-1, 1]) {
+    const upperChestPleat = [
+      [side * 0.14, 3.72, 0.69],
+      [side * 0.2, 3.56, 0.77],
+      [side * 0.28, 3.4, 0.78]
+    ];
+    robeFold(upperChestPleat, 0.011);
+    const upperChestPleatRidge = new THREE.CatmullRomCurve3(upperChestPleat.map(([x, y, z]) =>
+      new THREE.Vector3(x + side * 0.018, y + 0.012, z + 0.014)
+    ));
+    const upperChestPleatRidgeMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(upperChestPleatRidge, 18, 0.006, 6, false), mats.statueLight
+    );
+    upperChestPleatRidgeMesh.castShadow = false;
+    upperChestPleatRidgeMesh.receiveShadow = false;
+    statue.add(upperChestPleatRidgeMesh);
+  }
   // A single shoulder seam continues down the outer arm toward the resting hand.
   // Its offset ivory ridge is subtle and does not cast shadows.
   for (const side of [-1, 1]) {
