@@ -478,3 +478,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Changed only the `live.js` script tag to `type="module"`. Existing classic `audio.js` and `particles.js` remain loaded first; module scripts are deferred until HTML parsing completes, preserving access to their initialized globals.
 - Added a CI assertion that the browser entrypoint loads `live.js` as a module and rejects regression to a classic script. CI also parses `live.js` explicitly as an ES module.
 - This fixes the reported JavaScript loading error. It does **not** turn the existing background image into a full 3D temple scene; actual Three.js scene construction and browser/WebGL verification remain separate unfinished work.
+
+### Fix missing background-audio and favicon requests — 2026-11-01
+- Browser Console showed `GET /assets/bg_chant.m4a 404`. Repository asset inventory confirmed that no chant recording is bundled. The audio engine now selects its existing synthesized ambient fallback from startup and does not instantiate/request a missing media file. The loop still starts only after the user's audio-unlock gesture, respecting browser autoplay policy.
+- Added `public/favicon.svg` and linked it from the main page, replacing the browser's implicit missing `/favicon.ico` request.
+- CI now asserts the favicon link/file exists and that browser JavaScript no longer references the absent `bg_chant.m4a` asset.
+- This removes the two reported 404 causes. The synthesized ambient loop is tonal ambience, not a recorded Buddhist chant; adding a real licensed/owned chant recording remains a separate content task. These fixes do not address the separate requirement for a persistent full 3D temple scene.
