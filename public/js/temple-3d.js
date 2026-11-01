@@ -100,23 +100,34 @@ async function boot() {
   const world = new THREE.Group();
   scene.add(world);
 
+  // Reuse immutable primitive geometry across repeated architectural pieces.
+  // This reduces duplicate GPU buffers while preserving independent transforms/materials.
+  const primitiveGeometryCache = new Map();
+  const getPrimitiveGeometry = (key, create) => {
+    if (!primitiveGeometryCache.has(key)) primitiveGeometryCache.set(key, create());
+    return primitiveGeometryCache.get(key);
+  };
   const box = (w, h, d, material, x, y, z, parent = world) => {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+    const geometry = getPrimitiveGeometry(`box:${w}:${h}:${d}`, () => new THREE.BoxGeometry(w, h, d));
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true;
     parent.add(mesh); return mesh;
   };
   const cylinder = (rt, rb, h, material, x, y, z, parent = world, radial = 24) => {
-    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, radial), material);
+    const geometry = getPrimitiveGeometry(`cylinder:${rt}:${rb}:${h}:${radial}`, () => new THREE.CylinderGeometry(rt, rb, h, radial));
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true;
     parent.add(mesh); return mesh;
   };
   const sphere = (r, material, x, y, z, sx = 1, sy = 1, sz = 1, parent = world) => {
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), material);
+    const geometry = getPrimitiveGeometry(`sphere:${r}:24:16`, () => new THREE.SphereGeometry(r, 24, 16));
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z); mesh.scale.set(sx, sy, sz);
     mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
   };
   const plane = (w, h, material, x, y, z, rx = -Math.PI / 2) => {
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+    const geometry = getPrimitiveGeometry(`plane:${w}:${h}`, () => new THREE.PlaneGeometry(w, h));
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z); mesh.rotation.x = rx; mesh.receiveShadow = true; world.add(mesh); return mesh;
   };
 
