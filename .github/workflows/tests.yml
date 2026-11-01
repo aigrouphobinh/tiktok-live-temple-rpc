@@ -38,6 +38,8 @@ jobs:
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
           grep -Fq 'temple-3d-mode' public/js/temple-3d.js &&
           grep -Fq '.stage-9x16.temple-3d-mode .sanctuary-bg-img' public/css/live.css &&
+          grep -Fq '.stage-9x16.temple-3d-mode .bottom-hud-bar' public/css/live.css &&
+          grep -Fq '3D SANCTUARY' public/css/live.css &&
           node --input-type=module --check < public/js/temple-3d.js &&
           node --input-type=module --check < public/js/camera-controller.js &&
           node --input-type=module --check < public/js/three-resource-utils.js
