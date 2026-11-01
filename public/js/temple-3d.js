@@ -249,12 +249,14 @@ async function boot() {
     color: 0xb98538, roughness: 0.42, metalness: 0.62
   });
   function makeCurvedRoofSide(side) {
-    const columns = 20, rows = 48;
+    const columns = 20, rows = 28;
+    // Keep the near half open: the fixed camera looks into the sanctuary from +Z.
+    const roofStartZ = -13, roofEndZ = 3.5, roofLength = roofEndZ - roofStartZ;
     const positions = [], uvs = [], indices = [];
     for (let row = 0; row <= rows; row++) {
       const v = row / rows;
-      const z = -13 + v * 28;
-      const endLift = Math.pow(Math.abs((z - 1) / 14), 4) * 0.82;
+      const z = roofStartZ + v * roofLength;
+      const endLift = Math.pow(Math.abs((z + 4.75) / 8.25), 4) * 0.82;
       for (let column = 0; column <= columns; column++) {
         const u = column / columns;
         const x = side * u * 9.0;
@@ -284,8 +286,8 @@ async function boot() {
       const points = [];
       for (let step = 0; step <= 12; step++) {
         const v = step / 12;
-        const z = -13 + v * 28;
-        const endLift = Math.pow(Math.abs((z - 1) / 14), 4) * 0.82;
+        const z = roofStartZ + v * roofLength;
+        const endLift = Math.pow(Math.abs((z + 4.75) / 8.25), 4) * 0.82;
         points.push(new THREE.Vector3(
           side * u * 9.0,
           11.18 - 1.72 * u + 0.24 * u * u + endLift * u * u,
@@ -304,9 +306,9 @@ async function boot() {
   makeCurvedRoofSide(-1);
   makeCurvedRoofSide(1);
   // Ridge cap and ornamental end finials.
-  const ridge = cylinder(0.22, 0.22, 28.2, mats.redBright, 0, 11.25, 1, world, 32);
+  const ridge = cylinder(0.22, 0.22, roofLength + 0.2, mats.redBright, 0, 11.25, -4.75, world, 32);
   ridge.rotation.x = Math.PI / 2;
-  for (const z of [-13, 15]) {
+  for (const z of [roofStartZ, roofEndZ]) {
     const finial = sphere(0.25, roofTrim, 0, 11.28, z, 1.3, 0.8, 1.2);
     finial.rotation.z = z < 0 ? -0.22 : 0.22;
   }
