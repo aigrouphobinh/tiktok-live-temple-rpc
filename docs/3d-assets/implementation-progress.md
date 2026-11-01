@@ -9,6 +9,7 @@ Updated: 2026-11-01
 - `07621a3` — shortened the roof surface to the rear half and moved the ridge cap so the fixed +Z camera has an open sightline into the main hall. This is a camera-occlusion precaution; visual confirmation is still pending.
 - `71bcdb9` — moved roof boundary constants into the outer scope so ridge/finial construction can reference them safely.
 - `99b07f3` — added a separate foreground offering table with bronze incense vessel and sticks, paired lotus vases, fruit offerings and butter-lamp flames. Procedural meshes; no external assets.
+- `0cb53cb` — added two soft altar spotlights, a warm fill light, and subtle animated candle/altar glow. Spotlights do not cast shadows to avoid extra mobile GPU shadow passes.
 - `4a69b83` — recorded a 10th-century Thai seated Buddha scan listed as CC0 in the Artheon collection as a candidate only; its individual record, file and visual suitability remain to be checked.
 - `7a28894` — added a rear altar screen with red lacquer panels, gold framing, lattice relief and a central medallion to give the Buddha focal plane more depth.
 - `4a077fe` — expanded the asset inventory with an East Asian ceremonial hall candidate pack and Buddhist sculpture scan collection. Both remain candidates, not integrated runtime assets.
@@ -17,6 +18,7 @@ Updated: 2026-11-01
 - `8867574` — added CI source guards for the open near-side roof/camera sightline.
 - `5c2153b` — added a CI scope-order guard for roof boundary constants before ridge construction.
 - `eafcd62` — added CI source guards for the offering table, incense vessel and lotus vases.
+- `606039c` — added CI source guards for altar spotlights and candle flicker.
 
 ## Preserved requirements
 
@@ -35,7 +37,7 @@ Updated: 2026-11-01
 
 ## Next work
 
-1. Visually inspect the open-roof sightline, curved roof and new offering props from the fixed elevated camera.
+1. Visually inspect the open-roof sightline, curved roof, offering props and layered altar lighting from the fixed elevated camera.
 2. Inspect the individual Thai seated Buddha CC0 record and file; integrate only after pose, license, scale and texture checks.
 3. Replace the primitive Buddha blockout with a reviewed, correctly licensed seated Buddha GLB or a higher-quality custom model.
 4. Replace the placeholder devotees with a rigged, respectful lay-devotee model while preserving the existing ritual timings and animation events.
