@@ -187,8 +187,13 @@ try {
         profileReport.modelLoadError = error.message;
       }
 
-      // Capture one renderer sample for the idle-scene baseline.
-      const idleStats = await waitForRendererSample(rendererStatsSamples, 1);
+      // Ignore any sample emitted before the GLB settles and the procedural
+      // fallback is hidden. The idle baseline must be a fresh, post-load frame.
+      const samplesBeforeIdle = rendererStatsSamples.length;
+      const idleStats = await waitForRendererSample(
+        rendererStatsSamples,
+        samplesBeforeIdle + 1
+      );
       const samplesBeforeGiftBurst = rendererStatsSamples.length;
 
       // Sustain the gift burst until a *new* renderer diagnostic is observed.
