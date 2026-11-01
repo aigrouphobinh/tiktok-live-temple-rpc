@@ -248,10 +248,10 @@ async function boot() {
   const roofTrim = new THREE.MeshStandardMaterial({
     color: 0xb98538, roughness: 0.42, metalness: 0.62
   });
+  // Keep the near half open: the fixed camera looks into the sanctuary from +Z.
+  const roofStartZ = -13, roofEndZ = 3.5, roofLength = roofEndZ - roofStartZ;
   function makeCurvedRoofSide(side) {
     const columns = 20, rows = 28;
-    // Keep the near half open: the fixed camera looks into the sanctuary from +Z.
-    const roofStartZ = -13, roofEndZ = 3.5, roofLength = roofEndZ - roofStartZ;
     const positions = [], uvs = [], indices = [];
     for (let row = 0; row <= rows; row++) {
       const v = row / rows;
