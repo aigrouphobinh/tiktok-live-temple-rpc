@@ -11,6 +11,17 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('releaseWorldResources();');
   });
 
+  it('removes both gift event listeners when the scene is disposed', () => {
+    const cleanupStart = source.indexOf('function releaseWorldResources()');
+    const cleanupEnd = source.indexOf('function onVisibilityChange()', cleanupStart);
+    const cleanup = source.slice(cleanupStart, cleanupEnd);
+
+    expect(source).toContain("window.addEventListener('temple:gift-action', onTempleGiftAction);");
+    expect(source).toContain("window.addEventListener('temple:gift-reaction', onTempleGiftReaction);");
+    expect(cleanup).toContain("window.removeEventListener('temple:gift-action', onTempleGiftAction);");
+    expect(cleanup).toContain("window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);");
+  });
+
   it('stops the animation loop and releases scene resources after WebGL context loss', () => {
     const handler = source.slice(source.indexOf("canvas.addEventListener('webglcontextlost'"), source.indexOf("window.addEventListener('pagehide'"));
     expect(handler).toContain('event.preventDefault();');

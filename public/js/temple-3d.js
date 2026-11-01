@@ -2276,6 +2276,7 @@ async function boot() {
     resourcesDisposed = true;
     window.removeEventListener('temple:ritual', onTempleRitual);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
+    window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);
     canvas.removeEventListener('pointermove', onWorldPointerMove);
     canvas.removeEventListener('pointerdown', onWorldPointerDown);
     canvas.removeEventListener('pointerup', onWorldPointerUp);
