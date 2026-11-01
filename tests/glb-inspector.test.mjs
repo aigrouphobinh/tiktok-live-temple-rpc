@@ -39,7 +39,7 @@ describe('GLB asset inspection', () => {
     expect(result.generator).toBe('unit-test');
     expect(result.triangleEstimate).toBe(118);
     expect(result.nodeNames).toEqual(['BuddhaRoot']);
-    expect(result.animations).toEqual(['Idle', 'unnamed animation']);
+    expect(result.animations).toEqual(['Idle', 'unnamed animation 2']);
     expect(result.skins).toBe(1);
     expect(result.externalUris).toEqual(['textures/stone.png']);
   });
