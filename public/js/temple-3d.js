@@ -1963,8 +1963,8 @@ async function boot() {
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
 
-  // Probe optional same-origin GLBs before GLTFLoader requests them. A missing
-  // preferred asset is a normal fallback state, not a browser-level 404 error.
+  // Probe optional same-origin GLBs before the model loader requests them.
+  // A missing preferred asset is an expected fallback state.
   async function isLocalModelAvailable(url) {
     const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
     return response.ok;
