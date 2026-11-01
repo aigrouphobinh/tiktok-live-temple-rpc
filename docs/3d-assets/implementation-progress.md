@@ -28,8 +28,8 @@ Updated: 2026-11-01
 - Added a Three.js import map pinned to the same r180.0 build used by the 3D scene, plus the matching GLTFLoader and SkeletonUtils addons.
 - The 3D congregation now creates eight animal anchor positions instead of eighteen rough human-shaped placeholders. Corgi is the lead visitor; Duck is used as a secondary variant when its GLB loads.
 - The active ritual visitor uses the same rigged Corgi (Duck fallback) and switches between the named `walk` and `idle` clips. Each skinned copy is cloned with SkeletonUtils and normalized to the fixed elevated 9:16 camera scale.
-- The primitive figures remain as graceful local fallbacks if either model download fails. The scene does not wait for the remote assets before becoming ready.
-- Source files are served from Gobkit's public CC0 GLB URLs at runtime for this first integration; this is not yet a vendored/offline asset. The browser still needs internet access to load the animal models. No browser/WebGL visual inspection has been performed in this environment.
+- The primitive figures remain as graceful local fallbacks if either bundled model fails to load. The scene does not wait for the local assets before becoming ready.
+- Corgi and Duck GLBs are now vendored under `public/assets/animals/` and served by the game's own static server; the game no longer contacts Gobkit at runtime. Their CC0 1.0 licence and source provenance are included alongside the assets. No browser/WebGL visual inspection has been performed in this environment.
 
 ## Character art direction and asset shortlist
 
@@ -37,7 +37,7 @@ Updated: 2026-11-01
 - Preferred fallback direction: a cohesive, soft-looking, stylized animal cast with expressive silhouettes and readable colors, sized for the fixed elevated 9:16 temple camera. Keep the Buddha/statue and temple architecture dignified; cute animals are visitor/devotee characters, not replacements for the sacred focal statue.
 - First shortlist to preview: Corgi and Duck from Gobkit Animal Pack Vol.1; Koala and Chick from Animal Pack Vol.5. Choose one lead devotee plus a small set of visually consistent variants only after inspecting the actual GLB previews in the game camera.
 - Gobkit's free animal packs are advertised as rigged animated GLB under CC0 1.0, with named idle/attack/dead/walk clips; walk is available for the Animal packs. Verify the individual downloaded file and included licence before vendoring. Prefer downloading and bundling the selected GLB locally rather than depending on a runtime third-party URL.
-- No animal model is integrated yet. This is an art-direction decision and shortlist, not a claim that the assets have been visually approved or tested.
+- Corgi and Duck are integrated and bundled locally. The shortlist still contains unreviewed alternates (Koala and Chick); visual approval in the live game camera remains outstanding.
 
 ## Preserved requirements
 
@@ -48,7 +48,7 @@ Updated: 2026-11-01
 
 ## Not yet verified
 
-- Corgi and Duck are now loaded at runtime from Gobkit's public CC0 URLs; the GLBs are not yet vendored locally and therefore require internet access.
+- Corgi and Duck are bundled locally; external asset-host availability is no longer a runtime dependency.
 - No actual browser screenshot or WebGL visual inspection has been performed for these latest changes.
 - No mobile GPU/frame-time/draw-call profile has been recorded.
 - No real TikTok LIVE payload test has been performed.
@@ -59,7 +59,7 @@ Updated: 2026-11-01
 1. Visually inspect the open-roof sightline, curved roof, offering props and layered altar lighting from the fixed elevated camera.
 2. Inspect the individual Thai seated Buddha CC0 record and file; integrate only after pose, license, scale and texture checks.
 3. Replace the primitive Buddha blockout with a reviewed, correctly licensed seated Buddha GLB or a higher-quality custom model.
-4. Inspect Corgi and Duck in the actual fixed 9:16 browser camera; tune their scale, spacing and animation transitions, then vendor the approved GLBs locally so the game no longer depends on a third-party asset host.
+4. Inspect Corgi and Duck in the actual fixed 9:16 browser camera; tune their scale, spacing and animation transitions, verify the local GLBs in the actual fixed 9:16 browser camera and tune their scale, spacing and animation transitions.
 5. Add asset loading failure handling and performance budgets, then perform actual browser/device validation.
 6. Verify 3D gift reaction timing and composition in-browser alongside the existing CSS effects; tune depth/scale only after visual inspection.
 7. Test rocket, dragon, donut and rose payloads both with an active devotee and with an empty altar; confirm one 3D reaction per started effect and no camera movement.
