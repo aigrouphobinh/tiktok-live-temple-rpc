@@ -181,10 +181,10 @@ describe('3D sanctuary visual treatment', () => {
 
   it('recognizes common Mixamo and side-suffixed GLB bone naming conventions', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml', 'lupperarm', 'larm']");
-    expect(scene).toContain("rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr', 'rupperarm', 'rarm']");
-    expect(scene).toContain("leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg']");
-    expect(scene).toContain("rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg']");
+    expect(scene).toContain("leftArm: ['leftupperarm', 'leftarm', 'upperarmleft', 'armleft', 'upperarml', 'arml', 'lupperarm', 'larm', 'jbiplupperarm']");
+    expect(scene).toContain("rightArm: ['rightupperarm', 'rightarm', 'upperarmright', 'armright', 'upperarmr', 'armr', 'rupperarm', 'rarm', 'jbiprupperarm']");
+    expect(scene).toContain("leftLeg: ['leftupperleg', 'leftupleg', 'leftthigh', 'leftleg', 'upperlegleft', 'thighleft', 'upperlegl', 'thighl', 'legl', 'lupperleg', 'lthigh', 'lleg', 'jbiplupperleg']");
+    expect(scene).toContain("rightLeg: ['rightupperleg', 'rightupleg', 'rightthigh', 'rightleg', 'upperlegright', 'thighright', 'upperlegr', 'thighr', 'legr', 'rupperleg', 'rthigh', 'rleg', 'jbiprupperleg']");
     expect(scene).toContain('aliases.some((alias) => name === alias || name.endsWith(alias))');
   });
 
@@ -231,7 +231,7 @@ describe('3D sanctuary visual treatment', () => {
   it('returns a manually posed GLB bow to rest when the bow state ends', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('if (!avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowing ? avatar.bowAmount : 0);');
-    expect(scene).toContain('rig.spine.rotation.x = rig.spineRest.x - amount * 0.58;');
+    expect(scene).toContain('rig.spine.rotation.x = rig.spineRest.x - amount * 0.46;');
     expect(scene).toContain('rig.head.rotation.x = rig.headRest.x + amount * 0.16;');
   });
 
