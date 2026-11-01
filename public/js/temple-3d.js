@@ -287,6 +287,34 @@ async function boot() {
   // Central carved medallion and side relief panels.
   cylinder(0.92, 0.92, 0.1, mats.gold, 0, 4.25, -10.98, world, 48).rotation.x = Math.PI / 2;
   cylinder(0.72, 0.72, 0.12, mats.redBright, 0, 4.25, -10.9, world, 48).rotation.x = Math.PI / 2;
+  // Repeated brass rosettes and ruby centres enrich the recessed side panels.
+  // Instancing keeps the ornamentation to two draw calls for the whole screen.
+  const panelRosetteGeometry = new THREE.TorusGeometry(0.085, 0.012, 6, 20);
+  const panelRosettes = new THREE.InstancedMesh(panelRosetteGeometry, mats.goldBright, 10);
+  const panelGemGeometry = new THREE.SphereGeometry(0.043, 10, 8);
+  const panelGems = new THREE.InstancedMesh(panelGemGeometry, mats.redBright, 10);
+  const panelOrnamentTransform = new THREE.Object3D();
+  let panelOrnamentIndex = 0;
+  for (const panelX of [-3.45, 3.45]) {
+    for (const ornamentY of [2.72, 3.38, 4.05, 4.72, 5.38]) {
+      panelOrnamentTransform.position.set(panelX, ornamentY, -10.79);
+      panelOrnamentTransform.rotation.set(0, 0, 0);
+      panelOrnamentTransform.scale.set(1, 1, 1);
+      panelOrnamentTransform.updateMatrix();
+      panelRosettes.setMatrixAt(panelOrnamentIndex, panelOrnamentTransform.matrix);
+      panelOrnamentTransform.position.z = -10.765;
+      panelOrnamentTransform.scale.set(1, 1, 0.52);
+      panelOrnamentTransform.updateMatrix();
+      panelGems.setMatrixAt(panelOrnamentIndex, panelOrnamentTransform.matrix);
+      panelOrnamentIndex++;
+    }
+  }
+  panelRosettes.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  panelGems.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  panelRosettes.castShadow = panelGems.castShadow = false;
+  panelRosettes.receiveShadow = panelGems.receiveShadow = true;
+  world.add(panelRosettes, panelGems);
+
   for (const x of [-3.45, 3.45]) {
     box(1.55, 3.8, 0.12, mats.woodLight, x, 4.05, -10.98);
     // Recessed cinnabar panels sit behind the brass lattice, adding a second
