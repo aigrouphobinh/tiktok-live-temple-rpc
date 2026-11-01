@@ -455,7 +455,11 @@ async function boot() {
     return geometry;
   }
   const lotusPetalGeometry = createLotusPetalGeometry();
+  const lotusPetalRings = [];
   function createLotusPetalRing(count, radius, y, size, lean = 0.08) {
+    const ring = new THREE.Group();
+    lotusThrone.add(ring);
+    lotusPetalRings.push(ring);
     const redCount = Math.ceil(count / 2);
     const goldCount = Math.floor(count / 2);
     const redPetals = new THREE.InstancedMesh(lotusPetalGeometry, mats.redBright, redCount);
@@ -482,7 +486,8 @@ async function boot() {
       petals.castShadow = true;
       petals.receiveShadow = false;
     }
-    lotusThrone.add(redPetals, goldPetals);
+    ring.add(redPetals, goldPetals);
+    return ring;
   }
   createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1);
   createLotusPetalRing(12, 1.12, 0.1, 0.78, 0.06);
@@ -1823,6 +1828,12 @@ async function boot() {
       avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0
     ), 0);
     const auraPulse = specialGiftGlow * (0.94 + Math.sin(elapsed * 0.008) * 0.06);
+    // Parent-group scaling opens both instanced petal tiers without rewriting
+    // per-petal matrices or allocating objects in the render loop.
+    lotusPetalRings.forEach((ring, index) => {
+      const opening = auraPulse * (index === 0 ? 0.13 : 0.09);
+      ring.scale.set(1 + opening, 1, 1 + opening);
+    });
     haloGiftAuraMaterial.opacity = auraPulse * 0.42;
     haloGiftAura.scale.setScalar(1 + auraPulse * 0.12);
     lotusGiftAuraMaterial.opacity = auraPulse * 0.34;
