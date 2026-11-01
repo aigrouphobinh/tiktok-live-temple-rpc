@@ -37,6 +37,15 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('// Combo frames update gratitude intensity without replaying the 3D gift effect.');
   });
 
+  it('turns the devotee crowd toward the live audience and adds a restrained thank-you expression', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('avatar.root.rotation.y = Math.PI * (1 - giftReaction);');
+    expect(scene).toContain('avatar.smile.scale.x = 1 + giftReaction * 0.2;');
+    expect(scene).toContain('avatar.smile.scale.y = 1 + giftReaction * 0.12 - avatar.bowAmount * 0.12;');
+    expect(scene).toContain('for (const eyeWhite of avatar.eyeWhites) eyeWhite.scale.x = 1 + giftReaction * 0.045;');
+    expect(scene).toContain('// Devotees briefly turn from the altar toward the live audience, then ease back.');
+  });
+
   it('scales the thank-you bow and hand gesture from the incoming gift tier', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const strength = blend * profile.intensity;');
