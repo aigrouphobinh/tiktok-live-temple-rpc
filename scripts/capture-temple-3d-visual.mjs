@@ -17,6 +17,13 @@ const report = {
   capturedAt: new Date().toISOString(),
   viewport,
   deviceScaleFactor,
+  ready: false,
+  sceneCanvasVisible: false,
+  webgl: null,
+  stage: null,
+  sceneCanvas: null,
+  consoleErrors: [],
+  failedRequests: [],
   note: 'Browser capability hints are overridden for deterministic profile coverage. This is a Chromium/SwiftShader visual and configuration audit, not a physical-GPU benchmark.',
   profiles: [],
   summary: {
@@ -255,6 +262,17 @@ try {
       && drawCalls[0] < drawCalls[1]
       && drawCalls[1] < drawCalls[2]
   };
+
+  // Preserve the original single-profile report fields for older artifact consumers.
+  const defaultProfile = report.profiles.find((profile) => profile.id === 'high')
+    || report.profiles[0];
+  report.ready = Boolean(defaultProfile?.ready);
+  report.sceneCanvasVisible = Boolean(defaultProfile?.sceneCanvasVisible);
+  report.webgl = defaultProfile?.webgl || null;
+  report.stage = defaultProfile?.stage || null;
+  report.sceneCanvas = defaultProfile?.canvas || null;
+  report.consoleErrors = report.profiles.flatMap((profile) => profile.consoleErrors || []);
+  report.failedRequests = report.profiles.flatMap((profile) => profile.failedRequests || []);
 
   // A stable detail profile should submit progressively more batches at higher tiers.
   report.summary.passed = report.summary.allProfilesPassed
