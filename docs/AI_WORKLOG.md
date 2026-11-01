@@ -1079,3 +1079,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added shallow upper-lid folds, small light-catching lower transitions and restrained outer eye-corner creases on both sides.
 - Preserved the closed meditative gaze and existing facial silhouette; reused statueLine and existing stone materials.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Sculpt the Buddha's cheekbones and jaw transitions
+- Added paired soft cheekbone highlights, shallow lower cheek/jaw grooves and short highlights near the chin transition.
+- Preserved the existing face silhouette and calm expression; reused statueLine and existing stone materials.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
