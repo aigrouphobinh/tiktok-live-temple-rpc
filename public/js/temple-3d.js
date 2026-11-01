@@ -473,8 +473,8 @@ async function boot() {
   async function loadAnimalDevotees() {
     const loader = new GLTFLoader();
     const sources = await Promise.allSettled([
-      loader.loadAsync('https://gobkit.com/freebies/animal/Corgi.glb'),
-      loader.loadAsync('https://gobkit.com/freebies/animal/Duck.glb')
+      loader.loadAsync('/assets/animals/Corgi.glb'),
+      loader.loadAsync('/assets/animals/Duck.glb')
     ]);
     const corgi = sources[0].status === 'fulfilled' ? sources[0].value : null;
     const duck = sources[1].status === 'fulfilled' ? sources[1].value : null;
