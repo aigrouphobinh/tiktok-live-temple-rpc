@@ -332,3 +332,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - When a new gift supersedes the current action, pending delayed callbacks are now cleared immediately instead of merely waking later and returning after an effect-token check.
 - Retained the token guard as a second line of defense against stale callbacks.
 - Source change is committed directly to `main`. Syntax/unit CI and browser interruption behavior have not yet been run for this change; verify rapid Rocket → Dragon → Rose supersession in the game runtime.
+
+### Optional Three.js teardown cleanup — 2026-11-01
+- Added explicit disposal of all active transient 3D effect objects when the WebGL context is lost and when the page is being unloaded.
+- The teardown now removes active objects from the scene, disposes their geometries/materials, releases the shared procedural materials, and disposes the renderer on page hide.
+- This prevents the optional overlay from retaining its active effect list and GPU resources through teardown; it does not add automatic WebGL context restoration.
+- Committed source directly to `main`. Browser context-loss, page navigation, and GPU-memory behavior still require runtime verification.
