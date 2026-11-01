@@ -42,6 +42,7 @@ jobs:
           grep -Fq 'function makeCurvedRoofSide' public/js/temple-3d.js &&
           grep -Fq 'Keep the near half open' public/js/temple-3d.js &&
           grep -Fq 'roofEndZ = 3.5' public/js/temple-3d.js &&
+          node -e "const fs=require('fs'); const s=fs.readFileSync('public/js/temple-3d.js','utf8'); if (!(s.indexOf('const roofStartZ = -13') < s.indexOf('function makeCurvedRoofSide') && s.indexOf('function makeCurvedRoofSide') < s.indexOf('const ridge = cylinder'))) process.exit(1);" &&
           grep -Fq 'Raised eaves' public/js/temple-3d.js &&
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
           grep -Fq 'temple-3d-mode' public/js/temple-3d.js &&
