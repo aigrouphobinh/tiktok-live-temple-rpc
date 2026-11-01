@@ -540,6 +540,21 @@ async function boot() {
     statueLine([[side*0.43,4.75,0.59],[side*0.3,4.78,0.68],[side*0.16,4.75,0.7]],0.022);
     statueLine([[side*0.42,4.94,0.58],[side*0.28,4.99,0.65],[side*0.14,4.96,0.68]],0.025,mats.statueLight);
   }
+  // Lower eyelids and cheek transitions soften the serene carved expression.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.43, 4.72, 0.59],
+      [side * 0.3, 4.69, 0.665],
+      [side * 0.17, 4.72, 0.69]
+    ], 0.012, mats.statueLight);
+    statueLine([
+      [side * 0.49, 4.58, 0.52],
+      [side * 0.38, 4.48, 0.62],
+      [side * 0.2, 4.43, 0.68]
+    ], 0.014, mats.statueShadow);
+  }
+  // A restrained lower-lip crease adds definition without a pronounced smile.
+  statueLine([[-0.105,4.27,0.685],[0,4.255,0.715],[0.105,4.27,0.685]],0.009,mats.statueLight);
   statueLine([[0,4.78,0.69],[0.02,4.55,0.76],[-0.06,4.48,0.72]],0.035,mats.statueLight);
   statueLine([[-0.16,4.34,0.66],[0,4.30,0.72],[0.16,4.34,0.66]],0.024,mats.statueShadow);
   // Hands rest together in a meditation mudra above the crossed legs.
