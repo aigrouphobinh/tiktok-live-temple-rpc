@@ -465,7 +465,12 @@ async function boot() {
     const walkClip = THREE.AnimationClip.findByName(asset.animations, 'walk');
     const idle = idleClip ? mixer.clipAction(idleClip) : null;
     const walk = walkClip ? mixer.clipAction(walkClip) : null;
-    if (idle) idle.play();
+    // Desynchronize idle loops so the congregation does not breathe in unison.
+    mixer.timeScale = 0.94 + Math.random() * 0.12;
+    if (idle) {
+      idle.play();
+      if (idleClip.duration > 0) mixer.setTime(Math.random() * idleClip.duration);
+    }
     animalMixers.push(mixer);
     return { model, mixer, idle, walk, activeAction: idle };
   }
