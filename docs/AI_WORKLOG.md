@@ -803,3 +803,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Replaced broad substring regex matching with token-aware aliases and deterministic scoring: explicit action names and more specific aliases take precedence over generic synonyms, while unrelated words such as `Remove` no longer match `move`.
 - Added tests for source-order independence, Mixamo-style separators/case, false-positive prevention and missing action categories.
 - Real model clip quality still requires inspecting the actual deployed GLB inventory; this change improves selection logic without assuming the asset's contents.
+
+
+### 2026-11-01 — Prevent GLB animation clip reuse across character states
+- Updated the deterministic clip matcher to assign each imported animation clip to at most one state (idle, walk or bow), preventing a broadly named clip from accidentally driving multiple states.
+- Kept best-candidate scoring and deterministic source-order tie-breaking; normalized separators before matching token boundaries.
+- Added a regression test for an ambiguous `Idle Walk` clip alongside a dedicated walking clip.
