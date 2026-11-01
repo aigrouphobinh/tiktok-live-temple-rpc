@@ -775,3 +775,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Extended GLB bone lookup to recognize VRM-style `J_Bip_L/R_*` and Unity-style side-prefixed names after normalization, plus numbered spine joints and neck fallback.
 - Added regression assertions for the additional aliases.
 - Repository tree currently contains no tracked `.glb` under `public/assets/models`; the selected runtime asset must be supplied/deployed to verify the real skeleton and animations in-browser.
+
+
+### 2026-11-01 — VRM bone mapping and bow articulation
+- Added explicit J_Bip central, left and right bone aliases for spine, chest, neck, head, upper arms and upper legs.
+- Kept neck separate from spine; manual bowing now distributes rotation across torso and neck while preserving the head rest pose.
+- Added regression checks for VRM mappings and segmented bow articulation.
+- Source-level validation only: the repository has no tracked GLB in public/assets/models, so actual rig matching still needs browser validation with the deployed model.
