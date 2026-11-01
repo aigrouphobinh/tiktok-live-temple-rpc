@@ -1,3 +1,9 @@
+### 2026-11-01 — Add front-facing lotus seals to the timber capitals
+- Added one restrained brass torus rosette with a lacquer diamond centre to each visible portrait capital.
+- The rosettes use two static InstancedMesh batches and shared cached primitive geometry; no new materials, lights, animation, external assets or roof geometry are introduced.
+- Extended the torus batch helper with an optional orientation while preserving its existing horizontal-ring default.
+- Added regression tests for the paired capital seals, front-facing orientation and instance upload.
+
 ### 2026-11-01 — Reduce upper negative space without widening the lens
 - Kept the 42° FOV and camera position (0, 11.75, 28.5); adjusted only the look-at Y from 0 to -1.5.
 - This is an intermediate target between the centered FOV42 crop and the more aggressively lowered 44° / Y=-2 experiment.
