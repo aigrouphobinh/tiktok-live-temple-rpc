@@ -452,6 +452,27 @@ async function boot() {
     const x=-0.42+k*0.21;
     robeFold([[x,2.55,0.72],[x*1.3,2.25,0.82],[x*1.7,1.95,0.78]],0.022);
   }
+  // Shallow shoulder seams clarify how the robe wraps over each shoulder.
+  // Paired dark incisions and fine ivory ridges stay close to the existing silhouette.
+  for (const side of [-1, 1]) {
+    const shoulderSeam = [
+      [side * 0.62, 4.02, 0.2],
+      [side * 0.76, 3.82, 0.43],
+      [side * 0.81, 3.55, 0.53],
+      [side * 0.72, 3.29, 0.59]
+    ];
+    robeFold(shoulderSeam, 0.018);
+    const shoulderRidge = new THREE.CatmullRomCurve3(shoulderSeam.map(([x, y, z]) =>
+      new THREE.Vector3(x - side * 0.055, y + 0.025, z + 0.025)
+    ));
+    const ridgeMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(shoulderRidge, 24, 0.012, 6, false),
+      mats.statueLight
+    );
+    ridgeMesh.castShadow = false;
+    ridgeMesh.receiveShadow = false;
+    statue.add(ridgeMesh);
+  }
   // A raised hem and its shallow shadow groove make the lap robe read as layered stone.
   const robeHemCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-0.82, 2.34, 0.45),
