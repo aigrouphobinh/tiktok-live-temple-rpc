@@ -424,3 +424,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Starting a gift effect invalidates the prior ritual generation, so a timer callback already queued by the browser cannot complete a later devotee or advance an interrupted ritual.
 - Added the matching effect-token check to the cooldown handoff callback. A superseding gift invalidates an already-queued cooldown callback as well as clearing its timer handle.
 - This hardens rapid gift supersession and ritual handoff at the timer-ownership boundary. GitHub Actions run `41257817146` succeeded on the worklog commit; Bun unit tests and server-side JavaScript syntax checks passed. Browser race reproduction and live runtime remain unverified.
+
+
+### Gift SFX overlap protection — 2026-11-01
+- Routed synthesized sound effects through a shared Web Audio `DynamicsCompressorNode` before the audio destination. This reduces peak buildup when layered sounds overlap (for example, explosion noise plus sub-bass or multiple bell partials).
+- Compressor settings: threshold -8 dB, knee 12 dB, ratio 10:1, attack 3 ms, release 220 ms. The existing SFX gain/enable controls remain upstream and unchanged.
+- Added a safe fallback to direct destination routing if the browser does not expose `createDynamicsCompressor`.
+- Scope: this protects the synthesized SFX bus only. HTML media background music and TTS are separate playback paths and are not covered by this compressor. No listening test or browser/device clipping measurement has been performed; GitHub Actions validation is pending.
