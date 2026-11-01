@@ -1913,3 +1913,264 @@ body.obs-mode .stage-wrapper {
     radial-gradient(ellipse at 50% 43%, transparent 42%, rgba(8, 4, 3, .16) 76%, rgba(5, 3, 3, .42) 100%),
     linear-gradient(180deg, rgba(8, 4, 3, .22) 0%, transparent 17%, transparent 72%, rgba(7, 4, 3, .38) 100%);
 }
+
+
+/* ==========================================================================
+   3D BROADCAST INTERFACE — sculpted sanctuary console (3D only)
+   Replaces the legacy compact 2D-like cards with a readable live control deck.
+   ========================================================================== */
+.stage-9x16.temple-3d-mode .minimal-top-bar {
+  top: 26px;
+  left: 28px;
+  right: 28px;
+  align-items: center;
+  gap: 18px;
+}
+.stage-9x16.temple-3d-mode .live-pill {
+  min-height: 64px;
+  padding: 10px 22px 10px 17px;
+  gap: 13px;
+  border: 1px solid rgba(255, 222, 164, .62);
+  border-radius: 18px 8px 18px 8px;
+  background: linear-gradient(115deg, rgba(45, 24, 15, .94), rgba(12, 10, 9, .82));
+  box-shadow: 0 12px 30px rgba(0,0,0,.34), inset 0 1px rgba(255,245,218,.18), inset 0 -1px rgba(198,137,58,.16);
+  color: #fff1d4;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.stage-9x16.temple-3d-mode .live-pill::after {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,218,145,.48);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(164,111,48,.3), rgba(67,39,20,.38));
+  color: #ffe5ae;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+.stage-9x16.temple-3d-mode .live-dot {
+  width: 13px;
+  height: 13px;
+  box-shadow: 0 0 0 5px rgba(46,204,113,.12), 0 0 16px rgba(46,204,113,.7);
+}
+.stage-9x16.temple-3d-mode .mini-stat-pill {
+  min-height: 60px;
+  padding: 9px 18px;
+  gap: 9px;
+  border: 1px solid rgba(255,220,157,.46);
+  border-radius: 8px 18px 8px 18px;
+  background: linear-gradient(135deg, rgba(42,25,15,.94), rgba(12,10,9,.86));
+  box-shadow: 0 12px 30px rgba(0,0,0,.3), inset 0 1px rgba(255,245,218,.13);
+  color: #f7e7c9;
+  font-size: 14px;
+  letter-spacing: .35px;
+}
+.stage-9x16.temple-3d-mode .mini-stat-pill strong {
+  color: #ffdc8b;
+  font-size: 18px;
+  text-shadow: 0 0 12px rgba(255,190,86,.22);
+}
+.stage-9x16.temple-3d-mode .bottom-hud-bar {
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  height: 218px;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, .88fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255,220,157,.52);
+  border-radius: 22px 8px 22px 8px;
+  background:
+    linear-gradient(115deg, rgba(67,39,23,.42), transparent 38%),
+    linear-gradient(155deg, rgba(25,18,14,.96), rgba(8,8,8,.94));
+  box-shadow: 0 18px 48px rgba(0,0,0,.48), inset 0 1px rgba(255,245,218,.16), inset 0 -2px rgba(157,100,42,.22);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+}
+.stage-9x16.temple-3d-mode .hud-left-col {
+  min-width: 0;
+  gap: 10px;
+}
+.stage-9x16.temple-3d-mode .hud-active-notice {
+  min-height: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  justify-content: flex-start;
+  padding: 0 15px;
+  gap: 9px;
+  border: 1px solid rgba(255,220,157,.3);
+  border-left: 3px solid #d9a84e;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(131,81,34,.24), rgba(255,240,210,.035));
+  color: #ffe8bd;
+  font-size: 15px;
+  font-weight: 700;
+}
+.stage-9x16.temple-3d-mode .hud-gift-cards {
+  min-height: 0;
+  flex: 1 1 auto;
+  gap: 10px;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card {
+  min-width: 0;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 9px;
+  border: 1px solid rgba(226,190,126,.3);
+  border-radius: 12px 5px 12px 5px;
+  background:
+    linear-gradient(145deg, rgba(125,77,37,.28), transparent 55%),
+    linear-gradient(180deg, rgba(39,27,19,.94), rgba(14,12,11,.96));
+  box-shadow: inset 0 1px rgba(255,244,218,.1), 0 7px 18px rgba(0,0,0,.22);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.stage-9x16.temple-3d-mode .hud-gift-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,222,157,.8);
+  box-shadow: inset 0 1px rgba(255,244,218,.16), 0 10px 24px rgba(0,0,0,.32), 0 0 18px rgba(210,157,75,.12);
+}
+.stage-9x16.temple-3d-mode .gift-coin-tag {
+  color: #cdb58d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.stage-9x16.temple-3d-mode .gift-card-body {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.stage-9x16.temple-3d-mode .gift-emoji {
+  font-size: 38px;
+  line-height: 1;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.38));
+}
+.stage-9x16.temple-3d-mode .gift-title {
+  color: #ffe4ae;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .35px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,220,157,.28);
+  border-radius: 8px 15px 8px 15px;
+  background: linear-gradient(155deg, rgba(255,231,188,.075), rgba(255,231,188,.018));
+  box-shadow: inset 0 1px rgba(255,244,218,.08);
+}
+.stage-9x16.temple-3d-mode .hud-lb-header {
+  margin: 0 0 9px;
+  padding: 0 0 9px;
+  border-bottom: 1px solid rgba(226,190,126,.26);
+  color: #ffdfa0;
+  font-size: 14px;
+  letter-spacing: 1.8px;
+}
+.stage-9x16.temple-3d-mode .hud-lb-list {
+  gap: 7px;
+}
+.stage-9x16.temple-3d-mode .leader-item {
+  min-height: 25px;
+  gap: 7px;
+  font-size: 13px;
+}
+.stage-9x16.temple-3d-mode .leader-rank {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  margin: 0;
+  border: 1px solid rgba(255,215,132,.4);
+  background: rgba(199,145,65,.16);
+  color: #ffe2a5;
+  font-size: 11px;
+}
+.stage-9x16.temple-3d-mode .leader-name {
+  color: #f4e8d5;
+  font-size: 13px;
+}
+.stage-9x16.temple-3d-mode .leader-merit {
+  color: #ffdc8b;
+  font-size: 12px;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .minimal-top-bar {
+    top: 18px;
+    left: 16px;
+    right: 16px;
+    gap: 8px;
+  }
+  .stage-9x16.temple-3d-mode .live-pill {
+    min-height: 48px;
+    padding: 7px 10px;
+    gap: 7px;
+    font-size: 11px;
+  }
+  .stage-9x16.temple-3d-mode .live-pill::after {
+    min-height: 21px;
+    padding: 0 7px;
+    font-size: 8px;
+  }
+  .stage-9x16.temple-3d-mode .mini-stat-pill {
+    min-height: 46px;
+    padding: 5px 8px;
+    gap: 4px;
+    font-size: 9px;
+  }
+  .stage-9x16.temple-3d-mode .mini-stat-pill strong {
+    font-size: 11px;
+  }
+  .stage-9x16.temple-3d-mode .bottom-hud-bar {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    height: 188px;
+    gap: 7px;
+    padding: 7px;
+  }
+  .stage-9x16.temple-3d-mode .hud-active-notice {
+    min-height: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+  .stage-9x16.temple-3d-mode .hud-gift-cards {
+    gap: 5px;
+  }
+  .stage-9x16.temple-3d-mode .hud-gift-card {
+    gap: 5px;
+    padding: 7px 4px;
+  }
+  .stage-9x16.temple-3d-mode .gift-coin-tag {
+    font-size: 8px;
+  }
+  .stage-9x16.temple-3d-mode .gift-emoji {
+    font-size: 25px;
+  }
+  .stage-9x16.temple-3d-mode .gift-title {
+    font-size: 10px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard {
+    padding: 7px;
+  }
+  .stage-9x16.temple-3d-mode .hud-lb-header {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .stage-9x16.temple-3d-mode .leader-item,
+  .stage-9x16.temple-3d-mode .leader-name {
+    font-size: 9px;
+  }
+  .stage-9x16.temple-3d-mode .leader-rank {
+    width: 16px;
+    height: 16px;
+    flex-basis: 16px;
+    font-size: 8px;
+  }
+  .stage-9x16.temple-3d-mode .leader-merit {
+    font-size: 8px;
+  }
+}
