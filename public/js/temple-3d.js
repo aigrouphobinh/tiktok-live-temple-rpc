@@ -80,6 +80,7 @@ async function boot() {
         let value;
         if (kind === 'wood') value = 178 + grain * 30 + noise * 13;
         else if (kind === 'lacquer') value = 82 + grain * 10 + noise * 9;
+        else if (kind === 'stone') value = 222 + grain * 7 + noise * 10;
         else value = 112 + grain * 8 + noise * 15;
         const channel = Math.max(0, Math.min(255, Math.round(value)));
         data[index] = data[index + 1] = data[index + 2] = channel;
@@ -88,7 +89,7 @@ async function boot() {
     }
     const texture = new THREE.DataTexture(data, detailTextureSize, detailTextureSize, THREE.RGBAFormat);
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(kind === 'wood' ? 2 : 3, kind === 'wood' ? 5 : 3);
+    texture.repeat.set(kind === 'wood' ? 2 : kind === 'stone' ? 4 : 3, kind === 'wood' ? 5 : kind === 'stone' ? 4 : 3);
     texture.magFilter = THREE.LinearFilter;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.generateMipmaps = true;
@@ -98,9 +99,11 @@ async function boot() {
   const woodRoughness = makeRoughnessTexture('wood');
   const lacquerRoughness = makeRoughnessTexture('lacquer');
   const goldRoughness = makeRoughnessTexture('gold');
+  const stoneRoughness = makeRoughnessTexture('stone');
   for (const material of [mats.wood, mats.woodLight]) material.roughnessMap = woodRoughness;
   for (const material of [mats.red, mats.redBright]) material.roughnessMap = lacquerRoughness;
   for (const material of [mats.gold, mats.goldBright]) material.roughnessMap = goldRoughness;
+  for (const material of [mats.statueStone, mats.statueShadow, mats.statueLight]) material.roughnessMap = stoneRoughness;
   // A tiny deterministic grayscale bump tile gives the carved stone a restrained mineral grain.
   const stoneGrainSize = 64;
   const stoneGrainData = new Uint8Array(stoneGrainSize * stoneGrainSize * 4);
