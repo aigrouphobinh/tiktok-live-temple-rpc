@@ -1959,24 +1959,36 @@ async function boot() {
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
   async function upgradeBuddhaFromGLB() {
+    const { loadGLTFAsset } = await import('./three-model-loader.js');
+    let asset;
     try {
-      const { loadGLTFAsset } = await import('./three-model-loader.js');
-      const asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
+      // The user-selected Kenny Hsieh model always has priority when present.
+      asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
         targetHeight: 5.88,
         centerXZ: true
       });
-      if (disposed) {
-        asset.dispose();
+      console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
+    } catch (selectedError) {
+      console.warn('[Temple3D] Selected Kenny Hsieh Buddha unavailable; trying the CC0 gilt-bronze scan:', selectedError);
+      try {
+        asset = await loadGLTFAsset('/assets/models/buddha-cc0-fallback.glb', {
+          targetHeight: 5.88,
+          centerXZ: true
+        });
+        console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
+      } catch (fallbackError) {
+        console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', fallbackError);
         return;
       }
-      // Retain the procedural statue as a hidden fallback. Its cached
-      // primitive geometries are shared with other scene meshes.
-      for (const child of statue.children) child.visible = false;
-      statue.add(asset.root);
-      console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
-    } catch (error) {
-      console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', error);
     }
+    if (disposed) {
+      asset.dispose();
+      return;
+    }
+    // Keep the procedural meshes as a hidden last-resort fallback. Their
+    // cached primitive geometries are shared with the rest of the scene.
+    for (const child of statue.children) child.visible = false;
+    statue.add(asset.root);
   }
 
   function addEffect(object, update, duration = 1800) {
