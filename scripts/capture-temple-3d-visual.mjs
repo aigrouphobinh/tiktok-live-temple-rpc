@@ -308,8 +308,9 @@ try {
         rendererPixelRatioMatches: idleStats?.pixelRatio === scenario.expectedPixelRatio,
         giftBurstStatsCaptured: Boolean(stressStats),
         giftBurstHadActiveEffects: Number(stressStats?.activeEffects) > 0,
-        giftBurstDrawCallsMeasured: Number.isFinite(stressStats?.drawCalls)
-          && stressStats.drawCalls > 0,
+        giftBurstDrawCallsIncreased: Number.isFinite(idleStats?.drawCalls)
+          && Number.isFinite(stressStats?.drawCalls)
+          && stressStats.drawCalls > idleStats.drawCalls,
         drawCallsWithinBudget: Number.isFinite(idleStats?.drawCalls)
           && Number.isFinite(stressStats?.drawCalls)
           && idleStats.drawCalls <= 1200
@@ -392,25 +393,19 @@ try {
   const giftBurstDrawCallsWithinBudget = giftBurstDrawCalls.every(
     (value) => Number.isFinite(value) && value <= 1200
   );
-  const giftBurstEffectsIncreaseByTier = [
-    giftBurstActiveEffectsByTier.low,
-    giftBurstActiveEffectsByTier.medium,
-    giftBurstActiveEffectsByTier.high
-  ].every(Number.isFinite)
-    && giftBurstActiveEffectsByTier.low < giftBurstActiveEffectsByTier.medium
-    && giftBurstActiveEffectsByTier.medium < giftBurstActiveEffectsByTier.high;
+  const idleDrawCallsStrictlyIncrease = idleDrawCalls.every(Number.isFinite)
+    && idleDrawCalls[0] < idleDrawCalls[1]
+    && idleDrawCalls[1] < idleDrawCalls[2];
   report.summary = {
     passed: report.profiles.length === scenarios.length
       && report.profiles.every((profile) => profile.checks.passed)
+      && idleDrawCallsStrictlyIncrease
       && idleDrawCallsWithinBudget
-      && giftBurstDrawCallsWithinBudget
-      && giftBurstEffectsIncreaseByTier,
+      && giftBurstDrawCallsWithinBudget,
     allProfilesPassed: report.profiles.length === scenarios.length
       && report.profiles.every((profile) => profile.checks.passed),
     drawCallsByTier: idleDrawCallsByTier,
-    idleDrawCallsStrictlyIncrease: idleDrawCalls.every(Number.isFinite)
-      && idleDrawCalls[0] < idleDrawCalls[1]
-      && idleDrawCalls[1] < idleDrawCalls[2],
+    idleDrawCallsStrictlyIncrease,
     giftBurstDrawCallsByTier,
     giftBurstActiveEffectsByTier,
     giftBurstDrawCallsStrictlyIncrease: giftBurstDrawCalls.every(Number.isFinite)
@@ -418,7 +413,7 @@ try {
       && giftBurstDrawCalls[1] < giftBurstDrawCalls[2],
     idleDrawCallsWithinBudget,
     giftBurstDrawCallsWithinBudget,
-    giftBurstEffectsIncreaseByTier,
+    // activeEffects is diagnostic only: gift objects are independent of environment detail tier.
     maxDrawCallsBudget: 1200
   };
   // Keep the original summary field name for consumers of the first profile audit.
@@ -437,13 +432,13 @@ try {
 
   // A stable detail profile should submit progressively more batches at higher tiers.
   report.summary.passed = report.summary.allProfilesPassed
+    && report.summary.idleDrawCallsStrictlyIncrease
     && report.summary.idleDrawCallsWithinBudget
     && report.summary.giftBurstDrawCallsWithinBudget
-    && report.summary.giftBurstEffectsIncreaseByTier
     && report.profiles.every((profile) =>
       profile.checks.giftBurstStatsCaptured
       && profile.checks.giftBurstHadActiveEffects
-      && profile.checks.giftBurstDrawCallsMeasured
+      && profile.checks.giftBurstDrawCallsIncreased
       && profile.checks.drawCallsWithinBudget
     );
 
