@@ -179,6 +179,17 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain('disposeThreeSceneResources(root)');
   });
 
+  it('keeps the hidden source GLB in the scene so cloned avatar resources have one disposal owner', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    const start = scene.indexOf('async function upgradeDevoteesFromGLB()');
+    const end = scene.indexOf('function animateHuman(', start);
+    const loader = scene.slice(start, end);
+    expect(loader).toContain('asset.root.visible = false;');
+    expect(loader).toContain('world.add(asset.root);');
+    expect(loader.indexOf('world.add(asset.root);')).toBeLessThan(loader.indexOf('clone(asset.root)'));
+    expect(loader).toContain('SkeletonUtils');
+  });
+
   it('supports optional rigged devotee GLBs while preserving procedural fallback', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("loadGLTFAsset('/assets/models/devotee-selected.glb'");
