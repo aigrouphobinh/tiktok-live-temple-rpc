@@ -514,6 +514,15 @@ describe('3D sanctuary visual treatment', () => {
 
 
 });
+  it('eases the devotee bow pose smoothly into and out of the ritual', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const bowInProgress = Math.min(1, (now - devoteeState.bowAt) / 650);');
+    expect(scene).toContain('const bowOutProgress = now > ritualUntil - 650 ? Math.max(0, (ritualUntil - now) / 650) : 1;');
+    expect(scene).toContain('const bowIn = bowInProgress * bowInProgress * (3 - 2 * bowInProgress);');
+    expect(scene).toContain('const bowOut = bowOutProgress * bowOutProgress * (3 - 2 * bowOutProgress);');
+    expect(scene).toContain('const bow = bowIn * bowOut;');
+  });
+
   it('retains hidden procedural fallbacks without disposing shared cached geometry', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('for (const child of avatar.root.children) child.visible = false;');
