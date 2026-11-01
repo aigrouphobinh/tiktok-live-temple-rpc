@@ -458,14 +458,26 @@ async function boot() {
   sphere(0.36,mats.statueShadow,0,5.42,0.02,0.82,0.72,0.78,statue);
   sphere(0.13,mats.statueStone,-0.62,4.55,0.02,0.55,1.2,0.62,statue);
   sphere(0.13,mats.statueStone,0.62,4.55,0.02,0.55,1.2,0.62,statue);
-  // Curled hair cap and small raised curls.
-  for(let row=0;row<4;row++){
-    const count=9-row*2;
-    for(let k=0;k<count;k++){
-      const x=(k-(count-1)/2)*0.13;
-      sphere(0.075,mats.statueShadow,x,5.18+row*0.12,0.43,1,1,0.85,statue);
+  // Curled hair cap: preserve the sculpted layout in one static draw batch.
+  const hairCurlRows = [9, 7, 5, 3];
+  const hairCurlCount = hairCurlRows.reduce((total, count) => total + count, 0);
+  const hairCurlGeometry = new THREE.SphereGeometry(0.075, 24, 16);
+  const hairCurls = new THREE.InstancedMesh(hairCurlGeometry, mats.statueShadow, hairCurlCount);
+  const hairCurlTransform = new THREE.Object3D();
+  let hairCurlIndex = 0;
+  hairCurlRows.forEach((count, row) => {
+    for (let k = 0; k < count; k++) {
+      const x = (k - (count - 1) / 2) * 0.13;
+      hairCurlTransform.position.set(x, 5.18 + row * 0.12, 0.43);
+      hairCurlTransform.scale.set(1, 1, 0.85);
+      hairCurlTransform.updateMatrix();
+      hairCurls.setMatrixAt(hairCurlIndex++, hairCurlTransform.matrix);
     }
-  }
+  });
+  hairCurls.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+  hairCurls.castShadow = true;
+  hairCurls.receiveShadow = false;
+  statue.add(hairCurls);
   sphere(0.1,mats.statueStone,0,5.78,0.02,1,1.1,1,statue);
   // Calm eyes, brows, nose and lips, carved shallow into the stone.
   const statueLine=(points,radius,material=mats.statueShadow)=>{
