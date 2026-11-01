@@ -92,7 +92,9 @@ async function boot() {
   const key = new THREE.DirectionalLight(0xffd28a, 3.0);
   key.position.set(-7, 15, 8); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); key.shadow.camera.left = -14; key.shadow.camera.right = 14;
-  key.shadow.camera.top = 18; key.shadow.camera.bottom = -18; scene.add(key);
+  key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
+  key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
+  scene.add(key);
   const buddhaLight = new THREE.PointLight(0xe5eaed, 34, 18, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
 
@@ -1256,7 +1258,11 @@ async function boot() {
         mainDevotee.visible = false;
       }
     }
-    lanterns.forEach((light, i) => { light.intensity = 12 + Math.sin(elapsed * 0.003 + i) * 2; });
+    lanterns.forEach((light, i) => {
+      light.intensity = 11.5 + Math.sin(elapsed * 0.0032 + i * 1.7) * 1.65 + Math.sin(elapsed * 0.007 + i) * 0.35;
+    });
+    buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6;
+    altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2;
     updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
     offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
