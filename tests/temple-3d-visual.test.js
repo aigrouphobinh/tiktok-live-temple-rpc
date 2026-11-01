@@ -12,6 +12,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
+  it('turns procedural devotees toward incoming gifts with a bounded head acknowledgement', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('giftReactionUntil: 0');
+    expect(scene).toContain('const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time);');
+    expect(scene).toContain('avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;');
+    expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * 0.018;');
+    expect(scene).toContain('const reactionUntil = performance.now() + 1800;');
+    expect(scene).toContain('for (const avatar of allHumanAvatars) avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);');
+  });
+
   it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, smile,');
