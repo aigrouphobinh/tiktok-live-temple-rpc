@@ -19,10 +19,10 @@ describe('Three.js GLB resource lifecycle', () => {
     expect(loaderSource).toContain('if (disposed) return;');
     expect(loaderSource).toContain('mixer?.stopAllAction();');
   });
-});
+
   it('releases decoded scene resources when bounds validation rejects a GLB', () => {
     expect(loaderSource).toContain('catch (error) {');
     expect(loaderSource).toContain('disposeThreeSceneResources(root);');
     expect(loaderSource).toContain('throw error;');
   });
-
+});
