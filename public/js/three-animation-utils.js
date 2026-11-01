@@ -34,6 +34,10 @@ export function findBestAnimationClip(animations = [], aliases = DEFAULT_CLIP_AL
       if (!normalized) return;
       const aliasIndex = tokens.findIndex((token) => hasNameToken(normalized, token));
       if (aliasIndex < 0) return;
+      // Ritual clips often contain "Idle" in names such as "Praying Idle".
+      // Their explicit ritual intent must win over incidental idle tokens.
+      const hasRitualIntent = aliases.bow?.some((token) => hasNameToken(normalized, token));
+      if (hasRitualIntent && action !== 'bow') return;
       const exact = normalized === tokens[aliasIndex];
       candidates.push({
         action,
