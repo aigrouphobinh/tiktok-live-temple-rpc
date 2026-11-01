@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
@@ -1121,7 +1121,7 @@ async function boot() {
       root, upperBody, torso, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
-      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0
+      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionUntil: 0
     };
     allHumanAvatars.push(avatar);
     return avatar;
@@ -1401,8 +1401,11 @@ async function boot() {
     // Keep breathing on the torso mesh so the waist pivot and kneeling feet stay planted.
     avatar.torso.scale.y = 1 + breath * 0.012;
     avatar.torso.position.y = 0.40 + breath * 0.0025;
-    avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035;
-    avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012;
+    const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time);
+    avatar.torso.rotation.y = giftReaction * 0.035;
+    avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;
+    avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.025;
+    avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * 0.018;
     const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;
     const blinkPulse = Math.max(0, 1 - Math.abs(blinkCycle - 0.12) / 0.12);
     const blink = Math.min(1, blinkPulse * 0.94 + avatar.kneelBlend * 0.12);
@@ -1694,7 +1697,12 @@ async function boot() {
   // not the character-interruption signal, so every started gift renders once.
   function onTempleGiftAction(event) {
     const action = event.detail?.action;
-    if (['rocket', 'dragon', 'donut', 'rose'].includes(action)) playWorldGiftAction(action);
+    if (!['rocket', 'dragon', 'donut', 'rose'].includes(action)) return;
+    playWorldGiftAction(action);
+    // Acknowledge the gift with a small shared glance and appreciative head tilt.
+    // Repeated gifts extend the response instead of stacking extra animation state.
+    const reactionUntil = performance.now() + 1800;
+    for (const avatar of allHumanAvatars) avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);
   }
   window.addEventListener('temple:ritual', onTempleRitual);
   window.addEventListener('temple:gift-action', onTempleGiftAction);
