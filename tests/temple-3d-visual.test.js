@@ -51,7 +51,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const strength = blend * profile.intensity;');
     expect(scene).toContain('avatar.upperBody.rotation.x = upperPose.torsoLean - blend * profile.bowAmount;');
     expect(scene).toContain('const thankYouLift = strength * (0.92 + Math.sin(time * 0.007) * 0.025);');
-    expect(scene).toContain('getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55)');
+    expect(scene).toContain('function getAvatarGiftReactionBlend(avatar, time)');
+    expect(scene).toContain('getGiftReactionBlend(avatar.giftReactionUntil - time, duration);');
+    expect(scene).toContain('const giftReaction = getAvatarGiftReactionBlend(avatar, time) * (avatar.giftReactionProfile?.intensity || 0.55);');
   });
 
   it('raises both hands into a restrained thank-you gesture during gift reactions', () => {
@@ -65,6 +67,19 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('applyGiftThankYouGesture(avatar, time);');
     expect(scene).toContain('applyGiftThankYouGesture(mainHuman, now);');
     expect(scene).toContain('if (avatar.gltfRoot) return;');
+  });
+
+
+
+  it('stagger congregation gift reactions and pulse altar lighting with the shared response', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('giftReactionStartedAt: 0, giftReactionUntil: 0');
+    expect(scene).toContain('const phase = ((avatar.phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);');
+    expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
+    expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
+    expect(scene).toContain('const congregationGiftGlow = allHumanAvatars.reduce((peak, avatar) => Math.max(');
+    expect(scene).toContain('buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;');
+    expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
   });
 
   it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
