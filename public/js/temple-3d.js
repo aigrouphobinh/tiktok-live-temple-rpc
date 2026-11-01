@@ -1957,26 +1957,92 @@ async function boot() {
   // default and stays visible until the selected, rights-cleared file loads.
   const modelParams = new URLSearchParams(location.search);
   const modelsRequested = modelParams.get('models') === '1';
+  // Allow the Buddha asset to be previewed independently of optional devotee rigs.
+  const buddhaModelRequested = modelParams.get('buddha') === '1';
   // Diagnostics are opt-in so normal live sessions pay no logging overhead.
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
+
+  // Probe optional same-origin GLBs before the model loader requests them.
+  // A missing preferred asset is an expected fallback state.
+  async function isLocalModelAvailable(url) {
+    const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    return response.ok;
+  }
+
+  function applyGiltFinish(root) {
+    root.traverse((node) => {
+      if (!node.isMesh || !node.material) return;
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      for (const material of materials) {
+        if (!material) continue;
+        // The public MIA scan is a neutral/light scan of a gilt-bronze object.
+        // Apply a restrained gold PBR finish while preserving its texture maps.
+        if (material.color) material.color.setHex(0xd8a63d);
+        if ('metalness' in material) material.metalness = 0.64;
+        if ('roughness' in material) material.roughness = 0.32;
+        if (material.emissive) {
+          material.emissive.setHex(0x382006);
+          material.emissiveIntensity = 0.08;
+        }
+        material.needsUpdate = true;
+      }
+      node.castShadow = true;
+      node.receiveShadow = true;
+    });
+  }
+
   async function upgradeBuddhaFromGLB() {
+    let asset;
+    let assetSource = 'procedural';
     try {
       const { loadGLTFAsset } = await import('./three-model-loader.js');
-      const asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
-        targetHeight: 5.88,
-        centerXZ: true
-      });
+      const selectedUrl = '/assets/models/buddha-selected.glb';
+      const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';
+
+      // The user-selected Kenny Hsieh model has priority when its local file exists.
+      if (await isLocalModelAvailable(selectedUrl)) {
+        try {
+          asset = await loadGLTFAsset(selectedUrl, {
+            targetHeight: 5.88,
+            centerXZ: true
+          });
+          assetSource = 'kenny-hsieh';
+          console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
+        } catch (selectedError) {
+          console.warn('[Temple3D] Selected Kenny Hsieh Buddha is invalid; trying the CC0 gilt-bronze scan:', selectedError);
+        }
+      } else {
+        console.info('[Temple3D] Selected Kenny Hsieh GLB is not vendored yet; skipping its load request.');
+      }
+
+      if (!asset) {
+        if (!(await isLocalModelAvailable(fallbackUrl))) {
+          window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
+          console.warn('[Temple3D] Optional Buddha GLB files are not available; keeping procedural statue.');
+          return;
+        }
+        asset = await loadGLTFAsset(fallbackUrl, {
+          targetHeight: 5.88,
+          centerXZ: true
+        });
+        assetSource = 'mia-cc0-gilt-bronze';
+        console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
+      }
+
       if (disposed) {
         asset.dispose();
         return;
       }
-      // Retain the procedural statue as a hidden fallback. Its cached
-      // primitive geometries are shared with other scene meshes.
+      // Preserve Kenny Hsieh's authored materials; only tint the neutral CC0 scan.
+      if (assetSource === 'mia-cc0-gilt-bronze') applyGiltFinish(asset.root);
+      // Keep the procedural meshes as a hidden last-resort fallback. Their
+      // cached primitive geometries are shared with the rest of the scene.
       for (const child of statue.children) child.visible = false;
       statue.add(asset.root);
-      console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
+      window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = assetSource;
     } catch (error) {
+      window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
       console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', error);
     }
   }
@@ -2379,8 +2445,11 @@ async function boot() {
   window.__TEMPLE_3D_READY__ = true;
   window.dispatchEvent(new Event('temple:3d-ready'));
   start();
-  if (modelsRequested) {
+  if (modelsRequested || buddhaModelRequested) {
+    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';
     void upgradeBuddhaFromGLB();
+  }
+  if (modelsRequested) {
     void upgradeDevoteesFromGLB();
   }
   console.info('[Temple3D] Full sanctuary world ready (?3d=1), with human devotees and stone Buddha.');

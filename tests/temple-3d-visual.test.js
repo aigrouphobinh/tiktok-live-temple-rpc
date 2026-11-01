@@ -337,11 +337,37 @@ describe('3D sanctuary visual treatment', () => {
   it('keeps the procedural statue as fallback and gates local GLB replacement behind models=1', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("get('models') === '1'");
-    expect(scene).toContain("loadGLTFAsset('/assets/models/buddha-selected.glb'");
+    expect(scene).toContain('await isLocalModelAvailable(selectedUrl)');
     expect(scene).toContain('if (disposed) {');
     expect(scene).toContain('statue.add(asset.root)');
     expect(scene).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
     expect(scene).toContain('const statue = new THREE.Group()');
+  });
+
+  it('tries Kenny first, then the CC0 scan, and exposes a Buddha-only preview flag', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    const start = scene.indexOf('async function upgradeBuddhaFromGLB()');
+    const end = scene.indexOf('function addEffect', start);
+    const loader = scene.slice(start, end);
+    const selectedIndex = loader.indexOf("loadGLTFAsset(selectedUrl");
+    const fallbackIndex = loader.indexOf("loadGLTFAsset(fallbackUrl");
+    const preflightIndex = loader.indexOf("await isLocalModelAvailable(selectedUrl)");
+    const fallbackPreflightIndex = loader.indexOf("await isLocalModelAvailable(fallbackUrl)");
+    expect(preflightIndex).toBeGreaterThanOrEqual(0);
+    expect(preflightIndex).toBeLessThan(selectedIndex);
+    expect(fallbackPreflightIndex).toBeLessThan(fallbackIndex);
+    expect(scene).toContain("method: 'HEAD'");
+    expect(loader).toContain('skipping its load request');
+    expect(scene).toContain("modelParams.get('buddha') === '1'");
+    expect(scene).toContain('modelsRequested || buddhaModelRequested');
+    expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading'");
+    expect(loader).toContain("assetSource = 'mia-cc0-gilt-bronze'");
+    expect(loader).toContain("assetSource === 'mia-cc0-gilt-bronze'");
+    expect(scene).toContain('function applyGiltFinish(root)');
+    expect(scene).toContain('material.color.setHex(0xd8a63d)');
+    expect(scene).toContain('material.metalness = 0.64');
+    expect(scene).toContain('material.roughness = 0.32');
+    expect(loader).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
   });
 
   it('normalizes bundled GLB assets and keeps GLTFLoader lazy-loaded', () => {
@@ -918,4 +944,13 @@ it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
   expect(scene).toContain('new THREE.PointLight(0xffd1a0, 23, 18, 2)');
   expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
   expect(scene).toContain('A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.');
+});
+
+it('validates gift-burst renderer cost against each profile idle baseline', () => {
+  const auditScript = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
+  expect(auditScript).toContain('giftBurstDrawCallsIncreased: Number.isFinite(idleStats?.drawCalls)');
+  expect(auditScript).toContain('stressStats.drawCalls > idleStats.drawCalls');
+  expect(auditScript).toContain('const idleDrawCallsStrictlyIncrease = idleDrawCalls.every(Number.isFinite)');
+  expect(auditScript).toContain('maxDrawCallsBudget: 1200');
+  expect(auditScript).not.toContain('giftBurstEffectsIncreaseByTier');
 });

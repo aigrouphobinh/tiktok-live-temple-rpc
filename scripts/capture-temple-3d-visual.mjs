@@ -26,7 +26,7 @@ async function waitForRendererSample(samples, targetCount, timeoutMs = 15000) {
 await mkdir(artifactDir, { recursive: true });
 
 const report = {
-  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1',
+  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1&buddha=1',
   capturedAt: new Date().toISOString(),
   viewport,
   deviceScaleFactor,
@@ -63,6 +63,7 @@ try {
   for (const scenario of scenarios) {
     const errors = [];
     const failedRequests = [];
+    const httpErrors = [];
     let page;
     const rendererStatsSamples = [];
 
@@ -86,6 +87,7 @@ try {
       rendererStats: null,
       consoleErrors: errors,
       failedRequests,
+      httpErrors,
       checks: {}
     };
 
@@ -106,7 +108,15 @@ try {
       });
 
       page.on('console', async (message) => {
-        if (message.type() === 'error') errors.push(message.text());
+        if (message.type() === 'error') {
+          const text = message.text();
+          // Missing optional browser icons are reported as generic 404 console
+          // errors. Track their URLs at the response layer; JS and WebGL errors
+          // remain hard failures.
+          if (!text.includes('Failed to load resource: the server responded with a status of 404 (Not Found)')) {
+            errors.push(text);
+          }
+        }
         if (message.text().includes('[Temple3D] GPU frame stats')) {
           try {
             const args = message.args();
@@ -123,11 +133,28 @@ try {
         }
       });
       page.on('pageerror', (error) => errors.push(error.stack || error.message));
+      page.on('response', (response) => {
+        if (response.status() >= 400) {
+          httpErrors.push({
+            url: response.url(),
+            status: response.status(),
+            statusText: response.statusText()
+          });
+        }
+      });
       page.on('requestfailed', (request) => {
-        failedRequests.push({
-          url: request.url(),
-          error: request.failure()?.errorText || 'request failed'
-        });
+        const error = request.failure()?.errorText || 'request failed';
+        let pathname = '';
+        try { pathname = new URL(request.url()).pathname; } catch {}
+        const isExpectedOptionalModelHeadProbe = request.method() === 'HEAD'
+          && error === 'net::ERR_ABORTED'
+          && [
+            '/assets/models/buddha-selected.glb',
+            '/assets/models/buddha-cc0-fallback.glb'
+          ].includes(pathname);
+        if (!isExpectedOptionalModelHeadProbe) {
+          failedRequests.push({ url: request.url(), error });
+        }
       });
 
       const profileUrl = new URL(report.url);
@@ -146,6 +173,18 @@ try {
         profileReport.ready = true;
       } catch (error) {
         profileReport.readinessError = error.message;
+      }
+
+      // Require the external Buddha GLB to finish loading before the visual capture.
+      try {
+        await page.waitForFunction(
+          () => window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== undefined
+            && window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== 'loading',
+          null,
+          { timeout: 30000 }
+        );
+      } catch (error) {
+        profileReport.modelLoadError = error.message;
       }
 
       // Capture one renderer sample for the idle-scene baseline.
@@ -202,6 +241,7 @@ try {
         });
         return {
           readyFlag: window.__TEMPLE_3D_READY__ === true,
+          buddhaModelSource: window.__TEMPLE_BUDDHA_MODEL_SOURCE__ ?? null,
           userAgent: navigator.userAgent,
           devicePixelRatio: window.devicePixelRatio,
           browserHints: {
@@ -233,6 +273,8 @@ try {
         };
       });
 
+      profileReport.buddhaModelSource = scene.buddhaModelSource;
+      profileReport.httpErrors = httpErrors;
       profileReport.browserHints = scene.browserHints;
       profileReport.userAgent = scene.userAgent;
       profileReport.devicePixelRatio = scene.devicePixelRatio;
@@ -266,15 +308,33 @@ try {
         rendererPixelRatioMatches: idleStats?.pixelRatio === scenario.expectedPixelRatio,
         giftBurstStatsCaptured: Boolean(stressStats),
         giftBurstHadActiveEffects: Number(stressStats?.activeEffects) > 0,
-        giftBurstIncreasedDrawCalls: Number.isFinite(idleStats?.drawCalls)
+        giftBurstDrawCallsIncreased: Number.isFinite(idleStats?.drawCalls)
           && Number.isFinite(stressStats?.drawCalls)
           && stressStats.drawCalls > idleStats.drawCalls,
+        drawCallsWithinBudget: Number.isFinite(idleStats?.drawCalls)
+          && Number.isFinite(stressStats?.drawCalls)
+          && idleStats.drawCalls <= 1200
+          && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
+        buddhaModelLoaded: ['kenny-hsieh', 'mia-cc0-gilt-bronze'].includes(scene.buddhaModelSource),
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
         noConsoleErrors: errors.length === 0,
-        noFailedRequests: failedRequests.length === 0
+        noFailedRequests: failedRequests.length === 0,
+        noUnexpectedHttpErrors: httpErrors.every((item) => {
+          let pathname = '';
+          try { pathname = new URL(item.url).pathname; } catch {}
+          return item.status === 404
+            && [
+              '/favicon.ico',
+              '/favicon.png',
+              '/apple-touch-icon.png',
+              // The selected Kenny Hsieh GLB is user-supplied; its absence is
+              // expected until the official download is added to this path.
+              '/assets/models/buddha-selected.glb'
+            ].includes(pathname);
+        })
       };
       profileReport.checks.passed = Object.values(profileReport.checks).every(Boolean);
 
@@ -327,20 +387,34 @@ try {
     giftBurstDrawCallsByTier.medium,
     giftBurstDrawCallsByTier.high
   ];
+  const idleDrawCallsWithinBudget = idleDrawCalls.every(
+    (value) => Number.isFinite(value) && value <= 1200
+  );
+  const giftBurstDrawCallsWithinBudget = giftBurstDrawCalls.every(
+    (value) => Number.isFinite(value) && value <= 1200
+  );
+  const idleDrawCallsStrictlyIncrease = idleDrawCalls.every(Number.isFinite)
+    && idleDrawCalls[0] < idleDrawCalls[1]
+    && idleDrawCalls[1] < idleDrawCalls[2];
   report.summary = {
     passed: report.profiles.length === scenarios.length
-      && report.profiles.every((profile) => profile.checks.passed),
+      && report.profiles.every((profile) => profile.checks.passed)
+      && idleDrawCallsStrictlyIncrease
+      && idleDrawCallsWithinBudget
+      && giftBurstDrawCallsWithinBudget,
     allProfilesPassed: report.profiles.length === scenarios.length
       && report.profiles.every((profile) => profile.checks.passed),
     drawCallsByTier: idleDrawCallsByTier,
-    idleDrawCallsStrictlyIncrease: idleDrawCalls.every(Number.isFinite)
-      && idleDrawCalls[0] < idleDrawCalls[1]
-      && idleDrawCalls[1] < idleDrawCalls[2],
+    idleDrawCallsStrictlyIncrease,
     giftBurstDrawCallsByTier,
     giftBurstActiveEffectsByTier,
     giftBurstDrawCallsStrictlyIncrease: giftBurstDrawCalls.every(Number.isFinite)
       && giftBurstDrawCalls[0] < giftBurstDrawCalls[1]
-      && giftBurstDrawCalls[1] < giftBurstDrawCalls[2]
+      && giftBurstDrawCalls[1] < giftBurstDrawCalls[2],
+    idleDrawCallsWithinBudget,
+    giftBurstDrawCallsWithinBudget,
+    // activeEffects is diagnostic only: gift objects are independent of environment detail tier.
+    maxDrawCallsBudget: 1200
   };
   // Keep the original summary field name for consumers of the first profile audit.
   report.summary.drawCallsStrictlyIncrease = report.summary.idleDrawCallsStrictlyIncrease;
@@ -358,11 +432,14 @@ try {
 
   // A stable detail profile should submit progressively more batches at higher tiers.
   report.summary.passed = report.summary.allProfilesPassed
-    && report.summary.drawCallsStrictlyIncrease
+    && report.summary.idleDrawCallsStrictlyIncrease
+    && report.summary.idleDrawCallsWithinBudget
+    && report.summary.giftBurstDrawCallsWithinBudget
     && report.profiles.every((profile) =>
       profile.checks.giftBurstStatsCaptured
       && profile.checks.giftBurstHadActiveEffects
-      && profile.checks.giftBurstIncreasedDrawCalls
+      && profile.checks.giftBurstDrawCallsIncreased
+      && profile.checks.drawCallsWithinBudget
     );
 
   await writeFile(
