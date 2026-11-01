@@ -1,3 +1,9 @@
+### 2026-11-01 — Keep cloned GLB source resources under scene ownership
+- Found that SkeletonUtils.clone() shares geometry, materials and textures with the loaded source GLB. The source root was never attached to the scene, so scene teardown could dispose the visible clones while leaving the original imported resources outside the cleanup tree.
+- Keep the source root hidden inside the world before cloning. This avoids rendering a duplicate and ensures the existing scene-level resource disposer reaches both source and clones exactly once.
+- Added a regression test for source-root ownership and ordering.
+- CI pending.
+
 ### 2026-11-01 — Align legacy GLB inspector expectations
 - CI exposed one older inspector test that still expected unnamed clips without their stable one-based index. Updated the legacy assertion to match the richer inspector output.
 - New rig/joint/channel fixture tests passed; this correction aligns the pre-existing suite with the same output contract.
