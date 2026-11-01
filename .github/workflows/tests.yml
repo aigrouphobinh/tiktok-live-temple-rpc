@@ -35,6 +35,7 @@ jobs:
           node --input-type=module --check < public/js/gift-action-engine.js &&
           node --input-type=module --check < public/js/live.js &&
           grep -Fq 'Full 3D temple world' public/js/temple-3d.js &&
+          grep -Fq 'Calm Amitabha facial features' public/js/temple-3d.js &&
           grep -Fq 'new THREE.PerspectiveCamera' public/js/temple-3d.js &&
           grep -Fq 'temple-3d-mode' public/js/temple-3d.js &&
           grep -Fq '.stage-9x16.temple-3d-mode .sanctuary-bg-img' public/css/live.css &&
