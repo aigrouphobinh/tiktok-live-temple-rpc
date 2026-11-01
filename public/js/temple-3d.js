@@ -53,9 +53,9 @@ async function boot() {
     red: new THREE.MeshStandardMaterial({ color: 0x741321, roughness: 0.48, metalness: 0.22 }),
     redBright: new THREE.MeshStandardMaterial({ color: 0x9d2030, roughness: 0.4, metalness: 0.3 }),
     stone: new THREE.MeshStandardMaterial({ color: 0x777a7c, roughness: 0.92 }),
-    statueStone: new THREE.MeshStandardMaterial({ color: 0x96999a, roughness: 0.94 }),
-    statueShadow: new THREE.MeshStandardMaterial({ color: 0x55595b, roughness: 0.96 }),
-    statueLight: new THREE.MeshStandardMaterial({ color: 0xb8babb, roughness: 0.9 }),
+    statueStone: new THREE.MeshStandardMaterial({ color: 0xbdb29c, roughness: 0.94 }),
+    statueShadow: new THREE.MeshStandardMaterial({ color: 0x76674f, roughness: 0.96 }),
+    statueLight: new THREE.MeshStandardMaterial({ color: 0xe5d8bf, roughness: 0.9 }),
     ivory: new THREE.MeshStandardMaterial({ color: 0xffe0a0, roughness: 0.35, metalness: 0.18 }),
     skin: new THREE.MeshStandardMaterial({ color: 0xe7ad6b, roughness: 0.52 }),
     robe: new THREE.MeshStandardMaterial({ color: 0x71859a, roughness: 0.82 }),
@@ -312,7 +312,7 @@ async function boot() {
   sphere(0.1,mats.statueStone,0,2.82,0.82,1,0.8,0.7,statue);
   // Broad carved stone aureole behind the Buddha.
   const halo = new THREE.Group(); halo.position.set(0,5.25,-8.8); world.add(halo);
-  const haloStone = new THREE.MeshStandardMaterial({color:0x777b7d,roughness:0.9,metalness:0.02,side:THREE.DoubleSide});
+  const haloStone = new THREE.MeshStandardMaterial({color:0xa59a83,roughness:0.9,metalness:0.02,side:THREE.DoubleSide});
   const haloDisc = new THREE.Mesh(new THREE.CircleGeometry(2.05,64),haloStone); halo.add(haloDisc);
   const haloRim = new THREE.Mesh(new THREE.TorusGeometry(2.05,0.12,12,96),mats.statueLight); halo.add(haloRim);
   const haloInner = new THREE.Mesh(new THREE.TorusGeometry(1.82,0.035,8,96),mats.goldBright); haloInner.position.z=0.03; halo.add(haloInner);
