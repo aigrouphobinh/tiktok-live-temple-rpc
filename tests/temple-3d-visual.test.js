@@ -62,7 +62,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-4');
+    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-5');
   });
 
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
