@@ -334,4 +334,14 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds subtle finger creases and a raised thumb contour to the Buddha mudra', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Fine finger creases define the joined hands without changing the meditation pose.');
+    expect(scene).toContain('for (let finger = 0; finger < 3; finger++)');
+    expect(scene).toContain('], 0.008);');
+    expect(scene).toContain('A soft raised contour separates the thumbs at the centre of the mudra.');
+    expect(scene).toContain('statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.012,mats.statueLight);');
+  });
+
+
 });
