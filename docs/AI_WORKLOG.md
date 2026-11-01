@@ -1,3 +1,9 @@
+### 2026-11-01 — Add state-based procedural foot pose controller
+- Added a shared pure pose helper for idle/bow, walking and kneeling states, including blend weights, knee/hip/foot offsets, grounded contact and swing lift.
+- Routed procedural avatars through the shared helper so walk-to-idle returns to neutral consistently; the kneeling pose is available through the avatar's `kneeling` state flag without changing the current ritual trigger.
+- Kept GLB bone posing separate because the selected asset's joint axes and rest pose still need visual verification.
+- Added unit and scene-integration tests for neutral, kneeling, blended walking and invalid input behavior.
+
 ### 2026-11-01 — Verify IK stability across repeated frames and rotated rigs
 - Added regression coverage proving that repeatedly applying the same world-space ankle target does not accumulate rotational drift in the two-bone adapter.
 - Added a rotated-parent rig case to verify world-to-local quaternion conversion and preserved segment lengths under a transformed avatar root.
