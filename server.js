@@ -849,6 +849,9 @@ async function connectTikTokLive(usernameOrUrl) {
     } catch (_) {}
     tiktokConn = null;
   }
+  // A reconnect starts a new streak session; never carry cumulative counts
+  // across rooms/connections even if TikTok reuses a group ID.
+  giftComboTracker.clear();
 
   state.tiktok = {
     connected: false,
@@ -860,13 +863,14 @@ async function connectTikTokLive(usernameOrUrl) {
   };
   broadcastNotification('temple.state', getPublicState());
 
-  tiktokConn = new TikTokLiveConnection(cleanUser, {
+  const connection = new TikTokLiveConnection(cleanUser, {
     processInitialData: true,
     fetchRoomInfoOnConnect: false,
     enableExtendedGiftInfo: false
   });
+  tiktokConn = connection;
 
-  tiktokConn.on(ControlEvent.CONNECTED, (roomState) => {
+  connection.on(ControlEvent.CONNECTED, (roomState) => {
     state.tiktok.connected = true;
     state.tiktok.connecting = false;
     state.tiktok.roomId = roomState?.roomId || tiktokConn?.roomId || null;
@@ -875,20 +879,22 @@ async function connectTikTokLive(usernameOrUrl) {
     broadcastNotification('temple.state', getPublicState());
   });
 
-  tiktokConn.on(ControlEvent.DISCONNECTED, () => {
+  connection.on(ControlEvent.DISCONNECTED, () => {
+    if (tiktokConn !== connection) return;
+    giftComboTracker.clear();
     state.tiktok.connected = false;
     state.tiktok.connecting = false;
     console.log(`[TikTok Live] Đã ngắt kết nối @${cleanUser}`);
     broadcastNotification('temple.state', getPublicState());
   });
 
-  tiktokConn.on(ControlEvent.ERROR, (err) => {
+  connection.on(ControlEvent.ERROR, (err) => {
     state.tiktok.lastError = err?.message || String(err);
     console.warn('[TikTok Live Warning]', state.tiktok.lastError);
     broadcastNotification('temple.state', getPublicState());
   });
 
-  tiktokConn.on(WebcastEvent.ROOM_USER, (data) => {
+  connection.on(WebcastEvent.ROOM_USER, (data) => {
     const viewerCount = Number(data?.total ?? data?.viewerCount ?? 0);
     if (viewerCount > 0) {
       state.tiktok.viewerCount = viewerCount;
@@ -896,20 +902,20 @@ async function connectTikTokLive(usernameOrUrl) {
     }
   });
 
-  tiktokConn.on(WebcastEvent.MEMBER, (data) => {
+  connection.on(WebcastEvent.MEMBER, (data) => {
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     recordDevotee(user, uniqueId, avatar, 1, 0, 0, 'Đã vào Chánh Điện lễ Phật');
     broadcastNotification('temple.state', getPublicState());
   });
 
-  tiktokConn.on(WebcastEvent.CHAT, (data) => {
+  connection.on(WebcastEvent.CHAT, (data) => {
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const commentText = data?.content || data?.comment || '';
     console.log(`[TikTok Chat] ${user}: ${commentText}`);
     parseViewerComment(commentText, user, uniqueId, avatar);
   });
 
-  tiktokConn.on(WebcastEvent.LIKE, (data) => {
+  connection.on(WebcastEvent.LIKE, (data) => {
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const likeCount = Math.min(15, Math.max(1, Number(data?.count ?? data?.likeCount ?? 1)));
     Rituals.strikeWoodenFish({ user, uniqueId, avatar, count: likeCount });
@@ -926,9 +932,9 @@ async function connectTikTokLive(usernameOrUrl) {
       readTts: false
     });
   };
-  tiktokConn.on(WebcastEvent.FOLLOW, handleSocialEvent);
-  tiktokConn.on(WebcastEvent.SHARE, handleSocialEvent);
-  tiktokConn.on(WebcastEvent.SOCIAL, (data) => {
+  connection.on(WebcastEvent.FOLLOW, handleSocialEvent);
+  connection.on(WebcastEvent.SHARE, handleSocialEvent);
+  connection.on(WebcastEvent.SOCIAL, (data) => {
     const action = String(data?.action || '');
     const disp = String(data?.common?.displayText?.displayType || data?.displayType || '').toLowerCase();
     if (action === '1' || action === '3' || disp.includes('follow') || disp.includes('share')) {
@@ -936,7 +942,7 @@ async function connectTikTokLive(usernameOrUrl) {
     }
   });
 
-  tiktokConn.on(WebcastEvent.GIFT, (data) => {
+  connection.on(WebcastEvent.GIFT, (data) => {
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
     const giftPayload = normalizeGiftPayload(data, uniqueId);
     const {
@@ -979,7 +985,7 @@ async function connectTikTokLive(usernameOrUrl) {
   });
 
   try {
-    const roomState = await tiktokConn.connect();
+    const roomState = await connection.connect();
     state.tiktok.connected = true;
     state.tiktok.connecting = false;
     state.tiktok.roomId = roomState?.roomId || tiktokConn?.roomId || null;
@@ -1001,6 +1007,7 @@ function disconnectTikTokLive() {
     } catch (_) {}
     tiktokConn = null;
   }
+  giftComboTracker.clear();
   state.tiktok.connected = false;
   state.tiktok.connecting = false;
   state.tiktok.viewerCount = 0;
