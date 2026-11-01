@@ -2087,6 +2087,12 @@ async function boot() {
         asset.dispose();
         return;
       }
+      console.info('[Temple3D] Buddha mesh budget', {
+        source: assetSource,
+        triangles: asset.triangleCount,
+        castsShadow: asset.castsShadow
+      });
+
       // The supplied Thunk3D scan is a neutral white photogrammetry mesh.
       // Apply the same restrained aged-gold PBR finish used by the public-domain scan.
       if (assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze') {
