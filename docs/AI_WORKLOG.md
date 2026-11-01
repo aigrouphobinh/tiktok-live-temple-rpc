@@ -1,3 +1,8 @@
+### 2026-11-01 — Widen the gilt-bronze Buddha scan for portrait framing
+- The 1080×1920 Chromium capture confirmed the MIA GLB is loading, but the seated figure reads narrow against the halo and altar.
+- Apply a restrained 10% X-axis expansion to the MIA scan only, recenter its bounds after scaling, and preserve its normalized height and floor contact.
+- Kenny Hsieh's authored model and the procedural fallback are unchanged; visual confirmation is required before merge.
+
 ### 2026-11-01 — Strengthen the Buddha's portrait-scale silhouette
 - Slightly widened the seated stone figure while preserving its height, altar position, halo and master camera.
 - Added a continuous shoulder mantle and broadened the torso volume so the statue reads as a coherent carved form at 9:16 stream scale.
