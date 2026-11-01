@@ -45,6 +45,17 @@ describe('getFootPlantingPose', () => {
     expect(pose.kneeFlex).toBeCloseTo(0.035, 8);
     expect(pose.footLift).toBe(0);
   });
+
+  it('returns a finite neutral pose for non-finite phases', () => {
+    for (const phase of [NaN, Infinity, -Infinity]) {
+      const pose = getFootPlantingPose(phase);
+      expect(pose).toEqual({
+        step: 0, kneeFlex: 0, footLift: 0,
+        swingProgress: 0, stanceProgress: 0, isStance: true
+      });
+      expect(getFootPlantingStep(phase)).toBe(0);
+    }
+  });
 });
 
 describe('solveTwoBoneIK', () => {
