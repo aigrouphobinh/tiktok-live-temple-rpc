@@ -600,6 +600,16 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   }
 
 
+  // A gift interruption takes ownership of the central sprite immediately.
+  // Cancel the previous devotee's scheduled bow frames so stale timers cannot
+  // change the pose underneath Rocket/Dragon/Donut/Rose choreography.
+  window.addEventListener('temple:character-interrupted', () => {
+    clearProstrationTimers();
+    const centralEl = document.getElementById('centralWorshipper');
+    centralEl?.classList.remove('walking-up');
+    setCentralPose('kneel');
+  });
+
   // Queued devotees take ownership of the same central character after the
   // current bow sequence or gift interruption cooldown finishes.
   window.addEventListener('temple:character-start', (event) => {
