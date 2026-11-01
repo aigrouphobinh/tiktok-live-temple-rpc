@@ -39,9 +39,9 @@ describe('Three.js scene performance safeguards', () => {
   });
 
   it('gives the Buddha a fuller shoulder and torso silhouette at portrait scale', () => {
-    expect(source).toContain('statue.scale.set(1.08, 1, 1.04);');
-    expect(source).toContain('sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);');
-    expect(source).toContain('sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);');
+    expect(source).toContain('statue.scale.set(1.16, 1, 1.04);');
+    expect(source).toContain('sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.16, 1.2, 0.9, statue);');
+    expect(source).toContain('sphere(0.8, mats.statueStone, 0, 3.72, -0.015, 1.18, 0.72, 0.8, statue);');
     expect(source).toContain('color: 0x98866d, roughness: 0.92');
   });
 

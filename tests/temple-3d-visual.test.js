@@ -670,13 +670,20 @@ describe('3D sanctuary visual treatment', () => {
 
   it('adds subtle finger creases and a raised thumb contour to the Buddha mudra', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('Fine finger creases define the joined hands without changing the meditation pose.');
-    expect(scene).toContain('for (let finger = 0; finger < 3; finger++)');
-    expect(scene).toContain('], 0.008);');
-    expect(scene).toContain('A soft raised contour separates the thumbs at the centre of the mudra.');
-    expect(scene).toContain('statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.012,mats.statueLight);');
+    expect(scene).toContain('Individually modeled finger ridges make the meditation mudra readable at portrait scale.');
+    expect(scene).toContain('for (let finger = 0; finger < 4; finger++)');
+    expect(scene).toContain('A fine crease at each knuckle gives the fingers a carved, not mechanical, finish.');
+    expect(scene).toContain('The paired thumbs rise toward one another and meet gently at the centre.');
+    expect(scene).toContain('statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.009,mats.statueShadow);');
   });
 
+
+  it('models the Buddha nose as soft stone volume rather than linework alone', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('The nose is modeled as a continuous stone volume first; fine lines only describe its transitions.');
+    expect(scene).toContain('sphere(0.085, mats.statueStone, 0, 4.515, 0.69, 0.62, 1.45, 0.68, statue);');
+    expect(scene).toContain('sphere(0.075, mats.statueStone, 0, 4.425, 0.725, 0.92, 0.78, 0.72, statue);');
+  });
 
   it('adds restrained lower eyelid, cheek and lower-lip details to the Buddha face', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
@@ -991,3 +998,13 @@ it('uses a restrained aged-gilt PBR finish for the MIA Buddha scan', () => {
   expect(finish).toContain('material.emissiveIntensity = 0.035');
   expect(finish).not.toContain('material.emissiveIntensity = 0.08');
 });
+
+it('gives the custom Buddha a fuller seated silhouette and softer facial volume', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('statue.scale.set(1.16, 1, 1.04)');
+  expect(scene).toContain('sphere(0.8, mats.statueStone, 0, 3.72, -0.015, 1.18, 0.72, 0.8, statue);');
+  expect(scene).toContain('sphere(0.66,mats.statueStone,0,4.62,0.02,0.98,1.1,0.82,statue);');
+  expect(scene).toContain('Soft cheek and chin masses turn the face from a narrow mask into a fuller, calm sculpture.');
+  expect(scene).toContain('sphere(0.22, mats.statueStone, 0, 4.32, 0.49, 0.82, 0.58, 0.72, statue);');
+});
+

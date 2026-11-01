@@ -639,7 +639,7 @@ async function boot() {
   lotusThrone.add(lotusSparks);
 
   // Seated stone Buddha statue: sculpted silhouette, robe folds, calm face and halo.
-  const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); statue.scale.set(1.08, 1, 1.04); world.add(statue);
+  const statue = new THREE.Group(); statue.position.set(0, 1.8, -8.25); statue.scale.set(1.16, 1, 1.04); world.add(statue);
   // Cross-legged lotus posture and layered robe silhouette.
   sphere(1.12, mats.statueStone, 0, 1.45, 0.12, 1.35, 0.42, 0.82, statue);
   sphere(0.78, mats.statueStone, 0, 2.18, -0.02, 0.9, 1.15, 0.72, statue);
@@ -668,9 +668,9 @@ async function boot() {
     detail.receiveShadow = false;
   }
   statue.add(statueBaseBand, statueBaseHighlight);
-  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.08, 1.2, 0.88, statue);
+  sphere(0.76, mats.statueStone, 0, 3.35, 0.02, 1.16, 1.2, 0.9, statue);
   // A continuous shoulder mantle gives the upper body a clear carved silhouette at portrait scale.
-  sphere(0.78, mats.statueStone, 0, 3.72, -0.015, 1.08, 0.68, 0.78, statue);
+  sphere(0.8, mats.statueStone, 0, 3.72, -0.015, 1.18, 0.72, 0.8, statue);
   // A shallow curved neckline softens the join between neck, shoulders and chest.
   const necklineCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-0.48, 3.98, 0.43),
@@ -881,7 +881,11 @@ async function boot() {
   statue.add(robeHemGroove);
   // Neck, head, elongated ears and ushnisha.
   cylinder(0.28,0.32,0.42,mats.statueStone,0,4.05,0,statue,24);
-  sphere(0.63,mats.statueStone,0,4.62,0.02,0.88,1.08,0.78,statue);
+  sphere(0.66,mats.statueStone,0,4.62,0.02,0.98,1.1,0.82,statue);
+  // Soft cheek and chin masses turn the face from a narrow mask into a fuller, calm sculpture.
+  sphere(0.25, mats.statueStone, -0.285, 4.49, 0.49, 0.9, 0.72, 0.72, statue);
+  sphere(0.25, mats.statueStone, 0.285, 4.49, 0.49, 0.9, 0.72, 0.72, statue);
+  sphere(0.22, mats.statueStone, 0, 4.32, 0.49, 0.82, 0.58, 0.72, statue);
   sphere(0.36,mats.statueShadow,0,5.42,0.02,0.82,0.72,0.78,statue);
   sphere(0.13,mats.statueStone,-0.62,4.55,0.02,0.55,1.2,0.62,statue);
   sphere(0.13,mats.statueStone,0.62,4.55,0.02,0.55,1.2,0.62,statue);
@@ -954,6 +958,12 @@ async function boot() {
   ushnishaCurls.castShadow = true;
   ushnishaCurls.receiveShadow = false;
   statue.add(ushnishaCurls);
+  // The nose is modeled as a continuous stone volume first; fine lines only describe its transitions.
+  sphere(0.085, mats.statueStone, 0, 4.515, 0.69, 0.62, 1.45, 0.68, statue);
+  sphere(0.075, mats.statueStone, 0, 4.425, 0.725, 0.92, 0.78, 0.72, statue);
+  for (const side of [-1, 1]) {
+    sphere(0.052, mats.statueStone, side * 0.092, 4.435, 0.69, 0.92, 0.72, 0.68, statue);
+  }
   // Calm eyes, brows, nose and lips, carved shallow into the stone.
   const statueLine=(points,radius,material=mats.statueShadow)=>{
     const curve=new THREE.CatmullRomCurve3(points.map(([x,y,z])=>new THREE.Vector3(x,y,z)));
@@ -1075,19 +1085,36 @@ async function boot() {
   sphere(0.22,mats.statueLight,-0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.22,mats.statueLight,0.2,2.72,0.72,1.2,0.42,0.7,statue);
   sphere(0.1,mats.statueStone,0,2.82,0.82,1,0.8,0.7,statue);
-  // Fine finger creases define the joined hands without changing the meditation pose.
+  // Individually modeled finger ridges make the meditation mudra readable at portrait scale.
+  // Each hand keeps a soft, continuous palm while four shallow finger forms sit on its surface.
   for (const side of [-1, 1]) {
-    for (let finger = 0; finger < 3; finger++) {
-      const x = side * 0.2 + (finger - 1) * 0.055;
+    for (let finger = 0; finger < 4; finger++) {
+      const x = side * (0.105 + finger * 0.045);
+      const y = 2.675 + finger * 0.012;
+      const z = 0.846 - finger * 0.012;
       statueLine([
-        [x - 0.025, 2.68, 0.858],
-        [x, 2.705, 0.875],
-        [x + 0.025, 2.73, 0.858]
-      ], 0.008);
+        [x - side * 0.018, y - 0.012, z],
+        [x, y + 0.012, z + 0.022],
+        [x + side * 0.018, y + 0.025, z + 0.006]
+      ], 0.018, mats.statueLight);
+      // A fine crease at each knuckle gives the fingers a carved, not mechanical, finish.
+      statueLine([
+        [x - side * 0.012, y + 0.005, z + 0.021],
+        [x, y + 0.012, z + 0.024],
+        [x + side * 0.012, y + 0.005, z + 0.021]
+      ], 0.0055, mats.statueShadow);
     }
   }
-  // A soft raised contour separates the thumbs at the centre of the mudra.
-  statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.012,mats.statueLight);
+  // The paired thumbs rise toward one another and meet gently at the centre.
+  for (const side of [-1, 1]) {
+    statueLine([
+      [side * 0.28, 2.72, 0.84],
+      [side * 0.2, 2.79, 0.875],
+      [side * 0.105, 2.82, 0.895],
+      [side * 0.025, 2.835, 0.9]
+    ], 0.025, mats.statueLight);
+  }
+  statueLine([[-0.12,2.79,0.88],[0,2.84,0.9],[0.12,2.79,0.88]],0.009,mats.statueShadow);
   // Fine wrist transitions and palm creases finish the joined meditation hands.
   for (const side of [-1, 1]) {
     const wristCrease = [
@@ -1959,6 +1986,10 @@ async function boot() {
   const modelsRequested = modelParams.get('models') === '1';
   // Allow the Buddha asset to be previewed independently of optional devotee rigs.
   const buddhaModelRequested = modelParams.get('buddha') === '1';
+  // The procedural custom sculpture is the default production Buddha; GLB is opt-in.
+  if (!buddhaModelRequested && !modelsRequested) {
+    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'custom-procedural';
+  }
   // Diagnostics are opt-in so normal live sessions pay no logging overhead.
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;

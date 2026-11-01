@@ -26,7 +26,7 @@ async function waitForRendererSample(samples, targetCount, timeoutMs = 15000) {
 await mkdir(artifactDir, { recursive: true });
 
 const report = {
-  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1&buddha=1',
+  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1',
   capturedAt: new Date().toISOString(),
   viewport,
   deviceScaleFactor,
@@ -150,6 +150,7 @@ try {
           && error === 'net::ERR_ABORTED'
           && [
             '/assets/models/buddha-selected.glb',
+              '/assets/models/buddha-cc0-fallback.glb',
             '/assets/models/buddha-cc0-fallback.glb'
           ].includes(pathname);
         if (!isExpectedOptionalModelHeadProbe) {
@@ -322,7 +323,7 @@ try {
           && idleStats.drawCalls <= 1200
           && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
-        buddhaModelLoaded: ['kenny-hsieh', 'mia-cc0-gilt-bronze'].includes(scene.buddhaModelSource),
+        buddhaModelLoaded: scene.buddhaModelSource === 'custom-procedural',
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
