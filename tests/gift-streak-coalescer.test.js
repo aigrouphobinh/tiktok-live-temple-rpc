@@ -63,6 +63,17 @@ describe('GiftStreakCoalescer', () => {
     expect(coalescer.shouldCoalesce(frame({ giftGroupId: 'C' }), 1250)).toBe(false);
   });
 
+  it('clears only the matching group when a duplicate final frame is dropped upstream', () => {
+    const coalescer = new GiftStreakCoalescer();
+    coalescer.shouldCoalesce(frame({ giftGroupId: 'A' }), 1000);
+    coalescer.shouldCoalesce(frame({ giftGroupId: 'B' }), 1100);
+
+    expect(coalescer.clearStreak('A')).toBe(true);
+    expect(coalescer.snapshot()).toEqual({ size: 1, keys: ['B'] });
+    expect(coalescer.shouldCoalesce(frame({ giftGroupId: 'A' }), 1200)).toBe(false);
+    expect(coalescer.clearStreak('missing')).toBe(false);
+  });
+
   it('handles a zero timestamp without treating it as a missing entry', () => {
     const coalescer = new GiftStreakCoalescer();
     expect(coalescer.shouldCoalesce(frame(), 0)).toBe(false);
