@@ -555,7 +555,8 @@ describe('3D sanctuary visual treatment', () => {
   it('keeps low-cost ambient incense wisps moving above the altar burner', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const incenseSmokeGeometry = new THREE.SphereGeometry(0.105, 8, 6)');
-    expect(scene).toContain('const incenseWisps = Array.from({ length: 6 }');
+    expect(scene).toContain("const incenseWispCount = renderProfile.tier === 'low' ? 3");
+    expect(scene).toContain("const incenseWisps = Array.from({ length: incenseWispCount }");
     expect(scene).toContain('function updateIncenseWisps(time)');
     expect(scene).toContain('wisp.material.opacity = 0.105 * envelope');
     expect(scene).toContain('updateIncenseWisps(now);');

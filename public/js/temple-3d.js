@@ -388,7 +388,11 @@ async function boot() {
   const incenseSmokeMaterial = new THREE.MeshBasicMaterial({
     color: 0xd8cbb8, transparent: true, opacity: 0.0, depthWrite: false
   });
-  const incenseWisps = Array.from({ length: 6 }, (_, index) => {
+  // Incense is ambient decoration: scale its transparent draw calls with the
+  // selected device tier while preserving a visible plume on low-end devices.
+  const incenseWispCount = renderProfile.tier === 'low' ? 3
+    : renderProfile.tier === 'medium' ? 4 : 6;
+  const incenseWisps = Array.from({ length: incenseWispCount }, (_, index) => {
     const wisp = new THREE.Mesh(incenseSmokeGeometry, incenseSmokeMaterial.clone());
     wisp.scale.set(0.72 + (index % 3) * 0.18, 1.9 + (index % 2) * 0.45, 0.72 + (index % 2) * 0.12);
     wisp.userData.phase = index / 6;
