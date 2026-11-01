@@ -593,3 +593,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Both are static tube meshes within the existing statue group; no camera, silhouette, pose, materials elsewhere or interaction changes.
 - Added regression assertions for both curves, materials and shadow behavior.
 - Actual visual fit against the lap silhouette still needs browser review.
+
+
+
+### 2026-11-01 — Carve shoulder seams into the Buddha robe
+- Added a restrained dark incision along each shoulder drape and a fine ivory ridge immediately beside it to clarify the robe's layered fold without changing the statue silhouette.
+- The detail uses two short static TubeGeometry paths, reuses existing statue materials, and does not cast additional shadows or add frame-loop work.
+- Added a source regression test for both seam/ridge construction and shadow flags.
+- Browser render and visual fit still require local confirmation at `?3d=1`; automated CI is the next validation step.
