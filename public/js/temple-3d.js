@@ -2039,7 +2039,7 @@ async function boot() {
           console.warn('[Temple3D] User-provided buddha.glb is invalid; trying bundled Buddha assets:', customError);
         }
       } else {
-        console.info('[Temple3D] No user-provided buddha.glb found; trying bundled Buddha assets.');
+        console.info('[Temple3D] No user-provided buddha.glb found; skipping its load request and trying bundled Buddha assets.');
       }
 
       // Preserve compatibility with the previously bundled Kenny Hsieh asset.
