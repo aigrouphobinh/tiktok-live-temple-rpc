@@ -228,20 +228,27 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
 
   function playDonut() {
     playGiftSound('donut-chime');
-    const donut = createEffect('gift-donut', '', 95, 850);
+    // Keep the treat on the upper-middle lane: it teases the devotee without
+    // sweeping across the altar, Buddha focal point, or fixed HUD.
+    const donut = createEffect('gift-donut', '', 70, 790);
     const fly = donut.animate([
-      { transform: 'translate3d(0,0,0) rotate(0deg) scale(.55)', opacity: 0 },
-      { transform: 'translate3d(330px,-55px,0) rotate(-130deg) scale(1.15)', opacity: 1, offset: .38 },
-      { transform: 'translate3d(600px,20px,0) rotate(-260deg) scale(1)', opacity: 1, offset: .68 },
-      { transform: 'translate3d(900px,-10px,0) rotate(-430deg) scale(.7)', opacity: 0 }
-    ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
+      { transform: 'translate3d(0,34px,0) rotate(-35deg) scale(.48)', opacity: 0 },
+      { transform: 'translate3d(205px,-42px,0) rotate(95deg) scale(1.02)', opacity: 1, offset: .22 },
+      { transform: 'translate3d(430px,24px,0) rotate(230deg) scale(.92)', opacity: 1, offset: .48 },
+      { transform: 'translate3d(660px,-38px,0) rotate(390deg) scale(1.04)', opacity: 1, offset: .76 },
+      { transform: 'translate3d(850px,12px,0) rotate(560deg) scale(.62)', opacity: 0 }
+    ], { duration: 2700, easing: 'cubic-bezier(.42,0,.24,1)', fill: 'forwards' });
     removeAfter(donut, fly);
+
+    // A short sidestep and hop reads as a playful chase; avoid the previous
+    // 300px translation which could push the character through scene props.
     animateCharacter([
-      { transform: 'translate3d(0,0,0) scale(1)' },
-      { transform: 'translate3d(160px,-12px,0) rotate(8deg) scale(1.02)', offset: .25 },
-      { transform: 'translate3d(300px,-30px,0) rotate(12deg) scale(1.02)', offset: .7 },
+      { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' },
+      { transform: 'translate3d(18px,-16px,0) rotate(-5deg) scale(1.025)', offset: .2 },
+      { transform: 'translate3d(42px,-4px,0) rotate(4deg) scale(1.015)', offset: .48 },
+      { transform: 'translate3d(22px,-13px,0) rotate(-3deg) scale(1.02)', offset: .72 },
       { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' }
-    ], 3600);
+    ], 3100);
   }
 
   function showActionLabel(action) {
