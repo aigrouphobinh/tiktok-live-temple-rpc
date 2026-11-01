@@ -1970,6 +1970,28 @@ async function boot() {
     return response.ok;
   }
 
+  function applyGiltFinish(root) {
+    root.traverse((node) => {
+      if (!node.isMesh || !node.material) return;
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      for (const material of materials) {
+        if (!material) continue;
+        // The public MIA scan is a neutral/light scan of a gilt-bronze object.
+        // Apply a restrained gold PBR finish while preserving its texture maps.
+        if (material.color) material.color.setHex(0xd8a63d);
+        if ('metalness' in material) material.metalness = 0.64;
+        if ('roughness' in material) material.roughness = 0.32;
+        if (material.emissive) {
+          material.emissive.setHex(0x382006);
+          material.emissiveIntensity = 0.08;
+        }
+        material.needsUpdate = true;
+      }
+      node.castShadow = true;
+      node.receiveShadow = true;
+    });
+  }
+
   async function upgradeBuddhaFromGLB() {
     let asset;
     let assetSource = 'procedural';
@@ -2012,6 +2034,8 @@ async function boot() {
         asset.dispose();
         return;
       }
+      // Preserve Kenny Hsieh's authored materials; only tint the neutral CC0 scan.
+      if (assetSource === 'mia-cc0-gilt-bronze') applyGiltFinish(asset.root);
       // Keep the procedural meshes as a hidden last-resort fallback. Their
       // cached primitive geometries are shared with the rest of the scene.
       for (const child of statue.children) child.visible = false;
