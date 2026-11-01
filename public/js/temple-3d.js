@@ -473,6 +473,35 @@ async function boot() {
   sphere(0.78, mats.statueStone, 0, 2.18, -0.02, 0.9, 1.15, 0.72, statue);
   sphere(0.72, mats.statueLight, 0, 2.0, 0.12, 1.18, 0.42, 0.9, statue);
   sphere(0.68, mats.statueStone, 0, 3.35, 0.02, 0.92, 1.18, 0.82, statue);
+  // A shallow curved neckline softens the join between neck, shoulders and chest.
+  const necklineCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.48, 3.98, 0.43),
+    new THREE.Vector3(-0.28, 3.91, 0.53),
+    new THREE.Vector3(0, 3.88, 0.56),
+    new THREE.Vector3(0.28, 3.91, 0.53),
+    new THREE.Vector3(0.48, 3.98, 0.43)
+  ]);
+  const neckline = new THREE.Mesh(
+    new THREE.TubeGeometry(necklineCurve, 32, 0.018, 6, false),
+    mats.statueShadow
+  );
+  neckline.castShadow = false;
+  neckline.receiveShadow = false;
+  statue.add(neckline);
+  const collarRidgeCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.42, 4.015, 0.445),
+    new THREE.Vector3(-0.22, 3.965, 0.545),
+    new THREE.Vector3(0, 3.945, 0.575),
+    new THREE.Vector3(0.22, 3.965, 0.545),
+    new THREE.Vector3(0.42, 4.015, 0.445)
+  ]);
+  const collarRidge = new THREE.Mesh(
+    new THREE.TubeGeometry(collarRidgeCurve, 32, 0.01, 6, false),
+    mats.statueLight
+  );
+  collarRidge.castShadow = false;
+  collarRidge.receiveShadow = false;
+  statue.add(collarRidge);
   // Robe drapes over both shoulders and falls across the lap.
   const robeFold = (points, radius = 0.035) => {
     const curve = new THREE.CatmullRomCurve3(points.map(([x,y,z]) => new THREE.Vector3(x,y,z)));
