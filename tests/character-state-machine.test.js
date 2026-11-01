@@ -107,6 +107,10 @@ describe('CharacterStateMachine', () => {
       interrupted: false,
       reason: 'effect_queue_full'
     });
+    expect(machine.interrupt('donut', { giftName: 'Donut', sequence: 2 })).toMatchObject({
+      interrupted: false,
+      reason: 'effect_queue_full'
+    });
     expect(machine.snapshot()).toMatchObject({
       effect: 'rocket',
       queuedEffects: ['donut']
