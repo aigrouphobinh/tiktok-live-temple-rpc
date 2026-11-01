@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getFootPlantingWorldTarget, solveTwoBoneIK } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -91,5 +91,66 @@ describe('solveTwoBoneIK', () => {
   it('rejects missing vectors and invalid segment lengths', () => {
     expect(solveTwoBoneIK({ root: [0, 0, 0], target: [0, 1, 0], pole: [1, 0, 0], upperLength: 0, lowerLength: 1 })).toBeNull();
     expect(solveTwoBoneIK({ root: [0, 0], target: [0, 1, 0], pole: [1, 0, 0], ...lengths })).toBeNull();
+  });
+});
+
+describe('getFootPlantingWorldTarget', () => {
+  const tau = Math.PI * 2;
+  const stanceEnd = 0.62;
+
+  it('captures a world-space target at stance start and holds it as the hip moves', () => {
+    const first = getFootPlantingWorldTarget({
+      phase: 0, hip: [0, 1, 0], strideDirection: [0, 0, -1],
+      strideLength: 2, groundY: 0
+    });
+    const moved = getFootPlantingWorldTarget({
+      phase: tau * 0.3, hip: [0, 1, -0.8], strideDirection: [0, 0, -1],
+      strideLength: 2, groundY: 0, lockState: first.lockState
+    });
+    expect(first.planted).toBe(true);
+    expect(moved.planted).toBe(true);
+    expect(moved.target).toEqual(first.target);
+    expect(moved.target[1]).toBe(0);
+  });
+
+  it('releases the stance lock during swing and follows the moving hip', () => {
+    const stance = getFootPlantingWorldTarget({
+      phase: 0, hip: [0, 1, 0], strideDirection: [0, 0, -1],
+      strideLength: 2, groundY: 0
+    });
+    const swing = getFootPlantingWorldTarget({
+      phase: tau * (stanceEnd + 0.5 * (1 - stanceEnd)),
+      hip: [0, 1, -1], strideDirection: [0, 0, -1],
+      strideLength: 2, groundY: 0, lockState: stance.lockState
+    });
+    expect(swing.planted).toBe(false);
+    expect(swing.lockState.lockedTarget).toBeNull();
+    expect(swing.target[2]).toBeCloseTo(-1, 8);
+    expect(swing.target[1]).toBeCloseTo(0.13, 8);
+  });
+
+  it('captures a fresh target on the next stance after releasing the old lock', () => {
+    const swing = getFootPlantingWorldTarget({
+      phase: tau * 0.8, hip: [0, 1, -1], strideDirection: [0, 0, -1],
+      strideLength: 2, groundY: 0,
+      lockState: { wasStance: false, lockedTarget: null }
+    });
+    const next = getFootPlantingWorldTarget({
+      phase: tau, hip: [0, 1, -2], strideDirection: [0, 0, -1],
+      strideLength: 2, groundY: 0, lockState: swing.lockState
+    });
+    expect(next.planted).toBe(true);
+    expect(next.target[2]).toBeCloseTo(-3, 8);
+  });
+
+  it('rejects invalid world-space inputs and zero horizontal direction', () => {
+    expect(getFootPlantingWorldTarget({
+      phase: 0, hip: [0, 1, 0], strideDirection: [0, 1, 0],
+      strideLength: 1, groundY: 0
+    })).toBeNull();
+    expect(getFootPlantingWorldTarget({
+      phase: 0, hip: [0, 1], strideDirection: [0, 0, -1],
+      strideLength: 1, groundY: 0
+    })).toBeNull();
   });
 });
