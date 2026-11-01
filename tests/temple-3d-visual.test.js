@@ -15,7 +15,7 @@ describe('3D sanctuary visual treatment', () => {
   it('turns procedural devotees toward incoming gifts with a bounded head acknowledgement', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('giftReactionUntil: 0');
-    expect(scene).toContain('const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time);');
+    expect(scene).toContain('const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);');
     expect(scene).toContain('avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;');
     expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * 0.018;');
     expect(scene).toContain('const profile = event.detail?.reactionProfile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
@@ -35,7 +35,7 @@ describe('3D sanctuary visual treatment', () => {
   it('raises both hands into a restrained thank-you gesture during gift reactions', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function applyGiftThankYouGesture(avatar, time)');
-    expect(scene).toContain('const thankYouLift = blend * (0.92 + Math.sin(time * 0.007) * 0.025);');
+    expect(scene).toContain('const thankYouLift = strength * (0.92 + Math.sin(time * 0.007) * 0.025);');
     expect(scene).toContain('avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;');
     expect(scene).toContain('avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift;');
     expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18 - blend * 0.06;');
