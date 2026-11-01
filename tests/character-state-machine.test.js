@@ -42,6 +42,25 @@ describe('CharacterStateMachine', () => {
     expect(machine.finishCooldown().event.user).toBe('A');
   });
 
+  it('starts a world gift effect when the altar is idle and no devotee is active', () => {
+    const machine = new CharacterStateMachine();
+    const result = machine.interrupt('rocket', { giftName: 'Rocket' });
+    expect(result).toMatchObject({
+      interrupted: true,
+      startsWithoutCharacter: true,
+      action: 'rocket'
+    });
+    expect(machine.snapshot()).toMatchObject({
+      state: 'INTERRUPTED',
+      active: null,
+      effect: 'rocket',
+      queueLength: 0
+    });
+    expect(machine.finishEffect()).toMatchObject({ cooldown: true });
+    expect(machine.finishCooldown()).toMatchObject({ started: false });
+    expect(machine.snapshot().state).toBe('IDLE');
+  });
+
   it('keeps a gift arriving during cooldown as an effect and resumes the interrupted devotee afterward', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
