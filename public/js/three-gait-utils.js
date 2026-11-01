@@ -71,6 +71,22 @@ export function getHumanFootPose({ mode = 'idle', phase = 0, blend = 1 } = {}) {
  * Timeline for the altar visit: approach, settle into a kneel, then bow.
  * Times are milliseconds relative to arrival; outputs are safe blend weights.
  */
+
+/**
+ * Procedural upper-body pose for a kneeling devotee.
+ * Angles are additive local-X/Z offsets from the avatar's neutral pose.
+ */
+export function getHumanUpperPose({ kneelBlend = 0, bowAmount = 0 } = {}) {
+  const kneel = Number.isFinite(kneelBlend) ? Math.min(1, Math.max(0, kneelBlend)) : 0;
+  const bow = Number.isFinite(bowAmount) ? Math.min(1, Math.max(0, bowAmount)) : 0;
+  return {
+    torsoLean: -(kneel * 0.2 + bow * 0.72),
+    headCounter: kneel * 0.06 + bow * 0.16,
+    armReach: -(kneel * 0.7 + bow * 0.12),
+    armOpen: kneel * 0.08 + bow * 0.34
+  };
+}
+
 export function getRitualPoseState({
   travel = 0,
   elapsedAfterArrival = 0,
