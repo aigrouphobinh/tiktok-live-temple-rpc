@@ -52,6 +52,11 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('sphere(0.075, mats.goldBright, railX, 1.02, z, 1, 0.7, 1)');
   });
 
+  it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
+    const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+    expect(html).toContain('/css/live.css?v=3d-console-20261101-2');
+  });
+
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
     expect(css).toContain('3D BROADCAST INTERFACE');
     expect(css).toContain('.stage-9x16.temple-3d-mode .bottom-hud-bar');
