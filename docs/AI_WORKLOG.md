@@ -1,3 +1,9 @@
+### 2026-11-01 — Add stance/swing foot placement to fallback gait
+- Replaced the symmetric sine-only leg swing with an asymmetric gait cycle: a 62% stance phase moves the planted foot from rear to front, followed by an eased swing return.
+- Share the gait phase between procedural avatars and GLB upper-leg fallback rotations; keep arm counter-swing.
+- Extracted the phase function into `three-gait-utils.js` and added numeric tests for stance endpoints, swing midpoint, cycle wrap and negative phases.
+- This is an approximate upper-leg foot-planting cue, not full inverse-kinematics or ankle locking. Accurate contact still depends on the selected model's proportions and lower-leg/foot rig.
+
 ### 2026-11-01 — Match fallback gait to eased devotee translation
 - Follow-up inspection found that the main devotee's position uses smoothstep easing while the initial distance-synchronized gait phase used linear progress. This could still cause foot sliding during acceleration and deceleration.
 - Compute the stride phase from the same eased progress used by the world-space Z translation, preserving the 2.2-unit stride cycle.
