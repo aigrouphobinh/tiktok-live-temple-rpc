@@ -41,6 +41,13 @@ describe('getTempleRenderQuality', () => {
       .toEqual({ tier: 'high', maxPixelRatio: 1.25 });
   });
 
+  it('uses the remaining hint when the other device capability is unavailable', () => {
+    expect(getTempleRenderQuality({ hardwareConcurrency: 2 }).tier).toBe('low');
+    expect(getTempleRenderQuality({ deviceMemory: 2 }).tier).toBe('low');
+    expect(getTempleRenderQuality({ hardwareConcurrency: 6 }).tier).toBe('medium');
+    expect(getTempleRenderQuality({ deviceMemory: 6 }).tier).toBe('medium');
+  });
+
   it('uses balanced quality when both device hints are missing or invalid', () => {
     expect(getTempleRenderQuality()).toEqual({ tier: 'medium', maxPixelRatio: 1.15 });
     expect(getTempleRenderQuality({
@@ -124,6 +131,16 @@ describe('getTemplePixelRatio', () => {
     })).toBe(1);
     expect(getTemplePixelRatio({
       devicePixelRatio: Number.POSITIVE_INFINITY,
+      deviceMemory: 8,
+      hardwareConcurrency: 8
+    })).toBe(1);
+    expect(getTemplePixelRatio({
+      devicePixelRatio: 0,
+      deviceMemory: 8,
+      hardwareConcurrency: 8
+    })).toBe(1);
+    expect(getTemplePixelRatio({
+      devicePixelRatio: -2,
       deviceMemory: 8,
       hardwareConcurrency: 8
     })).toBe(1);
