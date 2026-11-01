@@ -24,7 +24,7 @@ const report = {
   sceneCanvas: null,
   consoleErrors: [],
   failedRequests: [],
-  note: 'Browser capability hints are overridden for deterministic profile coverage. This is a Chromium/SwiftShader visual and configuration audit, not a physical-GPU benchmark.',
+  note: 'Browser capability hints are overridden for deterministic profile coverage. This is a Chromium/SwiftShader visual and configuration audit, not a physical-GPU benchmark. Shadow-map size is reported from the selected render profile; it is not read back from a GPU allocation.',
   profiles: [],
   summary: {
     passed: false,
@@ -202,6 +202,8 @@ try {
           && scene.browserHints?.hardwareConcurrency === scenario.hardwareConcurrency,
         expectedTierSelected: scene.renderProfile?.tier === scenario.id,
         expectedPixelRatioSelected: scene.renderProfile?.pixelRatio === scenario.expectedPixelRatio,
+        shadowMapBudgetSelected: scene.renderProfile?.shadowMapSize === profileReport.expectedShadowMapSize,
+        environmentDetailSelected: scene.renderProfile?.environmentDetail === scenario.id,
         framebufferScaleMatches: Boolean(scene.canvas)
           && Math.abs((scene.canvas.width / viewport.width) - scenario.expectedPixelRatio) < 0.002
           && Math.abs((scene.canvas.height / viewport.height) - scenario.expectedPixelRatio) < 0.002,
