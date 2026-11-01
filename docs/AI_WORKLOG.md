@@ -762,3 +762,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Manual bow posing now receives a zero amount after the bow state ends, restoring the spine, head and arm rotations instead of leaving the character bent.
 - Added regression checks for gait blending, rest-pose recovery and bow release.
 - This remains source-level validation; the actual selected GLB needs a browser pass to verify the rig's bone names and visual blend.
+
+
+### 2026-11-01 — Broaden GLB rig and animation clip recognition
+- Expanded clip-name matching for resting/idle, locomotion/movement and prostration/bow variants without changing the ritual state machine.
+- Replaced narrow left/right bone-name checks with normalized aliases covering Mixamo-style prefixes and common Blender side suffixes (.L/.R).
+- Added regression checks for the supported naming patterns.
+- The actual selected GLB has not yet been available for a local asset-level inspection in this session; browser validation is still required to confirm its exact skeleton and clip names.
