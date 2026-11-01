@@ -1,3 +1,9 @@
+### 2026-11-01 — Move ornamental seals to exposed upper column shafts
+- Two screenshot reviews showed that the capital faces were occluded by overlapping stack geometry. Moved the paired seals onto the clear front surface of the upper shafts at Y=6.2.
+- Mirrored each seal inward toward the processional aisle, keeping the left/right composition symmetrical.
+- Enlarged the bronze ring and bright-gold diamond centre so the detail reads at the 1080×1920 portrait capture scale.
+- The feature remains two static instance batches and is disabled in the low-detail tier.
+
 ### 2026-11-01 — Seat the capital rosettes on the visible lacquer band
 - The first screenshot review showed the initial rosette was hidden by a forward lacquer layer. Repositioned the ornament onto the visible red capital band (Y=7.69, front Z face).
 - Switched to a bronze outer ring with a bright-gold diamond centre for clear contrast against the red lacquer.
