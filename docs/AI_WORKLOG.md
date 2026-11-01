@@ -1,3 +1,8 @@
+### 2026-11-01 — Preserve lightweight plaques in the low-detail profile
+- The Chromium audit uses the low environment-detail tier, which had been suppressing the two new plaque batches entirely.
+- Keep the gold/ruby plaques enabled on all tiers (two static instance batches); continue omitting the larger corbels on low-tier devices.
+- Updated the low-detail regression test to assert that plaques remain visible while corbels stay disabled.
+
 ### 2026-11-01 — Align shaft plaques to the cylinder centreline
 - The close-up showed the prior inward offset put the plaque behind the curved shaft surface. Re-aligned the plaque to the shaft centreline, matching the existing outer-pillar badge placement.
 - Moved the ruby centre slightly forward from the gold diamond plate so it layers cleanly in depth.
