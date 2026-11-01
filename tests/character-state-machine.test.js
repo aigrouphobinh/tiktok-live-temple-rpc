@@ -113,6 +113,24 @@ describe('CharacterStateMachine', () => {
     });
   });
 
+  it('replaces the lowest-priority queued effect when a stronger gift arrives at capacity', () => {
+    const machine = new CharacterStateMachine({ maxQueue: 1 });
+    machine.request(devotee('A'));
+    machine.interrupt('rocket', { giftName: 'Rocket' });
+    machine.interrupt('rose', { giftName: 'Rose', sequence: 'rose' });
+    const result = machine.interrupt('donut', { giftName: 'Donut', sequence: 'donut' });
+    expect(result).toMatchObject({
+      interrupted: false,
+      queuedEffect: true,
+      evictedAction: 'rose'
+    });
+    expect(machine.snapshot()).toMatchObject({
+      effect: 'rocket',
+      queuedEffects: ['donut']
+    });
+    expect(machine.finishEffect().nextEffect.event.sequence).toBe('donut');
+  });
+
   it('does not mutate character ownership for an unknown gift action', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
