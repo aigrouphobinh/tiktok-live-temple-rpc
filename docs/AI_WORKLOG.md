@@ -1,3 +1,8 @@
+### 2026-11-01 — Compensate avatar root height during kneeling
+- Added a small blended root-height compensation to the procedural avatar while its knees bend, reducing the foot lift introduced by the articulated leg rotations.
+- Kept the compensation out of the GLB path; imported skeletons still require visual rest-pose and joint-axis validation.
+- Added a scene regression assertion for the kneeling root offset.
+
 ### 2026-11-01 — Sequence the devotee ritual through kneeling and bowing
 - Added a pure time-based ritual pose helper that eases the avatar from approach into a grounded kneel, then into a bow, and fades both poses out at the end of the ritual.
 - Connected the shared timeline to the main procedural avatar and to the existing GLB bow-state path. Procedural knee/foot offsets are blended; GLB kneeling remains intentionally disabled until the imported rig's axes and rest pose are visually verified.
