@@ -552,6 +552,15 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const bow = bowIn * bowOut;');
   });
 
+  it('routes procedural avatars through the shared idle, walk and kneel foot-pose controller', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose }");
+    expect(scene).toContain("const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';");
+    expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase });");
+    expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI });");
+    expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;');
+  });
+
   it('retains hidden procedural fallbacks without disposing shared cached geometry', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('for (const child of avatar.root.children) child.visible = false;');
