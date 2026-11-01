@@ -768,7 +768,7 @@ it('adds subtle nose-wing, nostril and philtrum carving to the Buddha face', () 
   expect(scene).toContain('[side * 0.105, 4.425, 0.704]');
   expect(scene).toContain('[side * 0.055, 4.405, 0.718]');
   expect(scene).toContain('[side * 0.04, 4.355, 0.72]');
-  expect(scene).toContain('[[ -0.13,4.315,0.686]');
+  expect(scene).toContain('statueLine([[-0.13,4.315,0.686]');
 });
 
 it('extends the Buddha hair curl pattern down both temples with one instanced batch', () => {
