@@ -1,8 +1,9 @@
 /**
  * Select a render-resolution budget for the portrait Three.js scene.
  *
- * The quality tier only controls pixel ratio; it deliberately does not alter
- * scene content, shadows, materials, lighting, animation or gift effects.
+ * The tier sets a pixel-ratio cap. getTempleRenderProfile() also derives
+ * one-time shadow-map and static environment-detail budgets; it does not
+ * change materials, lighting, animation or gift-effect behavior.
  * Pixel cost (and render-target memory) grows approximately with ratio squared.
  */
 export function getTempleRenderQuality({
