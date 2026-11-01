@@ -287,4 +287,18 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('renders the Buddha hair curls as one static instanced batch', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const hairCurlRows = [9, 7, 5, 3]');
+    expect(scene).toContain('const hairCurlCount = hairCurlRows.reduce((total, count) => total + count, 0)');
+    expect(scene).toContain('new THREE.SphereGeometry(0.075, 24, 16)');
+    expect(scene).toContain('new THREE.InstancedMesh(hairCurlGeometry, mats.statueShadow, hairCurlCount)');
+    expect(scene).toContain('hairCurls.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
+    expect(scene).toContain('hairCurls.castShadow = true;');
+    expect(scene).toContain('hairCurls.receiveShadow = false;');
+    expect(scene).toContain('statue.add(hairCurls);');
+    expect(scene).not.toContain('sphere(0.075,mats.statueShadow');
+  });
+
+
 });
