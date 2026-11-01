@@ -1,4 +1,31 @@
-# Free 3D asset shortlist — temple sanctuary
+# User-selected 3D assets — approved targets (2026-11-01)
+
+The user explicitly selected these two Sketchfab models. Treat these as the preferred targets over the earlier researched candidates; do not silently substitute another asset.
+
+## Buddha statue — selected
+- Sketchfab: https://sketchfab.com/3d-models/tam-the-phat-do-go-thanh-anh-93ccd334332a40218bdc3a2e6e849966
+- Model UID: `93ccd334332a40218bdc3a2e6e849966`
+- Search index identifies the title as **Tam The Phat - Do Go Thanh Anh**.
+- License, downloadable status, file format, textures, scale and polygon count: **not yet verified**. Sketchfab model page currently blocks automated page inspection (HTTP 403); do not infer that the model is free or redistributable.
+- Intended integration: replace only the procedural seated Buddha; preserve the altar, custom aureole unless model includes a better one, ritual gift effects, and fixed elevated camera.
+
+## Human character — selected
+- Sketchfab: https://sketchfab.com/3d-models/girl-82f0a2eff77b47448402f40264b82055
+- Model UID: `82f0a2eff77b47448402f40264b82055`
+- Title supplied by user: **Girl**.
+- Creator, license, downloadable status, file format, textures, rig and animation clips: **not yet verified**. Sketchfab model page currently blocks automated page inspection (HTTP 403); do not infer that the model is free or redistributable.
+- Intended integration: replace procedural human devotee after verifying rig/animations; preserve the bow-from-waist animation and crowd/gift action state machine.
+
+## Required asset handoff and acceptance checks
+1. Download each model through its official Sketchfab **Download 3D Model** action if the creator enables it, and provide the downloaded GLB/glTF package (including textures if separate). If the Download action is unavailable, ask the creator for permission/a source file; do not rip the viewer or bypass access controls.
+2. Confirm the license and attribution requirements on each model's page before bundling it in the public game repository.
+3. Inspect GLB scene graph, units, forward axis, bounding box, materials/textures, triangle count, skeleton and animation clips.
+4. Normalize model scale/orientation in a wrapper group; never change the master camera to compensate.
+5. Add a graceful fallback if model loading fails; keep 2D mode and existing procedural fallback operational.
+6. Test bow-from-waist, idle, walking/approach, prayer, leave, and all gift actions with the replacement character; test statue lighting and halo occlusion.
+7. Commit actual binary assets only after provenance/license review and local GLTFLoader validation. Do not claim integration from documentation-only changes.
+
+---
 
 This file records researched candidates only. A model is not considered integrated until its exact downloaded file, license/provenance, dimensions, materials, rig and runtime rendering have been checked.
 
