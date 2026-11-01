@@ -276,8 +276,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("makeRitualStation(3.75, -1.2, 'woodfish')");
     expect(scene).toContain("makeRitualStation(3.75, -5.4, 'fortune')");
     expect(scene).toContain('const ritualStations = [];');
-    expect(scene).toContain('camera.position.set(0, 11.5, 27);');
-    expect(scene).toContain('camera.lookAt(0, 3.2, -5.5);');
+    expect(scene).toContain('camera.position.set(0, 11.75, 28.5);');
+    expect(scene).toContain('camera.lookAt(0, 0, -5.5);');
   });
 
   it('makes modeled ritual stations directly clickable through raycasting', async () => {
