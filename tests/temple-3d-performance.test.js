@@ -52,3 +52,16 @@ describe('Three.js opt-in GPU diagnostics', () => {
     expect(source).toContain('now - lastStatsAt >= 5000');
   });
 });
+
+
+describe('Three.js shared primitive geometry', () => {
+  it('caches box, cylinder, sphere and plane geometry by immutable dimensions', () => {
+    expect(source).toContain('const primitiveGeometryCache = new Map();');
+    expect(source).toContain('const getPrimitiveGeometry = (key, create) =>');
+    expect(source).toContain('`box:${w}:${h}:${d}`');
+    expect(source).toContain('`cylinder:${rt}:${rb}:${h}:${radial}`');
+    expect(source).toContain('`sphere:${r}:24:16`');
+    expect(source).toContain('`plane:${w}:${h}`');
+    expect(source).toContain('primitiveGeometryCache.set(key, create())');
+  });
+});
