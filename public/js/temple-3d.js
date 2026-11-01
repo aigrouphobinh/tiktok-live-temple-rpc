@@ -244,6 +244,37 @@ async function boot() {
     const stick = cylinder(0.018, 0.022, 0.78, mats.woodLight, i * 0.11, 1.0, 0, incense, 8);
     stick.rotation.z = i * 0.12;
   }
+  // Persistent incense wisps rise from the burner even between ritual events.
+  // Shared geometry/material keep the idle ambience inexpensive and allocation-free per frame.
+  const incenseSmokeGeometry = new THREE.SphereGeometry(0.105, 8, 6);
+  const incenseSmokeMaterial = new THREE.MeshBasicMaterial({
+    color: 0xd8cbb8, transparent: true, opacity: 0.0, depthWrite: false
+  });
+  const incenseWisps = Array.from({ length: 6 }, (_, index) => {
+    const wisp = new THREE.Mesh(incenseSmokeGeometry, incenseSmokeMaterial);
+    wisp.scale.set(0.72 + (index % 3) * 0.18, 1.9 + (index % 2) * 0.45, 0.72 + (index % 2) * 0.12);
+    wisp.userData.phase = index / 6;
+    wisp.userData.drift = index % 2 ? 1 : -1;
+    world.add(wisp);
+    return wisp;
+  });
+  function updateIncenseWisps(time) {
+    incenseWisps.forEach((wisp, index) => {
+      const phase = ((time * 0.00022 + wisp.userData.phase) % 1);
+      const rise = phase;
+      const envelope = Math.sin(Math.PI * phase);
+      wisp.position.set(
+        Math.sin(phase * Math.PI * 2 + index) * 0.16 + wisp.userData.drift * phase * 0.18,
+        3.34 + rise * 1.55,
+        -5.82 + Math.cos(phase * Math.PI * 2 + index) * 0.08
+      );
+      wisp.rotation.z = Math.sin(phase * Math.PI * 2 + index) * 0.22;
+      wisp.material.opacity = 0.105 * envelope;
+      const swell = 0.82 + envelope * 0.34;
+      wisp.scale.set(0.72 * swell, (1.9 + (index % 2) * 0.45) * swell, 0.72 * swell);
+    });
+  }
+
   // Paired bronze vases with lotus stems.
   for (const side of [-1, 1]) {
     const vase = new THREE.Group(); vase.position.set(side * 1.72, 1.91, 0.02); offeringTable.add(vase);
@@ -1229,6 +1260,7 @@ async function boot() {
     updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
     offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
+    updateIncenseWisps(now);
     dust.rotation.y += dt * 0.000018;
     for (let i = effects.length - 1; i >= 0; i--) {
       const effect = effects[i]; effect.elapsed += dt;
