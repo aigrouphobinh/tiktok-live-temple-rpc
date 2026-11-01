@@ -746,3 +746,11 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Removed the duplicate upper-arm contour and extended the existing shoulder seam down toward the resting hand, retaining one paired shadow line and a fine non-shadowing highlight.
 - Updated the source regression test to assert the consolidated path and the absence of the redundant arm-edge path.
 - This is a source-level geometry review; a browser render is still needed for visual confirmation.
+
+
+### 2026-11-01 — Prevent GLB animation actions from fading themselves out
+- Fixed a state-transition edge case where walk/bow states without dedicated clips reused the idle clip, but the mixer treated the state-name change as a new action and faded the same idle action out against itself.
+- Track the actual active clip separately from the requested state; when multiple states resolve to one clip, keep the action alive and update its loop mode without restarting it.
+- When no clip or idle fallback exists, fade out and clear the previous action so an old walk/bow animation cannot continue in the wrong state.
+- Added regression coverage for shared fallback clips, loop-mode updates and clearing unavailable actions.
+- This is source-level animation lifecycle validation; the selected GLB still needs an in-browser pass to confirm its actual rig and clip naming.
