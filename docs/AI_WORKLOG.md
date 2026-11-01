@@ -1,3 +1,10 @@
+### 2026-11-01 — Warm aged-stone focal pass for the Buddha
+
+- Shifted the Buddha's shared stone palette from pale neutral ivory to warmer aged sandstone/ivory, with a deeper carved-shadow tone and softer highlight tone. The existing procedural grooves, robe ridges, curls and mineral bump map remain unchanged.
+- Rebalanced the dedicated statue point light from a cool, high-intensity fill to a warm, lower-intensity focal fill; the gift/congregation pulse remains active at a more restrained baseline.
+- Kept the master camera, statue transforms, halo, altar lights and roofless open-air composition unchanged.
+- Added visual regression assertions for the material palette and focal-light values. A portrait Chromium audit is required to review the resulting image before merge; this is not a physical-GPU/OBS benchmark.
+
 ### 2026-11-01 — Finalize the three-agent environment integration
 - Merged Agent 3's portrait inner-column plaques, with both static batches retained on low-detail devices, plus the column-toggle/resource-ownership fixes from PR #17.
 - Structural shafts/flutes now remain present independently of decorative footings; cleanup disposes only module-owned resources and construction-failure cleanup is covered by regression tests.
