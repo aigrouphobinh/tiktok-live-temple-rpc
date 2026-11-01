@@ -376,6 +376,10 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
   window.TempleGiftActionEngine = {
     handle,
     resetStreaks: () => streakCoalescer.clear(),
+    clearStreak: (groupId) => {
+      if (groupId == null || String(groupId) === '') return false;
+      return streakCoalescer.recent.delete(String(groupId));
+    },
     snapshot: () => machine.snapshot()
   };
 })();
