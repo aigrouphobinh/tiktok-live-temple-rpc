@@ -116,6 +116,10 @@ class ZeroTTSManager {
     this.inflight = new Map();
     this.reqCounter = 0;
     this.buffer = '';
+    if (process.env.DISABLE_ZEROTTS_WORKER === '1') {
+      this.status = 'disabled';
+      return;
+    }
     this.startWorker();
   }
 
@@ -1255,11 +1259,14 @@ server.listen(PORT, () => {
   console.log(`🔌 JSON-RPC 2.0 Endpoint   : http://localhost:${PORT}/rpc (ws://localhost:${PORT}/ws)`);
   console.log(`============================================================`);
 
-  // Tự động kết nối tới @zenfacts_vn ngay khi khởi động server
-  const defaultChannel = process.env.TIKTOK_USER || state.tiktok?.username || 'zenfacts_vn';
-  if (defaultChannel) {
-    connectTikTokLive(defaultChannel).catch((err) => {
-      console.warn(`[Auto-Connect @${defaultChannel}] Chưa kết nối được ngay:`, err.message);
-    });
+  // Visual/browser audits can opt out of external live connections.
+  if (process.env.DISABLE_TIKTOK_AUTOCONNECT !== '1') {
+    // Tự động kết nối tới @zenfacts_vn ngay khi khởi động server
+    const defaultChannel = process.env.TIKTOK_USER || state.tiktok?.username || 'zenfacts_vn';
+    if (defaultChannel) {
+      connectTikTokLive(defaultChannel).catch((err) => {
+        console.warn(`[Auto-Connect @${defaultChannel}] Chưa kết nối được ngay:`, err.message);
+      });
+    }
   }
 });
