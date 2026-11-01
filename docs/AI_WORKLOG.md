@@ -1,3 +1,9 @@
+### 2026-11-01 — Articulate the upper body during the kneeling bow
+- Added a pure procedural upper-body pose helper that blends torso inclination, head counterbalance and both arm reaches from kneel and bow weights.
+- Connected the helper to the main procedural devotee's bow pose so the hands reach forward as the torso inclines; standing and idle poses return to neutral.
+- Kept the imported GLB manual-bow and animation-clip paths unchanged because the selected model's joint axes and rest pose still need visual validation.
+- Added unit and scene-integration coverage and updated CI source guards.
+
 ### 2026-11-01 — Compensate avatar root height during kneeling
 - Added a small blended root-height compensation to the procedural avatar while its knees bend, reducing the foot lift introduced by the articulated leg rotations.
 - Kept the compensation out of the GLB path; imported skeletons still require visual rest-pose and joint-axis validation.
