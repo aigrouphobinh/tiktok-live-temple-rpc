@@ -52,6 +52,17 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('sphere(0.075, mats.goldBright, railX, 1.02, z, 1, 0.7, 1)');
   });
 
+  it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
+    expect(css).toContain('3D BROADCAST INTERFACE');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .bottom-hud-bar');
+    expect(css).toContain('height: 218px;');
+    expect(css).toContain('border-radius: 22px 8px 22px 8px;');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .hud-gift-card:hover');
+    expect(css).toContain('font-size: 38px;');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .hud-right-leaderboard');
+    expect(css).toContain('height: 188px;');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
