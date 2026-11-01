@@ -1121,7 +1121,7 @@ async function boot() {
       root, upperBody, torso, head, eyeWhites, eyePupils, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
-      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionUntil: 0
+      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
     };
     allHumanAvatars.push(avatar);
     return avatar;
@@ -1368,8 +1368,11 @@ async function boot() {
     const upperPose = getHumanUpperPose({ kneelBlend: avatar.kneelBlend, bowAmount: avatar.bowAmount });
     // Sweep both forearms inward and upward so the palms meet at chest height.
     // Recompute from the ritual base pose every frame to avoid rotation drift.
-    const thankYouLift = blend * (0.92 + Math.sin(time * 0.007) * 0.025);
-    avatar.leftArm.rotation.x = upperPose.armReach - blend * 0.08;
+    const profile = avatar.giftReactionProfile || { intensity: 0.55, bowAmount: 0.08 };
+    const strength = blend * profile.intensity;
+    avatar.upperBody.rotation.x = upperPose.torsoLean - blend * profile.bowAmount;
+    const thankYouLift = strength * (0.92 + Math.sin(time * 0.007) * 0.025);
+    avatar.leftArm.rotation.x = upperPose.armReach - strength * 0.08;
     avatar.rightArm.rotation.x = upperPose.armReach - blend * 0.08;
     avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;
     avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift;
@@ -1416,7 +1419,7 @@ async function boot() {
     // Keep breathing on the torso mesh so the waist pivot and kneeling feet stay planted.
     avatar.torso.scale.y = 1 + breath * 0.012;
     avatar.torso.position.y = 0.40 + breath * 0.0025;
-    const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time);
+    const giftReaction = getGiftReactionBlend(avatar.giftReactionUntil - time) * (avatar.giftReactionProfile?.intensity || 0.55);
     avatar.torso.rotation.y = giftReaction * 0.035;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;
     avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.025;
@@ -1717,8 +1720,12 @@ async function boot() {
     playWorldGiftAction(action);
     // Acknowledge the gift with a small shared glance and appreciative head tilt.
     // Repeated gifts extend the response instead of stacking extra animation state.
-    const reactionUntil = performance.now() + 1800;
-    for (const avatar of allHumanAvatars) avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);
+    const profile = event.detail?.reactionProfile || { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };
+    const reactionUntil = performance.now() + profile.durationMs;
+    for (const avatar of allHumanAvatars) {
+      avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, reactionUntil);
+      if (profile.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = profile;
+    }
   }
   window.addEventListener('temple:ritual', onTempleRitual);
   window.addEventListener('temple:gift-action', onTempleGiftAction);
