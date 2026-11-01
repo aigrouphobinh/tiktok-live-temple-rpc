@@ -15,6 +15,10 @@ const scenarios = [
  * produced another frame. Lower-end software-rendered profiles can take
  * longer to emit a sample while the browser is busy rendering the scene.
  */
+function logAuditPhase(profile, phase, details = {}) {
+  console.log(`[Temple 3D audit] ${new Date().toISOString()} profile=${profile} phase=${phase} ${JSON.stringify(details)}`);
+}
+
 async function waitForRendererSample(samples, targetCount, timeoutMs = 15000) {
   const startedAt = Date.now();
   while (samples.length < targetCount && Date.now() - startedAt < timeoutMs) {
@@ -92,6 +96,7 @@ try {
     };
 
     try {
+      logAuditPhase(scenario.id, 'profile-start');
       page = await browser.newPage({ viewport, deviceScaleFactor });
       await page.addInitScript((hints) => {
         Object.defineProperty(navigator, 'deviceMemory', {
@@ -160,22 +165,28 @@ try {
 
       const profileUrl = new URL(report.url);
       profileUrl.searchParams.set('profileAudit', scenario.id);
+      logAuditPhase(scenario.id, 'navigation-start', { url: profileUrl.toString() });
       await page.goto(profileUrl.toString(), {
         waitUntil: 'domcontentloaded',
         timeout: 45000
       });
 
+      logAuditPhase(scenario.id, 'navigation-complete');
       try {
+        logAuditPhase(scenario.id, 'scene-ready-wait-start');
         await page.waitForFunction(
           () => window.__TEMPLE_3D_READY__ === true,
           null,
           { timeout: 60000 }
         );
         profileReport.ready = true;
+        logAuditPhase(scenario.id, 'scene-ready');
       } catch (error) {
         profileReport.readinessError = error.message;
+        logAuditPhase(scenario.id, 'scene-ready-timeout', { error: error.message });
       }
 
+      logAuditPhase(scenario.id, 'model-settle-wait-start');
       // Require the external Buddha GLB to finish loading before the visual capture.
       try {
         await page.waitForFunction(
@@ -191,12 +202,16 @@ try {
       // The renderer may emit an initial sample while the procedural statue is
       // still visible. Start the idle baseline only from a fresh sample after
       // the optional GLB has reached its settled source state.
+      logAuditPhase(scenario.id, 'model-settled', { source: await page.evaluate(() => window.__TEMPLE_BUDDHA_MODEL_SOURCE__) });
       const samplesBeforeIdle = rendererStatsSamples.length;
+      logAuditPhase(scenario.id, 'idle-sample-wait-start', { samples: samplesBeforeIdle });
       const idleStats = await waitForRendererSample(
         rendererStatsSamples,
         samplesBeforeIdle + 1
       );
+      logAuditPhase(scenario.id, 'idle-sample-result', { captured: Boolean(idleStats), samples: rendererStatsSamples.length });
       const samplesBeforeGiftBurst = rendererStatsSamples.length;
+      logAuditPhase(scenario.id, 'gift-burst-start');
 
       // Sustain the gift burst until a *new* renderer diagnostic is observed.
       // This avoids reusing the idle sample when a low-detail frame takes longer.
@@ -226,11 +241,13 @@ try {
         rendererStatsSamples,
         samplesBeforeGiftBurst + 1
       );
+      logAuditPhase(scenario.id, 'gift-burst-result', { captured: Boolean(stressStats), samples: rendererStatsSamples.length });
       await page.evaluate(() => {
         window.__TEMPLE_AUDIT_STOP_GIFTS__?.();
         delete window.__TEMPLE_AUDIT_STOP_GIFTS__;
       });
 
+      logAuditPhase(scenario.id, 'scene-inspection-start');
       const scene = await page.evaluate(async () => {
         const stage = document.getElementById('stage9x16');
         const canvas = document.getElementById('temple3dCanvas');
@@ -345,7 +362,9 @@ try {
       };
       profileReport.checks.passed = Object.values(profileReport.checks).every(Boolean);
 
+      logAuditPhase(scenario.id, 'scene-inspection-complete', { canvasVisible: profileReport.sceneCanvasVisible });
       if (profileReport.sceneCanvasVisible) {
+        logAuditPhase(scenario.id, 'screenshot-start');
         const screenshotPath = `${artifactDir}/temple-3d-${scenario.id}.png`;
         await page.locator('#stage9x16').screenshot({
           path: screenshotPath,
@@ -354,6 +373,7 @@ try {
           scale: 'css'
         });
         profileReport.screenshot = screenshotPath;
+        logAuditPhase(scenario.id, 'screenshot-complete', { path: screenshotPath });
 
         if (scenario.id === 'high') {
           await page.screenshot({
@@ -366,12 +386,14 @@ try {
         }
       }
     } catch (error) {
+      logAuditPhase(scenario.id, 'profile-error', { error: error.message });
       profileReport.fatalError = error.stack || error.message;
       profileReport.checks.passed = false;
     } finally {
       await page?.close();
     }
 
+    logAuditPhase(scenario.id, 'profile-finished', { passed: profileReport.checks.passed });
     report.profiles.push(profileReport);
     console.log(`[Temple 3D audit] ${scenario.id}: ${profileReport.checks.passed ? 'PASS' : 'FAIL'}`);
   }
