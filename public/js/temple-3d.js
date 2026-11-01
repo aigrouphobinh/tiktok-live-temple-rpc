@@ -587,6 +587,8 @@ async function boot() {
     }
   }
   // Three-dimensional gift reactions mirror the existing gift action engine.
+  // Every transient effect owns its materials: disposeThreeObjectTree() can then
+  // release them without disposing shared sanctuary materials used by the world.
   // They are world-space overlays; they never move the master camera.
   function giftSparkBurst(x, y, z, count = 18, color = 0xffc45a) {
     for (let i = 0; i < count; i++) {
@@ -611,9 +613,9 @@ async function boot() {
   function playWorldGiftAction(action) {
     if (action === 'rocket') {
       const rocket = new THREE.Group();
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.9, 12), mats.redBright);
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.9, 12), mats.redBright.clone());
       body.rotation.z = -Math.PI / 2; rocket.add(body);
-      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.34, 12), mats.goldBright);
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.34, 12), mats.goldBright.clone());
       nose.rotation.z = -Math.PI / 2; nose.position.x = 0.6; rocket.add(nose);
       const finMaterial = mats.gold.clone();
       for (const side of [-1, 1]) {
@@ -639,7 +641,7 @@ async function boot() {
     if (action === 'dragon') {
       const dragon = new THREE.Group();
       const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2d9a54, roughness: 0.5, metalness: 0.12 });
-      const goldMaterial = mats.goldBright;
+      const goldMaterial = mats.goldBright.clone();
       for (let i = 0; i < 5; i++) {
         const segment = new THREE.Mesh(new THREE.SphereGeometry(0.28 - i * 0.025, 12, 8), bodyMaterial);
         segment.position.set(-i * 0.42, Math.sin(i * 0.8) * 0.12, 0);
@@ -672,7 +674,7 @@ async function boot() {
       const donutMaterial = new THREE.MeshStandardMaterial({ color: 0xf1a0bd, roughness: 0.38, metalness: 0.04 });
       const donut = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.22, 14, 36), donutMaterial);
       donut.position.set(-7, 3.3, 4.0);
-      const icing = new THREE.Mesh(new THREE.TorusGeometry(0.59, 0.055, 8, 36), mats.ivory);
+      const icing = new THREE.Mesh(new THREE.TorusGeometry(0.59, 0.055, 8, 36), mats.ivory.clone());
       icing.position.y = 0.08; donut.add(icing);
       addEffect(donut, (obj, dt, p) => {
         obj.position.x = -7 + p * 14;
@@ -700,7 +702,7 @@ async function boot() {
         petal.rotation.z = angle;
         bloom.add(petal);
       }
-      const heart = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8), mats.goldBright);
+      const heart = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8), mats.goldBright.clone());
       bloom.add(heart);
       addEffect(bloom, (obj, dt, p) => {
         obj.position.y = 3.0 + p * 1.8;
