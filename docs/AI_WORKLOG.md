@@ -79,6 +79,12 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added regression coverage for shared texture deduplication and invalid roots.
 - Validation: pending CI workflow.
 
+## Session update — 2026-11-01 (GPU diagnostics)
+- Added opt-in renderer diagnostics at `?3d=1&stats=1`: every five seconds logs draw calls, triangles, geometry/texture counts, active transient effects and pixel ratio.
+- Diagnostics use Three.js `renderer.info` and are completely disabled in normal sessions; no overlay, dependency, timer or per-frame console output is added.
+- Added regression coverage for the query flag, reported metrics and sampling interval.
+- Validation: pending CI workflow. Browser GPU measurements still require running the scene on the target machine.
+
 ## Session log — 2026-11-01
 
 ### Optional Three.js layer — initial implementation
