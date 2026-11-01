@@ -11,6 +11,16 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
+  it('adds an instanced gilded outer aureole and warm focal glow', async () => {
+    const scene = (await import('node:fs')).readFileSync(
+      new URL('../public/js/temple-3d.js', import.meta.url), 'utf8'
+    );
+    expect(scene).toContain('new THREE.TorusGeometry(2.3,0.035,8,96)');
+    expect(scene).toContain('new THREE.InstancedMesh(');
+    expect(scene).toContain('new THREE.SphereGeometry(0.045,8,6), mats.goldBright, 32');
+    expect(scene).toContain('new THREE.PointLight(0xffbd69, 8, 7, 2)');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
