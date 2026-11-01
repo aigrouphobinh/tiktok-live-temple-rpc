@@ -1,3 +1,8 @@
+### 2026-11-01 — Select a balanced 40-degree portrait camera
+- Compared the existing 36-degree crop with 44-degree and 40-degree Chromium captures at 1080×1920.
+- Selected 40° FOV, position (0, 11.5, 27), look-at (0, 3.2, -5.5): preserves more Buddha/altar scale than 44° while retaining the side colonnade and visible gallery floor.
+- The 40-degree capture reached scene-ready with WebGL 2.0, no context loss, no console errors and no failed requests. Physical GPU/OBS validation remains outstanding.
+
 ### 2026-11-01 — Integrate device render profiles into the 3D scene
 - The scene now resolves one device profile at boot and uses it for pixel ratio, the main directional shadow-map size and the independent environment detail preset.
 - Low tier keeps a 1x pixel ratio and uses a 512² directional shadow map plus low environment detail; medium/high retain the existing 1024² shadow map with matching environment detail.
