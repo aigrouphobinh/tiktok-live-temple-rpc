@@ -1054,3 +1054,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Paired a fine warm-gold band with a slimmer stone highlight to visually connect the statue base to the layered lotus throne without changing statue proportions or camera framing.
 - Both curves are static, cast no shadows and add no lights; existing petal animation and gift effects remain unchanged.
 - Added source regression coverage and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add carved light-and-shadow accents to the Buddha lap robe
+- Refined the five existing lap folds with a slim ivory stone highlight on one edge and a shallow darker groove on the other, following each fold's existing curve.
+- Reuses the established robe paths and statue materials; the seated pose, robe silhouette, lighting, camera and animation remain unchanged.
+- Accent tubes are static and do not cast or receive shadows, keeping the added detail lightweight.
+- Added source regression coverage and CI guards; browser visual validation remains outstanding.
