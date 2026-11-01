@@ -1,3 +1,9 @@
+### 2026-11-01 — Inspect GLB rigs and animation targets
+- Extended `inspect:glb` output with skin joint names/counts and skeleton roots, plus animation channel targets, animated property paths and estimated clip duration from input accessor bounds.
+- Added fixture coverage for a small rig and rotation channels, making it easier to assess whether a candidate model has usable armature and animation data before scene integration.
+- No model asset or runtime scene behavior changed.
+- CI pending.
+
 ### 2026-11-01 — Harden GLB inspection and cover parser boundaries
 - Tightened the dependency-free GLB inspector to reject header/file-size mismatches, truncated chunk headers, chunks extending beyond the declared file and non-4-byte-aligned chunks.
 - Added executable parser tests covering mesh/triangle/material/texture/skin/animation summaries, external image references and malformed boundaries.
