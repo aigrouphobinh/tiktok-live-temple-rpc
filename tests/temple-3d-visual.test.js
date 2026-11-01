@@ -71,6 +71,18 @@ describe('3D sanctuary visual treatment', () => {
 
 
 
+  it('reveals a warm Buddha halo and lotus aura only for special gift reactions', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const lotusGiftAuraMaterial = new THREE.MeshBasicMaterial({');
+    expect(scene).toContain('const lotusGiftAura = new THREE.Mesh(new THREE.TorusGeometry(1.78, 0.035, 8, 96), lotusGiftAuraMaterial);');
+    expect(scene).toContain('const haloGiftAuraMaterial = new THREE.MeshBasicMaterial({');
+    expect(scene).toContain('const haloGiftAura = new THREE.Mesh(new THREE.TorusGeometry(2.48, 0.055, 8, 112), haloGiftAuraMaterial);');
+    expect(scene).toContain("avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0");
+    expect(scene).toContain('haloGiftAuraMaterial.opacity = auraPulse * 0.42;');
+    expect(scene).toContain('lotusGiftAuraMaterial.opacity = auraPulse * 0.34;');
+    expect(scene).toContain('haloGlow.intensity = 8 + auraPulse * 13;');
+  });
+
   it('stagger congregation gift reactions and pulse altar lighting with the shared response', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('giftReactionStartedAt: 0, giftReactionUntil: 0');
