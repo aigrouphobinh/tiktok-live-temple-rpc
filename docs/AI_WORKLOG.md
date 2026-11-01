@@ -1,3 +1,7 @@
+### 2026-11-01 — Cancel interrupted fades when a GLB state has no matching clip
+- When a requested state has no authored clip and no idle fallback, the active action fades out. If that action was already in a fade-in or fade-out transition, the old scheduled fade could continue to compete with the new fade-out.
+- Cancel any pending fade before fading the active action out; added a regression assertion for the no-clip fallback path.
+
 ### 2026-11-01 — Cancel stale fades when reusing GLB animation actions
 - AnimationMixer caches clip actions. Rapid state changes can return to an action that is still fading out from an interrupted transition, leaving the intended idle/walk/bow clip at a reduced weight.
 - Cancel pending fades and restore full action weight before reusing a cached action; also cancel any previous fade before scheduling the outgoing action's fade-out.
