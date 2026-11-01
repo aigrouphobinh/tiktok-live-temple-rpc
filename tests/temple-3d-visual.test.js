@@ -762,6 +762,14 @@ it('adds instanced ruby-and-brass diamond plaques to the temple pillars', () => 
 });
 
 
+it('adds a dedicated high-roughness mineral map to the Buddha stone materials', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain("else if (kind === 'stone') value = 222 + grain * 7 + noise * 10;");
+  expect(scene).toContain("const stoneRoughness = makeRoughnessTexture('stone');");
+  expect(scene).toContain('for (const material of [mats.statueStone, mats.statueShadow, mats.statueLight]) material.roughnessMap = stoneRoughness;');
+  expect(scene).toContain("kind === 'stone' ? 4 : 3");
+});
+
 it('adds paired wrist transitions and palm creases to the Buddha meditation mudra', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
   expect(scene).toContain('// Fine wrist transitions and palm creases finish the joined meditation hands.');
