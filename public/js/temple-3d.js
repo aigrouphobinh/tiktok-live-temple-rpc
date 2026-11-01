@@ -468,31 +468,52 @@ async function boot() {
   function makeRitualStation(x, z, kind) {
     const station = new THREE.Group();
     station.position.set(x, 0.16, z);
+    station.userData.ritualKind = kind;
+    station.userData.animation = {
+      startedAt: 0, duration: 0,
+      bellPivot: null, malletPivot: null, drum: null, fortuneDrum: null
+    };
     world.add(station);
     box(1.55, 0.22, 1.45, mats.wood, 0, 0, 0, station);
     box(1.62, 0.07, 1.52, mats.gold, 0, 0.14, 0, station);
     box(1.42, 0.12, 1.32, mats.woodLight, 0, 0.23, 0, station);
     if (kind === 'bell') {
-      cylinder(0.38, 0.48, 0.76, mats.gold, 0, 0.72, 0, station, 32);
-      cylinder(0.5, 0.5, 0.1, mats.goldBright, 0, 1.08, 0, station, 32);
-      sphere(0.1, mats.goldBright, 0, 1.2, 0, 1, 1.25, 1, station);
+      // Suspend the bell from a pivot so each strike visibly sets the bronze body swinging.
+      const bellPivot = new THREE.Group();
+      bellPivot.position.set(0, 1.08, 0);
+      station.add(bellPivot);
+      cylinder(0.38, 0.48, 0.76, mats.gold, 0, -0.34, 0, bellPivot, 32);
+      cylinder(0.5, 0.5, 0.1, mats.goldBright, 0, -0.01, 0, bellPivot, 32);
+      sphere(0.1, mats.goldBright, 0, 0.1, 0, 1, 1.25, 1, bellPivot);
       cylinder(0.035, 0.035, 0.42, mats.wood, 0.58, 0.63, 0, station, 10);
       sphere(0.09, mats.gold, 0.58, 0.4, 0, 1, 1, 1, station);
+      station.userData.animation.bellPivot = bellPivot;
     } else if (kind === 'woodfish') {
       const drum = new THREE.Mesh(new THREE.SphereGeometry(0.48, 24, 18), mats.red);
       drum.scale.set(1.2, 0.76, 0.82); drum.position.set(0, 0.72, 0);
       drum.castShadow = true; station.add(drum);
       sphere(0.09, mats.goldBright, 0, 0.76, 0.39, 1, 0.7, 0.35, station);
-      cylinder(0.055, 0.055, 0.72, mats.woodLight, 0.58, 0.67, 0, station, 10).rotation.z = -0.65;
+      const malletPivot = new THREE.Group();
+      malletPivot.position.set(0.58, 1.05, 0);
+      station.add(malletPivot);
+      const mallet = cylinder(0.055, 0.055, 0.72, mats.woodLight, 0, -0.29, 0, malletPivot, 10);
+      mallet.rotation.z = -0.65;
+      station.userData.animation.malletPivot = malletPivot;
+      station.userData.animation.drum = drum;
     } else {
-      cylinder(0.34, 0.42, 0.82, mats.red, 0, 0.72, 0, station, 12);
-      cylinder(0.38, 0.38, 0.08, mats.goldBright, 0, 1.14, 0, station, 16);
-      cylinder(0.38, 0.38, 0.08, mats.gold, 0, 0.3, 0, station, 16);
+      // Keep all fortune-cylinder details under one pivot for a believable spin.
+      const fortuneDrum = new THREE.Group();
+      fortuneDrum.position.set(0, 0.72, 0);
+      station.add(fortuneDrum);
+      cylinder(0.34, 0.42, 0.82, mats.red, 0, 0, 0, fortuneDrum, 12);
+      cylinder(0.38, 0.38, 0.08, mats.goldBright, 0, 0.42, 0, fortuneDrum, 16);
+      cylinder(0.38, 0.38, 0.08, mats.gold, 0, -0.42, 0, fortuneDrum, 16);
       for (let i = 0; i < 9; i++) {
         const angle = i * Math.PI * 2 / 9;
-        cylinder(0.018, 0.018, 0.72, mats.woodLight, Math.cos(angle) * 0.2, 0.73, Math.sin(angle) * 0.2, station, 6);
+        cylinder(0.018, 0.018, 0.72, mats.woodLight, Math.cos(angle) * 0.2, 0, Math.sin(angle) * 0.2, fortuneDrum, 6);
       }
-      sphere(0.1, mats.goldBright, 0, 1.25, 0, 1, 0.8, 1, station);
+      sphere(0.1, mats.goldBright, 0, 0.53, 0, 1, 0.8, 1, fortuneDrum);
+      station.userData.animation.fortuneDrum = fortuneDrum;
     }
     ritualStations.push(station);
   }
@@ -509,9 +530,7 @@ async function boot() {
   };
   const ritualHitMeshes = [];
   for (const station of ritualStations) {
-    const kind = station === ritualStations[0] ? 'bell'
-      : station === ritualStations[1] ? 'woodfish' : 'fortune';
-    station.userData.ritualKind = kind;
+    const kind = station.userData.ritualKind;
     station.traverse((object) => {
       if (!object.isMesh) return;
       object.userData.ritualKind = kind;
@@ -534,6 +553,42 @@ async function boot() {
     return hit?.object?.userData?.ritualKind
       ? ritualStations.find((station) => station.userData.ritualKind === hit.object.userData.ritualKind)
       : null;
+  }
+
+  function triggerRitualStation(kind) {
+    const station = ritualStations.find((item) => item.userData.ritualKind === kind);
+    if (!station) return;
+    const animation = station.userData.animation;
+    animation.startedAt = performance.now();
+    animation.duration = kind === 'bell' ? 1400 : kind === 'woodfish' ? 720 : 1900;
+  }
+
+  function updateRitualStationAnimations(now) {
+    for (const station of ritualStations) {
+      const animation = station.userData.animation;
+      if (!animation.startedAt) continue;
+      const progress = Math.min(1, (now - animation.startedAt) / animation.duration);
+      const fade = 1 - progress;
+      if (animation.bellPivot) {
+        animation.bellPivot.rotation.z = Math.sin(progress * Math.PI * 8) * 0.17 * fade;
+      }
+      if (animation.malletPivot) {
+        animation.malletPivot.rotation.z = Math.sin(progress * Math.PI * 4) * 0.46 * fade;
+        if (animation.drum) {
+          animation.drum.scale.y = 0.76 + Math.max(0, Math.cos(progress * Math.PI * 4)) * 0.055 * fade;
+        }
+      }
+      if (animation.fortuneDrum) {
+        const spinEase = 1 - Math.pow(1 - progress, 3);
+        animation.fortuneDrum.rotation.y = Math.PI * 2 * 3 * spinEase;
+      }
+      if (progress >= 1) {
+        animation.startedAt = 0;
+        if (animation.bellPivot) animation.bellPivot.rotation.z = 0;
+        if (animation.malletPivot) animation.malletPivot.rotation.z = 0;
+        if (animation.drum) animation.drum.scale.y = 0.76;
+      }
+    }
   }
 
   function setHoveredRitualStation(station) {
@@ -851,6 +906,12 @@ async function boot() {
   }
   function handleRitual(event) {
     if (!event || typeof event.type !== 'string') return;
+    const stationKindByAction = {
+      ringBell: 'bell',
+      strikeWoodenFish: 'woodfish',
+      drawFortune: 'fortune'
+    };
+    if (stationKindByAction[event.type]) triggerRitualStation(stationKindByAction[event.type]);
     ritualUntil = performance.now() + 7800;
     if (event.type === 'burnIncense') {
       incenseEffect(); makeRing(0, 1.2, -5.6);
@@ -914,6 +975,7 @@ async function boot() {
       }
     }
     lanterns.forEach((light, i) => { light.intensity = 12 + Math.sin(elapsed * 0.003 + i) * 2; });
+    updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
     offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
     dust.rotation.y += dt * 0.000018;
