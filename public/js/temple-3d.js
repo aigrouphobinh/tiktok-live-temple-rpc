@@ -694,6 +694,35 @@ async function boot() {
     const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, radius, 8, false), mats.statueShadow);
     mesh.castShadow = true; statue.add(mesh); return mesh;
   };
+  // Subtle neck tendons and shoulder drape creases bridge the head into the robe.
+  for (const side of [-1, 1]) {
+    const neckContour = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(side * 0.22, 4.2, 0.235),
+      new THREE.Vector3(side * 0.24, 4.08, 0.275),
+      new THREE.Vector3(side * 0.2, 3.96, 0.305)
+    ]);
+    const neckContourMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(neckContour, 18, 0.009, 6, false), mats.statueLight
+    );
+    neckContourMesh.castShadow = false;
+    neckContourMesh.receiveShadow = false;
+    statue.add(neckContourMesh);
+    const shoulderDrape = [
+      [side * 0.39, 3.98, 0.46],
+      [side * 0.55, 3.88, 0.51],
+      [side * 0.68, 3.72, 0.51]
+    ];
+    robeFold(shoulderDrape, 0.014);
+    const shoulderDrapeHighlight = new THREE.CatmullRomCurve3(shoulderDrape.map(([x, y, z]) =>
+      new THREE.Vector3(x - side * 0.018, y + 0.018, z + 0.012)
+    ));
+    const shoulderDrapeHighlightMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(shoulderDrapeHighlight, 18, 0.007, 6, false), mats.statueLight
+    );
+    shoulderDrapeHighlightMesh.castShadow = false;
+    shoulderDrapeHighlightMesh.receiveShadow = false;
+    statue.add(shoulderDrapeHighlightMesh);
+  }
   // One continuous shoulder-to-hand robe contour avoids stacked parallel seams.
   robeFold([[-0.58,4.02,0.18],[-0.44,3.55,0.57],[-0.18,3.02,0.72],[0.34,2.52,0.67],[0.72,2.25,0.4]],0.045);
   robeFold([[0.58,4.0,0.18],[0.7,3.55,0.48],[0.5,3.1,0.67],[0.15,2.65,0.72],[-0.42,2.34,0.55]],0.035);
