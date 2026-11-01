@@ -529,3 +529,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Geometry is static and uses existing shared sanctuary materials; no new animation loop, external asset or camera adjustment.
 - Added a visual regression test covering the niche backing, mouldings and decorative studs.
 - Next check: verify the latest GitHub Actions run and continue with the altar/offerings composition.
+
+### 2026-11-01 — Finish the offering table
+- Added a red lacquered front apron to the offering table, edged with two narrow gold rails.
+- Added a small diamond-shaped central gold seal and four matching studs; retained the original table footprint, burner, vases, fruit and flame positions.
+- Added a focused visual regression test for the new tabletop furniture details.
+- Camera and ritual hit meshes are unchanged.
