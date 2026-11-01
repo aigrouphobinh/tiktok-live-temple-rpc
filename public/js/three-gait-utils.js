@@ -142,6 +142,16 @@ export function applyTwoBoneIKToBones(THREE, upperBone, lowerBone, footBone, tar
     || !Array.isArray(target) || target.length !== 3 || !target.every(Number.isFinite)
     || !Array.isArray(pole) || pole.length !== 3 || !pole.every(Number.isFinite)) return null;
 
+  // The two joints must belong to the same ordered hierarchy. Name-based rig
+  // matching alone is insufficient: unrelated bones can share common aliases.
+  const isDescendantOf = (node, ancestor) => {
+    for (let parent = node?.parent; parent; parent = parent.parent) {
+      if (parent === ancestor) return true;
+    }
+    return false;
+  };
+  if (!isDescendantOf(lowerBone, upperBone) || !isDescendantOf(footBone, lowerBone)) return null;
+
   const rootPosition = new THREE.Vector3();
   const kneePosition = new THREE.Vector3();
   const anklePosition = new THREE.Vector3();
