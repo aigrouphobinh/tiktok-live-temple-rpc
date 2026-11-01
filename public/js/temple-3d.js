@@ -410,6 +410,18 @@ async function boot() {
   }
   // Open-air sanctuary: keep the upper sightline clear while the side pillars frame the altar.
 
+  // Raised side galleries add a second architectural plane beyond the columns.
+  // Keep them low and peripheral so the Buddha remains the dominant focal point.
+  for (const side of [-1, 1]) {
+    const x = side * 9.15;
+    box(2.35, 0.18, 25.5, mats.wood, x, -0.055, 2.2);
+    box(2.2, 0.045, 25.2, mats.stone, x, 0.06, 2.2);
+    box(0.055, 0.035, 25.0, mats.goldBright, side * 10.25, 0.1, 2.2);
+    for (const z of [-9.8, -3.5, 2.8, 9.1, 14.2]) {
+      box(2.05, 0.035, 0.07, mats.gold, x, 0.095, z);
+    }
+  }
+
   // Lanterns with warm emissive cores along the side aisles.
   const lanterns = [];
   for (const x of [-5.8, 5.8]) {
