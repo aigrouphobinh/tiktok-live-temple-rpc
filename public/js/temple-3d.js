@@ -754,6 +754,31 @@ async function boot() {
   let ritualUntil = 0;
   const clock = new THREE.Clock();
 
+  // Optional, local-only GLB replacement. The procedural Buddha remains the
+  // default and stays visible until the selected, rights-cleared file loads.
+  const modelsRequested = new URLSearchParams(location.search).get('models') === '1';
+  async function upgradeBuddhaFromGLB() {
+    try {
+      const { loadGLTFAsset } = await import('./three-model-loader.js');
+      const asset = await loadGLTFAsset('/assets/models/buddha-selected.glb', {
+        targetHeight: 5.88,
+        centerXZ: true
+      });
+      if (disposed) {
+        asset.dispose();
+        return;
+      }
+      for (const child of [...statue.children]) {
+        child.traverse((node) => { if (node.geometry) node.geometry.dispose(); });
+        statue.remove(child);
+      }
+      statue.add(asset.root);
+      console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
+    } catch (error) {
+      console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', error);
+    }
+  }
+
   function addEffect(object, update, duration = 1800) {
     if (effects.length >= MAX_EFFECTS) {
       const old = effects.shift(); world.remove(old.object); disposeThreeObjectTree(old.object);
@@ -1056,5 +1081,6 @@ async function boot() {
   window.__TEMPLE_3D_READY__ = true;
   window.dispatchEvent(new Event('temple:3d-ready'));
   start();
+  if (modelsRequested) void upgradeBuddhaFromGLB();
   console.info('[Temple3D] Full sanctuary world ready (?3d=1), with human devotees and stone Buddha.');
 }
