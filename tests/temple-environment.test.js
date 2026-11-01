@@ -152,6 +152,47 @@ describe('Temple environment architecture module', () => {
     result.dispose();
   });
 
+  it('keeps structural column shafts when decorative column bases are disabled', () => {
+    const result = createTempleEnvironment({
+      THREE: fakeTHREE,
+      scene: createScene(),
+      config: { enableColumnBases: false }
+    });
+    const batches = new Map();
+    result.group.traverse((object) => {
+      if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
+    });
+    expect(batches.get('TemplePortraitColumnShafts')?.count).toBe(2);
+    expect(batches.has('TemplePortraitColumnFlutes')).toBe(true);
+    expect(batches.has('TempleColumnBaseStoneFootings')).toBe(false);
+    expect(batches.has('TempleColumnBaseRings')).toBe(false);
+    result.dispose();
+  });
+
+  it('keeps optional architectural detail toggles independent', () => {
+    const result = createTempleEnvironment({
+      THREE: fakeTHREE,
+      scene: createScene(),
+      config: {
+        enableColumnBases: false,
+        enableCapitalBrackets: false,
+        enableGalleryScreens: false,
+        enableFloorInlays: false
+      }
+    });
+    const names = new Set();
+    result.group.traverse((object) => { if (object.name) names.add(object.name); });
+    expect(names.has('TemplePortraitColumnShafts')).toBe(true);
+    expect(names.has('TemplePortraitColumnFlutes')).toBe(true);
+    expect(names.has('TempleColumnBaseStoneFootings')).toBe(false);
+    expect(names.has('TempleCapitalLowerStacks')).toBe(false);
+    expect(names.has('TempleGalleryScreenRails')).toBe(false);
+    expect(names.has('TempleFloorInlayHorizontal')).toBe(false);
+    expect(result.metadata.columnCount).toBe(2);
+    expect(result.metadata.galleryScreenCount).toBe(0);
+    result.dispose();
+  });
+
   it('accepts detail and layout overrides while clamping unsafe dimensions', () => {
     const result = createTempleEnvironment({
       THREE: fakeTHREE,
@@ -173,6 +214,53 @@ describe('Temple environment architecture module', () => {
     expect(lowNames).not.toContain('TempleCapitalCorbels');
     expect(result.group.userData.roofless).toBe(true);
     result.dispose();
+  });
+
+  it('applies progressively richer low, medium, and high detail presets', () => {
+    const presets = ['low', 'medium', 'high'].map((detailLevel) => {
+      const result = createTempleEnvironment({
+        THREE: fakeTHREE,
+        scene: createScene(),
+        config: { detailLevel }
+      });
+      const names = new Set();
+      result.group.traverse((object) => { if (object.name) names.add(object.name); });
+      return {
+        result,
+        names,
+        meshCount: result.metadata.meshCount(),
+        batchCount: result.metadata.instanceBatchCount()
+      };
+    });
+
+    const [low, medium, high] = presets;
+    for (const preset of presets) {
+      expect(preset.names.has('TemplePortraitColumnShafts')).toBe(true);
+      expect(preset.names.has('TemplePortraitColumnFlutes')).toBe(true);
+      expect(preset.names.has('TempleGalleryScreenRails')).toBe(true);
+      expect(preset.names.has('TempleFloorInlayHorizontal')).toBe(true);
+    }
+
+    expect(low.names.has('TempleCapitalCorbels')).toBe(false);
+    expect(low.names.has('TempleGalleryLattice')).toBe(false);
+    expect(low.names.has('TempleColumnBaseStuds')).toBe(false);
+    expect(low.names.has('TempleFloorInlayStuds')).toBe(false);
+
+    expect(medium.names.has('TempleCapitalCorbels')).toBe(true);
+    expect(medium.names.has('TempleGalleryLattice')).toBe(true);
+    expect(medium.names.has('TempleColumnBaseStuds')).toBe(false);
+    expect(medium.names.has('TempleFloorInlayStuds')).toBe(false);
+
+    expect(high.names.has('TempleCapitalCorbels')).toBe(true);
+    expect(high.names.has('TempleGalleryLattice')).toBe(true);
+    expect(high.names.has('TempleColumnBaseStuds')).toBe(true);
+    expect(high.names.has('TempleFloorInlayStuds')).toBe(true);
+    expect(low.meshCount).toBeLessThan(medium.meshCount);
+    expect(medium.meshCount).toBeLessThan(high.meshCount);
+    expect(low.batchCount).toBeLessThan(medium.batchCount);
+    expect(medium.batchCount).toBeLessThan(high.batchCount);
+
+    presets.forEach(({ result }) => result.dispose());
   });
 
   it('falls back to individual meshes when InstancedMesh is unavailable', () => {
@@ -227,6 +315,58 @@ describe('Temple environment architecture module', () => {
     expect([...geometries].every((item) => item.disposed)).toBe(true);
     expect([...materials].every((item) => item.disposed)).toBe(true);
     expect(scene.children).toHaveLength(0);
+  });
+
+  it('does not dispose externally owned resources attached to its group', () => {
+    const result = createTempleEnvironment({ THREE: fakeTHREE, scene: createScene() });
+    const externalGeometry = new FakeGeometry();
+    const externalMaterial = new FakeMaterial({ color: 0xffffff });
+    const externalMesh = new FakeMesh(externalGeometry, externalMaterial);
+    result.group.add(externalMesh);
+
+    result.dispose();
+
+    expect(externalGeometry.disposed).toBe(false);
+    expect(externalMaterial.disposed).toBe(false);
+    expect(result.group.children).toContain(externalMesh);
+  });
+
+  it('cleans up resources created before a construction failure', () => {
+    const createdGeometries = [];
+    const createdMaterials = [];
+    class TrackingGeometry extends FakeGeometry {
+      constructor(...args) {
+        super(...args);
+        createdGeometries.push(this);
+      }
+    }
+    class TrackingMaterial extends FakeMaterial {
+      constructor(options) {
+        super(options);
+        createdMaterials.push(this);
+      }
+    }
+    class FailingBoxGeometry extends TrackingGeometry {
+      constructor(...args) {
+        if (args[0] === 1.46) throw new Error('simulated geometry failure');
+        super(...args);
+      }
+    }
+    const failingTHREE = {
+      ...fakeTHREE,
+      BoxGeometry: FailingBoxGeometry,
+      CylinderGeometry: TrackingGeometry,
+      TorusGeometry: TrackingGeometry,
+      MeshStandardMaterial: TrackingMaterial
+    };
+    const scene = createScene();
+
+    expect(() => createTempleEnvironment({ THREE: failingTHREE, scene }))
+      .toThrow('simulated geometry failure');
+    expect(scene.children).toHaveLength(0);
+    expect(createdGeometries.length).toBeGreaterThan(0);
+    expect(createdGeometries.every((item) => item.disposed)).toBe(true);
+    expect(createdMaterials.every((item) => item.disposed)).toBe(true);
   });
 
   it('does not introduce roof geometry or an independent renderer/animation loop', async () => {

@@ -448,10 +448,10 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
   };
 
   try {
-    if (settings.enableColumnBases) {
-      buildColumnShafts();
-      buildColumnBases();
-    }
+    // Column shafts are structural elements; the base toggle controls only
+    // their decorative footings and must not remove the columns themselves.
+    buildColumnShafts();
+    if (settings.enableColumnBases) buildColumnBases();
     if (settings.enableCapitalBrackets) buildCapitalBrackets();
     if (settings.enableGalleryScreens) buildGalleryScreens();
     if (settings.enableFloorInlays) buildFloorInlays();
@@ -467,18 +467,12 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
     if (group.parent && typeof group.parent.remove === 'function') group.parent.remove(group);
     else scene.remove(group);
 
-    const geometries = new Set(ownedGeometries);
-    const ownedMats = new Set(ownedMaterials);
-    if (typeof group.traverse === 'function') {
-      group.traverse((object) => {
-        if (object.geometry) geometries.add(object.geometry);
-        if (object.material) {
-          (Array.isArray(object.material) ? object.material : [object.material]).forEach((material) => ownedMats.add(material));
-        }
-      });
-    }
-    geometries.forEach((item) => { if (item && typeof item.dispose === 'function') item.dispose(); });
-    ownedMats.forEach((item) => {
+    // Dispose only resources created by this module. Consumers may attach
+    // external objects to the returned group and retain ownership of their assets.
+    ownedGeometries.forEach((item) => {
+      if (item && typeof item.dispose === 'function') item.dispose();
+    });
+    ownedMaterials.forEach((item) => {
       if (!item) return;
       for (const value of Object.values(item)) {
         if (value && value.isTexture && typeof value.dispose === 'function') value.dispose();
