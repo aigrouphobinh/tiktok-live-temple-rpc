@@ -12,6 +12,7 @@ const DEFAULTS = Object.freeze({
   galleryScreenXs: [-9.55, 9.55],
   galleryBayZs: [-6.8, -0.8, 5.2, 11.2],
   screenHeight: 1.48,
+  gallerySurfaceY: 0.0825,
   enableColumnBases: true,
   enableCapitalBrackets: true,
   enableGalleryScreens: true,
@@ -55,6 +56,7 @@ function normalizeConfig(input = {}) {
     galleryBayZs: normalizePositions(config.galleryBayZs, DEFAULTS.galleryBayZs, -18, 20),
     columnBaseY: finiteNumber(config.columnBaseY, DEFAULTS.columnBaseY, -1, 2),
     screenHeight: finiteNumber(config.screenHeight, DEFAULTS.screenHeight, 0.8, 2.2),
+    gallerySurfaceY: finiteNumber(config.gallerySurfaceY, DEFAULTS.gallerySurfaceY, -1, 2),
     detailLevel
   };
 }
@@ -307,22 +309,20 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
 
   const buildFloorInlays = () => {
     const medallionTransforms = [];
+    const inlayY = settings.gallerySurfaceY + 0.0175;
     for (const side of [-1, 1]) {
       const x = side * 8.15;
       for (const z of [-7, -1, 5, 11]) {
-        addBox([1.28, 0.035, 0.08], materials.bronze, [x, 0.13, z]);
-        addBox([0.08, 0.035, 1.28], materials.bronze, [x, 0.13, z]);
+        addBox([1.28, 0.035, 0.08], materials.bronze, [x, inlayY, z]);
+        addBox([0.08, 0.035, 1.28], materials.bronze, [x, inlayY, z]);
         medallionTransforms.push({
-          position: [x, 0.16, z],
+          position: [x, settings.gallerySurfaceY + 0.0475, z],
           rotation: [0, 0, 0]
         });
       }
     }
     if (settings.detailLevel === 'high') {
-      addBoxBatch('TempleFloorInlayStuds', [0.09, 0.025, 0.09], materials.mutedGold, medallionTransforms.map((entry) => ({
-        position: [entry.position[0], 0.18, entry.position[2]],
-        rotation: [0, 0, 0]
-      })));
+      addBoxBatch('TempleFloorInlayStuds', [0.09, 0.025, 0.09], materials.mutedGold, medallionTransforms);
     }
   };
 
