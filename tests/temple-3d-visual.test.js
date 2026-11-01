@@ -354,4 +354,14 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds carved inner-ear grooves and fine temple arcs to the Buddha head', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Shallow inner-ear grooves make the elongated stone ears read as sculpted forms.');
+    expect(scene).toContain('[side * 0.64, 4.68, 0.105]');
+    expect(scene).toContain('], 0.012);');
+    expect(scene).toContain('Fine temple arcs connect the curled cap to the head silhouette.');
+    expect(scene).toContain('], 0.014, mats.statueLight);');
+  });
+
+
 });
