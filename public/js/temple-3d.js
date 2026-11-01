@@ -1110,10 +1110,27 @@ async function boot() {
   function playGLTFHumanAction(avatar, mode) {
     if (!avatar.gltfMixer || !avatar.gltfActions) return false;
     const clip = avatar.gltfActions[mode] || (mode !== 'idle' ? avatar.gltfActions.idle : null);
-    if (!clip) return false;
-    if (avatar.gltfActionName === mode) return true;
+    if (!clip) {
+      // Do not leave a previous walk/bow action running when this rig has no
+      // clip for the requested state and no idle clip to fall back to.
+      avatar.gltfCurrentAction?.fadeOut(0.18);
+      avatar.gltfCurrentAction = null;
+      avatar.gltfCurrentClip = null;
+      avatar.gltfActionName = null;
+      return false;
+    }
+    const isBow = mode === 'bow' && clip === avatar.gltfActions.bow;
+    const current = avatar.gltfCurrentAction;
+    if (current && avatar.gltfCurrentClip === clip) {
+      // Several state names can resolve to the same idle clip. Keep its
+      // existing action alive instead of fading that action out against itself.
+      current.setLoop(isBow ? THREE.LoopOnce : THREE.LoopRepeat, isBow ? 1 : Infinity);
+      current.clampWhenFinished = isBow;
+      avatar.gltfActionName = mode;
+      return true;
+    }
     const next = avatar.gltfMixer.clipAction(clip);
-    if (mode === 'bow' && clip === avatar.gltfActions.bow) {
+    if (isBow) {
       next.setLoop(THREE.LoopOnce, 1);
       next.clampWhenFinished = true;
     } else {
@@ -1121,8 +1138,9 @@ async function boot() {
       next.clampWhenFinished = false;
     }
     next.reset().fadeIn(0.18).play();
-    if (avatar.gltfCurrentAction) avatar.gltfCurrentAction.fadeOut(0.18);
+    if (current && current !== next) current.fadeOut(0.18);
     avatar.gltfCurrentAction = next;
+    avatar.gltfCurrentClip = clip;
     avatar.gltfActionName = mode;
     return true;
   }
@@ -1185,6 +1203,7 @@ async function boot() {
         avatar.gltfMixer = animations.length ? new THREE.AnimationMixer(model) : null;
         avatar.gltfActionName = null;
         avatar.gltfCurrentAction = null;
+        avatar.gltfCurrentClip = null;
         avatar.gltfLastTime = 0;
         const bones = {};
         model.traverse((node) => {
