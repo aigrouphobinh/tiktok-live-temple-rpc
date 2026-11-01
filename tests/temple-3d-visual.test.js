@@ -179,13 +179,22 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain('disposeThreeSceneResources(root)');
   });
 
-  it('provides a procedural bone gait when a rigged GLB has no walk clip', () => {
+  it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('function applyGLTFFallbackWalk(avatar, time)');
-    expect(scene).toContain('leftLegRest: bones.leftLeg?.rotation.clone()');
-    expect(scene).toContain('rightLegRest: bones.rightLeg?.rotation.clone()');
-    expect(scene).toContain('if (walking && !avatar.gltfActions?.walk) applyGLTFFallbackWalk(avatar, time);');
-    expect(scene).toContain('leftArmRest: bones.leftArm?.rotation.clone()');
+    expect(scene).toContain('function applyGLTFFallbackWalk(avatar, time, weight = 1)');
+    expect(scene).toContain('const walkTarget = walking && !avatar.gltfActions?.walk ? 1 : 0;');
+    expect(scene).toContain('const walkBlend = 1 - Math.exp(-delta / 0.16);');
+    expect(scene).toContain('avatar.gltfWalkBlend += (walkTarget - avatar.gltfWalkBlend) * walkBlend;');
+    expect(scene).toContain('applyGLTFFallbackWalk(avatar, time, avatar.gltfWalkBlend)');
+    expect(scene).toContain('const base = (bone, rest) => avatar.gltfActions?.idle ? bone?.rotation.x : rest?.x;');
+    expect(scene).toContain('gltfWalkBlend: 0');
+  });
+
+  it('returns a manually posed GLB bow to rest when the bow state ends', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('if (!avatar.gltfActions?.bow) applyHumanBow(avatar, avatar.bowing ? avatar.bowAmount : 0);');
+    expect(scene).toContain('rig.spine.rotation.x = rig.spineRest.x - amount * 0.58;');
+    expect(scene).toContain('rig.head.rotation.x = rig.headRest.x + amount * 0.16;');
   });
 
   it('does not fade an animation action out against itself when states share a fallback clip', () => {
