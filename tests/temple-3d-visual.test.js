@@ -151,6 +151,25 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('makeRing(3.75, 0.85, -5.4, 0xffdf83)');
   });
 
+  it('keeps the procedural statue as fallback and gates local GLB replacement behind models=1', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("get('models') === '1'");
+    expect(scene).toContain("loadGLTFAsset('/assets/models/buddha-selected.glb'");
+    expect(scene).toContain('if (disposed) {');
+    expect(scene).toContain('statue.add(asset.root)');
+    expect(scene).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
+    expect(scene).toContain('const statue = new THREE.Group()');
+  });
+
+  it('normalizes bundled GLB assets and keeps GLTFLoader lazy-loaded', () => {
+    const loader = readFileSync(new URL('../public/js/three-model-loader.js', import.meta.url), 'utf8');
+    expect(loader).toContain("url.startsWith('/assets/models/')");
+    expect(loader).toContain("import('three/addons/loaders/GLTFLoader.js')");
+    expect(loader).toContain('root.scale.setScalar(scale)');
+    expect(loader).toContain('-normalizedBounds.min.y');
+    expect(loader).toContain('disposeThreeObjectTree(root)');
+  });
+
   it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
