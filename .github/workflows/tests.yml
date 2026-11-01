@@ -95,6 +95,9 @@ jobs:
           grep -Fq 'const templeCurlCount = 8' public/js/temple-3d.js &&
           grep -Fq 'new THREE.InstancedMesh(hairCurlGeometry, mats.statueShadow, templeCurlCount)' public/js/temple-3d.js &&
           grep -Fq 'statue.add(templeCurls)' public/js/temple-3d.js &&
+          grep -Fq 'Refine the nose wings and philtrum' public/js/temple-3d.js &&
+          grep -Fq '[side * 0.105, 4.425, 0.704]' public/js/temple-3d.js &&
+          grep -Fq '[side * 0.055, 4.405, 0.718]' public/js/temple-3d.js &&
           grep -Fq 'const lotusVeinGeometry = new THREE.TubeGeometry(lotusVeinCurve, 16, 0.009, 5, false)' public/js/temple-3d.js &&
           grep -Fq 'const petalVeins = new THREE.InstancedMesh(lotusVeinGeometry, mats.goldBright, count)' public/js/temple-3d.js &&
           grep -Fq 'ring.add(redPetals, goldPetals, petalVeins)' public/js/temple-3d.js &&
