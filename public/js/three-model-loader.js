@@ -25,16 +25,19 @@ export async function loadGLTFAsset(url, {
   root.name = 'normalized-gltf-asset';
   root.add(gltf.scene);
 
+  let sourceBounds;
+  let sourceSize;
+  let scale;
   try {
     root.updateMatrixWorld(true);
-    const sourceBounds = new THREE.Box3().setFromObject(root);
+    sourceBounds = new THREE.Box3().setFromObject(root);
     if (sourceBounds.isEmpty()) throw new Error(`GLB scene is empty: ${url}`);
-    const sourceSize = sourceBounds.getSize(new THREE.Vector3());
+    sourceSize = sourceBounds.getSize(new THREE.Vector3());
     if (!Number.isFinite(sourceSize.y) || sourceSize.y <= 1e-5) {
       throw new Error(`GLB has invalid vertical bounds: ${url}`);
     }
 
-    const scale = targetHeight / sourceSize.y;
+    scale = targetHeight / sourceSize.y;
     root.scale.setScalar(scale);
     root.updateMatrixWorld(true);
 
@@ -59,9 +62,7 @@ export async function loadGLTFAsset(url, {
     throw error;
   }
 
-  const sourceBounds = new THREE.Box3().setFromObject(root);
-  const sourceSize = sourceBounds.getSize(new THREE.Vector3());
-  const scale = root.scale.x;
+
   const animations = Array.isArray(gltf.animations) ? gltf.animations : [];
   const mixer = animations.length ? new THREE.AnimationMixer(root) : null;
   let disposed = false;
