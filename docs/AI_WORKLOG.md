@@ -1,3 +1,8 @@
+### 2026-11-01 — Guard gait calculations against invalid phase values
+- Made the foot-planting pose helper return a finite neutral grounded pose when phase is NaN or infinite, preventing invalid values from propagating into procedural joint rotations.
+- Added regression coverage for NaN, positive infinity and negative infinity through both pose and step helpers.
+- Normal finite phases retain the existing 62% stance / 38% swing curve; this is defensive input handling only and does not change normal gait timing.
+
 ### 2026-11-01 — Validate GLB leg-chain hierarchy before IK
 - Hardened the Three.js IK adapter so the lower-leg bone must descend from the upper-leg bone and the foot/ankle bone must descend from the lower-leg bone. Name matches alone can no longer make unrelated joints look like a valid chain.
 - Added load-time diagnostics for each mapped GLB leg: ordered hierarchy validity, resolved bone names, and measured world-space upper/lower segment lengths after ancestor transforms are updated.
