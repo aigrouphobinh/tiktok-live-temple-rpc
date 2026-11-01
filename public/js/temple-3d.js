@@ -64,6 +64,39 @@ async function boot() {
     lotus: new THREE.MeshStandardMaterial({ color: 0xe9829a, roughness: 0.42, side: THREE.DoubleSide }),
     leaf: new THREE.MeshStandardMaterial({ color: 0x315a35, roughness: 0.85 })
   };
+  // A tiny deterministic grayscale bump tile gives the carved stone a restrained mineral grain.
+  const stoneGrainSize = 64;
+  const stoneGrainData = new Uint8Array(stoneGrainSize * stoneGrainSize * 4);
+  for (let y = 0; y < stoneGrainSize; y++) {
+    for (let x = 0; x < stoneGrainSize; x++) {
+      const index = (y * stoneGrainSize + x) * 4;
+      let grain = (Math.imul(x + 1, 374761393) + Math.imul(y + 1, 668265263)) | 0;
+      grain = Math.imul(grain ^ (grain >>> 13), 1274126177);
+      grain = (grain ^ (grain >>> 16)) & 255;
+      const value = 112 + Math.round(grain * 0.28);
+      stoneGrainData[index] = value;
+      stoneGrainData[index + 1] = value;
+      stoneGrainData[index + 2] = value;
+      stoneGrainData[index + 3] = 255;
+    }
+  }
+  const stoneGrain = new THREE.DataTexture(
+    stoneGrainData, stoneGrainSize, stoneGrainSize, THREE.RGBAFormat
+  );
+  stoneGrain.wrapS = THREE.RepeatWrapping;
+  stoneGrain.wrapT = THREE.RepeatWrapping;
+  stoneGrain.repeat.set(3, 3);
+  stoneGrain.magFilter = THREE.LinearFilter;
+  stoneGrain.minFilter = THREE.LinearMipmapLinearFilter;
+  stoneGrain.generateMipmaps = true;
+  stoneGrain.needsUpdate = true;
+  for (const material of [mats.statueStone, mats.statueShadow, mats.statueLight]) {
+    material.bumpMap = stoneGrain;
+    material.bumpScale = material === mats.statueStone ? 0.022 : 0.012;
+    material.roughness = material === mats.statueLight ? 0.92 : 0.98;
+    material.needsUpdate = true;
+  }
+
   const world = new THREE.Group();
   scene.add(world);
 
