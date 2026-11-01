@@ -24,7 +24,7 @@ class TempleAudioEngine {
     this.ttsVolume = Number.isFinite(savedTtsVol) ? Math.max(0, Math.min(1, savedTtsVol)) : 0.95;
 
     // No bundled chant recording exists in public/assets yet. Use the
-    // generated ambient loop directly instead of requesting a guaranteed 404.
+    // generated ambient loop directly instead of requesting a missing file.
     this.useSynthMusicFallback = true;
     this.synthBgTimer = null;
     this.bgAudio = null;
