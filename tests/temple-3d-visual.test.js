@@ -409,3 +409,11 @@ describe('3D sanctuary visual treatment', () => {
 
 
 });
+  it('retains hidden procedural fallbacks without disposing shared cached geometry', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('for (const child of avatar.root.children) child.visible = false;');
+    expect(scene).toContain('for (const child of statue.children) child.visible = false;');
+    expect(scene).not.toContain('disposeThreeObjectTree(child)');
+    expect(scene).not.toContain('node.geometry.dispose()');
+  });
+
