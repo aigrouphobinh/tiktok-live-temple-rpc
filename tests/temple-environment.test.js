@@ -91,8 +91,8 @@ describe('Temple environment architecture module', () => {
     result.group.traverse((object) => { if (object.name) names.push(object.name); });
     expect(names).toContain('TempleColumnBaseRings');
     expect(names).toContain('TempleCapitalCorbels');
-    expect(names).toContain('TempleCapitalFrontRosettes');
-    expect(names).toContain('TempleCapitalFrontGems');
+    expect(names).toContain('TempleColumnFrontPlaques');
+    expect(names).toContain('TempleColumnFrontGems');
     expect(names).toContain('TempleGalleryLattice');
     expect(names).toContain('TempleGalleryScreenRails');
     expect(names).toContain('TempleColumnBaseStoneFootings');
@@ -107,17 +107,17 @@ describe('Temple environment architecture module', () => {
     result.group.traverse((object) => {
       if (object instanceof FakeInstancedMesh) batches.set(object.name, object);
     });
-    const rosettes = batches.get('TempleCapitalFrontRosettes');
-    const gems = batches.get('TempleCapitalFrontGems');
-    expect(rosettes?.count).toBe(2);
+    const plaques = batches.get('TempleColumnFrontPlaques');
+    const gems = batches.get('TempleColumnFrontGems');
+    expect(plaques?.count).toBe(2);
     expect(gems?.count).toBe(2);
-    expect(rosettes.matrices.map((matrix) => matrix.position[0]).sort((a, b) => a - b))
+    expect(plaques.matrices.map((matrix) => matrix.position[0]).sort((a, b) => a - b))
       .toEqual([-4.95, 4.95]);
-    expect(rosettes.matrices.every((matrix) => matrix.rotation.every((value) => value === 0))).toBe(true);
-    expect(rosettes.matrices.every((matrix) => matrix.position[1] === 6.2
-      && matrix.position[2] > -9.55)).toBe(true);
-    expect(gems.matrices.every((matrix) => matrix.position[2] > -9.52
-      && matrix.rotation[2] > 0)).toBe(true);
+    expect(plaques.matrices.every((matrix) => matrix.position[1] === 6.2
+      && matrix.position[2] > -9.6
+      && Math.abs(matrix.rotation[2] - Math.PI / 4) < 1e-8)).toBe(true);
+    expect(gems.matrices.every((matrix) => matrix.position[2] > -9.55
+      && Math.abs(matrix.rotation[2] - Math.PI / 4) < 1e-8)).toBe(true);
     result.dispose();
   });
 
@@ -168,7 +168,8 @@ describe('Temple environment architecture module', () => {
     expect(result.metadata.galleryScreenCount).toBe(2);
     const lowNames = [];
     result.group.traverse((object) => { if (object.name) lowNames.push(object.name); });
-    expect(lowNames).not.toContain('TempleCapitalFrontRosettes');
+    expect(lowNames).not.toContain('TempleColumnFrontPlaques');
+    expect(lowNames).not.toContain('TempleColumnFrontGems');
     expect(result.group.userData.roofless).toBe(true);
     result.dispose();
   });
