@@ -6,7 +6,9 @@ export const GIFT_PRIORITY = Object.freeze({ rocket: 100, dragon: 80, donut: 60,
 
 export class CharacterStateMachine {
   constructor({ maxQueue = 40 } = {}) {
-    this.maxQueue = maxQueue;
+    // A zero-capacity queue is valid (reject all waiting work); malformed
+    // limits fall back to the safe default instead of breaking interrupt().
+    this.maxQueue = Number.isInteger(maxQueue) && maxQueue >= 0 ? maxQueue : 40;
     this.state = 'IDLE';
     this.active = null;
     this.queue = [];
@@ -58,7 +60,7 @@ export class CharacterStateMachine {
         // incoming gift has strictly higher priority; equal-tier arrivals
         // retain FIFO order and lower tiers cannot displace earlier gifts.
         const lowest = this.effectQueue[this.effectQueue.length - 1];
-        if (priority <= lowest.priority) {
+        if (!lowest || priority <= lowest.priority) {
           return { interrupted: false, reason: 'effect_queue_full' };
         }
         evicted = this.effectQueue.pop();
