@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getRitualPoseState } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState } from './three-gait-utils.js';
 import { getTemplePixelRatio } from './temple-render-quality.js';
 
 /**
@@ -1155,7 +1155,7 @@ async function boot() {
     return true;
   }
 
-  function applyHumanBow(avatar, amount) {
+  function applyHumanBow(avatar, amount, kneelBlend = 0) {
     avatar.bowing = amount > 0.035;
     avatar.bowAmount = amount;
     if (avatar.gltfRoot) {
@@ -1174,10 +1174,13 @@ async function boot() {
       if (rig?.rightArm) rig.rightArm.rotation.z = rig.rightArmRest.z - amount * 0.22;
       return;
     }
-    avatar.upperBody.rotation.x = -amount * 0.72;
-    avatar.head.rotation.x = amount * 0.16;
-    avatar.leftArm.rotation.z = amount * 0.34;
-    avatar.rightArm.rotation.z = -amount * 0.34;
+    const upperPose = getHumanUpperPose({ kneelBlend, bowAmount: amount });
+    avatar.upperBody.rotation.x = upperPose.torsoLean;
+    avatar.head.rotation.x = upperPose.headCounter;
+    avatar.leftArm.rotation.x = upperPose.armReach;
+    avatar.rightArm.rotation.x = upperPose.armReach;
+    avatar.leftArm.rotation.z = upperPose.armOpen;
+    avatar.rightArm.rotation.z = -upperPose.armOpen;
   }
 
   async function upgradeDevoteesFromGLB() {
@@ -1690,7 +1693,7 @@ async function boot() {
       mainDevotee.position.z = 7.5 - eased * 11.2;
       mainDevotee.scale.setScalar(1 - eased * 0.18);
       // The same eased timeline drives the procedural bow and GLB bow state.
-      applyHumanBow(mainHuman, ritualPose.bowAmount);
+      applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);
       if (now > ritualUntil) {
         devoteeState.active = false;
         mainHuman.kneeling = false;
