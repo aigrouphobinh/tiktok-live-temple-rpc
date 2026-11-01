@@ -197,6 +197,19 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("'spine01', 'spine1', 'spine02', 'spine2'");
   });
 
+  it('maps VRM J_Bip central and limb bones and keeps neck separate for bowing', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("spine: ['spine', 'spine01', 'spine1', 'spine02', 'spine2', 'chest', 'upperbody', 'jbipcspine', 'jbipcchest']");
+    expect(scene).toContain("neck: ['neck', 'jbipcneck']");
+    expect(scene).toContain("'jbipchead'");
+    expect(scene).toContain("'jbiplupperarm'");
+    expect(scene).toContain("'jbiprupperarm'");
+    expect(scene).toContain("'jbiplupperleg'");
+    expect(scene).toContain("'jbiprupperleg'");
+    expect(scene).toContain('neckRest: bones.neck?.rotation.clone()');
+    expect(scene).toContain('rig.neck.rotation.x = rig.neckRest.x - amount * 0.12;');
+  });
+
   it('recognizes more descriptive locomotion, rest and prostration clip names', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('/idle|stand|breath|resting/i');
