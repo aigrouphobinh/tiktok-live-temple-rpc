@@ -508,3 +508,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added a visible 3D SANCTUARY mode label so the operator can distinguish the active 3D presentation at a glance.
 - All new selectors are scoped under .temple-3d-mode; the original 2D HUD styles and layout remain unchanged. No scene geometry, game event mapping, or camera behavior was changed in this UI-only pass.
 - Added CI assertions for the 3D HUD selectors and mode label. Await Actions for the workflow result; no local browser screenshot or OBS/TikTok runtime test is claimed.
+
+
+### Refine the 3D Buddha focal model — 2026-11-01
+- Added modeled facial linework for closed eyes, brows, nose and a gentle smile, plus a small urna detail and meditation hands in the lap. These are Three.js meshes in the persistent statue group, not a 2D overlay.
+- Kept the existing fixed elevated main-hall camera and altar composition unchanged. The statue remains the focal point of the 3D sanctuary.
+- Added a CI source assertion for the new model-detail block. Await Actions; browser rendering, face proportions and material tuning still require visual review on the user's device.
