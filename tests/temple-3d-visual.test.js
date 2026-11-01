@@ -11,10 +11,12 @@ describe('3D sanctuary visual treatment', () => {
     expect(css).toContain('linear-gradient(180deg');
   });
 
-  it('keeps the scene treatment above the canvas and below the live HUD', () => {
+  it('keeps the vignette below the live HUD layer', () => {
     const overlay = css.slice(css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
+    const hudLayer = css.slice(0, css.lastIndexOf('.stage-9x16.temple-3d-mode::after'));
     expect(overlay).toContain('z-index: 2;');
-    expect(overlay).toContain('.stage-9x16.temple-3d-mode .minimal-top-bar');
-    expect(overlay).toContain('z-index: 30;');
+    expect(hudLayer).toContain('.stage-9x16.temple-3d-mode .minimal-top-bar');
+    expect(hudLayer).toContain('.stage-9x16.temple-3d-mode .bottom-hud-bar');
+    expect(hudLayer).toContain('z-index: 30;');
   });
 });
