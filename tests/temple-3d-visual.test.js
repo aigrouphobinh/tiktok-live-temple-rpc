@@ -105,7 +105,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
     expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
     expect(scene).toContain('const congregationGiftGlow = allHumanAvatars.reduce((peak, avatar) => Math.max(');
-    expect(scene).toContain('buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;');
+    expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
     expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
   });
 
@@ -519,9 +519,9 @@ describe('3D sanctuary visual treatment', () => {
 
   it('uses warm ivory stone for the Buddha and the aureole in the reference palette', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('color: 0xbdb29c');
-    expect(scene).toContain('color: 0x76674f');
-    expect(scene).toContain('color: 0xe5d8bf');
+    expect(scene).toContain('color: 0xa99b84');
+    expect(scene).toContain('color: 0x5e4d3a');
+    expect(scene).toContain('color: 0xd9c7a5');
     expect(scene).toContain('color:0xa59a83');
   });
 
@@ -547,7 +547,7 @@ describe('3D sanctuary visual treatment', () => {
   it('softens shadow acne and animates independent warm temple light sources', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;');
-    expect(scene).toContain('buddhaLight.intensity = 33 + Math.sin(elapsed * 0.0018) * 1.6 + congregationGiftGlow * 3.2;');
+    expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
     expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
     expect(scene).toContain('Math.sin(elapsed * 0.007 + i) * 0.35');
   });
@@ -906,4 +906,15 @@ it('shows a designed and truthful empty state for the 3D merit panel', () => {
   expect(css).toContain('Chưa có lượt cúng dường\\A Mỗi tấm lòng đều được trân trọng');
   expect(css).toContain('white-space: pre-line;');
   expect(css).toContain('border: 1px solid rgba(230, 190, 119, .34);');
+});
+
+
+it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0xa99b84, roughness: 0.94 })');
+  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x5e4d3a, roughness: 0.96 })');
+  expect(scene).toContain('statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 })');
+  expect(scene).toContain('new THREE.PointLight(0xffd1a0, 23, 18, 2)');
+  expect(scene).toContain('buddhaLight.intensity = 22 + Math.sin(elapsed * 0.0018) * 1.4 + congregationGiftGlow * 2.8;');
+  expect(scene).toContain('A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.');
 });
