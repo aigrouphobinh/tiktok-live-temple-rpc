@@ -105,6 +105,9 @@ jobs:
           grep -Fq 'sideTorsoPleatRidgeMesh' public/js/temple-3d.js &&
           grep -Fq 'elbowLowerFoldMesh' public/js/temple-3d.js &&
           grep -Fq 'Fine wrist transitions and palm creases' public/js/temple-3d.js &&
+          grep -Fq "else if (kind === 'stone') value = 222 + grain * 7 + noise * 10;" public/js/temple-3d.js &&
+          grep -Fq "const stoneRoughness = makeRoughnessTexture('stone');" public/js/temple-3d.js &&
+          grep -Fq 'material.roughnessMap = stoneRoughness' public/js/temple-3d.js &&
           grep -Fq '[side * 0.31, 2.69, 0.82]' public/js/temple-3d.js &&
           grep -Fq '[side * 0.105, 2.655, 0.795]' public/js/temple-3d.js &&
           grep -Fq 'new THREE.Vector3(side * 0.22, 4.2, 0.235)' public/js/temple-3d.js &&
