@@ -52,6 +52,14 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('sphere(0.075, mats.goldBright, railX, 1.02, z, 1, 0.7, 1)');
   });
 
+  it('separates the 3D footer into independent floating console panels', () => {
+    expect(css).toContain('3D HUD refinement: split the legacy footer');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .hud-left-col::before');
+    expect(css).toContain('.stage-9x16.temple-3d-mode .hud-right-leaderboard::before');
+    expect(css).toContain('height: 276px;');
+    expect(css).toContain('background: transparent;');
+  });
+
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
     expect(html).toContain('/css/live.css?v=3d-console-20261101-2');
