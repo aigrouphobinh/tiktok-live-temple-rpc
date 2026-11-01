@@ -220,6 +220,15 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})");
   });
 
+  it('reports available GLB animation names, duration, tracks and targets', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("'available clips:', animations.map((clip) => ({");
+    expect(scene).toContain("name: clip.name || '(unnamed)'");
+    expect(scene).toContain('duration: Number.isFinite(clip.duration)');
+    expect(scene).toContain('tracks: clip.tracks.length');
+    expect(scene).toContain("track.name.split('.')[0]");
+  });
+
   it('recognizes more descriptive locomotion, rest and prostration clip names', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('/idle|stand|breath|resting/i');
