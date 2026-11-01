@@ -1963,6 +1963,10 @@ async function boot() {
   const modelsRequested = modelParams.get('models') === '1';
   // Allow the Buddha asset to be previewed independently of optional devotee rigs.
   const buddhaModelRequested = modelParams.get('buddha') === '1';
+  // The procedural custom sculpture is the default production Buddha; GLB is opt-in.
+  if (!buddhaModelRequested && !modelsRequested) {
+    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'custom-procedural';
+  }
   // Diagnostics are opt-in so normal live sessions pay no logging overhead.
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
