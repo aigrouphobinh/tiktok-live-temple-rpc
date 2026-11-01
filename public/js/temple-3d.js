@@ -81,6 +81,13 @@ async function boot() {
     });
   }
 
+  function disposeActiveEffects() {
+    for (const effect of active.splice(0)) {
+      scene.remove(effect.object);
+      disposeObject(effect.object);
+    }
+  }
+
   function makeLotus(x, y, scale = 1) {
     const group = new THREE.Group();
     group.position.set(x, y, 80);
@@ -235,6 +242,7 @@ async function boot() {
   canvas.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
     stop();
+    disposeActiveEffects();
     canvas.hidden = true;
     window.__TEMPLE_3D_READY__ = false;
     window.dispatchEvent(new Event('temple:3d-unavailable'));
@@ -243,6 +251,10 @@ async function boot() {
   window.addEventListener('pagehide', () => {
     disposed = true;
     stop();
+    disposeActiveEffects();
+    gold.dispose();
+    paleGold.dispose();
+    smokeMat.dispose();
     renderer.dispose();
   }, { once: true });
 
