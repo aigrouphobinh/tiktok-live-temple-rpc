@@ -10,6 +10,19 @@ const scenarios = [
   { id: 'high', deviceMemory: 8, hardwareConcurrency: 8, expectedPixelRatio: 1.25 }
 ];
 
+/**
+ * Wait for a fresh renderer diagnostic instead of assuming a fixed delay
+ * produced another frame. Lower-end software-rendered profiles can take
+ * longer to emit a sample while the browser is busy rendering the scene.
+ */
+async function waitForRendererSample(samples, targetCount, timeoutMs = 15000) {
+  const startedAt = Date.now();
+  while (samples.length < targetCount && Date.now() - startedAt < timeoutMs) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return samples.length >= targetCount ? samples[samples.length - 1] : null;
+}
+
 await mkdir(artifactDir, { recursive: true });
 
 const report = {
@@ -135,12 +148,12 @@ try {
         profileReport.readinessError = error.message;
       }
 
-      // First diagnostic snapshot is the idle-scene baseline.
-      await page.waitForTimeout(6500);
-      if (!rendererStatsSamples.length) await page.waitForTimeout(2500);
-      const idleStats = rendererStatsSamples[0] || null;
+      // Capture one renderer sample for the idle-scene baseline.
+      const idleStats = await waitForRendererSample(rendererStatsSamples, 1);
+      const samplesBeforeGiftBurst = rendererStatsSamples.length;
 
-      // Sustain a mixed gift-effect burst until the next renderer diagnostic.
+      // Sustain the gift burst until a *new* renderer diagnostic is observed.
+      // This avoids reusing the idle sample when a low-detail frame takes longer.
       await page.evaluate(() => {
         const actions = ['rocket', 'dragon', 'donut', 'rose'];
         let index = 0;
@@ -163,12 +176,14 @@ try {
         const timer = window.setInterval(dispatch, 600);
         window.__TEMPLE_AUDIT_STOP_GIFTS__ = () => window.clearInterval(timer);
       });
-      await page.waitForTimeout(5200);
+      const stressStats = await waitForRendererSample(
+        rendererStatsSamples,
+        samplesBeforeGiftBurst + 1
+      );
       await page.evaluate(() => {
         window.__TEMPLE_AUDIT_STOP_GIFTS__?.();
         delete window.__TEMPLE_AUDIT_STOP_GIFTS__;
       });
-      const stressStats = rendererStatsSamples[rendererStatsSamples.length - 1] || null;
 
       const scene = await page.evaluate(async () => {
         const stage = document.getElementById('stage9x16');
