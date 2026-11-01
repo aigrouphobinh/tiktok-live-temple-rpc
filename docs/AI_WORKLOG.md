@@ -565,3 +565,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Reuses the existing two InstancedMesh batches and shared tile geometry/materials; this does not add draw calls, per-frame work, textures, or shadow-casting lights.
 - Camera, carpet, 2D mode and ritual interactions remain unchanged.
 - Added a source regression test for the color-variation path. Browser visual verification and mobile GPU profiling remain outstanding.
+
+
+### 2026-11-01 — Add brass collars to the timber colonnade
+- Added slim antique-gold rings at the foot and crown of all ten timber columns to give the side architecture a more finished, crafted silhouette.
+- All 20 rings share one TorusGeometry and one static InstancedMesh batch; no per-frame updates, extra lights, or shadow maps.
+- Preserved the open roofless sightline and fixed camera.
+- Added a source regression test. Browser visual confirmation and mobile GPU profiling remain outstanding.
