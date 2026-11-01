@@ -1061,3 +1061,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Reuses the established robe paths and statue materials; the seated pose, robe silhouette, lighting, camera and animation remain unchanged.
 - Accent tubes are static and do not cast or receive shadows, keeping the added detail lightweight.
 - Added source regression coverage and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Extend the Buddha's curled hair along both temples
+- Added eight small curls in one static InstancedMesh batch, continuing the existing cap pattern down both temple edges.
+- Reuses the existing hair-curl geometry and stone-shadow material; no new lights, materials, animation or camera changes.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
