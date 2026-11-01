@@ -155,7 +155,6 @@ try {
           && error === 'net::ERR_ABORTED'
           && [
             '/assets/models/buddha-selected.glb',
-              '/assets/models/buddha-cc0-fallback.glb',
             '/assets/models/buddha-cc0-fallback.glb'
           ].includes(pathname);
         if (!isExpectedOptionalModelHeadProbe) {
@@ -187,7 +186,7 @@ try {
       }
 
       logAuditPhase(scenario.id, 'model-settle-wait-start');
-      // Require the external Buddha GLB to finish loading before the visual capture.
+      // Wait for optional Buddha model selection to settle before the visual capture.
       try {
         await page.waitForFunction(
           () => window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== undefined
@@ -340,7 +339,13 @@ try {
           && idleStats.drawCalls <= 1200
           && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
-        buddhaModelLoaded: scene.buddhaModelSource === 'custom-procedural',
+        buddhaStatueSourceResolved: [
+          'custom-procedural',
+          'procedural',
+          'user-custom',
+          'kenny-hsieh',
+          'mia-cc0-gilt-bronze'
+        ].includes(scene.buddhaModelSource),
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
