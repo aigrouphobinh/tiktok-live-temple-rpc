@@ -375,6 +375,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
 
   window.TempleGiftActionEngine = {
     handle,
+    resetStreaks: () => streakCoalescer.clear(),
     snapshot: () => machine.snapshot()
   };
 })();
