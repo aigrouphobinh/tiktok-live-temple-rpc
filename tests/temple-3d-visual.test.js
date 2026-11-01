@@ -364,4 +364,15 @@ describe('3D sanctuary visual treatment', () => {
   });
 
 
+  it('adds a lightweight deterministic mineral grain bump map to Buddha stone materials', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('A tiny deterministic grayscale bump tile gives the carved stone a restrained mineral grain.');
+    expect(scene).toContain('new Uint8Array(stoneGrainSize * stoneGrainSize * 4)');
+    expect(scene).toContain('new THREE.DataTexture(');
+    expect(scene).toContain('stoneGrain.repeat.set(3, 3);');
+    expect(scene).toContain('material.bumpMap = stoneGrain;');
+    expect(scene).toContain('material.bumpScale = material === mats.statueStone ? 0.022 : 0.012;');
+  });
+
+
 });
