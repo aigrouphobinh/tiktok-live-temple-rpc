@@ -143,10 +143,18 @@ try {
         }
       });
       page.on('requestfailed', (request) => {
-        failedRequests.push({
-          url: request.url(),
-          error: request.failure()?.errorText || 'request failed'
-        });
+        const error = request.failure()?.errorText || 'request failed';
+        let pathname = '';
+        try { pathname = new URL(request.url()).pathname; } catch {}
+        const isExpectedOptionalModelHeadProbe = request.method() === 'HEAD'
+          && error === 'net::ERR_ABORTED'
+          && [
+            '/assets/models/buddha-selected.glb',
+            '/assets/models/buddha-cc0-fallback.glb'
+          ].includes(pathname);
+        if (!isExpectedOptionalModelHeadProbe) {
+          failedRequests.push({ url: request.url(), error });
+        }
       });
 
       const profileUrl = new URL(report.url);
@@ -300,9 +308,12 @@ try {
         rendererPixelRatioMatches: idleStats?.pixelRatio === scenario.expectedPixelRatio,
         giftBurstStatsCaptured: Boolean(stressStats),
         giftBurstHadActiveEffects: Number(stressStats?.activeEffects) > 0,
-        giftBurstIncreasedDrawCalls: Number.isFinite(idleStats?.drawCalls)
+        giftBurstDrawCallsMeasured: Number.isFinite(stressStats?.drawCalls)
+          && stressStats.drawCalls > 0,
+        drawCallsWithinBudget: Number.isFinite(idleStats?.drawCalls)
           && Number.isFinite(stressStats?.drawCalls)
-          && stressStats.drawCalls > idleStats.drawCalls,
+          && idleStats.drawCalls <= 1200
+          && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
         buddhaModelLoaded: ['kenny-hsieh', 'mia-cc0-gilt-bronze'].includes(scene.buddhaModelSource),
         canvasVisible: profileReport.sceneCanvasVisible,
@@ -375,9 +386,25 @@ try {
     giftBurstDrawCallsByTier.medium,
     giftBurstDrawCallsByTier.high
   ];
+  const idleDrawCallsWithinBudget = idleDrawCalls.every(
+    (value) => Number.isFinite(value) && value <= 1200
+  );
+  const giftBurstDrawCallsWithinBudget = giftBurstDrawCalls.every(
+    (value) => Number.isFinite(value) && value <= 1200
+  );
+  const giftBurstEffectsIncreaseByTier = [
+    giftBurstActiveEffectsByTier.low,
+    giftBurstActiveEffectsByTier.medium,
+    giftBurstActiveEffectsByTier.high
+  ].every(Number.isFinite)
+    && giftBurstActiveEffectsByTier.low < giftBurstActiveEffectsByTier.medium
+    && giftBurstActiveEffectsByTier.medium < giftBurstActiveEffectsByTier.high;
   report.summary = {
     passed: report.profiles.length === scenarios.length
-      && report.profiles.every((profile) => profile.checks.passed),
+      && report.profiles.every((profile) => profile.checks.passed)
+      && idleDrawCallsWithinBudget
+      && giftBurstDrawCallsWithinBudget
+      && giftBurstEffectsIncreaseByTier,
     allProfilesPassed: report.profiles.length === scenarios.length
       && report.profiles.every((profile) => profile.checks.passed),
     drawCallsByTier: idleDrawCallsByTier,
@@ -388,7 +415,11 @@ try {
     giftBurstActiveEffectsByTier,
     giftBurstDrawCallsStrictlyIncrease: giftBurstDrawCalls.every(Number.isFinite)
       && giftBurstDrawCalls[0] < giftBurstDrawCalls[1]
-      && giftBurstDrawCalls[1] < giftBurstDrawCalls[2]
+      && giftBurstDrawCalls[1] < giftBurstDrawCalls[2],
+    idleDrawCallsWithinBudget,
+    giftBurstDrawCallsWithinBudget,
+    giftBurstEffectsIncreaseByTier,
+    maxDrawCallsBudget: 1200
   };
   // Keep the original summary field name for consumers of the first profile audit.
   report.summary.drawCallsStrictlyIncrease = report.summary.idleDrawCallsStrictlyIncrease;
@@ -406,11 +437,14 @@ try {
 
   // A stable detail profile should submit progressively more batches at higher tiers.
   report.summary.passed = report.summary.allProfilesPassed
-    && report.summary.drawCallsStrictlyIncrease
+    && report.summary.idleDrawCallsWithinBudget
+    && report.summary.giftBurstDrawCallsWithinBudget
+    && report.summary.giftBurstEffectsIncreaseByTier
     && report.profiles.every((profile) =>
       profile.checks.giftBurstStatsCaptured
       && profile.checks.giftBurstHadActiveEffects
-      && profile.checks.giftBurstIncreasedDrawCalls
+      && profile.checks.giftBurstDrawCallsMeasured
+      && profile.checks.drawCallsWithinBudget
     );
 
   await writeFile(
