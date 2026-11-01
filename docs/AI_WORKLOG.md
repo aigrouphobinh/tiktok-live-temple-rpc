@@ -472,3 +472,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Extracted `disposeThreeObjectTree`, which deduplicates geometry and material references before disposal, and wired the 3D effect cleanup through it. This keeps the existing 80-effect cap and visual/camera behavior unchanged.
 - Added unit tests for shared resources, material arrays, empty/invalid trees and non-disposable values. Expanded CI syntax checks to cover the optional 3D module, camera controller and utility module.
 - Browser/WebGL stress testing, context-loss recovery on real devices and TikTok LIVE runtime remain outstanding.
+
+### Fix live controller ES-module loading — 2026-11-01
+- Browser Console reported `Uncaught SyntaxError: Cannot use import statement outside a module` for `public/js/live.js`. The file imports `gift-sfx-dispatcher.js`, but `public/index.html` loaded it as a classic script. That prevented the complete live controller from executing, including ritual event handling and the 2D interaction controller.
+- Changed only the `live.js` script tag to `type="module"`. Existing classic `audio.js` and `particles.js` remain loaded first; module scripts are deferred until HTML parsing completes, preserving access to their initialized globals.
+- Added a CI assertion that the browser entrypoint loads `live.js` as a module and rejects regression to a classic script. CI also parses `live.js` explicitly as an ES module.
+- This fixes the reported JavaScript loading error. It does **not** turn the existing background image into a full 3D temple scene; actual Three.js scene construction and browser/WebGL verification remain separate unfinished work.
