@@ -46,6 +46,10 @@ jobs:
           grep -Fq 'offeringFlames.forEach' public/js/temple-3d.js &&
           grep -Fq 'function playWorldGiftAction(action)' public/js/temple-3d.js &&
           grep -Fq 'function makeHumanAvatar(height = 1.55)' public/js/temple-3d.js &&
+          grep -Fq 'Upper body pivots at the waist' public/js/temple-3d.js &&
+          grep -Fq 'upperBody.position.y = 0.48' public/js/temple-3d.js &&
+          grep -Fq 'mainHuman.upperBody.rotation.x = -bow * 0.72' public/js/temple-3d.js &&
+          grep -Fq 'mainHuman.upperBody.rotation.x = 0' public/js/temple-3d.js &&
           grep -Fq 'function animateHuman(avatar, time, walking = false)' public/js/temple-3d.js &&
           grep -Fq 'const mainHuman=makeHumanAvatar(1.72)' public/js/temple-3d.js &&
           ! grep -Fq 'GLTFLoader' public/js/temple-3d.js &&
