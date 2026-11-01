@@ -519,9 +519,9 @@ describe('3D sanctuary visual treatment', () => {
 
   it('uses warm ivory stone for the Buddha and the aureole in the reference palette', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('color: 0xbdb29c');
-    expect(scene).toContain('color: 0x76674f');
-    expect(scene).toContain('color: 0xe5d8bf');
+    expect(scene).toContain('color: 0xa99b84');
+    expect(scene).toContain('color: 0x5e4d3a');
+    expect(scene).toContain('color: 0xd9c7a5');
     expect(scene).toContain('color:0xa59a83');
   });
 
