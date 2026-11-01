@@ -1085,3 +1085,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Added paired soft cheekbone highlights, shallow lower cheek/jaw grooves and short highlights near the chin transition.
 - Preserved the existing face silhouette and calm expression; reused statueLine and existing stone materials.
 - Added regression coverage and CI source guards. Browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Refine the Buddha's neck and shoulder robe transitions
+- Added fine paired neck contours and short shoulder drape creases with restrained ivory highlights.
+- Reused existing robe geometry/material helpers; kept the neck, shoulder silhouette, robe shape and lighting unchanged.
+- Added regression coverage and CI source guards. Browser visual validation remains outstanding.
