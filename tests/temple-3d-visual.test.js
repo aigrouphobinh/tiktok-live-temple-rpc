@@ -245,7 +245,7 @@ describe('3D sanctuary visual treatment', () => {
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1)');
-    expect(scene).toContain("import { getFootPlantingStep } from './three-gait-utils.js';");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep } from './three-gait-utils.js';");
     expect(scene).toContain('const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);');
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
     expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
