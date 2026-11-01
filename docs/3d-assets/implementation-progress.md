@@ -10,6 +10,7 @@ Updated: 2026-11-01
 - `71bcdb9` — moved roof boundary constants into the outer scope so ridge/finial construction can reference them safely.
 - `99b07f3` — added a separate foreground offering table with bronze incense vessel and sticks, paired lotus vases, fruit offerings and butter-lamp flames. Procedural meshes; no external assets.
 - `0cb53cb` — added two soft altar spotlights, a warm fill light, and subtle animated candle/altar glow. Spotlights do not cast shadows to avoid extra mobile GPU shadow passes.
+- `8381713` — bridged the existing gift interruption event into the 3D world: rocket projectile and explosion sparks, flying green dragon/gust, spinning donut with ring trail, and rising rose bloom/petals. Existing 2D gift effects and audio remain intact; no camera movement is added.
 - `4a69b83` — recorded a 10th-century Thai seated Buddha scan listed as CC0 in the Artheon collection as a candidate only; its individual record, file and visual suitability remain to be checked.
 - `7a28894` — added a rear altar screen with red lacquer panels, gold framing, lattice relief and a central medallion to give the Buddha focal plane more depth.
 - `4a077fe` — expanded the asset inventory with an East Asian ceremonial hall candidate pack and Buddhist sculpture scan collection. Both remain candidates, not integrated runtime assets.
@@ -19,13 +20,14 @@ Updated: 2026-11-01
 - `5c2153b` — added a CI scope-order guard for roof boundary constants before ridge construction.
 - `eafcd62` — added CI source guards for the offering table, incense vessel and lotus vases.
 - `606039c` — added CI source guards for altar spotlights and candle flicker.
+- `99c7feb` — added CI source guards for all four 3D gift actions and the interruption-event bridge.
 
 ## Preserved requirements
 
 - Three.js remains opt-in via `?3d=1`; 2D remains the fallback.
 - Existing camera position and fixed elevated main-hall composition are unchanged.
 - The separate camera director still selects one subtle preset at ritual start and returns to the master view; gifts do not direct the camera.
-- Gift/gameplay event handling and ritual state machine were not changed by this implementation.
+- Gift/gameplay event handling and ritual state machine were not changed; the 3D scene now listens to the existing `temple:character-interrupted` event and adds a parallel world-space visual reaction.
 
 ## Not yet verified
 
@@ -42,3 +44,4 @@ Updated: 2026-11-01
 3. Replace the primitive Buddha blockout with a reviewed, correctly licensed seated Buddha GLB or a higher-quality custom model.
 4. Replace the placeholder devotees with a rigged, respectful lay-devotee model while preserving the existing ritual timings and animation events.
 5. Add asset loading failure handling and performance budgets, then perform actual browser/device validation.
+6. Verify 3D gift reaction timing and composition in-browser alongside the existing CSS effects; tune depth/scale only after visual inspection.
