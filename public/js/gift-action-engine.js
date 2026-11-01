@@ -324,6 +324,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     clearTimeout(cooldownTimer);
     clearDelayedEffectTimers();
     const token = ++effectToken;
+    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: { action, effectId: token } }));
     clearActiveEffects();
     // Every new gift action owns the central character animation. Cancel the
     // previous action's motion even when the incoming action (e.g. Rose) has
@@ -369,7 +370,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       const interruptedEvent = machine.snapshot().active;
       const result = machine.interrupt(action, event);
       if (result.interrupted) {
-        if (!result.superseded) {
+        if (interruptedEvent && !result.superseded) {
           window.dispatchEvent(new CustomEvent('temple:character-interrupted', { detail: { event: interruptedEvent, action } }));
         }
         beginEffect(action);
