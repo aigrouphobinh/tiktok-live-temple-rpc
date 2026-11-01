@@ -1,3 +1,9 @@
+### 2026-11-01 — Turn the devotee crowd toward gift senders
+- During the eased gift-reaction envelope, procedural devotees and the main avatar turn from the altar toward the live audience, then return to their original altar-facing orientation.
+- Added a restrained wider smile and attentive eye expression, layered with existing blinking and bow animation.
+- Rotation and facial changes use the existing reaction blend; no additive per-frame rotation drift. GLB rigs receive only the root-facing turn; facial rig assumptions remain untouched.
+- Added scene assertions and CI guards.
+
 ### 2026-11-01 — Keep gift gratitude in sync with combo streaks
 - Cumulative TikTok streak frames now publish a separate gratitude-update event with the incremental combo value.
 - The 3D scene upgrades the active acknowledgement profile and extends its duration without replaying the rocket/dragon/donut/rose world effect.
