@@ -13,6 +13,7 @@ function normalizeClipName(value) {
     .trim()
     .toLowerCase()
     .replace(/[_|./-]+/g, ' ')
+    .replace(/\s+/g, ' ')
     .split(' ')
     .filter(Boolean)
     .join(' ');
