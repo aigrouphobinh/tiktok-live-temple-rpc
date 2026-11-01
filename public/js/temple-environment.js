@@ -431,10 +431,10 @@ export function createTempleEnvironment({ THREE, scene, config = {} } = {}) {
   };
 
   try {
-    if (settings.enableColumnBases) {
-      buildColumnShafts();
-      buildColumnBases();
-    }
+    // Column shafts are structural elements; the base toggle controls only
+    // their decorative footings and must not remove the columns themselves.
+    buildColumnShafts();
+    if (settings.enableColumnBases) buildColumnBases();
     if (settings.enableCapitalBrackets) buildCapitalBrackets();
     if (settings.enableGalleryScreens) buildGalleryScreens();
     if (settings.enableFloorInlays) buildFloorInlays();
