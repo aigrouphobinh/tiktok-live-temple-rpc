@@ -401,3 +401,5 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Exposed a narrow `resetStreaks()` hook from the browser gift-action engine; the live UI calls it when the server-reported TikTok connected state changes, preventing a reused `groupId` from suppressing the first visual effect after reconnect.
 - Added regression coverage proving both server combo counting and browser streak coalescing accept a fresh first frame after tracker reset.
 - Code and tests committed directly to `main`. GitHub Actions validation is pending; real connector reconnect behavior and browser runtime remain unverified.
+
+- Follow-up hardening: all event handlers and async connect completion now verify connection ownership. Late gifts/social events and stale connect/disconnect callbacks from an old connection cannot mutate the new session or consume its combo tracker.
