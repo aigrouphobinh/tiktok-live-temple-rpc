@@ -999,3 +999,9 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - The outer tier opens slightly more than the inner tier; both return to their exact baseline as the shared special-gift reaction envelope fades.
 - Animation scales two parent groups rather than rewriting individual instance matrices each frame; no new geometry, lights, timers, or particle allocations.
 - Added source regression tests and CI guards. Browser render validation remains outstanding.
+
+
+### 2026-11-01 — Add rising lotus sparks for special gifts
+- Added one fixed 32-point additive particle cloud attached to the lotus throne; sparks spiral upward from the petals toward the Buddha halo while a special-gift reaction is active.
+- Reuses typed position/phase/speed/radius buffers and updates positions in place; opacity follows the existing special-gift envelope and returns to zero outside it.
+- No per-frame geometry/material/vector allocation, timers, or additional lights. Added source regression coverage and CI guards; browser visual validation remains outstanding.
