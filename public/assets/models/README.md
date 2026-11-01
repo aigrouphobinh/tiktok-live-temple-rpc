@@ -15,7 +15,7 @@ Preferred model (user-selected): **Gold Buddha Statue — Kenny Hsieh**
 Bundled public fallback: **Seated Buddha, date unknown — Minneapolis Institute of Art**
 - Original record: https://zenodo.org/records/10337923 (DOI: `10.5281/zenodo.10337923`)
 - Source model: https://sketchfab.com/3d-models/seated-buddha-date-unknown-c1c3d5a4878c42778eceded83673dea7
-- The Artheon Buddhist & Hindu 3D scan catalogue lists this individual work as **CC0**. The Zenodo record identifies the object as a gilt-bronze Seated Buddha in the Minneapolis Institute of Art collection.
+- The exact Artheon artwork record lists this individual scan as **CC0 (Public Domain)**: https://www.artheonmuseum.org/artwork/seated-buddha-date-unknown-c1c3d5. The Artheon Buddhist & Hindu catalogue also lists it as CC0. The Zenodo record identifies the object as a gilt-bronze Seated Buddha in the Minneapolis Institute of Art collection and hosts the binary, but its own Rights field does not state the license.
 - Downloaded file: `buddha-cc0-fallback.glb` (5.5 MB); MD5 `a00f6c35ae853c830faff61404265c5c`.
 - The fallback is only used when `buddha-selected.glb` is absent or fails to load. Keep the original collection/source credit with the asset.
 
