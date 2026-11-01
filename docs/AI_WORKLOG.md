@@ -1040,3 +1040,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Each plaque's depth follows the curved cylindrical surface, keeping the details visually seated on the band.
 - Uses two static InstancedMesh batches; existing trim rings, 32 brass studs, lotus petals, lighting and camera remain unchanged.
 - Added source regression coverage and CI guards; browser visual validation remains outstanding.
+
+
+### 2026-11-01 — Add raised gold midribs to lotus petals
+- Added a subtle curved brass midrib to every upright lotus petal, following the sculpted petal crown from base toward tip.
+- Each petal ring uses one InstancedMesh for all veins, keeping the detail batched (28 total across the two rings) and static.
+- Disabled vein shadow casting to avoid extra shadow-map cost; petal geometry, opening animation, throne and camera remain unchanged.
+- Added source regression coverage and CI guards; browser visual validation remains outstanding.
