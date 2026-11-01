@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getRitualPoseState } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -55,6 +55,42 @@ describe('getFootPlantingPose', () => {
       });
       expect(getFootPlantingStep(phase)).toBe(0);
     }
+  });
+});
+
+describe('getRitualPoseState', () => {
+  it('walks toward the altar before beginning a kneel', () => {
+    expect(getRitualPoseState({ travel: 0.5 })).toEqual({
+      walking: true, kneelBlend: 0, bowAmount: 0
+    });
+    expect(getRitualPoseState({ travel: 1, elapsedAfterArrival: 0 }).kneelBlend).toBe(0);
+  });
+
+  it('eases into a grounded kneel before smoothly beginning the bow', () => {
+    const settling = getRitualPoseState({ travel: 1, elapsedAfterArrival: 1600, remainingMs: 4000 });
+    expect(settling.walking).toBe(false);
+    expect(settling.kneelBlend).toBeCloseTo(1, 8);
+    expect(settling.bowAmount).toBeCloseTo(1, 8);
+    const halfway = getRitualPoseState({ travel: 1, elapsedAfterArrival: 1225, remainingMs: 4000 });
+    expect(halfway.bowAmount).toBeGreaterThan(0);
+    expect(halfway.bowAmount).toBeLessThan(1);
+  });
+
+  it('fades the kneel and bow out together at the end of the ritual', () => {
+    const pose = getRitualPoseState({ travel: 1, elapsedAfterArrival: 2500, remainingMs: 325 });
+    expect(pose.kneelBlend).toBeGreaterThan(0);
+    expect(pose.kneelBlend).toBeLessThan(1);
+    expect(pose.bowAmount).toBeGreaterThan(0);
+    expect(pose.bowAmount).toBeLessThan(1);
+    expect(getRitualPoseState({ travel: 1, elapsedAfterArrival: 3000, remainingMs: 0 })).toEqual({
+      walking: false, kneelBlend: 0, bowAmount: 0
+    });
+  });
+
+  it('clamps invalid timeline values to safe neutral outputs', () => {
+    expect(getRitualPoseState({ travel: NaN, elapsedAfterArrival: Infinity, remainingMs: NaN })).toEqual({
+      walking: true, kneelBlend: 0, bowAmount: 0
+    });
   });
 });
 
