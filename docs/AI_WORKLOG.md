@@ -782,3 +782,10 @@ Add an optional free stylized 3D visual layer that stays close to the existing t
 - Kept neck separate from spine; manual bowing now distributes rotation across torso and neck while preserving the head rest pose.
 - Added regression checks for VRM mappings and segmented bow articulation.
 - Source-level validation only: the repository has no tracked GLB in public/assets/models, so actual rig matching still needs browser validation with the deployed model.
+
+
+### 2026-11-01 — Make GLB rig resolution deterministic
+- Replaced first-match bone assignment with per-slot scoring: exact normalized names outrank suffix matches, and earlier/more specific aliases outrank broad aliases.
+- Added a one-time rig summary to the existing model-load diagnostic so the actual resolved bone names can be checked when the selected GLB is deployed; no extra per-frame logging.
+- Added regression assertions for candidate scoring and rig diagnostics.
+- CI and source tests can validate the matching policy, but the deployed GLB still needs a browser run to confirm the real resolved skeleton.
