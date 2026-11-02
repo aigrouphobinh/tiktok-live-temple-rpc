@@ -5,6 +5,15 @@ const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url
 const visualAuditSource = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
 
 describe('Three.js scene performance safeguards', () => {
+  it('preserves slow-renderer intervals until frame percentile samples are reliable', () => {
+    const diagnosticsStart = source.indexOf("if (statsEnabled && now - lastStatsAt >= 5000)");
+    const diagnosticsEnd = source.indexOf("if (!effects.length && now > ritualUntil", diagnosticsStart);
+    const diagnostics = source.slice(diagnosticsStart, diagnosticsEnd);
+    expect(diagnostics).toContain('if (percentilesReliable) {');
+    expect(diagnostics).toContain('frameIntervals.length = 0;');
+    expect(diagnostics).toContain('frameWindowStartedAt = now;');
+    expect(diagnostics.indexOf('if (percentilesReliable) {')).toBeLessThan(diagnostics.indexOf('frameIntervals.length = 0;'));
+  });
   it('limits decorative lantern point lights to two per aisle', () => {
     expect(source).toContain('for (const x of [-5.8, 5.8])');
     expect(source).toContain('for (const z of [-7, -1, 5, 11])');
