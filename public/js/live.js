@@ -804,6 +804,20 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     });
   });
 
+  // Vertical ritual rail: heart = TikTok-like blessing, flame = incense, lotus = lotus offering.
+  document.getElementById('sideLikeAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.sendPrayer', { user, wish, source: 'ritual-side-like' });
+  });
+  document.getElementById('sideIncenseAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.burnIncense', { user, count: 3, wish, source: 'ritual-side-incense' });
+  });
+  document.getElementById('sideLotusAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.offerGift', { user, giftType: 'lotus', coins: 20, giftName: 'Đài Hoa Sen Vàng', wish, source: 'ritual-side-lotus' });
+  });
+
   document.getElementById('woodenFishStation')?.addEventListener('click', () => {
     const { user } = getFormInput();
     callRpc('temple.strikeWoodenFish', { user, count: 1 });
