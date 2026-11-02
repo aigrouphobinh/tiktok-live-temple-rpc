@@ -22,6 +22,15 @@ if (enabled && stage) {
     fixedNodes.forEach((node) => stage.appendChild(node));
   }
 
+  // In 3D mode the WebGL perspective camera is the single camera authority.
+  // Keep the DOM rig only to pin HUD overlays; do not stack CSS camera transforms
+  // on top of Three.js camera interpolation.
+  if (new URLSearchParams(location.search).get('3d') === '1') {
+    rig.style.transition = 'none';
+    rig.style.transform = 'none';
+    return;
+  }
+
   const presets = [
     { x: -3, y: 2, scale: 1.012, tiltX: 0.07, tiltY: -0.08 },
     { x: 3, y: -2, scale: 1.012, tiltX: -0.06, tiltY: 0.08 },
