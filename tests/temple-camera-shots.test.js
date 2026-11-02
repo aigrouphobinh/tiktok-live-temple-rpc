@@ -68,7 +68,11 @@ describe('3D temple camera shot sequence', () => {
   it('does not layer the old CSS camera transform over the Three.js shot director', () => {
     const guard = cssCamera.indexOf("if (new URLSearchParams(location.search).get('3d') === '1')");
     expect(guard).toBeGreaterThan(-1);
-    expect(cssCamera.slice(guard)).toContain("rig.style.transform = 'none';");
-    expect(cssCamera.slice(guard)).toContain('return;');
+    const legacyDirector = cssCamera.indexOf('const presets = [', guard);
+    const threeDGuard = cssCamera.slice(guard, legacyDirector);
+    expect(legacyDirector).toBeGreaterThan(guard);
+    expect(threeDGuard).toContain("rig.style.transform = 'none';");
+    expect(threeDGuard).toContain('} else {');
+    expect(threeDGuard).not.toContain('return;');
   });
 });
