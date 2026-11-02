@@ -270,6 +270,39 @@ async function boot() {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z); mesh.rotation.x = rx; mesh.receiveShadow = true; world.add(mesh); return mesh;
   };
+  const imageTextureLoader = new THREE.TextureLoader();
+  const imageTextureStatus = {};
+  function addSanctuaryImagePlane(name, url, width, height, position, rotation = [0, 0, 0], options = {}) {
+    const texture = imageTextureLoader.load(url, () => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      texture.needsUpdate = true;
+      imageTextureStatus[name] = 'loaded';
+    }, undefined, (error) => {
+      imageTextureStatus[name] = error?.message || 'failed';
+      console.warn(`[Temple3D] Sanctuary texture failed: ${name}`, error);
+    });
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const material = options.unlit
+      ? new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false })
+      : new THREE.MeshStandardMaterial({
+          map: texture,
+          roughness: options.roughness ?? 0.78,
+          metalness: options.metalness ?? 0.08,
+          side: THREE.DoubleSide
+        });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+    mesh.name = name;
+    mesh.position.set(position[0], position[1], position[2]);
+    mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    world.add(mesh);
+    imageTextureStatus[name] = 'loading';
+    window.__TEMPLE_TEXTURE_DIAGNOSTICS__ = imageTextureStatus;
+    return mesh;
+  }
 
   scene.add(new THREE.HemisphereLight(0xffe4b9, 0x382011, 2.25));
   const ambient = new THREE.AmbientLight(0xffd79a, 0.92); scene.add(ambient);
@@ -352,6 +385,13 @@ async function boot() {
     world.add(instances);
   });
   box(5.8, 0.12, 27, mats.red, 0, -0.02, 3);
+  // A woven lotus carpet texture replaces the unpatterned red runway surface.
+  addSanctuaryImagePlane(
+    'LotusProcessionalCarpet',
+    '/assets/temple-kit/red-lotus-carpet.svg',
+    5.55, 26.82, [0, 0.046, 3], [-Math.PI / 2, 0, 0],
+    { roughness: 0.88, metalness: 0.06 }
+  );
   box(0.12, 0.035, 27, mats.gold, -2.82, 0.06, 3);
   box(0.12, 0.035, 27, mats.gold, 2.82, 0.06, 3);
   // Low stone curbs and a second fine brass inlay frame the processional carpet.
@@ -432,6 +472,14 @@ async function boot() {
   panelRosettes.receiveShadow = panelGems.receiveShadow = true;
   world.add(panelRosettes, panelGems);
 
+  // Painted red-and-gold sanctuary backdrop: a true image texture replaces
+  // the plain procedural lattice at the rear focal plane while leaving Buddha in front.
+  addSanctuaryImagePlane(
+    'PaintedAmitabhaAltarBackdrop',
+    '/assets/temple-kit/altar-screen.svg',
+    9.18, 5.35, [0, 4.05, -10.62], [0, 0, 0],
+    { unlit: true }
+  );
   for (const x of [-3.45, 3.45]) {
     box(1.55, 3.8, 0.12, mats.woodLight, x, 4.05, -10.98);
     // Recessed cinnabar panels sit behind the brass lattice, adding a second
@@ -1317,34 +1365,14 @@ async function boot() {
   for (const x of [-5.55, 5.55]) {
     box(0.075, 2.86, 0.1, mats.goldBright, x, 0, 0.17, ceilingFascia);
   }
-  // Repeated painted lotus medallions form a temple mural, not a flat dark ceiling.
-  const muralPetalMat = new THREE.MeshStandardMaterial({
-    color: 0xf4d99d, roughness: 0.68, metalness: 0.16,
-    emissive: 0x50320e, emissiveIntensity: 0.1
-  });
-  for (const cx of [-4.35, -2.18, 0, 2.18, 4.35]) {
-    const medallion = new THREE.Group();
-    medallion.position.set(cx, 0, 0.22);
-    ceilingFascia.add(medallion);
-    const outer = new THREE.Mesh(new THREE.TorusGeometry(0.53, 0.035, 7, 48), mats.goldBright);
-    medallion.add(outer);
-    const inner = new THREE.Mesh(new THREE.TorusGeometry(0.39, 0.018, 6, 40), fasciaInsetMat);
-    medallion.add(inner);
-    for (let p = 0; p < 12; p++) {
-      const angle = p * Math.PI / 6;
-      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), muralPetalMat);
-      petal.position.set(Math.cos(angle) * 0.29, Math.sin(angle) * 0.29, 0.018);
-      petal.scale.set(0.62, 1.45, 0.28);
-      petal.rotation.z = angle - Math.PI / 2;
-      medallion.add(petal);
-    }
-    const center = new THREE.Mesh(new THREE.CircleGeometry(0.16, 24), fasciaInsetMat);
-    center.position.z = 0.045;
-    medallion.add(center);
-    const jewel = new THREE.Mesh(new THREE.CircleGeometry(0.07, 20), mats.goldBright);
-    jewel.position.z = 0.052;
-    medallion.add(jewel);
-  }
+  // The upper wall now uses a painted Buddhist mural image rather than five
+  // isolated circles; the original frame remains visible around the artwork.
+  addSanctuaryImagePlane(
+    'PaintedLotusCeilingMural',
+    '/assets/temple-kit/ceiling-mural.svg',
+    11.24, 2.82, [0, 0, 0.225], [0, 0, 0],
+    { unlit: true }
+  );
   // Small warm fill keeps the painted panel legible without washing out the Buddha.
   const muralLight = new THREE.PointLight(0xffd99c, 8, 17, 2);
   muralLight.position.set(0, 10.2, -8.8);
@@ -1355,9 +1383,9 @@ async function boot() {
   function makeTempleAbbot() {
     const root = new THREE.Group();
     root.name = 'TempleResidentAbbot';
-    root.position.set(3.35, 0.035, -4.28);
+    root.position.set(2.85, 0.035, -3.65);
     root.rotation.y = Math.PI;
-    root.scale.setScalar(1.02);
+    root.scale.setScalar(1.34);
 
     const robe = new THREE.MeshStandardMaterial({ color: 0xc96e1f, roughness: 0.88, metalness: 0.025 });
     const robeLight = new THREE.MeshStandardMaterial({ color: 0xe58d35, roughness: 0.82, metalness: 0.035 });
@@ -1440,7 +1468,7 @@ async function boot() {
     world.add(root);
     window.__TEMPLE_ABBOT_DIAGNOSTIC__ = {
       visible: true, kind: 'resident-abbot', pose: 'standing-prayer',
-      position: root.position.toArray(), height: 1.95, facing: 'altar'
+      position: root.position.toArray(), height: 2.61, facing: 'altar'
     };
     return root;
   }
