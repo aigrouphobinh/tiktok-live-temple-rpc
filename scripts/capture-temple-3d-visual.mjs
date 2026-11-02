@@ -298,10 +298,15 @@ try {
               && queue.filter((actor) => actor.queueWaiting).length === 4;
           }, null, { timeout: 20000 });
           await page.waitForFunction(() => {
-            const queue = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.()?.queue || [];
+            const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
+            const queue = diagnostic?.queue || [];
             const worshippers = queue.filter((actor) => actor.queuedWorshipLane);
             const seated = queue.filter((actor) => actor.queueWaiting);
-            return queue.length === 8
+            return diagnostic?.phase === 'ritual'
+              && diagnostic.kneelBlend >= 0.9
+              && diagnostic.bowAmount >= 0.01
+              && diagnostic.simultaneousWorshippers === 5
+              && queue.length === 8
               && worshippers.length === 4
               && seated.length === 4
               && worshippers.every((actor) => actor.kneelBlend >= 0.9
@@ -309,7 +314,7 @@ try {
                 && actor.bowAmount >= 0.01)
               && seated.every((actor) => actor.ritualBowPhase === 'meditating'
                 && actor.bowAmount === 0);
-          }, null, { timeout: 6000 });
+          }, null, { timeout: 7000 });
         } catch (error) {
           profileReport.crowdFormationWaitError = error.message;
         }
@@ -319,6 +324,9 @@ try {
         logAuditPhase(scenario.id, 'crowd-formation-result', {
           visibleQueueActors: profileReport.crowdFormationDiagnostic?.visibleQueueActors || 0,
           visibleSceneActorCount: profileReport.crowdFormationDiagnostic?.visibleSceneActorCount || 0,
+          phase: profileReport.crowdFormationDiagnostic?.phase || null,
+          centralKneelBlend: profileReport.crowdFormationDiagnostic?.kneelBlend || 0,
+          centralBowAmount: profileReport.crowdFormationDiagnostic?.bowAmount || 0,
           simultaneousWorshippers: profileReport.crowdFormationDiagnostic?.simultaneousWorshippers || 0,
           worshipLanes: profileReport.crowdFormationDiagnostic?.queue?.filter((actor) => actor.queuedWorshipLane).length || 0,
           seatedWaiting: profileReport.crowdFormationDiagnostic?.queue?.filter((actor) => actor.queueWaiting).length || 0,
@@ -518,9 +526,21 @@ try {
             ]);
           })(),
         crowdFormationAllKneeling: scenario.id !== 'high'
-          || (scene.devoteeFlowDiagnostic?.queue || [])
-            .filter((actor) => actor.queuedWorshipLane)
-            .every((actor) => actor.kneelBlend >= 0.9),
+          || (scene.devoteeFlowDiagnostic?.phase === 'ritual'
+            && scene.devoteeFlowDiagnostic?.kneelBlend >= 0.9
+            && (scene.devoteeFlowDiagnostic?.queue || [])
+              .filter((actor) => actor.queuedWorshipLane)
+              .length === 4
+            && (scene.devoteeFlowDiagnostic?.queue || [])
+              .filter((actor) => actor.queuedWorshipLane)
+              .every((actor) => actor.kneelBlend >= 0.9)),
+        crowdFormationAllFiveBowing: scenario.id !== 'high'
+          || (scene.devoteeFlowDiagnostic?.bowAmount >= 0.01
+            && (scene.devoteeFlowDiagnostic?.queue || [])
+              .filter((actor) => actor.queuedWorshipLane)
+              .every((actor) => actor.bowAmount >= 0.01)),
+        crowdFormationExactlyFiveConcurrent: scenario.id !== 'high'
+          || scene.devoteeFlowDiagnostic?.simultaneousWorshippers === 5,
         crowdFormationConcurrentWorshipSlots: scenario.id !== 'high'
           || (scene.devoteeFlowDiagnostic?.queue || [])
             .filter((actor) => actor.queuedWorshipLane).length === 4,
