@@ -27,6 +27,11 @@ describe('3D sanctuary visual treatment', () => {
   expect(scene).toContain("root.name = 'TempleResidentAbbot';");
   expect(scene).toContain("root.userData.kind = 'resident-abbot';");
   expect(scene).toContain("root.userData.pose = 'standing-prayer';");
+  expect(scene).toContain('root.rotation.y = Math.atan2(-2.85, 2.3);');
+  expect(scene).toContain("headPivot.name = 'AbbotRespectfulBowHeadPivot';");
+  expect(scene).toContain('root.userData.headPivot = headPivot;');
+  expect(scene).toContain('templeAbbot.userData.headPivot.rotation.x = 0.015 + abbotBowAmount * 0.22;');
+  expect(scene).toContain("window.__TEMPLE_ABBOT_DIAGNOSTIC__.facing = 'devotees';");
   expect(scene).toContain('const templeAbbot = makeTempleAbbot();');
   expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
   expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
@@ -336,7 +341,10 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
   it('models the bell, wooden fish and fortune cylinder as 3D sanctuary props', async () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function makeRitualStation(x, z, kind)');
-    expect(scene).toContain("makeRitualStation(-3.75, -1.2, 'bell')");
+    expect(scene).toContain("makeRitualStation(-2.2, -5.85, 'bell')");
+    expect(scene).toContain("station.name = kind === 'bell' ? 'StandingAltarBellStation'");
+    expect(scene).toContain("station.position.set(kind === 'bell' ? -2.2 : x, kind === 'bell' ? 1.92 : 0.16, kind === 'bell' ? -5.85 : z)");
+    expect(scene).toContain('station.userData.standingOnAltar = true;');
     expect(scene).toContain("makeRitualStation(3.75, -1.2, 'woodfish')");
     expect(scene).toContain("makeRitualStation(3.75, -5.4, 'fortune')");
     expect(scene).toContain('const ritualStations = [];');
@@ -393,7 +401,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('places ritual feedback at the visible 3D station coordinates', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("makeRing(-3.75, 1.85, -1.2, 0xffe18a)");
+    expect(scene).toContain("makeRing(-2.2, 2.78, -5.85, 0xffe18a)");
     expect(scene).toContain('makeRing(3.75, 0.9, -1.2)');
     expect(scene).toContain('makeRing(3.75, 0.85, -5.4, 0xffdf83)');
   });
@@ -1145,6 +1153,20 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
     expect(scene).toContain('visibleSceneActorCount: (devoteeState.active && mainDevotee.visible ? 1 : 0) + queue.length + departingDevotees.length,');
     expect(audit).toContain('temple-3d-crowd.png');
+  });
+
+  it('marks a side-lane worshipper complete, exits them once, and never promotes them to the altar', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    const start = scene.indexOf('function startNextDevotee(');
+    const end = scene.indexOf('function enqueueDevotee(', start);
+    const promotion = scene.slice(start, end);
+    expect(promotion).toContain('const nextIndex = devoteeQueue.findIndex((event) => {');
+    expect(promotion).toContain('!actor.avatar.queuedWorshipLane');
+    expect(promotion).toContain('!actor.avatar.queueWorshipCompleted');
+    expect(scene).toContain('function departCompletedQueueWorship(actor, now = performance.now())');
+    expect(scene).toContain('actor.avatar.queueWorshipCompleted = true;');
+    expect(scene).toContain("bowPhase: 'already-completed-in-queue'");
+    expect(scene).toContain('if (queueFormationChanged) refreshQueueActors(now);');
   });
 
   it('kneels and performs three bows after each visitor reaches an offering position', () => {
