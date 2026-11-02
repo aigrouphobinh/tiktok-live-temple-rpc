@@ -33,7 +33,7 @@ async function waitForRendererDiagnostic(samples, minimumCount, predicate = () =
 await mkdir(artifactDir, { recursive: true });
 
 const report = {
-  url: 'http://127.0.0.1:3000/?obs=1&3d=1&stats=1',
+  url: 'http://127.0.0.1:3000/?obs=1&3d=1&buddha=1&stats=1',
   capturedAt: new Date().toISOString(),
   viewport,
   deviceScaleFactor,
