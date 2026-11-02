@@ -1407,7 +1407,8 @@ async function boot() {
     const root = new THREE.Group();
     root.name = 'TempleResidentAbbot';
     root.position.set(2.85, 0.035, -3.65);
-    root.rotation.y = Math.PI;
+    // Turn diagonally toward the congregation rather than keeping his back to it.
+    root.rotation.y = Math.atan2(-2.85, 2.3);
     root.scale.setScalar(1.34);
 
     const robe = new THREE.MeshStandardMaterial({ color: 0xc96e1f, roughness: 0.88, metalness: 0.025 });
@@ -1459,39 +1460,44 @@ async function boot() {
       sphere(0.055, skin, side * 0.026, 1.405, 0.418, 0.82, 0.78, 0.44, root);
     }
 
-    cylinder(0.12, 0.14, 0.2, skin, 0, 1.61, 0.015, root, 18);
-    sphere(0.245, skin, 0, 1.82, 0.02, 0.9, 1.07, 0.82, root);
+    const headPivot = new THREE.Group();
+    headPivot.name = 'AbbotRespectfulBowHeadPivot';
+    headPivot.position.set(0, 1.72, 0);
+    root.add(headPivot);
+    cylinder(0.12, 0.14, 0.2, skin, 0, -0.11, 0.015, headPivot, 18);
+    sphere(0.245, skin, 0, 0.10, 0.02, 0.9, 1.07, 0.82, headPivot);
     for (const side of [-1, 1]) {
-      sphere(0.055, skin, side * 0.22, 1.82, 0.005, 0.78, 1.08, 0.65, root);
-      sphere(0.018, eyes, side * 0.083, 1.85, 0.216, 0.78, 0.8, 0.45, root);
+      sphere(0.055, skin, side * 0.22, 0.10, 0.005, 0.78, 1.08, 0.65, headPivot);
+      sphere(0.018, eyes, side * 0.083, 0.13, 0.216, 0.78, 0.8, 0.45, headPivot);
       const brow = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(side * 0.14, 1.90, 0.198),
-        new THREE.Vector3(side * 0.085, 1.925, 0.214),
-        new THREE.Vector3(side * 0.035, 1.90, 0.218)
+        new THREE.Vector3(side * 0.14, 0.18, 0.198),
+        new THREE.Vector3(side * 0.085, 0.205, 0.214),
+        new THREE.Vector3(side * 0.035, 0.18, 0.218)
       ]);
       const browMesh = new THREE.Mesh(
         new THREE.TubeGeometry(brow, 10, 0.009, 5, false), faceShadow
       );
       browMesh.castShadow = false;
-      root.add(browMesh);
+      headPivot.add(browMesh);
     }
-    sphere(0.032, skin, 0, 1.785, 0.232, 0.88, 1.25, 0.9, root);
+    sphere(0.032, skin, 0, 0.065, 0.232, 0.88, 1.25, 0.9, headPivot);
     const mouth = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.055, 1.72, 0.211),
-      new THREE.Vector3(0, 1.708, 0.224),
-      new THREE.Vector3(0.055, 1.72, 0.211)
+      new THREE.Vector3(-0.055, 0, 0.211),
+      new THREE.Vector3(0, -0.012, 0.224),
+      new THREE.Vector3(0.055, 0, 0.211)
     ]);
     const mouthMesh = new THREE.Mesh(new THREE.TubeGeometry(mouth, 10, 0.008, 5, false), faceShadow);
     mouthMesh.castShadow = false;
-    root.add(mouthMesh);
+    headPivot.add(mouthMesh);
 
     root.userData.kind = 'resident-abbot';
     root.userData.pose = 'standing-prayer';
     root.userData.breathingTorso = breathingTorso;
+    root.userData.headPivot = headPivot;
     world.add(root);
     window.__TEMPLE_ABBOT_DIAGNOSTIC__ = {
       visible: true, kind: 'resident-abbot', pose: 'standing-prayer',
-      position: root.position.toArray(), height: 2.61, facing: 'altar'
+      position: root.position.toArray(), height: 2.61, facing: 'devotees', bowAmount: 0
     };
     return root;
   }
@@ -1770,27 +1776,37 @@ async function boot() {
   const ritualStations = [];
   function makeRitualStation(x, z, kind) {
     const station = new THREE.Group();
-    station.position.set(x, 0.16, z);
+    station.name = kind === 'bell' ? 'StandingAltarBellStation' : `RitualStation:${kind}`;
+    station.position.set(kind === 'bell' ? -2.2 : x, kind === 'bell' ? 1.92 : 0.16, kind === 'bell' ? -5.85 : z);
     station.userData.ritualKind = kind;
     station.userData.animation = {
       startedAt: 0, duration: 0,
       bellPivot: null, malletPivot: null, drum: null, fortuneDrum: null
     };
     world.add(station);
-    box(1.55, 0.22, 1.45, mats.wood, 0, 0, 0, station);
-    box(1.62, 0.07, 1.52, mats.gold, 0, 0.14, 0, station);
-    box(1.42, 0.12, 1.32, mats.woodLight, 0, 0.23, 0, station);
     if (kind === 'bell') {
-      // Suspend the bell from a pivot so each strike visibly sets the bronze body swinging.
+      // The altar surface is y=1.92. The lacquered stand rests directly on it,
+      // and the bronze bell stands upright on its flared lower rim.
+      box(0.92, 0.14, 0.92, mats.wood, 0, 0.07, 0, station);
+      box(0.98, 0.045, 0.98, mats.gold, 0, 0.16, 0, station);
       const bellPivot = new THREE.Group();
-      bellPivot.position.set(0, 1.08, 0);
+      bellPivot.position.set(0, 0.18, 0);
       station.add(bellPivot);
-      cylinder(0.38, 0.48, 0.76, mats.gold, 0, -0.34, 0, bellPivot, 32);
-      cylinder(0.5, 0.5, 0.1, mats.goldBright, 0, -0.01, 0, bellPivot, 32);
-      sphere(0.1, mats.goldBright, 0, 0.1, 0, 1, 1.25, 1, bellPivot);
-      cylinder(0.035, 0.035, 0.42, mats.wood, 0.58, 0.63, 0, station, 10);
-      sphere(0.09, mats.gold, 0.58, 0.4, 0, 1, 1, 1, station);
+      cylinder(0.38, 0.46, 0.72, mats.gold, 0, 0.36, 0, bellPivot, 32);
+      cylinder(0.47, 0.47, 0.08, mats.goldBright, 0, 0.055, 0, bellPivot, 32);
+      cylinder(0.17, 0.21, 0.12, mats.gold, 0, 0.75, 0, bellPivot, 20);
+      sphere(0.085, mats.goldBright, 0, 0.84, 0, 1, 1.15, 1, bellPivot);
+      const clapper = cylinder(0.026, 0.026, 0.22, mats.goldBright, 0, 0.36, 0, bellPivot, 10);
+      clapper.position.z = 0.01;
       station.userData.animation.bellPivot = bellPivot;
+      station.userData.standingOnAltar = true;
+    } else {
+      box(1.55, 0.22, 1.45, mats.wood, 0, 0, 0, station);
+      box(1.62, 0.07, 1.52, mats.gold, 0, 0.14, 0, station);
+      box(1.42, 0.12, 1.32, mats.woodLight, 0, 0.23, 0, station);
+    }
+    if (kind === 'bell') {
+      // The upright bell rocks gently on its pedestal when struck.
     } else if (kind === 'woodfish') {
       const drum = new THREE.Mesh(new THREE.SphereGeometry(0.48, 24, 18), mats.red);
       drum.scale.set(1.2, 0.76, 0.82); drum.position.set(0, 0.72, 0);
@@ -1820,7 +1836,7 @@ async function boot() {
     }
     ritualStations.push(station);
   }
-  makeRitualStation(-3.75, -1.2, 'bell');
+  makeRitualStation(-2.2, -5.85, 'bell');
   makeRitualStation(3.75, -1.2, 'woodfish');
   makeRitualStation(3.75, -5.4, 'fortune');
 
@@ -2729,6 +2745,7 @@ async function boot() {
     avatar.bowAmount = 0;
     avatar.headingOffset = -0.08;
     group.add(avatar.root);
+    avatar.queueWorshipCompleted = false;
     const seat = createMeditationSeat(group);
     const sutraBook = createSutraBook(avatar);
     const nameTag = createDevoteeNameTag();
@@ -2803,6 +2820,7 @@ async function boot() {
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
         actor.avatar.queueWaiting = true;
+        actor.avatar.queueWorshipCompleted = false;
         actor.avatar.prayerPose = true;
         actor.avatar.kneelBlend = 0;
         actor.avatar.kneeling = false;
@@ -2858,7 +2876,8 @@ async function boot() {
     queueActors.delete(event);
     const result = {
       position: actor.group.position.clone(),
-      appearance: actor.appearance || actor.avatar.appearance
+      appearance: actor.appearance || actor.avatar.appearance,
+      worshipCompleted: Boolean(actor.avatar.queueWorshipCompleted)
     };
     actor.group.visible = false;
     actor.event = null;
@@ -2874,7 +2893,7 @@ async function boot() {
     active: false, phase: 'idle', event: null, startedAt: 0,
     phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0,
     ejectionStart: null, ejectionAction: null, ejectionMotionDuration: 0,
-    awaitingGiftHandoff: false, pausedAt: 0
+    awaitingGiftHandoff: false, pausedAt: 0, alreadyWorshippedInQueue: false
   };
   const devoteeRoutes = {
     enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]],
@@ -2905,6 +2924,7 @@ async function boot() {
         moveDurationMs: Number.isFinite(actor.moveDurationMs) ? Math.round(actor.moveDurationMs) : null,
         ritualBowPhase: actor.avatar.ritualBowPhase || 'idle',
         ritualBowCycle: actor.avatar.ritualBowCycle || 0,
+        queueWorshipCompleted: Boolean(actor.avatar.queueWorshipCompleted),
         moving: Boolean(actor.moveCurve),
         position: {
           x: Number(actor.group.position.x.toFixed(2)),
@@ -2925,6 +2945,7 @@ async function boot() {
       bowAmount: Number((mainHuman.bowAmount || 0).toFixed(3)),
       bowPhase: mainHuman.ritualBowPhase || 'idle',
       bowCycle: mainHuman.ritualBowCycle || 0,
+      alreadyWorshippedInQueue: Boolean(devoteeState.alreadyWorshippedInQueue),
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
       seatedWaitingActors: queue.filter((actor) => actor.queueWaiting).length,
@@ -2974,6 +2995,7 @@ async function boot() {
     mainHuman.queueWaiting = false;
     mainHuman.prayerPose = false;
     const queueStart = queuedActor?.position || null;
+    devoteeState.alreadyWorshippedInQueue = queuedActor?.worshipCompleted === true;
     refreshQueueActors();
     devoteeState.active = true;
     updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar,
@@ -3767,7 +3789,7 @@ async function boot() {
     if (event.type === 'burnIncense') {
       incenseEffect(); makeRing(0, 1.2, -5.6);
     }
-    else if (event.type === 'ringBell') { makeRing(-3.75, 1.85, -1.2, 0xffe18a); }
+    else if (event.type === 'ringBell') { makeRing(-2.2, 2.78, -5.85, 0xffe18a); }
     else if (event.type === 'strikeWoodenFish') { makeRing(3.75, 0.9, -1.2); }
     else if (event.type === 'sendPrayer') lotusBurst(8);
     else if (event.type === 'offerGift') lotusBurst(Math.min(18, 5 + Math.ceil((event.coins || 10) / 10)));
@@ -3858,7 +3880,20 @@ async function boot() {
       tree.rotation.z = Math.sin(elapsed * 0.00032 + tree.userData.phase) * 0.008;
     });
     const abbotBreath = Math.sin(elapsed * 0.00115) * 0.012;
+    const congregationBow = Math.max(
+      mainHuman.bowAmount || 0,
+      ...[...queueActors.values()]
+        .filter((actor) => actor.avatar.queuedWorshipLane && !actor.moveCurve)
+        .map((actor) => actor.avatar.bowAmount || 0),
+      0
+    );
+    const abbotBowAmount = THREE.MathUtils.clamp(congregationBow, 0, 1);
     templeAbbot.userData.breathingTorso.scale.y = 0.9 + abbotBreath;
+    templeAbbot.userData.breathingTorso.rotation.x = 0.025 + abbotBowAmount * 0.16 + abbotBreath;
+    templeAbbot.userData.headPivot.rotation.x = 0.015 + abbotBowAmount * 0.22;
+    templeAbbot.userData.pose = abbotBowAmount > 0.08 ? 'standing-bow' : 'standing-prayer';
+    window.__TEMPLE_ABBOT_DIAGNOSTIC__.pose = templeAbbot.userData.pose;
+    window.__TEMPLE_ABBOT_DIAGNOSTIC__.bowAmount = Number(abbotBowAmount.toFixed(3));
     for (const actor of queueActors.values()) {
       let moving = false;
       if (actor.moveCurve) {
@@ -3925,6 +3960,21 @@ async function boot() {
         actor.avatar.kneeling = offeringPose.kneelBlend > 0.035;
         actor.avatar.ritualBowPhase = offeringPose.bowPhase;
         actor.avatar.ritualBowCycle = offeringPose.bowCycle;
+        if (offeringPose.bowPhase === 'complete' && offeringPose.kneelBlend >= 0.9) {
+          actor.avatar.queueWorshipCompleted = true;
+        }
+        if (actor.avatar.queueWorshipCompleted) {
+          // Hold a quiet kneeling prayer after the three bows; shifting slots
+          // never resets this visitor's timer or replays their worship cycle.
+          actor.avatar.kneelBlend = 1;
+          actor.avatar.kneeling = true;
+          actor.avatar.bowing = false;
+          actor.avatar.bowAmount = 0;
+          actor.avatar.ritualBowPhase = 'complete';
+          animateHuman(actor.avatar, now, false);
+          applyHumanBow(actor.avatar, 0, 1);
+          continue;
+        }
         animateHuman(actor.avatar, now, moving);
         applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);
       }
@@ -3967,22 +4017,29 @@ async function boot() {
         ? getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2)
         : phaseElapsed * 0.0085;
       const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;
-      const ritualPose = getRitualPoseState({
-        travel: devoteeState.phase === 'ritual' ? 1 : 0,
-        elapsedAfterArrival: ritualElapsed,
-        remainingMs: devoteeState.phase === 'ritual'
-          ? Math.max(0, devoteeState.phaseDuration - ritualElapsed)
-          : 0,
-        kneelInMs: 520,
-        bowDelayMs: 350,
-        bowInMs: 900,
-        bowCycles: 3,
-        bowCycleMs: 1500,
-        bowDownRatio: 0.34,
-        bowHoldRatio: 0.20,
-        bowUpRatio: 0.34,
-        exitFadeMs: 450
-      });
+      const ritualPose = devoteeState.alreadyWorshippedInQueue
+        ? {
+            kneelBlend: 0,
+            bowAmount: 0,
+            bowPhase: 'already-completed-in-queue',
+            bowCycle: 3
+          }
+        : getRitualPoseState({
+            travel: devoteeState.phase === 'ritual' ? 1 : 0,
+            elapsedAfterArrival: ritualElapsed,
+            remainingMs: devoteeState.phase === 'ritual'
+              ? Math.max(0, devoteeState.phaseDuration - ritualElapsed)
+              : 0,
+            kneelInMs: 520,
+            bowDelayMs: 350,
+            bowInMs: 900,
+            bowCycles: 3,
+            bowCycleMs: 1500,
+            bowDownRatio: 0.34,
+            bowHoldRatio: 0.20,
+            bowUpRatio: 0.34,
+            exitFadeMs: 450
+          });
       mainHuman.kneelBlend = ritualPose.kneelBlend;
       mainHuman.kneeling = ritualPose.kneelBlend > 0.035;
       mainHuman.ritualBowPhase = ritualPose.bowPhase;
