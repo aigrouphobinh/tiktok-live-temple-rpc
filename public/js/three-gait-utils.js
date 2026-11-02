@@ -68,6 +68,33 @@ export function getHumanFootPose({ mode = 'idle', phase = 0, blend = 1 } = {}) {
 
 
 /**
+ * Blend walking, neutral and kneeling leg poses during arrival/departure.
+ * The weights are normalized so a walk-to-kneel transition never overextends
+ * the hips or knees when both state envelopes briefly overlap.
+ */
+export function getHumanFootTransitionPose({ phase = 0, walkBlend = 0, kneelBlend = 0 } = {}) {
+  const clamp01 = (value) => Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
+  let walk = clamp01(walkBlend);
+  let kneel = clamp01(kneelBlend);
+  const total = walk + kneel;
+  if (total > 1) {
+    walk /= total;
+    kneel /= total;
+  }
+  const neutral = getHumanFootPose({ mode: 'idle' });
+  const walking = getHumanFootPose({ mode: 'walk', phase });
+  const kneeling = getHumanFootPose({ mode: 'kneel', blend: 1 });
+  const idle = Math.max(0, 1 - walk - kneel);
+  return {
+    hipRotationX: neutral.hipRotationX * idle + walking.hipRotationX * walk + kneeling.hipRotationX * kneel,
+    kneeRotationX: neutral.kneeRotationX * idle + walking.kneeRotationX * walk + kneeling.kneeRotationX * kneel,
+    footRotationX: neutral.footRotationX * idle + walking.footRotationX * walk + kneeling.footRotationX * kneel,
+    footLift: walking.footLift * walk,
+    planted: walk < 0.02
+  };
+}
+
+/**
  * Timeline for the altar visit: approach, settle into a kneel, then bow.
  * Times are milliseconds relative to arrival; outputs are safe blend weights.
  */
