@@ -1545,7 +1545,17 @@ async function boot() {
   const devotees = [];
   const devoteeAvatars = [];
   const allHumanAvatars = [];
+  const HUMAN_WARDROBE = [
+    { shirt: 0x76513c, trim: 0x4b3429, trousers: 0x4a5057 },
+    { shirt: 0x667568, trim: 0x3e5144, trousers: 0x444a52 },
+    { shirt: 0x73585d, trim: 0x523e42, trousers: 0x4c4e56 },
+    { shirt: 0x8a765e, trim: 0x5e4d3c, trousers: 0x54524a },
+    { shirt: 0x555d68, trim: 0x3e454f, trousers: 0x403f42 },
+    { shirt: 0x8c6350, trim: 0x614435, trousers: 0x55514b }
+  ];
+
   function makeHumanAvatar(height = 1.55) {
+    const wardrobe = HUMAN_WARDROBE[allHumanAvatars.length % HUMAN_WARDROBE.length];
     const root = new THREE.Group();
     // The altar is at -Z; turn the avatar away from the +Z camera so devotees face it.
     root.rotation.y = Math.PI;
@@ -1554,9 +1564,9 @@ async function boot() {
     const upperBody = new THREE.Group();
     upperBody.position.y = 0.48;
     root.add(upperBody);
-    const pink = new THREE.MeshStandardMaterial({color:0xe978a5,roughness:0.82});
-    const pinkDark = new THREE.MeshStandardMaterial({color:0xb94f7c,roughness:0.86});
-    const denim = new THREE.MeshStandardMaterial({color:0x315f9c,roughness:0.9});
+    const pink = new THREE.MeshStandardMaterial({color:wardrobe.shirt,roughness:0.84});
+    const pinkDark = new THREE.MeshStandardMaterial({color:wardrobe.trim,roughness:0.88});
+    const denim = new THREE.MeshStandardMaterial({color:wardrobe.trousers,roughness:0.9});
     const skin = new THREE.MeshStandardMaterial({color:0xf1c49a,roughness:0.82});
     const hair = new THREE.MeshStandardMaterial({color:0x39231d,roughness:0.9});
     const white = new THREE.MeshStandardMaterial({color:0xf2eee8,roughness:0.65});
@@ -1621,6 +1631,7 @@ async function boot() {
     const avatar = {
       root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
+      headingOffset: 0,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionStartedAt: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
     };
@@ -1893,7 +1904,7 @@ async function boot() {
     const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);
     const giftReaction = getAvatarGiftReactionBlend(avatar, time) * (avatar.giftReactionProfile?.intensity || 0.55);
     // Devotees briefly turn from the altar toward the live audience, then ease back.
-    avatar.root.rotation.y = Math.PI * (1 - giftReaction);
+    avatar.root.rotation.y = Math.PI * (1 - giftReaction) + (avatar.headingOffset || 0);
     if (avatar.gltfRoot) {
       const mode = walking ? 'walk' : avatar.bowing ? 'bow' : 'idle';
       playGLTFHumanAction(avatar, mode);
@@ -1954,12 +1965,26 @@ async function boot() {
   }
   function makeDevotee(x,z,scale=1) {
     const group=new THREE.Group();group.position.set(x,0.02,z);group.scale.setScalar(scale);world.add(group);
+    const avatarIndex = devoteeAvatars.length;
     const avatar=makeHumanAvatar(1.42);group.add(avatar.root);
+    const idlePostures = [
+      { kneel: 0, bow: 0.05 },
+      { kneel: 0.92, bow: 0.07 },
+      { kneel: 1, bow: 0.2 },
+      { kneel: 0, bow: 0.16 }
+    ];
+    const posture = idlePostures[avatarIndex % idlePostures.length];
+    avatar.headingOffset = ((avatarIndex % 3) - 1) * 0.055;
+    avatar.kneelBlend = posture.kneel;
+    avatar.kneeling = posture.kneel > 0.05;
+    applyHumanBow(avatar, posture.bow, posture.kneel);
     devotees.push(group);devoteeAvatars.push(avatar);return group;
   }
   for(let row=0;row<4;row++){
     const z=-3.2+row*3.1, scale=1.0-row*0.065;
-    makeDevotee(-4.3,z,scale);makeDevotee(4.3,z,scale);
+    const stagger = row % 2 ? 0.16 : -0.1;
+    makeDevotee(-4.3+stagger,z+0.12,scale);
+    makeDevotee(4.3-stagger,z-0.1,scale);
   }
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
@@ -2018,11 +2043,15 @@ async function boot() {
     devoteeNameTag.userData.setName(user || 'Thí Chủ Hữu Duyên');
   }
   const devoteeQueue = [];
+  // Events are keyed by object identity because the 2D state machine emits the
+  // same event object for start, interruption, resume and completion.
+  const renderedDevoteeEvents = new WeakSet();
+  const departingDevotees = [];
   const devoteeState = {
     active: false, phase: 'idle', event: null, startedAt: 0,
     phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0,
     ejectionStart: null, ejectionAction: null, ejectionMotionDuration: 0,
-    awaitingGiftHandoff: false
+    awaitingGiftHandoff: false, pausedAt: 0
   };
   const devoteeRoutes = {
     enter: [[5.2, 0, 14.5], [4.9, 0, 12.0], [4.2, 0, 9.4], [3.8, 0, 7.2]],
@@ -2057,28 +2086,111 @@ async function boot() {
     devoteeState.ejectionAction = null;
     devoteeState.ejectionMotionDuration = 0;
     devoteeState.awaitingGiftHandoff = false;
+    devoteeState.pausedAt = 0;
     mainHuman.kneeling = false;
     mainHuman.kneelBlend = 0;
     mainHuman.bowing = false;
     mainHuman.bowAmount = 0;
     applyHumanBow(mainHuman, 0);
-    setDevoteePhase('enter', now, 3000);
+    setDevoteePhase('enter', now, 1500);
   }
   function enqueueDevotee(event) {
-    if (!event) return;
+    if (!event || typeof event !== 'object' || renderedDevoteeEvents.has(event)) return;
+    // Match the gameplay queue's capacity. The state machine remains the
+    // authority; this is only its visible 3D presentation queue.
+    if (devoteeQueue.length >= 40) return;
+    renderedDevoteeEvents.add(event);
     devoteeQueue.push(event);
     startNextDevotee();
   }
 
-  function finishGiftEjectionHandoff(now = performance.now()) {
+  function finishGiftEjectionHandoff(now = performance.now(), nextEvent = null) {
     if (!devoteeState.awaitingGiftHandoff) return false;
     devoteeState.awaitingGiftHandoff = false;
+    if (nextEvent && !devoteeQueue.includes(nextEvent)) {
+      if (!renderedDevoteeEvents.has(nextEvent)) renderedDevoteeEvents.add(nextEvent);
+      devoteeQueue.unshift(nextEvent);
+    }
     startNextDevotee(now);
     return true;
   }
 
-  function onTempleCharacterStartForThreeD() {
-    finishGiftEjectionHandoff();
+  function onTempleCharacterInterruptedForThreeD(event) {
+    const detail = event.detail || {};
+    if (!devoteeState.active || detail.event !== devoteeState.event) return;
+    if (['rocket', 'donut'].includes(detail.action)) return;
+    devoteeState.pausedAt = performance.now();
+  }
+
+  function onTempleCharacterStartForThreeD(event) {
+    const startedEvent = event.detail;
+    if (!startedEvent || typeof startedEvent !== 'object') return;
+    const now = performance.now();
+
+    if (devoteeState.active && devoteeState.event === startedEvent) {
+      if (devoteeState.pausedAt) {
+        const pausedFor = Math.max(0, now - devoteeState.pausedAt);
+        devoteeState.phaseStartedAt += pausedFor;
+        devoteeState.arrivedAt += pausedFor;
+        devoteeState.pausedAt = 0;
+      }
+      return;
+    }
+
+    if (devoteeState.awaitingGiftHandoff) {
+      finishGiftEjectionHandoff(now, startedEvent);
+      return;
+    }
+
+    // The state machine may announce the first start before temple:ritual is
+    // dispatched. In that case start the visual now; the WeakSet prevents the
+    // later ritual notification from inserting the same visitor twice.
+    if (!devoteeState.active && !devoteeQueue.includes(startedEvent)) {
+      enqueueDevotee(startedEvent);
+    } else if (!devoteeState.active) {
+      startNextDevotee(now);
+    }
+  }
+
+  function finishActiveDevotee(event, now = performance.now()) {
+    if (!devoteeState.active || (event && event !== devoteeState.event)) return false;
+    const start = mainDevotee.position.clone();
+
+    // Keep the leaving visitor visible while the next one enters. The normal
+    // procedural rig can be safely cloned because its geometry/materials are
+    // shared and immutable. Optional skinned GLBs use the safe instant handoff.
+    if (!mainHuman.gltfRoot) {
+      const leaving = mainDevotee.clone(true);
+      const nameTag = leaving.getObjectByProperty('isSprite', true);
+      nameTag?.removeFromParent();
+      const exitCurve = new THREE.CatmullRomCurve3([
+        start,
+        start.clone().add(new THREE.Vector3(-0.9, 0, 1.3)),
+        new THREE.Vector3(-3.6, 0.05, 3.6),
+        new THREE.Vector3(-5.0, 0.05, 8.3),
+        new THREE.Vector3(-5.5, 0.05, 13.5)
+      ], false, 'centripetal');
+      world.add(leaving);
+      departingDevotees.push({ group: leaving, curve: exitCurve, startedAt: now, durationMs: 1500 });
+    }
+
+    mainDevotee.visible = false;
+    mainDevotee.rotation.set(0, 0, 0);
+    mainDevotee.scale.setScalar(1);
+    devoteeState.active = false;
+    devoteeState.phase = 'idle';
+    devoteeState.event = null;
+    devoteeState.curve = null;
+    devoteeState.pausedAt = 0;
+    devoteeState.ejectionStart = null;
+    devoteeState.ejectionAction = null;
+    devoteeState.ejectionMotionDuration = 0;
+    startNextDevotee(now);
+    return true;
+  }
+
+  function onTempleCharacterCompleteForThreeD(event) {
+    finishActiveDevotee(event.detail);
   }
 
   function onTempleGiftEffectsComplete() {
@@ -2491,7 +2603,7 @@ async function boot() {
     const targetedGiftAction = ['offerGift', 'grandCeremony'].includes(event.type) ? resolveGiftAction(event) : null;
     // Rocket/Donut act on the devotee already at the altar; the gift sender is
     // not incorrectly cloned into a second, ordinary queue visit.
-    if (hasNamedDevotee && !['rocket', 'donut'].includes(targetedGiftAction)) enqueueDevotee(event);
+    if (hasNamedDevotee && !targetedGiftAction) enqueueDevotee(event);
     if (event.type === 'burnIncense') {
       incenseEffect(); makeRing(0, 1.2, -5.6);
     }
@@ -2546,7 +2658,9 @@ async function boot() {
   window.addEventListener('temple:ritual', onTempleRitual);
   window.addEventListener('temple:gift-action', onTempleGiftAction);
   window.addEventListener('temple:gift-reaction', onTempleGiftReaction);
+  window.addEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);
   window.addEventListener('temple:character-start', onTempleCharacterStartForThreeD);
+  window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);
   window.addEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);
 
   // Add the independent roofless architectural detail layer to the same scene.
@@ -2576,9 +2690,11 @@ async function boot() {
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
-    if (devoteeState.active) {
+    if (devoteeState.active && !devoteeState.pausedAt) {
       const phaseElapsed = now - devoteeState.phaseStartedAt;
-      const progress = Math.min(1, phaseElapsed / Math.max(1, devoteeState.phaseDuration));
+      const progress = devoteeState.phase === 'ritual'
+        ? 0
+        : Math.min(1, phaseElapsed / Math.max(1, devoteeState.phaseDuration));
       const eased = progress * progress * (3 - 2 * progress);
       const walking = ['enter', 'approach', 'exit', 'donutChase'].includes(devoteeState.phase);
       if (walking && devoteeState.curve) {
@@ -2603,10 +2719,12 @@ async function boot() {
       const ritualPose = getRitualPoseState({
         travel: devoteeState.phase === 'ritual' ? 1 : 0,
         elapsedAfterArrival: ritualElapsed,
-        remainingMs: devoteeState.phase === 'ritual' ? Math.max(0, devoteeState.phaseDuration - phaseElapsed) : 0,
+        remainingMs: devoteeState.phase === 'ritual' ? Number.MAX_SAFE_INTEGER : 0,
         kneelInMs: 520,
-        bowDelayMs: 1100,
+        bowDelayMs: 500,
         bowInMs: 900,
+        bowCycles: 3,
+        bowCycleMs: 1050,
         exitFadeMs: 450
       });
       mainHuman.kneelBlend = ritualPose.kneelBlend;
@@ -2618,13 +2736,13 @@ async function boot() {
       if (progress >= 1) {
         if (devoteeState.phase === 'enter') {
           mainDevotee.position.set(3.8, 0.05, 7.2);
-          setDevoteePhase('queue', now, 900);
+          setDevoteePhase('queue', now, 350);
         } else if (devoteeState.phase === 'queue') {
-          setDevoteePhase('approach', now, 3300);
+          setDevoteePhase('approach', now, 1700);
         } else if (devoteeState.phase === 'approach') {
           mainDevotee.position.set(0, 0.05, -3.55);
           mainDevotee.rotation.y = 0;
-          setDevoteePhase('ritual', now, 4800);
+          setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);
         } else if (devoteeState.phase === 'ritual') {
           mainHuman.kneeling = false;
           mainHuman.kneelBlend = 0;
@@ -2638,6 +2756,7 @@ async function boot() {
           devoteeState.ejectionStart = null;
           devoteeState.ejectionAction = null;
           devoteeState.ejectionMotionDuration = 0;
+          devoteeState.pausedAt = 0;
           devoteeState.awaitingGiftHandoff = true;
           mainDevotee.visible = false;
           mainDevotee.rotation.set(0, 0, 0);
@@ -2651,6 +2770,20 @@ async function boot() {
           // Keep the same shot while queued visitors remain; restore only when the queue drains.
           startNextDevotee(now);
         }
+      }
+    }
+    for (let i = departingDevotees.length - 1; i >= 0; i--) {
+      const leaving = departingDevotees[i];
+      const progress = Math.min(1, Math.max(0, (now - leaving.startedAt) / leaving.durationMs));
+      const eased = progress * progress * (3 - 2 * progress);
+      const point = leaving.curve.getPoint(eased);
+      const tangent = leaving.curve.getTangent(eased);
+      leaving.group.position.copy(point);
+      leaving.group.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
+      leaving.group.scale.setScalar(1 - eased * 0.12);
+      if (progress >= 1) {
+        world.remove(leaving.group);
+        departingDevotees.splice(i, 1);
       }
     }
     lanterns.forEach((light, i) => {
@@ -2754,7 +2887,9 @@ async function boot() {
     window.removeEventListener('temple:ritual', onTempleRitual);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
     window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);
+    window.removeEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);
     window.removeEventListener('temple:character-start', onTempleCharacterStartForThreeD);
+    window.removeEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);
     window.removeEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);
     canvas.removeEventListener('pointermove', onWorldPointerMove);
     canvas.removeEventListener('pointerdown', onWorldPointerDown);
