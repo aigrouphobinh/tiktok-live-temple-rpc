@@ -786,6 +786,13 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
               window.__TEMPLE_PENDING_VIEWER_ENTRIES__.push(viewer);
             }
           }
+        } else if (msg.method === 'temple.viewerCount') {
+          const liveText = document.getElementById('liveStatusText');
+          const count = Math.max(0, Number(msg.params?.viewerCount || 0));
+          if (liveText?.textContent.startsWith('LIVE @')) {
+            const username = liveText.textContent.slice(6).split(' • ')[0];
+            liveText.textContent = `LIVE @${username} • ${count} mắt`;
+          }
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
           if (msg.params?.event) triggerRitualVisuals(msg.params.event);
