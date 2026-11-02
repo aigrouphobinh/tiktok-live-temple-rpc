@@ -2629,59 +2629,76 @@ async function boot() {
   async function upgradeBuddhaFromGLB() {
     let asset;
     let assetSource = 'procedural';
+    const selectedUrl = '/assets/models/buddha-selected.glb';
+    const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';
+    const customUrl = '/assets/models/buddha.glb';
+    const diagnostics = {
+      state: 'loading',
+      preferred: 'kenny-hsieh',
+      source: null,
+      attempts: [],
+      startedAt: new Date().toISOString()
+    };
+    window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ = diagnostics;
+
     try {
       const { loadGLTFAsset } = await import('./three-model-loader.js');
-      const customUrl = '/assets/models/buddha.glb';
-      const selectedUrl = '/assets/models/buddha-selected.glb';
-      const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';
+      // The selected Kenny Hsieh model is the default. The smaller CC0 scan is
+      // the automatic fallback. A legacy/custom buddha.glb is opt-in only so
+      // it can never silently replace the selected statue.
+      const candidates = modelParams.get('buddha') === 'custom'
+        ? [
+            { url: customUrl, source: 'user-custom' },
+            { url: selectedUrl, source: 'kenny-hsieh' },
+            { url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }
+          ]
+        : [
+            { url: selectedUrl, source: 'kenny-hsieh' },
+            { url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }
+          ];
 
-      // A locally added buddha.glb takes priority over bundled demonstration assets.
-      // Keep the procedural statue visible while the external file is being validated.
-      if (await isLocalModelAvailable(customUrl)) {
+      for (const candidate of candidates) {
         try {
-          asset = await loadGLTFAsset(customUrl, {
+          // Load directly instead of probing with HEAD first. This avoids an
+          // extra request, preserves the actual GLTFLoader error and removes
+          // false-positive 404s for optional legacy model paths.
+          asset = await loadGLTFAsset(candidate.url, {
             targetHeight: 5.88,
             centerXZ: true
           });
-          assetSource = 'user-custom';
-          console.info('[Temple3D] User-provided buddha.glb loaded; procedural fallback replaced.');
-        } catch (customError) {
-          console.warn('[Temple3D] User-provided buddha.glb is invalid; trying bundled Buddha assets:', customError);
-        }
-      } else {
-        console.info('[Temple3D] No user-provided buddha.glb found; skipping its load request and trying bundled Buddha assets.');
-      }
-
-      // Preserve compatibility with the previously bundled Kenny Hsieh asset.
-      if (!asset && await isLocalModelAvailable(selectedUrl)) {
-        try {
-          asset = await loadGLTFAsset(selectedUrl, {
-            targetHeight: 5.88,
-            centerXZ: true
+          assetSource = candidate.source;
+          diagnostics.attempts.push({
+            source: candidate.source,
+            url: candidate.url,
+            ok: true,
+            triangles: asset.triangleCount
           });
-          assetSource = 'kenny-hsieh';
-          console.info('[Temple3D] Selected Buddha GLB loaded; procedural fallback replaced.');
-        } catch (selectedError) {
-          console.warn('[Temple3D] Selected Kenny Hsieh Buddha is invalid; trying the CC0 gilt-bronze scan:', selectedError);
+          break;
+        } catch (error) {
+          diagnostics.attempts.push({
+            source: candidate.source,
+            url: candidate.url,
+            ok: false,
+            error: error?.message || String(error)
+          });
+          console.warn(`[Temple3D] Buddha model ${candidate.source} failed; trying the next bundled model:`, error);
         }
       }
 
       if (!asset) {
-        if (!(await isLocalModelAvailable(fallbackUrl))) {
-          window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
-          console.warn('[Temple3D] Optional Buddha GLB files are not available; keeping procedural statue.');
-          return;
-        }
-        asset = await loadGLTFAsset(fallbackUrl, {
-          targetHeight: 5.88,
-          centerXZ: true
-        });
-        assetSource = 'mia-cc0-gilt-bronze';
-        console.info('[Temple3D] CC0 gilt-bronze Buddha fallback loaded; procedural fallback replaced.');
+        diagnostics.state = 'fallback';
+        diagnostics.source = 'procedural';
+        diagnostics.finishedAt = new Date().toISOString();
+        window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
+        console.warn('[Temple3D] No bundled Buddha GLB could be loaded; procedural statue remains visible.', diagnostics);
+        return;
       }
 
       if (disposed) {
         asset.dispose();
+        diagnostics.state = 'disposed';
+        diagnostics.source = assetSource;
+        diagnostics.finishedAt = new Date().toISOString();
         return;
       }
       console.info('[Temple3D] Buddha mesh budget', {
@@ -2690,8 +2707,8 @@ async function boot() {
         castsShadow: asset.castsShadow
       });
 
-      // The supplied Thunk3D scan is a neutral white photogrammetry mesh.
-      // Apply the same restrained aged-gold PBR finish used by the public-domain scan.
+      // The CC0 museum scan is a neutral/light photogrammetry mesh. Apply an
+      // aged-gold PBR finish while preserving the source GLB's geometry.
       if (assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze') {
         applyGiltFinish(asset.root);
       }
@@ -2710,14 +2727,24 @@ async function boot() {
         asset.root.position.z += originalCenter.z - widenedCenter.z;
         asset.root.updateMatrixWorld(true);
       }
-      // Keep the procedural meshes as a hidden last-resort fallback. Their
-      // cached primitive geometries are shared with the rest of the scene.
+
+      // Preserve a hidden emergency fallback, but never report it as the active
+      // statue after a GLB has been attached to the altar.
       for (const child of statue.children) child.visible = false;
+      asset.root.visible = true;
       statue.add(asset.root);
       window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = assetSource;
+      diagnostics.state = 'loaded';
+      diagnostics.source = assetSource;
+      diagnostics.finishedAt = new Date().toISOString();
+      diagnostics.triangles = asset.triangleCount;
     } catch (error) {
+      diagnostics.state = 'error';
+      diagnostics.source = 'procedural';
+      diagnostics.error = error?.message || String(error);
+      diagnostics.finishedAt = new Date().toISOString();
       window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
-      console.warn('[Temple3D] Optional Buddha GLB unavailable; keeping procedural statue:', error);
+      console.warn('[Temple3D] Buddha GLB loading failed; keeping procedural fallback:', error);
     }
   }
 
