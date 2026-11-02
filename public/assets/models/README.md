@@ -14,9 +14,9 @@ To use a custom GLB, place the file at this exact repository path:
 public/assets/models/buddha.glb
 ```
 
-The runtime checks this file first when the Buddha preview is enabled. If it is
-missing or invalid, it falls back to the bundled models below and finally keeps
-the procedural custom statue. The filename is case-sensitive.
+This is a legacy override and is **not** used by default. The normal 3D scene
+loads `buddha-selected.glb` first, then the bundled CC0 fallback. To explicitly
+preview this custom file, use `?3d=1&buddha=custom`. The filename is case-sensitive.
 
 After adding the file, commit and deploy the repository, then open the 3D scene:
 
@@ -26,12 +26,15 @@ After adding the file, commit and deploy the repository, then open the 3D scene:
 
 The selected bundled Buddha GLB is loaded by default in 3D mode. Use
 `?3d=1&buddha=0` only to force the procedural statue for troubleshooting.
+Use `?3d=1&buddha=custom` only to opt into the legacy `buddha.glb` file.
 
 The file must be a self-contained binary glTF (GLB), with textures embedded.
-If it still does not appear, open DevTools → Network and check whether
-`/assets/models/buddha.glb` returns HTTP 200. A 404 means the file is not in
-the deployed public directory; a 200 followed by a loader error usually means
-the GLB is malformed or references unsupported external resources.
+If the selected model still does not appear, inspect
+`window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__` in DevTools. Its `attempts` array
+records the selected model and CC0 fallback load results, including the exact
+GLTFLoader error. In Network, the default request should target
+`/assets/models/buddha-selected.glb`; the optional custom path is never probed
+unless `buddha=custom` is set.
 
 ### Supplied custom model metadata
 
@@ -51,7 +54,7 @@ Preferred model (user-selected): **Gold Buddha Statue — Kenny Hsieh**
 - https://sketchfab.com/3d-models/gold-buddha-statue-641d85153dd849d3b33bb69bd3ff6748
 - Model UID: `641d85153dd849d3b33bb69bd3ff6748`
 - Published license: **CC BY**; retain attribution to Kenny Hsieh and link to the Sketchfab model wherever the asset is distributed or shown.
-- Expected file: `buddha-selected.glb`; the loader tries the user-supplied `buddha.glb` first, then this bundled model.
+- Expected file: `buddha-selected.glb`; this is the default first-choice model.
 
 Bundled public fallback: **Seated Buddha, date unknown — Minneapolis Institute of Art**
 - Original record: https://zenodo.org/records/10337923 (DOI: `10.5281/zenodo.10337923`)
@@ -64,13 +67,13 @@ The GitHub Actions workflow `.github/workflows/fetch-buddha-cc0-fallback.yml` do
 
 The character GLB is expected at `devotee-selected.glb`; the loader normalizes it to 1.72 world units and clones the rig for every devotee. Animation clips are detected by names containing idle/stand/breath, walk/run/approach and bow/pray/worship/kneel. The procedural character remains visible if loading fails or `models=1` is omitted.
 
-The optional loader normalizes the statue to approximately 5.88 world units high,
-centers it on X/Z and grounds it at local Y=0. The statue wrapper remains at the
-existing altar transform. To preview the optional bundled model, open the 3D
-scene with `?3d=1&buddha=1` to preview just the Buddha, or
-`?3d=1&models=1` to load both the Buddha and optional devotee rigs. The loader
-tries `buddha-selected.glb` first, then `buddha-cc0-fallback.glb`; the
-procedural statue remains active if neither file loads or both flags are omitted.
+The loader normalizes the active Buddha model to approximately 5.88 world units
+high, centers it on X/Z and grounds it at local Y=0. The statue wrapper remains at
+the existing altar transform. The selected Kenny Hsieh model is loaded by
+default in every `?3d=1` scene, followed by the bundled CC0 museum scan if the
+selected model cannot load. The procedural statue is retained only as an explicit
+troubleshooting fallback (`buddha=0`) or when both GLBs fail. Set
+`buddha=custom` to explicitly prioritize the legacy `buddha.glb` file.
 
 ## Human devotee
 
