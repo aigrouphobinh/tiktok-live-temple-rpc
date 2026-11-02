@@ -1017,11 +1017,8 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     });
   }
 
-  const btnToggleSfx = document.getElementById('btnToggleSfx');
-  if (btnToggleSfx) {
-    btnToggleSfx.textContent = `✨ Hiệu Ứng: ${audio.sfxEnabled ? 'BẬT' : 'TẮT'}`;
-    btnToggleSfx.classList.toggle('active-toggle', audio.sfxEnabled);
-  }
+  // Reuse the existing binding and sync function; do not redeclare btnToggleSfx.
+  syncSfxButton();
 
   const sliderSfxVol = document.getElementById('sliderSfxVol');
   const valSfxVol = document.getElementById('valSfxVol');
