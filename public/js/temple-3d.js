@@ -3322,7 +3322,7 @@ async function boot() {
     void upgradeBuddhaFromGLB();
   }
   if (modelsRequested) {
-    void upgradeDevoteesFromGLB();
+    console.info('[Temple3D] Legacy humanoid GLB override is disabled; male/female Ao Dai rigs stay active.');
   }
-  console.info('[Temple3D] Full sanctuary world ready (?3d=1), with human devotees and stone Buddha.');
+  console.info('[Temple3D] Full sanctuary world ready (?3d=1), with male/female Ao Dai devotees and stone Buddha.');
 }
