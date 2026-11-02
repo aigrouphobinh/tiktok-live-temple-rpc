@@ -65,6 +65,14 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
   });
 
+  it('keeps queue prayer hands working for both GLB and procedural character rigs', () => {
+    expect(source).toContain('function applyStandingPrayerPose(avatar)');
+    expect(source).toContain('if (avatar.gltfRoot && avatar.gltfRig)');
+    expect(source).toContain('rig.leftArm.rotation.z = rig.leftArmRest.z + 0.54;');
+    expect(source).toContain('avatar.leftArm.rotation.z = 0.54;');
+    expect(source).toContain('if (actor.avatar.prayerPose && !moving) applyStandingPrayerPose(actor.avatar);');
+  });
+
   it('stagger worship cycles across the eight background devotees', () => {
     expect(source).toContain('avatar.congregationRole = avatarIndex % 4;');
     expect(source).toContain('avatar.congregationOffset = avatar.phase * 1500;');
