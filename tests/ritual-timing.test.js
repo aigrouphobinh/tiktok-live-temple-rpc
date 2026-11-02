@@ -12,9 +12,9 @@ describe('Ritual visit timing', () => {
     expect(scene).toContain('devoteeState.phaseDuration = duration;');
     expect(scene).toContain('bowCycles: 3,');
     expect(scene).toContain('bowCycleMs: 1500,');
-    expect(scene).toContain('bowDownRatio: 0.30,');
+    expect(scene).toContain('bowDownRatio: 0.34,');
     expect(scene).toContain('bowHoldRatio: 0.20,');
-    expect(scene).toContain('bowUpRatio: 0.30,');
+    expect(scene).toContain('bowUpRatio: 0.34,');
     expect(engine).toContain('const ritualDurationMs = window.__TEMPLE_3D_READY__ === true ? 15000 : 12500;');
     expect(engine).toContain('const ritualDurationMs = window.__TEMPLE_3D_READY__ === true ? 15000 : 12500;');
     expect(engine).toContain("event?.type === 'drawFortune' ? 18000 : ritualDurationMs");
