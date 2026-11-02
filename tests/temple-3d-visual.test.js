@@ -1101,6 +1101,9 @@ describe('3D multi-devotee incense offering', () => {
     expect(audit).toContain('visibleQueueActors === 8');
     expect(audit).toContain('crowdFormationHorizontalTargets');
     expect(audit).toContain('temple-3d-crowd.png');
+    expect(audit).toContain('async function captureStageScreenshot(page, path)');
+    expect(audit).toContain('diagnostic.queue.every((actor) => !actor.moving)');
+    expect(audit).not.toContain("page.locator('#stage9x16').screenshot");
   });
 
   it('kneels and performs three bows after each visitor reaches an offering position', () => {

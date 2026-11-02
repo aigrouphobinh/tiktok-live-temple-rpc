@@ -99,6 +99,7 @@ jobs:
             artifacts/temple-3d-low.png
             artifacts/temple-3d-medium.png
             artifacts/temple-3d-high.png
+            artifacts/temple-3d-crowd.png
             artifacts/temple-3d-visual-report.json
             /tmp/temple-server.log
           if-no-files-found: warn

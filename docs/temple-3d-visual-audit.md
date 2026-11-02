@@ -20,6 +20,7 @@ Each run uploads `temple-3d-visual-audit` for seven days:
 
 - `temple-3d-portrait.png` — clean 9:16 OBS stage.
 - `temple-3d-full-page.png` — full viewport capture.
+- `temple-3d-crowd.png` — synthetic eight-devotee horizontal incense formation after all eight actors reach their assigned altar slots.
 - `temple-3d-visual-report.json` — readiness, viewport, WebGL, console errors, and failed network requests.
 - `temple-server.log` — server startup diagnostics.
 
