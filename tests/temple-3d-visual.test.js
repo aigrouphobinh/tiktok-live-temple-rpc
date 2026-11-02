@@ -1046,7 +1046,7 @@ it('gives the custom Buddha a fuller seated silhouette and softer facial volume'
 describe('ritual prayer hand alignment', () => {
   it('keeps procedural and GLB forearms gathered through kneel and bow', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('armOpen: prayer * 0.54 + bow * 0.035');
+    expect(scene).toContain('armOpen: prayer * 0.54 + bow * 0.035,');
     expect(scene).toContain('rig.leftArmRest.z + prayer * 0.54 + amount * 0.035');
     expect(scene).toContain('rig.rightArmRest.z - prayer * 0.54 - amount * 0.035');
     expect(scene).toContain('avatar.leftHand.rotation.x = upperPose.wristPitch;');
