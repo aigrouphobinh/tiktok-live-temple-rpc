@@ -288,11 +288,14 @@ try {
         try {
           await page.waitForFunction(() => {
             const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
+            const queue = diagnostic?.queue || [];
+            const worshippers = queue.filter((actor) => actor.queuedWorshipLane);
+            const seated = queue.filter((actor) => actor.queueWaiting);
             return diagnostic?.visibleQueueActors === 8
-              && diagnostic.queue?.length === 8
-              && diagnostic.queue.every((actor) => !actor.moving
-                && actor.kneelBlend >= 0.9
-                && actor.bowAmount >= 0.08);
+              && queue.length === 8
+              && queue.every((actor) => !actor.moving && actor.kneelBlend >= 0.9)
+              && worshippers.length === 4
+              && seated.length === 4;
           }, null, { timeout: 15000 });
         } catch (error) {
           profileReport.crowdFormationWaitError = error.message;
@@ -460,11 +463,25 @@ try {
         crowdFormationSlotsUnique: scenario.id !== 'high'
           || new Set(scene.devoteeFlowDiagnostic?.queue?.map((actor) => actor.slot) || []).size === 8,
         crowdFormationHorizontalTargets: scenario.id !== 'high'
-          || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.target?.z === -1.55),
+          || (() => {
+            const queue = scene.devoteeFlowDiagnostic?.queue || [];
+            const targetKey = (actor) =>
+              `${Number(actor.target?.x?.toFixed(2))}:${Number(actor.target?.z?.toFixed(2))}`;
+            const worshipTargets = queue.filter((actor) => actor.queuedWorshipLane)
+              .map(targetKey).sort();
+            const seatedTargets = queue.filter((actor) => actor.queueWaiting)
+              .map(targetKey).sort();
+            return JSON.stringify(worshipTargets) === JSON.stringify([
+              '-1.05:-1.65', '-3.15:-1.35', '1.05:-1.65', '3.15:-1.35'
+            ]) && JSON.stringify(seatedTargets) === JSON.stringify([
+              '-3.9:11.8', '-5.8:11.8', '3.9:11.8', '5.8:11.8'
+            ]);
+          })(),
         crowdFormationAllKneeling: scenario.id !== 'high'
           || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.kneelBlend >= 0.9),
-        crowdFormationAllBowing: scenario.id !== 'high'
-          || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.bowAmount >= 0.08),
+        crowdFormationConcurrentWorshipSlots: scenario.id !== 'high'
+          || (scene.devoteeFlowDiagnostic?.queue || [])
+            .filter((actor) => actor.queuedWorshipLane).length === 4,
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
