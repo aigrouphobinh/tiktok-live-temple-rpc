@@ -76,6 +76,18 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("mainDevotee.position.set(-3.65, 0.05, 8.0);");
   });
 
+  it('renders 40 permanent lotus-seat placeholders with instanced geometry', () => {
+    expect(source).toContain('function createCongregationSeatPlaceholders()');
+    expect(source).toContain('const positions = getQueueActorFormationSlots();');
+    expect(source).toContain('new THREE.InstancedMesh(geometry, material, positions.length)');
+    expect(source).toContain("createLayer('CongregationSeatBases', baseGeometry, mats.redBright, 0.09);");
+    expect(source).toContain("createLayer('CongregationSeatGoldTops', topGeometry, mats.gold, 0.17);");
+    expect(source).toContain("createLayer('CongregationSeatLotusRims', rimGeometry, mats.goldBright, 0.185, -Math.PI / 2);");
+    expect(source).toContain('const congregationSeatPlaceholders = createCongregationSeatPlaceholders();');
+    expect(source).toContain('visibleSeatPlaceholderCount: congregationSeatPlaceholders.count,');
+    expect(source).toContain('actor.seat.visible = false;');
+  });
+
   it('renders all waiting visitors as reusable actors in horizontal incense-offering rows', () => {
     expect(source).toContain('const queueActors = new Map();');
     expect(source).toContain('const queueActorPool = [];');
