@@ -2015,7 +2015,7 @@ async function boot() {
     };
     setHumanAppearance(avatar, appearance);
     allHumanAvatars.push(avatar);
-    if (devoteeModelAssets) void upgradeDevoteesFromGLB();
+    if (devoteeModelsRequested && devoteeModelAssets) void upgradeDevoteesFromGLB();
     return avatar;
   }
 
@@ -3142,6 +3142,9 @@ async function boot() {
   const modelParams = new URLSearchParams(location.search);
   const modelsRequested = modelParams.get('models') === '1';
   const buddhaModelRequested = modelParams.get('buddha') !== '0';
+  // Ao Dai male/female are the default live characters. Imported Quaternius
+  // devotees are an explicit optional skin pack, never an automatic replacement.
+  const devoteeModelsRequested = modelParams.get('devoteeModels') === '1';
   // Yaw is deliberately applied on a separate pivot so it never overwrites
   // the GLB loader's ground/roll correction quaternion.
   let buddhaYawPivot = null;
@@ -4036,8 +4039,10 @@ async function boot() {
     window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';
     void upgradeBuddhaFromGLB();
   }
-  // Use the vendored male/female glTF models in normal sessions; keep the
-  // procedural Ao Dai avatars visible as a fallback until each clone is ready.
-  void upgradeDevoteesFromGLB();
+  // Keep the two Ao Dai variants as the default characters. The optional
+  // Quaternius GLTF skins are loaded only when explicitly requested with
+  // ?devoteeModels=1, so they cannot silently replace the default cast.
+  if (devoteeModelsRequested) void upgradeDevoteesFromGLB();
+  window.__TEMPLE_DEVOTEE_MODEL_SOURCE__ = devoteeModelsRequested ? 'quaternius-gltf' : 'ao-dai-default';
   console.info('[Temple3D] Full sanctuary world ready (?3d=1), with male/female Ao Dai devotees and stone Buddha.');
 }
