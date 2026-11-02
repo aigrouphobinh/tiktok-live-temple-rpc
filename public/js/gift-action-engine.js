@@ -68,6 +68,13 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     return timer;
   }
 
+  function hideCentralCharacterAfter(token, delay) {
+    scheduleEffectCallback(token, () => {
+      const sprite = document.getElementById('centralSpriteStack');
+      if (sprite) sprite.style.visibility = 'hidden';
+    }, delay);
+  }
+
   function animateCharacter(keyframes, duration) {
     const sprite = document.getElementById('centralSpriteStack');
     if (!sprite) return;
@@ -79,7 +86,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     });
   }
 
-  function playRocket(token) {
+  function playRocket(token, hasTarget = false) {
     playGiftSound('rocket-launch', token);
     const rocket = createEffect('gift-rocket', '', 95, 1010);
     const flight = rocket.animate([
@@ -166,12 +173,15 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         { transform: 'translate3d(0,0,0) scale(2.1)', opacity: 0 }
       ], { duration: 760, easing: 'ease-out', fill: 'forwards' });
       removeAfter(blast, pop);
-      animateCharacter([
-        { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' },
-        { transform: 'translate3d(310px,-170px,0) rotate(28deg) scale(.82)', offset: .42 },
-        { transform: 'translate3d(310px,-170px,0) rotate(28deg) scale(.82)', offset: .68 },
-        { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' }
-      ], 3300);
+      if (hasTarget) {
+        animateCharacter([
+          { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)', opacity: 1 },
+          { transform: 'translate3d(145px,-95px,0) rotate(10deg) scale(.96)', opacity: 1, offset: .25 },
+          { transform: 'translate3d(390px,-270px,0) rotate(34deg) scale(.72)', opacity: .9, offset: .62 },
+          { transform: 'translate3d(700px,-560px,0) rotate(72deg) scale(.18)', opacity: 0 }
+        ], 1220);
+        hideCentralCharacterAfter(token, 1160);
+      }
     }, 620);
   }
 
@@ -242,7 +252,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     removeAfter(pulse, anim);
   }
 
-  function playDonut(token) {
+  function playDonut(token, hasTarget = false) {
     playGiftSound('donut-chime', token);
     // Keep the treat on the upper-middle lane: it teases the devotee without
     // sweeping across the altar, Buddha focal point, or fixed HUD.
@@ -256,15 +266,17 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     ], { duration: 2700, easing: 'cubic-bezier(.42,0,.24,1)', fill: 'forwards' });
     removeAfter(donut, fly);
 
-    // A short sidestep and hop reads as a playful chase; avoid the previous
-    // 300px translation which could push the character through scene props.
-    animateCharacter([
-      { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' },
-      { transform: 'translate3d(18px,-16px,0) rotate(-5deg) scale(1.025)', offset: .2 },
-      { transform: 'translate3d(42px,-4px,0) rotate(4deg) scale(1.015)', offset: .48 },
-      { transform: 'translate3d(22px,-13px,0) rotate(-3deg) scale(1.02)', offset: .72 },
-      { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)' }
-    ], 3100);
+    if (hasTarget) {
+      // Follow the treat down the right aisle and leave the altar frame.
+      animateCharacter([
+        { transform: 'translate3d(0,0,0) rotate(0deg) scale(1)', opacity: 1 },
+        { transform: 'translate3d(90px,-12px,0) rotate(8deg) scale(1.02)', opacity: 1, offset: .18 },
+        { transform: 'translate3d(275px,18px,0) rotate(22deg) scale(.98)', opacity: 1, offset: .44 },
+        { transform: 'translate3d(485px,58px,0) rotate(48deg) scale(.74)', opacity: .88, offset: .76 },
+        { transform: 'translate3d(690px,118px,0) rotate(78deg) scale(.22)', opacity: 0 }
+      ], 2650);
+      hideCentralCharacterAfter(token, 2520);
+    }
   }
 
   function showActionLabel(action) {
@@ -309,7 +321,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     }, event?.type === 'drawFortune' ? 18000 : 7600);
   }
 
-  function beginEffect(action, giftEvent = null) {
+  function beginEffect(action, giftEvent = null, { hasTarget = false } = {}) {
     // Fade only the superseded gift's sound group; background music and TTS
     // remain on their independent playback paths.
     if (effectToken > 0) {
@@ -324,7 +336,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     clearTimeout(cooldownTimer);
     clearDelayedEffectTimers();
     const token = ++effectToken;
-    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: { action, effectId: token, reactionProfile: resolveGiftReactionProfile(giftEvent || {}) } }));
+    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: { action, effectId: token, hasTarget: Boolean(hasTarget), reactionProfile: resolveGiftReactionProfile(giftEvent || {}) } }));
     clearActiveEffects();
     // Every new gift action owns the central character animation. Cancel the
     // previous action's motion even when the incoming action (e.g. Rose) has
@@ -332,9 +344,9 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     characterAnimation?.cancel();
     characterAnimation = null;
     showActionLabel(action);
-    if (action === 'rocket') playRocket(token);
+    if (action === 'rocket') playRocket(token, hasTarget);
     else if (action === 'dragon') playDragon(token);
-    else if (action === 'donut') playDonut(token);
+    else if (action === 'donut') playDonut(token, hasTarget);
     else if (action === 'rose') playRose(token);
 
     effectTimer = window.setTimeout(() => {
@@ -343,7 +355,9 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       characterAnimation = null;
       const result = machine.finishEffect();
       if (result.nextEffect) {
-        beginEffect(result.nextEffect.action, result.nextEffect.event);
+        beginEffect(result.nextEffect.action, result.nextEffect.event, {
+          hasTarget: Boolean(result.ejectedDevotee)
+        });
         return;
       }
       cooldownTimer = window.setTimeout(() => {
@@ -374,8 +388,9 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         if (interruptedEvent && !result.superseded) {
           window.dispatchEvent(new CustomEvent('temple:character-interrupted', { detail: { event: interruptedEvent, action } }));
         }
-        beginEffect(action, event);
-        return { allowWalker: false, interruptsRitual: true, action, state: machine.snapshot() };
+        const hasTarget = Boolean(interruptedEvent || result.ejectedDevotee);
+        beginEffect(action, event, { hasTarget });
+        return { allowWalker: false, interruptsRitual: true, action, ejectedDevotee: hasTarget, state: machine.snapshot() };
       }
       if (result.queuedEffect) {
         return { allowWalker: false, queuedEffect: true, action, state: machine.snapshot() };
