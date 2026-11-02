@@ -163,7 +163,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
     expect(scene).toContain('animateHuman(mainHuman, now, walking, walkPhase);');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
-    expect(scene).toContain('setDevoteePhase('ritual', now, 4800);');
+    expect(scene).toContain("setDevoteePhase('ritual', now, 4800);");
     expect(scene).toContain('mainHuman.kneelBlend = 0;');
   });
 
