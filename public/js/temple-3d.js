@@ -1630,6 +1630,7 @@ async function boot() {
     root.scale.setScalar(height/1.72);
     const avatar = {
       root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
+      wardrobeMaterials: { shirt: pink, trim: pinkDark, trousers: denim },
       phase: Math.random() * Math.PI * 2,
       headingOffset: 0,
       prayerPose: false,
@@ -2093,7 +2094,7 @@ async function boot() {
         actor = queueActorPool.pop() || createQueueActor(event);
         actor.event = event;
         actor.group.visible = true;
-        actor.group.position.set(-6.25, 0.05, 15.3);
+        actor.group.position.set(-6.25 - index * 0.16, 0.05, 15.3 + index * 0.82);
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
@@ -2105,11 +2106,14 @@ async function boot() {
     const actor = queueActors.get(event);
     if (!actor) return null;
     queueActors.delete(event);
-    const start = actor.group.position.clone();
+    const result = {
+      position: actor.group.position.clone(),
+      wardrobe: actor.avatar.wardrobeMaterials
+    };
     actor.group.visible = false;
     actor.event = null;
     queueActorPool.push(actor);
-    return start;
+    return result;
   }
   const devoteeState = {
     active: false, phase: 'idle', event: null, startedAt: 0,
@@ -2140,7 +2144,15 @@ async function boot() {
     }
     beginRitualCamera();
     devoteeState.event = devoteeQueue.shift();
-    const queueStart = releaseQueueActor(devoteeState.event);
+    const queuedActor = releaseQueueActor(devoteeState.event);
+    // Preserve the queued visitor's wardrobe as they step into the active
+    // altar role, so the character does not visibly change clothes mid-walk.
+    if (queuedActor?.wardrobe && mainHuman.wardrobeMaterials) {
+      for (const key of ['shirt', 'trim', 'trousers']) {
+        mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);
+      }
+    }
+    const queueStart = queuedActor?.position || null;
     refreshQueueActors();
     devoteeState.active = true;
     updateMainDevoteeName(devoteeState.event.user);
@@ -2181,7 +2193,9 @@ async function boot() {
     if (devoteeQueue.length >= 40) return;
     renderedDevoteeEvents.add(event);
     devoteeQueue.push(event);
-    refreshQueueActors();
+    // Do not instantiate a waiting duplicate for the first visitor; only
+    // visitors behind an active one or a gift handoff need visible queue slots.
+    if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();
     startNextDevotee();
   }
 
@@ -2776,8 +2790,9 @@ async function boot() {
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
     for (const actor of queueActors.values()) {
       actor.group.position.lerp(actor.target, 1 - Math.exp(-Math.min(50, dt) / 320));
-      animateHuman(actor.avatar, now, false);
-      if (actor.avatar.prayerPose) {
+      const moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
+      animateHuman(actor.avatar, now, moving, now * 0.0085 + actor.avatar.phase);
+      if (actor.avatar.prayerPose && !moving) {
         actor.avatar.leftArm.rotation.x = -0.48;
         actor.avatar.rightArm.rotation.x = -0.48;
         actor.avatar.leftArm.rotation.z = 0.54;
