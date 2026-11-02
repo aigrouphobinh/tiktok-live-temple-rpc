@@ -59,6 +59,20 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
     expect(source).toContain('box(0.92, 0.035, 10.4, mats.woodLight, -5.18, -0.105, 10.15);');
+    expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
+    expect(source).toContain('actor.group.position.set(-6.25 - index * 0.16, 0.05, 15.3 + index * 0.82);');
+    expect(source).toContain('actor.group.position.distanceToSquared(actor.target) > 0.018');
+    expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
+  });
+
+  it('stagger worship cycles across the eight background devotees', () => {
+    expect(source).toContain('avatar.congregationRole = avatarIndex % 4;');
+    expect(source).toContain('avatar.congregationOffset = avatar.phase * 1500;');
+    expect(source).toContain('function updateCongregationWorshipPose(avatar, now)');
+    expect(source).toContain('const cycleMs = 24000;');
+    expect(source).toContain('bowCycles: 2,');
+    expect(source).toContain('bowCycleMs: 1450,');
+    expect(source).toContain('updateCongregationWorshipPose(avatar, now);');
   });
 
   it('gives the congregation varied clothing, posture and subtle spacing', () => {
