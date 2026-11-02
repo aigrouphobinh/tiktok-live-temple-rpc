@@ -3059,6 +3059,25 @@ async function boot() {
   const modelParams = new URLSearchParams(location.search);
   const modelsRequested = modelParams.get('models') === '1';
   const buddhaModelRequested = modelParams.get('buddha') !== '0';
+  // Yaw is deliberately applied on a separate pivot so it never overwrites
+  // the GLB loader's ground/roll correction quaternion.
+  let buddhaYawPivot = null;
+  let buddhaYawDegrees = Number(modelParams.get('buddhaYaw') || 0);
+  if (!Number.isFinite(buddhaYawDegrees)) buddhaYawDegrees = 0;
+  buddhaYawDegrees = THREE.MathUtils.clamp(buddhaYawDegrees, -180, 180);
+  function setBuddhaYaw(degrees) {
+    const next = Number(degrees);
+    if (!Number.isFinite(next)) return false;
+    buddhaYawDegrees = THREE.MathUtils.clamp(next, -180, 180);
+    if (buddhaYawPivot) {
+      buddhaYawPivot.rotation.y = THREE.MathUtils.degToRad(buddhaYawDegrees);
+      buddhaYawPivot.updateMatrixWorld(true);
+    }
+    window.__TEMPLE_BUDDHA_YAW_DEGREES__ = buddhaYawDegrees;
+    return true;
+  }
+  window.__TEMPLE_SET_BUDDHA_YAW__ = setBuddhaYaw;
+  setBuddhaYaw(buddhaYawDegrees);
   if (!buddhaModelRequested && !modelsRequested) {
     window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'custom-procedural';
   }
@@ -3211,7 +3230,13 @@ async function boot() {
       // statue after a GLB has been attached to the altar.
       for (const child of statue.children) child.visible = false;
       asset.root.visible = true;
-      statue.add(asset.root);
+      // Keep yaw independent from the model's own tilt/ground-alignment transform.
+      buddhaYawPivot = new THREE.Group();
+      buddhaYawPivot.name = 'BuddhaYawPivot';
+      buddhaYawPivot.rotation.y = THREE.MathUtils.degToRad(buddhaYawDegrees);
+      buddhaYawPivot.add(asset.root);
+      statue.add(buddhaYawPivot);
+      buddhaYawPivot.updateMatrixWorld(true);
       window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = assetSource;
       diagnostics.state = 'loaded';
       diagnostics.source = assetSource;
