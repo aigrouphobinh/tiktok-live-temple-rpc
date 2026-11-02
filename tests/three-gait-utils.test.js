@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -449,5 +449,27 @@ describe('getWalkBodyPose', () => {
     expect(getWalkBodyPose(1, -2)).toEqual({
       bodyBob: 0, lateralSway: 0, torsoLean: 0, torsoTwist: 0
     });
+  });
+});
+
+
+describe('getDistanceBasedGaitPhase', () => {
+  it('maps travelled path distance to complete, repeatable gait cycles', () => {
+    const stride = 1.2;
+    expect(getDistanceBasedGaitPhase(0, 6, stride)).toBeCloseTo(0, 8);
+    expect(getDistanceBasedGaitPhase(0.5, 6, stride)).toBeCloseTo(Math.PI * 5, 8);
+    expect(getDistanceBasedGaitPhase(1, 6, stride)).toBeCloseTo(Math.PI * 10, 8);
+  });
+
+  it('clamps eased progress and supports a per-avatar phase offset', () => {
+    expect(getDistanceBasedGaitPhase(2, 2.4, 1.2, 0.5))
+      .toBeCloseTo(Math.PI * 4 + 0.5, 8);
+    expect(getDistanceBasedGaitPhase(-1, 2.4, 1.2, 0.5)).toBeCloseTo(0.5, 8);
+  });
+
+  it('returns a safe neutral phase for invalid path measurements', () => {
+    for (const args of [[NaN, 2, 1], [0.5, -1, 1], [0.5, 2, 0], [0.5, Infinity, 1]]) {
+      expect(getDistanceBasedGaitPhase(...args)).toBe(0);
+    }
   });
 });
