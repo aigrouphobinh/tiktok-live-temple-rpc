@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction } from './gift-action-rules.js';
@@ -1689,7 +1689,7 @@ async function boot() {
       headingOffset: 0,
       prayerPose: false,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
-      gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionStartedAt: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
+      gltfLastTime: 0, lastHumanPoseTime: 0, walkBlend: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionStartedAt: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
     };
     allHumanAvatars.push(avatar);
     return avatar;
@@ -1954,6 +1954,12 @@ async function boot() {
   }
 
   function animateHuman(avatar, time, walking = false, walkPhase = null) {
+    const poseDelta = avatar.lastHumanPoseTime
+      ? Math.min(0.05, Math.max(0, (time - avatar.lastHumanPoseTime) / 1000))
+      : 1 / 30;
+    avatar.lastHumanPoseTime = time;
+    const walkTarget = walking ? 1 : 0;
+    avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
     const swing = Math.sin(gaitPhase + avatar.phase);
     const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
@@ -1977,11 +1983,16 @@ async function boot() {
       avatar.root.position.y = walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012;
       return;
     }
-    avatar.leftArm.rotation.x = walking ? rightStep*0.42 : Math.sin(time*0.0017+avatar.phase)*0.035;
-    avatar.rightArm.rotation.x = walking ? leftStep*0.42 : Math.sin(time*0.0017+avatar.phase+1)*0.035;
-    const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';
-    const leftFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });
-    const rightFootPose = getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });
+    const idleArmLeft = Math.sin(time*0.0017+avatar.phase)*0.035;
+    const idleArmRight = Math.sin(time*0.0017+avatar.phase+1)*0.035;
+    avatar.leftArm.rotation.x = idleArmLeft * (1 - avatar.walkBlend) + rightStep * 0.42 * avatar.walkBlend;
+    avatar.rightArm.rotation.x = idleArmRight * (1 - avatar.walkBlend) + leftStep * 0.42 * avatar.walkBlend;
+    const leftFootPose = getHumanFootTransitionPose({
+      phase: gaitPhase + avatar.phase, walkBlend: avatar.walkBlend, kneelBlend: avatar.kneelBlend
+    });
+    const rightFootPose = getHumanFootTransitionPose({
+      phase: gaitPhase + avatar.phase + Math.PI, walkBlend: avatar.walkBlend, kneelBlend: avatar.kneelBlend
+    });
     avatar.leftLeg.rotation.x = leftFootPose.hipRotationX;
     avatar.rightLeg.rotation.x = rightFootPose.hipRotationX;
     avatar.leftKnee.rotation.x = leftFootPose.kneeRotationX;
@@ -1992,7 +2003,7 @@ async function boot() {
     avatar.rightFoot.position.y = -0.24 + rightFootPose.footLift;
     const breathCycle = time * 0.00135 + avatar.phase;
     const breath = Math.sin(breathCycle);
-    const walkBody = getWalkBodyPose(gaitPhase + avatar.phase, walking ? 1 : 0);
+    const walkBody = getWalkBodyPose(gaitPhase + avatar.phase, avatar.walkBlend);
     // Counter-sway the trunk against alternating steps; keep the amplitudes
     // deliberately small so the visitor looks grounded rather than bouncy.
     avatar.root.position.x = walkBody.lateralSway;
