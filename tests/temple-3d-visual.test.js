@@ -1151,6 +1151,9 @@ describe('3D multi-devotee incense offering', () => {
     expect(audit).toContain('visibleQueueActors === 8');
     expect(audit).toContain('crowdFormationHorizontalTargets');
     expect(audit).toContain('crowdFormationAllKneeling');
+    expect(audit).toContain('crowdFormationAllFiveBowing');
+    expect(audit).toContain('crowdFormationExactlyFiveConcurrent');
+    expect(audit).toContain('diagnostic.simultaneousWorshippers === 5');
     expect(audit).toContain('crowdFormationConcurrentWorshipSlots');
     expect(audit).toContain('worshippers.length === 4');
     expect(audit).toContain('seated.length === 4');
