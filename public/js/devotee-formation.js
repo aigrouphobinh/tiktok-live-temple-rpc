@@ -112,7 +112,7 @@ export function getQueueActorEntryPosition(slot) {
   const formation = getQueueActorFormationPosition(slot);
   if (!formation) return null;
   if (formation.role === 'worship') {
-    return { slot, role: 'worship', x: formation.x, y: 0.05, z: 14.2 };
+    return { slot, role: 'worship', x: formation.x, y: 0.05, z: 12.2 };
   }
   return {
     slot,
