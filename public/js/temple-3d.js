@@ -2344,6 +2344,36 @@ async function boot() {
     }
   }
 
+  function cloneHumanAvatarForExit(leavingGroup) {
+    const cloneNode = (sourceNode) => {
+      if (!sourceNode) return null;
+      const path = [];
+      let node = sourceNode;
+      while (node && node !== mainDevotee) {
+        const parent = node.parent;
+        if (!parent) return null;
+        const index = parent.children.indexOf(node);
+        if (index < 0) return null;
+        path.unshift(index);
+        node = parent;
+      }
+      if (node !== mainDevotee) return null;
+      return path.reduce((parent, index) => parent?.children[index] || null, leavingGroup);
+    };
+    const clone = { ...mainHuman };
+    for (const key of [
+      'root', 'upperBody', 'torso', 'head', 'smile',
+      'leftArm', 'rightArm', 'leftHand', 'rightHand',
+      'leftLeg', 'rightLeg', 'leftKnee', 'rightKnee', 'leftFoot', 'rightFoot'
+    ]) {
+      clone[key] = cloneNode(mainHuman[key]);
+    }
+    clone.eyeWhites = mainHuman.eyeWhites.map(cloneNode);
+    clone.eyePupils = mainHuman.eyePupils.map(cloneNode);
+    clone.eyebrows = mainHuman.eyebrows.map(({ mesh, side }) => ({ mesh: cloneNode(mesh), side }));
+    return clone;
+  }
+
   function finishActiveDevotee(event, now = performance.now()) {
     if (!devoteeState.active || (event && event !== devoteeState.event)) return false;
     const start = mainDevotee.position.clone();
@@ -2353,6 +2383,7 @@ async function boot() {
     // shared and immutable. Optional skinned GLBs use the safe instant handoff.
     if (!mainHuman.gltfRoot) {
       const leaving = mainDevotee.clone(true);
+      const leavingAvatar = cloneHumanAvatarForExit(leaving);
       const nameTag = leaving.getObjectByProperty('isSprite', true);
       nameTag?.removeFromParent();
       const exitCurve = new THREE.CatmullRomCurve3([
@@ -2363,7 +2394,10 @@ async function boot() {
         new THREE.Vector3(6.2, 0.05, 13.5)
       ], false, 'centripetal');
       world.add(leaving);
-      departingDevotees.push({ group: leaving, curve: exitCurve, startedAt: now, durationMs: 1500 });
+      departingDevotees.push({
+        group: leaving, avatar: leavingAvatar, curve: exitCurve,
+        startedAt: now, durationMs: 10500
+      });
     }
 
     mainDevotee.visible = false;
@@ -2987,10 +3021,11 @@ async function boot() {
       const leaving = departingDevotees[i];
       const progress = Math.min(1, Math.max(0, (now - leaving.startedAt) / leaving.durationMs));
       const eased = progress * progress * (3 - 2 * progress);
-      const point = leaving.curve.getPoint(eased);
-      const tangent = leaving.curve.getTangent(eased);
+      const point = leaving.curve.getPointAt(eased);
+      const tangent = leaving.curve.getTangentAt(eased);
       leaving.group.position.copy(point);
       leaving.group.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
+      animateHuman(leaving.avatar, now, true, (now - leaving.startedAt) * 0.0085);
       leaving.group.scale.setScalar(1 - eased * 0.12);
       if (progress >= 1) {
         world.remove(leaving.group);
