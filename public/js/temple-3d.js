@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction } from './gift-action-rules.js';
@@ -1992,10 +1992,14 @@ async function boot() {
     avatar.rightFoot.position.y = -0.24 + rightFootPose.footLift;
     const breathCycle = time * 0.00135 + avatar.phase;
     const breath = Math.sin(breathCycle);
-    // Keep breathing on the torso mesh so the waist pivot and kneeling feet stay planted.
+    const walkBody = getWalkBodyPose(gaitPhase + avatar.phase, walking ? 1 : 0);
+    // Counter-sway the trunk against alternating steps; keep the amplitudes
+    // deliberately small so the visitor looks grounded rather than bouncy.
+    avatar.root.position.x = walkBody.lateralSway;
+    avatar.root.rotation.z = walkBody.torsoLean;
     avatar.torso.scale.y = 1 + breath * 0.012;
-    avatar.torso.position.y = 0.40 + breath * 0.0025;
-    avatar.torso.rotation.y = giftReaction * 0.035;
+    avatar.torso.position.y = 0.40 + breath * 0.0025 + walkBody.bodyBob;
+    avatar.torso.rotation.y = giftReaction * 0.035 + walkBody.torsoTwist;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;
     avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.045;
     // A tiny alternating head tilt keeps the group feeling attentive rather than mechanically synchronized.
@@ -2016,7 +2020,7 @@ async function boot() {
     for (const eyeWhite of avatar.eyeWhites) eyeWhite.scale.x = 1 + giftReaction * 0.045;
     // Lift the brows subtly and direct the pupils toward the viewer during thanks.
     for (const { mesh, side } of avatar.eyebrows) mesh.rotation.z = -side * 0.12 + giftReaction * side * 0.035;
-    avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
+    avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
     applyGiftThankYouGesture(avatar, time);
   }
   function applyStandingPrayerPose(avatar) {
