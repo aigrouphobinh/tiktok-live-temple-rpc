@@ -65,7 +65,7 @@ Bundled public fallback: **Seated Buddha, date unknown — Minneapolis Institute
 
 The GitHub Actions workflow `.github/workflows/fetch-buddha-cc0-fallback.yml` downloads this public GLB, verifies the published MD5, inspects the glTF structure and commits the binary to the feature branch. Do not use viewer extraction or third-party rippers for the preferred Kenny Hsieh model.
 
-The character GLB is expected at `devotee-selected.glb`; the loader normalizes it to 1.72 world units and clones the rig for every devotee. Animation clips are detected by names containing idle/stand/breath, walk/run/approach and bow/pray/worship/kneel. The procedural character remains visible if loading fails or `models=1` is omitted.
+Human devotees now use local male/female Vietnamese Ao Dai rigs from `public/js/ao-dai-avatar.js`. The old `devotee-selected.glb` Girl override is disabled because its provenance, skeleton and clips were never verified. Both Ao Dai rigs expose the same upper-body, arm, hand, leg and foot pivots for walk, queue, prayer, kneel, bow, gift reaction and exit.
 
 The loader normalizes the active Buddha model to approximately 5.88 world units
 high, centers it on X/Z and grounds it at local Y=0. The statue wrapper remains at
