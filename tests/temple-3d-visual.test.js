@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { findBestAnimationClip } from '../public/js/three-animation-utils.js';
+const aoDaiSource = readFileSync(new URL('../public/js/ao-dai-avatar.js', import.meta.url), 'utf8');
 
 const css = readFileSync(new URL('../public/css/live.css', import.meta.url), 'utf8');
 
@@ -66,7 +67,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.upperBody.rotation.x = upperPose.torsoLean - blend * profile.bowAmount;');
     expect(scene).toContain('const thankYouLift = strength * (0.92 + Math.sin(time * 0.007) * 0.025);');
     expect(scene).toContain('function getAvatarGiftReactionBlend(avatar, time)');
-    expect(scene).toContain('getGiftReactionBlend(avatar.giftReactionUntil - time, duration);');
+    expect(scene).toContain('getScheduledGiftReactionBlend(');
     expect(scene).toContain('const giftReaction = getAvatarGiftReactionBlend(avatar, time) * (avatar.giftReactionProfile?.intensity || 0.55);');
   });
 
@@ -114,7 +115,8 @@ describe('3D sanctuary visual treatment', () => {
 
   it('stagger congregation gift reactions and pulse altar lighting with the shared response', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('giftReactionStartedAt: 0, giftReactionUntil: 0');
+    expect(scene).toContain('giftReactionStartedAt: 0,');
+    expect(scene).toContain('giftReactionUntil: 0,');
     expect(scene).toContain('const phase = ((avatar.phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);');
     expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
     expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
@@ -125,7 +127,8 @@ describe('3D sanctuary visual treatment', () => {
 
   it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile,');
+    expect(aoDaiSource).toContain("torso.name = 'AoDaiBreathingTorso';");
+    expect(scene).toContain('function setHumanAppearance(avatar, appearance');
     expect(scene).toContain('const breathCycle = time * 0.00135 + avatar.phase;');
     expect(scene).toContain('avatar.torso.scale.y = 1 + breath * 0.012;');
     expect(scene).toContain('avatar.torso.position.y = 0.40 + breath * 0.0025 + walkBody.bodyBob;');
@@ -135,8 +138,11 @@ describe('3D sanctuary visual treatment', () => {
 
   it('adds animated blinking, eye gaze and a restrained bow expression to procedural faces', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('const eyeWhites = [], eyePupils = [], eyebrows = [];');
-    expect(scene).toContain('eyeWhites, eyePupils, eyebrows, smile,');
+    expect(aoDaiSource).toContain('const eyeWhites = [];');
+    expect(aoDaiSource).toContain('const eyePupils = [];');
+    expect(aoDaiSource).toContain('const eyebrows = [];');
+    expect(aoDaiSource).toContain('eyeWhites,');
+    expect(aoDaiSource).toContain('eyePupils,');
     expect(scene).toContain('const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;');
     expect(scene).toContain('avatar.congregationRole = avatarIndex % 4;');
     expect(scene).toContain('function updateCongregationWorshipPose(avatar, now)');
@@ -150,13 +156,17 @@ describe('3D sanctuary visual treatment', () => {
 
   it('builds articulated palms and fingers for the procedural devotee', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('const leftHand = new THREE.Group();');
-    expect(scene).toContain('const rightHand = new THREE.Group();');
-    expect(scene).toContain('Small articulated palms and separated fingers keep the prayer gesture readable at scene scale.');
-    expect(scene).toContain('for(let finger=0;finger<4;finger++){');
-    expect(scene).toContain('function applyStandingPrayerPose(avatar)');
+    expect(aoDaiSource).toContain('const leftHand = new THREE.Group();');
+    expect(aoDaiSource).toContain('const rightHand = new THREE.Group();');
+    expect(aoDaiSource).toContain('for (let finger = 0; finger < 4; finger++)');
+    expect(scene).toContain('function applyGiftThankYouGesture(avatar, time)');
+    expect(scene).toContain('const prayerBlend = Math.max(avatar.kneelBlend || 0, avatar.prayerPose ? 1 : 0)');
+    expect(scene).toContain('applyGiftThankYouGesture(avatar, time);');
     expect(scene).toContain('rig.leftArm.rotation.z = rig.leftArmRest.z + 0.54;');
-    expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand,');
+    expect(aoDaiSource).toContain('leftArm,');
+    expect(aoDaiSource).toContain('rightArm,');
+    expect(aoDaiSource).toContain('leftHand,');
+    expect(aoDaiSource).toContain('rightHand,');
     expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.handRoll;');
     expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.handRoll;');
   });
@@ -175,7 +185,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('sequences the main devotee through approach, kneel and bow with a shared timeline', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
+    expect(scene).toContain("getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
     expect(scene).toContain('avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
@@ -484,7 +494,7 @@ describe('3D sanctuary visual treatment', () => {
   it('blends fallback gait smoothly and restores the rig pose after walking', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function applyGLTFFallbackWalk(avatar, gaitPhase, weight = 1)');
-    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
     expect(scene).toContain('const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);');
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
     expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
