@@ -2874,6 +2874,7 @@ async function boot() {
   function departCompletedQueueWorship(actor, now = performance.now()) {
     if (!actor || !actor.event || !actor.avatar.queueWorshipCompleted) return false;
     const event = actor.event;
+    completedQueueWorship.mark(getDevoteeIdentityKey(event));
     const queueIndex = devoteeQueue.indexOf(event);
     if (queueIndex >= 0) devoteeQueue.splice(queueIndex, 1);
     queueActors.delete(event);
@@ -2994,6 +2995,7 @@ async function boot() {
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
       seatedWaitingActors: queue.filter((actor) => actor.queueWaiting).length,
+      completedSideWorshipPendingFifo: completedQueueWorship.size,
       visibleSeatingCapacity: MAX_VISIBLE_QUEUE_ACTORS,
       visibleActiveActor: Boolean(devoteeState.active && mainDevotee.visible),
       maxConcurrentWorshippers: MAX_CONCURRENT_WORSHIPPERS,
@@ -3104,6 +3106,13 @@ async function boot() {
   function enqueueDevotee(event, { promoteEvent = false } = {}) {
     if (!event || typeof event !== 'object' || renderedDevoteeEvents.has(event)) return;
     const identity = getDevoteeIdentityKey(event);
+    if (completedQueueWorship.has(identity)) {
+      // The FIFO machine may still hold this viewer's original event after
+      // their side-lane animation has finished. Suppress replacement event
+      // objects for that same pending visit until character-complete arrives.
+      renderedDevoteeEvents.add(event);
+      return;
+    }
     if (identity && devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity) {
       // The same viewer sent another action while their avatar is already active.
       Object.assign(devoteeState.event, event);
@@ -3148,14 +3157,15 @@ async function boot() {
     startNextDevotee(performance.now(), promoteEvent ? event : null);
   }
 
-  function finishGiftEjectionHandoff(now = performance.now(), nextEvent = null) {
+  function finishGiftEjectionHandoff(now = performance.now(), nextEvent = null, { startNext = true } = {}) {
     if (!devoteeState.awaitingGiftHandoff) return false;
     devoteeState.awaitingGiftHandoff = false;
     if (nextEvent && !devoteeQueue.includes(nextEvent)) {
       if (!renderedDevoteeEvents.has(nextEvent)) renderedDevoteeEvents.add(nextEvent);
       devoteeQueue.unshift(nextEvent);
     }
-    startNextDevotee(now);
+    if (startNext) startNextDevotee(now);
+    else restoreMainCamera();
     return true;
   }
 
@@ -3170,6 +3180,16 @@ async function boot() {
     const startedEvent = event.detail;
     if (!startedEvent || typeof startedEvent !== 'object') return;
     const now = performance.now();
+    const identity = getDevoteeIdentityKey(startedEvent);
+    if (completedQueueWorship.has(identity)) {
+      // Do not promote a side-lane viewer when the serial 2D/FIFO state
+      // machine eventually reaches the same event. It is already worshipped.
+      renderedDevoteeEvents.add(startedEvent);
+      if (devoteeState.awaitingGiftHandoff) {
+        finishGiftEjectionHandoff(now, null, { startNext: false });
+      }
+      return;
+    }
 
     if (devoteeState.active && devoteeState.event === startedEvent) {
       if (devoteeState.pausedAt) {
@@ -3282,7 +3302,9 @@ async function boot() {
   }
 
   function onTempleCharacterCompleteForThreeD(event) {
-    finishActiveDevotee(event.detail);
+    const completedEvent = event.detail;
+    completedQueueWorship.complete(getDevoteeIdentityKey(completedEvent));
+    finishActiveDevotee(completedEvent);
   }
 
   function onTempleGiftEffectsComplete() {
