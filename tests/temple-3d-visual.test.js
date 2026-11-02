@@ -1160,7 +1160,9 @@ describe('3D multi-devotee incense offering', () => {
     const start = scene.indexOf('function startNextDevotee(');
     const end = scene.indexOf('function enqueueDevotee(', start);
     const promotion = scene.slice(start, end);
-    expect(promotion).toContain('const nextIndex = devoteeQueue.findIndex((event) => {');
+    expect(promotion).toContain('const candidateIndex = requestedEvent\n      ? devoteeQueue.indexOf(requestedEvent)');
+    expect(promotion).toContain('const canPromote = !candidateActor || (');
+    expect(promotion).toContain('startNextDevotee(now, startedEvent);');
     expect(promotion).toContain('!actor.avatar.queuedWorshipLane');
     expect(promotion).toContain('!actor.avatar.queueWorshipCompleted');
     expect(scene).toContain('function departCompletedQueueWorship(actor, now = performance.now())');
