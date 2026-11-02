@@ -61,8 +61,8 @@ jobs:
           grep -Fq 'giftReaction * (index === 0 ? 0.009 : -0.009)' public/js/temple-3d.js &&
           grep -Fq 'getAvatarGiftReactionBlend(avatar, time)' public/js/temple-3d.js && grep -Fq 'avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420' public/js/temple-3d.js && grep -Fq 'avatar.upperBody.rotation.x = upperPose.torsoLean - blend * profile.bowAmount' public/js/temple-3d.js && grep -Fq 'avatar.root.rotation.y = Math.PI * (1 - giftReaction)' public/js/temple-3d.js && grep -Fq 'avatar.smile.scale.x = 1 + giftReaction * 0.2' public/js/temple-3d.js &&
           grep -Fq "avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0" public/js/temple-3d.js &&
-          grep -Fq 'haloGiftAuraMaterial.opacity = auraPulse * 0.42' public/js/temple-3d.js &&
-          grep -Fq 'lotusGiftAuraMaterial.opacity = auraPulse * 0.34' public/js/temple-3d.js &&
+          grep -Fq 'haloGiftAuraMaterial.opacity = auraPulse * 0.58' public/js/temple-3d.js &&
+          grep -Fq 'lotusGiftAuraMaterial.opacity = auraPulse * 0.48' public/js/temple-3d.js &&
           grep -Fq 'const lotusPetalRings = []' public/js/temple-3d.js &&
           grep -Fq 'lotusPetalRings.push(ring)' public/js/temple-3d.js &&
           grep -Fq 'ring.scale.set(1 + opening, 1, 1 + opening)' public/js/temple-3d.js &&
