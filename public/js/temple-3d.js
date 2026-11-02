@@ -2870,6 +2870,50 @@ async function boot() {
     });
   }
 
+  function departCompletedQueueWorship(actor, now = performance.now()) {
+    if (!actor || !actor.event || !actor.avatar.queueWorshipCompleted) return false;
+    const event = actor.event;
+    const queueIndex = devoteeQueue.indexOf(event);
+    if (queueIndex >= 0) devoteeQueue.splice(queueIndex, 1);
+    queueActors.delete(event);
+
+    const start = actor.group.position.clone();
+    const side = start.x < 0 ? -1 : 1;
+    const exitCurve = new THREE.CatmullRomCurve3([
+      start,
+      start.clone().add(new THREE.Vector3(side * 0.38, 0, 1.0)),
+      new THREE.Vector3(side * 4.8, 0.05, 3.0),
+      new THREE.Vector3(side * 5.7, 0.05, 8.5),
+      new THREE.Vector3(side * 6.2, 0.05, 13.5)
+    ], false, 'centripetal');
+
+    // Their three bows are finished. Stand, leave via the matching side aisle,
+    // and keep the event marked rendered so the later FIFO callback cannot
+    // resurrect this same viewer at the main altar.
+    actor.avatar.queueWaiting = false;
+    actor.avatar.queuedWorshipLane = false;
+    actor.avatar.queueWorshipCompleted = true;
+    actor.avatar.prayerPose = false;
+    actor.avatar.kneeling = false;
+    actor.avatar.kneelBlend = 0;
+    actor.avatar.bowing = false;
+    actor.avatar.bowAmount = 0;
+    actor.avatar.ritualBowPhase = 'complete';
+    actor.avatar.ritualBowCycle = 3;
+    actor.seat.visible = false;
+    actor.sutraBook.visible = false;
+    actor.group.scale.setScalar(0.86);
+    departingDevotees.push({
+      group: actor.group,
+      avatar: actor.avatar,
+      event,
+      curve: exitCurve,
+      startedAt: now,
+      durationMs: Math.max(4200, exitCurve.getLength() / 1.35 * 1000)
+    });
+    return true;
+  }
+
   function releaseQueueActor(event) {
     const actor = queueActors.get(event);
     if (!actor) return null;
@@ -2978,13 +3022,27 @@ async function boot() {
     if (phase === 'ritual') devoteeState.arrivedAt = now;
   }
   function startNextDevotee(now = performance.now()) {
-    if (devoteeState.awaitingGiftHandoff) return;
-    if (devoteeState.active || !devoteeQueue.length) {
-      if (!devoteeState.active && !devoteeQueue.length) restoreMainCamera();
+    if (devoteeState.awaitingGiftHandoff || devoteeState.active || !devoteeQueue.length) {
+      if (!devoteeState.active && !devoteeState.awaitingGiftHandoff && !devoteeQueue.length) restoreMainCamera();
+      return;
+    }
+    // The four side-lane visitors are already performing their own full
+    // three-bow visit. Promote only a seated visitor to the main altar.
+    // A worshipper must never be pulled out of their lane to repeat the ritual.
+    const nextIndex = devoteeQueue.findIndex((event) => {
+      const actor = queueActors.get(event);
+      return !actor || (
+        actor.avatar.queueWaiting
+        && !actor.avatar.queuedWorshipLane
+        && !actor.avatar.queueWorshipCompleted
+      );
+    });
+    if (nextIndex < 0) {
+      restoreMainCamera();
       return;
     }
     beginRitualCamera();
-    devoteeState.event = devoteeQueue.shift();
+    devoteeState.event = devoteeQueue.splice(nextIndex, 1)[0];
     const queuedActor = releaseQueueActor(devoteeState.event);
     // Promote the exact queued visitor appearance to the altar. Gender and
     // colourway therefore remain stable across the queue-to-main handoff.
@@ -3894,7 +3952,8 @@ async function boot() {
     templeAbbot.userData.pose = abbotBowAmount > 0.08 ? 'standing-bow' : 'standing-prayer';
     window.__TEMPLE_ABBOT_DIAGNOSTIC__.pose = templeAbbot.userData.pose;
     window.__TEMPLE_ABBOT_DIAGNOSTIC__.bowAmount = Number(abbotBowAmount.toFixed(3));
-    for (const actor of queueActors.values()) {
+    let queueFormationChanged = false;
+    for (const actor of [...queueActors.values()]) {
       let moving = false;
       if (actor.moveCurve) {
         const progress = Math.min(1, Math.max(
@@ -3964,21 +4023,14 @@ async function boot() {
           actor.avatar.queueWorshipCompleted = true;
         }
         if (actor.avatar.queueWorshipCompleted) {
-          // Hold a quiet kneeling prayer after the three bows; shifting slots
-          // never resets this visitor's timer or replays their worship cycle.
-          actor.avatar.kneelBlend = 1;
-          actor.avatar.kneeling = true;
-          actor.avatar.bowing = false;
-          actor.avatar.bowAmount = 0;
-          actor.avatar.ritualBowPhase = 'complete';
-          animateHuman(actor.avatar, now, false);
-          applyHumanBow(actor.avatar, 0, 1);
+          queueFormationChanged = departCompletedQueueWorship(actor, now) || queueFormationChanged;
           continue;
         }
         animateHuman(actor.avatar, now, moving);
         applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);
       }
     }
+    if (queueFormationChanged) refreshQueueActors(now);
     if (devoteeState.active && devoteeState.pausedAt) {
       // The visitor stays at the same floor position while acknowledging a
       // softer gift instead of freezing with one leg raised mid-stride.
