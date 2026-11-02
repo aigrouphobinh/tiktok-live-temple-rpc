@@ -1104,6 +1104,7 @@ describe('3D multi-devotee incense offering', () => {
     expect(audit).toContain('crowdFormationAllBowing');
     expect(audit).toContain('actor.kneelBlend >= 0.9');
     expect(audit).toContain('actor.bowAmount >= 0.08');
+    expect(scene).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
     expect(audit).toContain('temple-3d-crowd.png');
   });
 

@@ -105,6 +105,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('const offeringPose = getRitualPoseState({');
     expect(source).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
     expect(source).toContain('bowAmount: Number((actor.avatar.bowAmount || 0).toFixed(3)),');
+    expect(source).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
+    expect(source).toContain('actor.avatar.queueWaiting = false;');
+    expect(source).toContain('const offeringElapsed = Number.isFinite(actor.offeringStartedAt)');
     expect(source).toContain('const entryPosition = getHorizontalFormationPosition(slot, {');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');

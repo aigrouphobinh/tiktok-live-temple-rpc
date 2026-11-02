@@ -2360,6 +2360,13 @@ async function boot() {
         gender: actor.avatar.gender,
         kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
         bowAmount: Number((actor.avatar.bowAmount || 0).toFixed(3)),
+        queueWaiting: Boolean(actor.avatar.queueWaiting),
+        offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),
+        offeringStartedAt: Number.isFinite(actor.offeringStartedAt) ? Math.round(actor.offeringStartedAt) : null,
+        moveStartedAt: Number.isFinite(actor.moveStartedAt) ? Math.round(actor.moveStartedAt) : null,
+        moveDurationMs: Number.isFinite(actor.moveDurationMs) ? Math.round(actor.moveDurationMs) : null,
+        ritualBowPhase: actor.avatar.ritualBowPhase || 'idle',
+        ritualBowCycle: actor.avatar.ritualBowCycle || 0,
         moving: Boolean(actor.moveCurve),
         position: {
           x: Number(actor.group.position.x.toFixed(2)),
@@ -3196,6 +3203,7 @@ async function boot() {
           actor.avatar.phase
         );
         moving = progress < 1;
+        actor.avatar.offeringElapsedMs = 0;
         animateHuman(actor.avatar, now, moving, gaitPhase);
         if (!moving) {
           actor.group.position.copy(actor.target);
@@ -3206,7 +3214,11 @@ async function boot() {
         }
       } else {
         moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
-        const offeringElapsed = Math.max(0, now - (actor.offeringStartedAt || now));
+        const offeringElapsed = Number.isFinite(actor.offeringStartedAt)
+          ? Math.max(0, now - actor.offeringStartedAt)
+          : 0;
+        actor.avatar.offeringElapsedMs = offeringElapsed;
+        actor.avatar.queueWaiting = false;
         const offeringPose = getRitualPoseState({
           travel: moving ? 0 : 1,
           elapsedAfterArrival: offeringElapsed,
