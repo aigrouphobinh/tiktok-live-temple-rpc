@@ -101,9 +101,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('Compact the line after every promotion');
     expect(source).toContain('getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS');
-    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
+    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(slot);');
     expect(source).toContain('const queueFormation = getQueueActorFormationPosition(slot);');
-    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
+    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(slot);');
     expect(source).toContain('actor.avatar.offeringIncense = false;');
     expect(source).toContain('const offeringPose = getRitualPoseState({');
     expect(source).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
@@ -111,7 +111,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
     expect(source).toContain('actor.avatar.queueWaiting = !isWorshipLane;');
     expect(source).toContain('const offeringElapsed = Number.isFinite(actor.offeringStartedAt)');
-    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
+    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(slot);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).not.toContain('continuous side procession lane');
