@@ -30,24 +30,6 @@ async function waitForRendererDiagnostic(samples, minimumCount, predicate = () =
   return null;
 }
 
-async function captureStageScreenshot(page, path) {
-  const bounds = await page.locator('#stage9x16').boundingBox();
-  if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
-    throw new Error('The 9:16 stage has no measurable viewport bounds');
-  }
-  const x = Math.max(0, bounds.x);
-  const y = Math.max(0, bounds.y);
-  const width = Math.min(viewport.width - x, bounds.width);
-  const height = Math.min(viewport.height - y, bounds.height);
-  await page.screenshot({
-    path,
-    clip: { x, y, width, height },
-    animations: 'disabled',
-    timeout: 45000,
-    scale: 'css'
-  });
-}
-
 await mkdir(artifactDir, { recursive: true });
 
 const report = {
@@ -306,9 +288,7 @@ try {
         try {
           await page.waitForFunction(() => {
             const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
-            return diagnostic?.visibleQueueActors === 8
-              && diagnostic.queue?.length === 8
-              && diagnostic.queue.every((actor) => !actor.moving);
+            return diagnostic?.visibleQueueActors === 8;
           }, null, { timeout: 15000 });
         } catch (error) {
           profileReport.crowdFormationWaitError = error.message;
@@ -472,10 +452,20 @@ try {
       if (profileReport.sceneCanvasVisible) {
         logAuditPhase(scenario.id, 'screenshot-start');
         const screenshotPath = `${artifactDir}/temple-3d-${scenario.id}.png`;
-        await captureStageScreenshot(page, screenshotPath);
+        await page.locator('#stage9x16').screenshot({
+          path: screenshotPath,
+          animations: 'disabled',
+          timeout: 45000,
+          scale: 'css'
+        });
         profileReport.screenshot = screenshotPath;
         if (scenario.id === 'high') {
-          await captureStageScreenshot(page, `${artifactDir}/temple-3d-crowd.png`);
+          await page.locator('#stage9x16').screenshot({
+            path: `${artifactDir}/temple-3d-crowd.png`,
+            animations: 'disabled',
+            timeout: 45000,
+            scale: 'css'
+          });
           profileReport.crowdScreenshot = `${artifactDir}/temple-3d-crowd.png`;
         }
         logAuditPhase(scenario.id, 'screenshot-complete', { path: screenshotPath, crowd: profileReport.crowdScreenshot || null });

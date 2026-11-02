@@ -12,7 +12,8 @@ const { normalizeTempleSettings } = require('./lib/temple-settings.cjs');
 const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
 
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, 'data');
+const HOST = process.env.HOST || '0.0.0.0';
+const DATA_DIR = path.resolve(process.env.TEMPLE_DATA_DIR || path.join(__dirname, 'data'));
 const TTS_CACHE_DIR = path.join(DATA_DIR, 'tts-cache');
 const STATE_FILE = path.join(DATA_DIR, 'merit-state.json');
 
@@ -1184,6 +1185,16 @@ app.get('/api/state', (_req, res) => {
   res.json(getPublicState());
 });
 
+app.get('/healthz', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'temple-live',
+    uptimeSeconds: Math.floor(process.uptime()),
+    tiktokConnected: Boolean(state.tiktok.connected),
+    tts: zeroTts.getStatus()
+  });
+});
+
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 
@@ -1244,7 +1255,7 @@ wss.on('connection', (ws) => {
 
 const zeroTts = new ZeroTTSManager();
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log(`============================================================`);
   console.log(`🪷 CHÙA ONLINE TIKTOK LIVE RPC ĐÃ KHỞI ĐỘNG`);
   console.log(`📺 Màn hình Live (9:16 OBS): http://localhost:${PORT}`);

@@ -357,12 +357,9 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
 
   // 6. Cập nhật toàn bộ giao diện theo State từ Server
   let hasInitializedRealLeader = false;
-  let autoSimState = false;
-  let lastUiState = null;
 
   function updateUIState(st) {
     if (!st) return;
-    lastUiState = st;
 
     document.getElementById('statIncense').textContent = Number(st.totalIncense || 0).toLocaleString('vi-VN');
     document.getElementById('statMerit').textContent = Number(st.totalMerit || 0).toLocaleString('vi-VN');
@@ -428,59 +425,21 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
       btnAutoSim.classList.toggle('active-toggle', Boolean(st.settings.autoSim));
     }
     if (st.settings) {
-      if (typeof st.settings.autoSim === 'boolean') autoSimState = st.settings.autoSim;
-      if (typeof st.settings.ttsEnabled === 'boolean') {
-        audio.ttsEnabled = st.settings.ttsEnabled;
-        const btn = document.getElementById('btnToggleTts');
-        if (btn) {
-          btn.textContent = '🎙️ Giọng Đọc: ' + (audio.ttsEnabled ? 'BẬT' : 'TẮT');
-          btn.classList.toggle('active-toggle', audio.ttsEnabled);
-        }
-      }
-      if (typeof st.settings.bgMusicEnabled === 'boolean') {
-        const changed = audio.bgMusicEnabled !== st.settings.bgMusicEnabled;
-        audio.bgMusicEnabled = st.settings.bgMusicEnabled;
-        if (changed && audio.ctx) {
-          if (audio.bgMusicEnabled) audio.startZenAmbience();
-          else audio.stopZenAmbience();
-        }
-        const btn = document.getElementById('btnToggleMusic');
-        if (btn) {
-          btn.textContent = '🎵 Nhạc Nền: ' + (audio.bgMusicEnabled ? 'BẬT' : 'TẮT');
-          btn.classList.toggle('active-toggle', audio.bgMusicEnabled);
-        }
-      }
-      if (typeof st.settings.sfxEnabled === 'boolean') {
-        audio.setSfxEnabled(st.settings.sfxEnabled);
-        const btn = document.getElementById('btnToggleSfx');
-        if (btn) {
-          btn.textContent = '✨ Hiệu Ứng: ' + (audio.sfxEnabled ? 'BẬT' : 'TẮT');
-          btn.classList.toggle('active-toggle', audio.sfxEnabled);
-        }
-      }
       if (typeof st.settings.musicVolume === 'number') {
         audio.setMusicVolume(st.settings.musicVolume);
-        const slider = document.getElementById('sliderMusicVol');
-        const label = document.getElementById('valMusicVol');
+        const sMus = document.getElementById('sliderMusicVol');
+        const vMus = document.getElementById('valMusicVol');
         const pct = Math.round(st.settings.musicVolume * 100);
-        if (slider) slider.value = String(pct);
-        if (label) label.textContent = String(pct) + '%';
+        if (sMus) sMus.value = String(pct);
+        if (vMus) vMus.textContent = `${pct}%`;
       }
       if (typeof st.settings.ttsVolume === 'number') {
         audio.setTtsVolume(st.settings.ttsVolume);
-        const slider = document.getElementById('sliderTtsVol');
-        const label = document.getElementById('valTtsVol');
+        const sTts = document.getElementById('sliderTtsVol');
+        const vTts = document.getElementById('valTtsVol');
         const pct = Math.round(st.settings.ttsVolume * 100);
-        if (slider) slider.value = String(pct);
-        if (label) label.textContent = String(pct) + '%';
-      }
-      if (typeof st.settings.sfxVolume === 'number') {
-        audio.setSfxVolume(st.settings.sfxVolume);
-        const slider = document.getElementById('sliderSfxVol');
-        const label = document.getElementById('valSfxVol');
-        const pct = Math.round(st.settings.sfxVolume * 100);
-        if (slider) slider.value = String(pct);
-        if (label) label.textContent = String(pct) + '%';
+        if (sTts) sTts.value = String(pct);
+        if (vTts) vTts.textContent = `${pct}%`;
       }
     }
 
@@ -742,49 +701,6 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   let ws = null;
   let rpcId = 1;
   let lastTikTokConnected = null;
-  const pendingRpc = new Map();
-  const processedEventIds = new Set();
-
-  function settlePendingRpc(message) {
-    const pending = pendingRpc.get(String(message?.id));
-    if (!pending) return false;
-    clearTimeout(pending.timer);
-    pendingRpc.delete(String(message.id));
-    if (message.error) pending.reject(new Error(message.error.message || 'JSON-RPC request failed'));
-    else pending.resolve(message);
-    return true;
-  }
-
-  function rejectPendingRpc(error) {
-    for (const [id, pending] of pendingRpc) {
-      clearTimeout(pending.timer);
-      pendingRpc.delete(id);
-      pending.reject(error);
-    }
-  }
-
-  function dispatchServerEventOnce(event) {
-    if (!event || typeof event.type !== 'string') return;
-    const id = event.id == null ? '' : String(event.id);
-    if (id && processedEventIds.has(id)) return;
-    if (id) {
-      processedEventIds.add(id);
-      while (processedEventIds.size > 250) {
-        processedEventIds.delete(processedEventIds.values().next().value);
-      }
-    }
-    triggerRitualVisuals(event);
-  }
-
-  function showRpcError(method, error) {
-    console.error('[Temple RPC]', method, error);
-    const status = document.getElementById('liveStatusText');
-    if (!status) return;
-    status.textContent = 'LỖI RPC • ' + String(error?.message || error).slice(0, 64);
-    setTimeout(() => {
-      if (lastUiState) updateUIState(lastUiState);
-    }, 5000);
-  }
 
   function connectWebSocket() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -793,7 +709,6 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        if (msg.id !== undefined && settlePendingRpc(msg)) return;
         if (msg.method === 'temple.state') {
           const connected = msg.params?.tiktok?.connected;
           if (typeof connected === 'boolean' && connected !== lastTikTokConnected) {
@@ -805,7 +720,7 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
           window.TempleGiftActionEngine?.clearStreak?.(msg.params?.groupId);
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
-          if (msg.params?.event) dispatchServerEventOnce(msg.params.event);
+          if (msg.params?.event) triggerRitualVisuals(msg.params.event);
         } else if (msg.method === 'temple.test-effect') {
           // Test notifications are visual-only: they never mutate server merit or event history.
           for (const testEvent of (Array.isArray(msg.params?.events) ? msg.params.events : [])) {
@@ -821,13 +736,10 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
             });
           }
         }
-      } catch (error) {
-        console.warn('[Temple WebSocket] Message processing failed:', error);
-      }
+      } catch (_) {}
     };
 
     ws.onclose = () => {
-      rejectPendingRpc(new Error('WebSocket disconnected before the RPC reply arrived'));
       setTimeout(connectWebSocket, 2000);
     };
   }
@@ -835,45 +747,25 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
 
   async function callRpc(method, params = {}) {
     audio.ensureContext();
-    const payload = { jsonrpc: '2.0', id: rpcId++, method, params };
-    try {
-      let data;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        data = await new Promise((resolve, reject) => {
-          const timeoutMs = method === 'live.connect' ? 45000 : 15000;
-          const key = String(payload.id);
-          const timer = setTimeout(() => {
-            pendingRpc.delete(key);
-            reject(new Error('RPC timeout after ' + timeoutMs + 'ms'));
-          }, timeoutMs);
-          pendingRpc.set(key, { resolve, reject, timer });
-          try {
-            ws.send(JSON.stringify(payload));
-          } catch (error) {
-            clearTimeout(timer);
-            pendingRpc.delete(key);
-            reject(error);
-          }
-        });
-      } else {
-        const res = await fetch('/rpc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        data = await res.json();
-        if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + res.statusText);
-        if (data?.error) throw new Error(data.error.message || 'JSON-RPC request failed');
-        if (data?.result?.state) updateUIState(data.result.state);
-        if (data?.result?.event) dispatchServerEventOnce(data.result.event);
-      }
-      if (data?.error) throw new Error(data.error.message || 'JSON-RPC request failed');
-      if (data?.result?.state) updateUIState(data.result.state);
-      return data;
-    } catch (error) {
-      showRpcError(method, error);
-      return { jsonrpc: '2.0', id: payload.id, error: { message: error.message || String(error) } };
+    const payload = {
+      jsonrpc: '2.0',
+      id: rpcId++,
+      method,
+      params
+    };
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(payload));
+      return;
     }
+    const res = await fetch('/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data?.result?.state) updateUIState(data.result.state);
+    if (data?.result?.event) triggerRitualVisuals(data.result.event);
+    return data;
   }
 
   function getFormInput() {
@@ -979,6 +871,7 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     callRpc('live.connect', { username });
   });
 
+  let autoSimState = false;
   document.getElementById('btnToggleAutoSim')?.addEventListener('click', () => {
     autoSimState = !autoSimState;
     callRpc('live.setAutoSim', { enabled: autoSimState });
@@ -989,7 +882,6 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     const btn = e.currentTarget;
     btn.textContent = `🎙️ Giọng Đọc: ${audio.ttsEnabled ? 'BẬT' : 'TẮT'}`;
     btn.classList.toggle('active-toggle', audio.ttsEnabled);
-    callRpc('temple.updateSettings', { ttsEnabled: audio.ttsEnabled });
   });
 
   document.getElementById('btnToggleSfx')?.addEventListener('click', (e) => {
@@ -997,7 +889,6 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     const btn = e.currentTarget;
     btn.textContent = `✨ Hiệu Ứng: ${audio.sfxEnabled ? 'BẬT' : 'TẮT'}`;
     btn.classList.toggle('active-toggle', audio.sfxEnabled);
-    callRpc('temple.updateSettings', { sfxEnabled: audio.sfxEnabled });
   });
 
   document.getElementById('btnToggleMusic')?.addEventListener('click', (e) => {
@@ -1010,7 +901,6 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     const btn = e.currentTarget;
     btn.textContent = `🎵 Nhạc Nền: ${audio.bgMusicEnabled ? 'BẬT' : 'TẮT'}`;
     btn.classList.toggle('active-toggle', audio.bgMusicEnabled);
-    callRpc('temple.updateSettings', { bgMusicEnabled: audio.bgMusicEnabled });
   });
 
   // Khởi tạo và gắn sự kiện thanh trượt chỉnh âm lượng Nhạc nền & Giọng đọc
@@ -1065,10 +955,6 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
       const pct = Number(e.target.value);
       valSfxVol.textContent = `${pct}%`;
       audio.setSfxVolume(pct / 100);
-    });
-    sliderSfxVol.addEventListener('change', (e) => {
-      const pct = Number(e.target.value);
-      callRpc('temple.updateSettings', { sfxVolume: +(pct / 100).toFixed(2) });
     });
   }
 
