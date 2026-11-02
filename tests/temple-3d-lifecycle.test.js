@@ -80,6 +80,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('actor.group.position.set(-5.0 - index * 0.08, 0.05, 15.3 + index * 0.35);');
     expect(source).toContain('actor.moveTarget = null;');
+    expect(source).toContain('actor.moveCurve = null;');
+    expect(source).toContain('actor.moveStartedAt = 0;');
+    expect(source).toContain('actor.moveDurationMs = 0;');
     expect(source).toContain('actor.group.position.distanceToSquared(actor.target) > 0.018');
     expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
   });
