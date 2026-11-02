@@ -13,6 +13,8 @@ class TempleAudioEngine {
     this.sfxVolume = Math.max(0, Math.min(1, Number(localStorage.getItem('temple_sfx_vol') ?? 0.8) || 0));
     this.sfxGain = null;
     this.giftSfxGroups = new Map();
+    this.lastGiftSfxError = null;
+    this.resumePromise = null;
     this.bgMusicEnabled = true;
     this.ttsEnabled = true;
     this.ttsVoice = 'maichi';
@@ -39,8 +41,31 @@ class TempleAudioEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AudioCtx();
     }
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    if (this.ctx.state === 'suspended' && !this.resumePromise) {
+      try {
+        this.resumePromise = Promise.resolve(this.ctx.resume())
+          .then(() => {
+            this.unlocked = this.ctx?.state === 'running';
+          })
+          .catch((error) => {
+            this.unlocked = false;
+            this.lastGiftSfxError = {
+              effect: 'audio-context-resume',
+              message: String(error?.message || error),
+              at: new Date().toISOString()
+            };
+            console.warn('[TempleAudioEngine] AudioContext resume failed:', error);
+          })
+          .finally(() => { this.resumePromise = null; });
+      } catch (error) {
+        this.unlocked = false;
+        this.lastGiftSfxError = {
+          effect: 'audio-context-resume',
+          message: String(error?.message || error),
+          at: new Date().toISOString()
+        };
+        console.warn('[TempleAudioEngine] AudioContext resume failed:', error);
+      }
     }
     // Route every synthesized SFX through one shared dynamics stage. Several
     // layered sounds (e.g. explosion noise + sub, or a multi-part bell) can
@@ -396,6 +421,15 @@ class TempleAudioEngine {
     return buffer;
   }
 
+  recordGiftSfxError(effect, error) {
+    this.lastGiftSfxError = {
+      effect,
+      message: String(error?.message || error),
+      at: new Date().toISOString()
+    };
+    console.warn(`[TempleAudioEngine] ${effect} sound failed:`, error);
+  }
+
   playRocketLaunch(groupId) {
     if (!this.sfxEnabled) return;
     try {
@@ -419,7 +453,7 @@ class TempleAudioEngine {
       this.trackGiftSfxSource(groupId, noise);
       noise.start(now);
       noise.stop(now + 0.74);
-    } catch (_) {}
+    } catch (error) { this.recordGiftSfxError('rocket-launch', error); }
   }
 
   playExplosion(intensity = 1, groupId) {
@@ -462,7 +496,7 @@ class TempleAudioEngine {
       noise.stop(now + 0.92);
       sub.start(now);
       sub.stop(now + 0.54);
-    } catch (_) {}
+    } catch (error) { this.recordGiftSfxError('explosion', error); }
   }
 
   playDragonWhoosh(groupId) {
@@ -490,7 +524,7 @@ class TempleAudioEngine {
       this.trackGiftSfxSource(groupId, source);
       source.start(now);
       source.stop(now + 1.12);
-    } catch (_) {}
+    } catch (error) { this.recordGiftSfxError('dragon-whoosh', error); }
   }
 
   playDragonRoar(groupId) {
@@ -528,7 +562,7 @@ class TempleAudioEngine {
         osc.stop(now + 1.0);
       });
       setTimeout(() => { try { filter.disconnect(); master.disconnect(); } catch (_) {} }, 1150);
-    } catch (_) {}
+    } catch (error) { this.recordGiftSfxError('dragon-roar', error); }
   }
 
   playRoseChime(groupId) {
@@ -553,7 +587,7 @@ class TempleAudioEngine {
         osc.start(start);
         osc.stop(start + 0.66);
       });
-    } catch (_) {}
+    } catch (error) { this.recordGiftSfxError('rose-chime', error); }
   }
 
   playDonutChime(groupId) {
@@ -578,7 +612,7 @@ class TempleAudioEngine {
         osc.start(start);
         osc.stop(start + 0.45);
       });
-    } catch (_) {}
+    } catch (error) { this.recordGiftSfxError('donut-chime', error); }
   }
 
   // --------------------------------------------------------------------------
