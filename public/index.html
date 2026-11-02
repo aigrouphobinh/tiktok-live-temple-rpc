@@ -16,7 +16,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="/css/live.css?v=mobile-leaderboard-20261102-2" />
+  <link rel="stylesheet" href="/css/live.css?v=ritual-side-panel-20261102-1" />
 </head>
 <body>
   <div class="app-workspace">
@@ -66,6 +66,22 @@
             </div>
           </div>
         </header>
+
+        <!-- NGHI LE CUNG DUONG: floating vertical interaction rail matching the supplied reference. -->
+        <aside class="ritual-side-panel" aria-label="Nghi lễ cúng dường">
+          <div class="ritual-side-title">NGHI LỄ</div>
+          <div class="ritual-side-subtitle">CÚNG DƯỜNG</div>
+          <button class="ritual-side-action ritual-like-action" id="sideLikeAction" type="button" title="Thả tim TikTok — gửi lời cầu an" aria-label="Thả tim, cầu an">
+            <span class="ritual-side-icon" aria-hidden="true">❤️</span>
+          </button>
+          <button class="ritual-side-action ritual-incense-action" id="sideIncenseAction" type="button" title="Dâng hương" aria-label="Dâng hương">
+            <span class="ritual-side-icon" aria-hidden="true">🔥</span>
+          </button>
+          <button class="ritual-side-action ritual-lotus-action" id="sideLotusAction" type="button" title="Dâng hoa sen" aria-label="Dâng hoa sen">
+            <span class="ritual-side-icon" aria-hidden="true">🪷</span>
+          </button>
+          <span class="ritual-side-pendant" aria-hidden="true">✧</span>
+        </aside>
 
         <!-- 3. CỘT SÁNG TÂM HƯƠNG & LƯ HƯƠNG TRUNG TÂM -->
         <div class="sacred-light-beam" id="sacredLightBeam"></div>
