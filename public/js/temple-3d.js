@@ -4185,6 +4185,12 @@ async function boot() {
     applyGiftReactionProfile(event.detail?.reactionProfile);
   }
   window.addEventListener('temple:ritual', onTempleRitual);
+  window.addEventListener('temple:viewer-enter', onTempleViewerEnter);
+  // Replay member arrivals buffered while the asynchronous 3D scene booted.
+  const pendingViewerEntries = Array.isArray(window.__TEMPLE_PENDING_VIEWER_ENTRIES__)
+    ? window.__TEMPLE_PENDING_VIEWER_ENTRIES__.splice(0)
+    : [];
+  pendingViewerEntries.forEach((viewer) => onTempleViewerEnter({ detail: viewer }));
   window.addEventListener('temple:gift-action', onTempleGiftAction);
   window.addEventListener('temple:gift-reaction', onTempleGiftReaction);
   window.addEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);
