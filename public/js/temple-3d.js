@@ -2035,27 +2035,6 @@ async function boot() {
     avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
     applyGiftThankYouGesture(avatar, time);
   }
-  function applyStandingPrayerPose(avatar) {
-    if (avatar.gltfRoot && avatar.gltfRig) {
-      const rig = avatar.gltfRig;
-      if (rig.leftArm && rig.leftArmRest) {
-        rig.leftArm.rotation.x = rig.leftArmRest.x - 0.48;
-        rig.leftArm.rotation.z = rig.leftArmRest.z + 0.54;
-      }
-      if (rig.rightArm && rig.rightArmRest) {
-        rig.rightArm.rotation.x = rig.rightArmRest.x - 0.48;
-        rig.rightArm.rotation.z = rig.rightArmRest.z - 0.54;
-      }
-      return;
-    }
-    avatar.leftArm.rotation.x = -0.48;
-    avatar.rightArm.rotation.x = -0.48;
-    avatar.leftArm.rotation.z = 0.54;
-    avatar.rightArm.rotation.z = -0.54;
-    avatar.leftHand.rotation.z = -0.04;
-    avatar.rightHand.rotation.z = 0.04;
-  }
-
   function makeDevotee(x,z,scale=1) {
     const group=new THREE.Group();group.position.set(x,0.02,z);group.scale.setScalar(scale);world.add(group);
     const avatarIndex = devoteeAvatars.length;
@@ -3044,7 +3023,6 @@ async function boot() {
         moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
         animateHuman(actor.avatar, now, moving);
       }
-      if (actor.avatar.prayerPose && !moving) applyStandingPrayerPose(actor.avatar);
     }
     if (devoteeState.active && devoteeState.pausedAt) {
       // The visitor stays at the same floor position while acknowledging a
