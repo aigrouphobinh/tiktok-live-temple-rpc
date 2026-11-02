@@ -35,10 +35,11 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.head.rotation.z = Math.sin(time*0.0014+avatar.phase)*0.008 + giftReaction * Math.sin(avatar.phase) * 0.035;');
     expect(scene).toContain('const resolved = profile || { tier: \'small\', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 };');
     expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
-    expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
+    expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) {');
+    expect(scene).toContain('avatar.giftReactionStartedAt = Math.min(avatar.giftReactionStartedAt, now);');
     expect(scene).toContain('for (const avatar of allHumanAvatars) {');
     expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
-    expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;');
+    expect(scene).toContain('if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) {');
   });
 
   it('updates gratitude intensity for combo frames without replaying the world gift effect', () => {
@@ -93,8 +94,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const haloGiftAuraMaterial = new THREE.MeshBasicMaterial({');
     expect(scene).toContain('const haloGiftAura = new THREE.Mesh(new THREE.TorusGeometry(2.48, 0.055, 8, 112), haloGiftAuraMaterial);');
     expect(scene).toContain("avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0");
-    expect(scene).toContain('haloGiftAuraMaterial.opacity = auraPulse * 0.42;');
-    expect(scene).toContain('lotusGiftAuraMaterial.opacity = auraPulse * 0.34;');
+    expect(scene).toContain('haloGiftAuraMaterial.opacity = auraPulse * 0.58;');
+    expect(scene).toContain('lotusGiftAuraMaterial.opacity = auraPulse * 0.48;');
     expect(scene).toContain('haloGlow.intensity = 8 + auraPulse * 13;');
     expect(scene).toContain('const lotusPetalRings = [];');
     expect(scene).toContain('lotusPetalRings.push(ring);');
@@ -133,7 +134,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.torso.scale.y = 1 + breath * 0.012;');
     expect(scene).toContain('avatar.torso.position.y = 0.40 + breath * 0.0025 + walkBody.bodyBob;');
     expect(scene).toContain('avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.045;');
-    expect(scene).toContain('avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
+    expect(scene).toContain('avatar.root.position.y = walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012;');
   });
 
   it('adds animated blinking, eye gaze and a restrained bow expression to procedural faces', () => {
@@ -188,7 +189,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
-    expect(scene).toContain('avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
+    expect(scene).toContain('avatar.root.position.y = walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012;');
     expect(scene).toContain('animateHuman(mainHuman, now, walking, walkPhase);');
     expect(scene).toContain('getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2)');
     expect(scene).toContain('devoteeState.curve.getPointAt(eased)');
@@ -799,7 +800,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('elapsedAfterArrival: ritualElapsed,');
     expect(scene).toContain("remainingMs: devoteeState.phase === 'ritual' ? Number.MAX_SAFE_INTEGER : 0");
     expect(scene).toContain("bowCycles: 3,");
-    expect(scene).toContain("bowCycleMs: 1050,");
+    expect(scene).toContain("bowCycleMs: 1500,");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
   });
