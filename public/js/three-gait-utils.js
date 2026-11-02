@@ -152,6 +152,19 @@ export function getWalkBodyPose(phase, blend = 1) {
   };
 }
 
+/**
+ * Drive a gait cycle from distance travelled rather than wall-clock time.
+ * This keeps foot cadence matched to eased path motion, including slow starts
+ * and stops. strideLength is the world distance covered by one full cycle.
+ */
+export function getDistanceBasedGaitPhase(progress, pathLength, strideLength = 1.2, phaseOffset = 0) {
+  if (!Number.isFinite(progress) || !Number.isFinite(pathLength) || pathLength < 0
+    || !Number.isFinite(strideLength) || strideLength <= 0) return 0;
+  const distance = Math.min(1, Math.max(0, progress)) * pathLength;
+  return (distance / strideLength) * Math.PI * 2
+    + (Number.isFinite(phaseOffset) ? phaseOffset : 0);
+}
+
 export function getFootPlantingStep(phase) {
   return getFootPlantingPose(phase).step;
 }
