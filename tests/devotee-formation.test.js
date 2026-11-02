@@ -68,32 +68,32 @@ describe('stable horizontal devotee formation', () => {
       role: 'waiting',
       column: 0,
       row: 0,
-      x: -5.2,
+      x: -5.8,
       y: 0.05,
-      z: 13.8
+      z: 11.8
     });
     expect(getQueueActorFormationPosition(5)).toMatchObject({
       role: 'waiting',
       column: 1,
       row: 0,
-      x: -4,
-      z: 13.8
+      x: -3.9,
+      z: 11.8
     });
     expect(getQueueActorFormationPosition(8)).toMatchObject({
       role: 'waiting',
       column: 0,
       row: 1,
-      x: -5.2,
-      z: 12.18
+      x: -5.8,
+      z: 10.45
     });
     const lastSeat = getQueueActorFormationPosition(39);
     expect(lastSeat).toMatchObject({
       role: 'waiting',
       column: 3,
       row: 8,
-      x: 5.2
+      x: 5.8
     });
-    expect(lastSeat.z).toBeCloseTo(0.84, 6);
+    expect(lastSeat.z).toBeCloseTo(1, 6);
     const congregationSeats = Array.from({ length: 36 }, (_, index) =>
       getQueueActorFormationPosition(index + MAX_QUEUED_WORSHIPPERS)
     );
