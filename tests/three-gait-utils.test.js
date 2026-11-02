@@ -423,3 +423,31 @@ describe('getGiftReactionBlend', () => {
     expect(getGiftReactionBlend(500, 0)).toBe(0);
   });
 });
+
+
+describe('getWalkBodyPose', () => {
+  it('adds restrained counter-sway and body bounce during walking', () => {
+    const left = getWalkBodyPose(Math.PI / 2);
+    const right = getWalkBodyPose(Math.PI * 1.5);
+    expect(left.lateralSway).toBeCloseTo(0, 8);
+    expect(right.lateralSway).toBeCloseTo(0, 8);
+    expect(left.torsoLean).toBeCloseTo(-0.035, 8);
+    expect(right.torsoLean).toBeCloseTo(0.035, 8);
+    expect(getWalkBodyPose(0).bodyBob).toBeGreaterThan(0);
+  });
+
+  it('fades all body motion to zero when the avatar is not walking', () => {
+    expect(getWalkBodyPose(1.2, 0)).toEqual({
+      bodyBob: 0, lateralSway: 0, torsoLean: -0, torsoTwist: 0
+    });
+  });
+
+  it('clamps blend and handles invalid phase safely', () => {
+    expect(getWalkBodyPose(Number.NaN, 2)).toEqual({
+      bodyBob: 0.03, lateralSway: 0.018, torsoLean: -0, torsoTwist: 0
+    });
+    expect(getWalkBodyPose(1, -2)).toEqual({
+      bodyBob: 0, lateralSway: 0, torsoLean: -0, torsoTwist: 0
+    });
+  });
+});
