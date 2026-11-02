@@ -2772,3 +2772,122 @@ body.obs-mode .stage-wrapper {
     font-size: 14px;
   }
 }
+
+
+/* Vertical Nghi Le / Cung Duong interaction rail — matches supplied reference art. */
+.stage-9x16.temple-3d-mode .ritual-side-panel {
+  position: absolute;
+  z-index: 35;
+  top: 142px;
+  left: 22px;
+  width: 166px;
+  min-height: 456px;
+  padding: 20px 13px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  border: 2px solid rgba(255, 211, 126, .82);
+  border-radius: 27px 27px 20px 20px;
+  color: #ffe9b5;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 190, 83, .22), transparent 43%),
+    linear-gradient(180deg, rgba(83, 31, 15, .97), rgba(39, 13, 9, .97) 56%, rgba(83, 31, 15, .97));
+  box-shadow: 0 8px 26px rgba(27, 8, 3, .42), inset 0 0 0 4px rgba(255, 205, 118, .1), inset 0 1px 18px rgba(255, 211, 138, .12);
+}
+.stage-9x16.temple-3d-mode .ritual-side-panel::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(255, 219, 154, .34);
+  border-radius: 19px 19px 13px 13px;
+  pointer-events: none;
+}
+.stage-9x16.temple-3d-mode .ritual-side-title {
+  position: relative;
+  z-index: 1;
+  margin-top: 1px;
+  color: #fff0c9;
+  font-size: 21px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 8px rgba(255, 190, 83, .28);
+}
+.stage-9x16.temple-3d-mode .ritual-side-subtitle {
+  position: relative;
+  z-index: 1;
+  margin-top: -11px;
+  margin-bottom: 2px;
+  color: #e8c98e;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+.stage-9x16.temple-3d-mode .ritual-side-action {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 108px;
+  width: 124px;
+  height: 108px;
+  padding: 0;
+  border: 2px solid rgba(255, 217, 145, .78);
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 36%, rgba(255, 221, 160, .2), rgba(68, 29, 16, .96) 70%);
+  box-shadow: inset 0 0 0 5px rgba(255, 220, 154, .07), 0 0 14px rgba(255, 187, 89, .16);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.stage-9x16.temple-3d-mode .ritual-side-action:hover,
+.stage-9x16.temple-3d-mode .ritual-side-action:focus-visible {
+  transform: scale(1.045);
+  outline: none;
+  border-color: #fff0bb;
+  box-shadow: inset 0 0 0 5px rgba(255, 220, 154, .13), 0 0 22px rgba(255, 205, 111, .38);
+}
+.stage-9x16.temple-3d-mode .ritual-side-icon {
+  display: block;
+  font-size: 59px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.42));
+}
+.stage-9x16.temple-3d-mode .ritual-side-pendant {
+  position: absolute;
+  bottom: -22px;
+  left: calc(50% - 15px);
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #ffe1a0;
+  border: 1px solid rgba(255, 215, 139, .72);
+  background: #6d3218;
+  transform: rotate(45deg);
+  font-size: 17px;
+}
+.stage-9x16:not(.temple-3d-mode) .ritual-side-panel { display: none; }
+@media (max-width: 600px) {
+  .stage-9x16.temple-3d-mode .ritual-side-panel {
+    top: 116px;
+    left: 10px;
+    width: 112px;
+    min-height: 322px;
+    padding: 13px 8px 17px;
+    gap: 10px;
+    border-radius: 19px 19px 14px 14px;
+  }
+  .stage-9x16.temple-3d-mode .ritual-side-title { font-size: 14px; }
+  .stage-9x16.temple-3d-mode .ritual-side-subtitle { font-size: 8px; margin-top: -7px; }
+  .stage-9x16.temple-3d-mode .ritual-side-action {
+    width: 84px;
+    height: 82px;
+    flex-basis: 82px;
+  }
+  .stage-9x16.temple-3d-mode .ritual-side-icon { font-size: 43px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-9x16.temple-3d-mode .ritual-side-action { transition: none; }
+}
