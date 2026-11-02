@@ -2356,12 +2356,12 @@ async function boot() {
     const walkTarget = walking ? 1 : 0;
     avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));
     if (avatar.queueWaiting) {
-      // Keep the waiting line upright like the 2D procession: visitors stand
-      // in FIFO order, then walk forward when a slot opens. Kneeling and the
-      // three-bow sequence belong to the altar, not the queue.
-      avatar.kneelBlend += (0 - (avatar.kneelBlend || 0))
+      // Waiting devotees meditate seated like the 2D congregation. They rise
+      // smoothly only while walking forward to the altar/next queue position.
+      const waitingKneelTarget = walking ? 0 : 1;
+      avatar.kneelBlend += (waitingKneelTarget - (avatar.kneelBlend || 0))
         * (1 - Math.exp(-poseDelta / 0.34));
-      avatar.kneeling = false;
+      avatar.kneeling = avatar.kneelBlend > 0.65;
       avatar.prayerPose = true;
       avatar.bowAmount = 0;
     }
@@ -3713,16 +3713,14 @@ async function boot() {
       } else {
         moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
         if (actor.avatar.queueWaiting) {
-          // Waiting visitors stand calmly in line; only the promoted visitor
-          // performs the kneeling and three-bow ritual at the altar.
+          // Seated meditation is the idle queue pose. animateHuman blends the
+          // avatar upright during movement and back to kneeling after arrival.
           actor.avatar.offeringElapsedMs = 0;
-          actor.avatar.kneelBlend = 0;
-          actor.avatar.kneeling = false;
           actor.avatar.bowing = false;
           actor.avatar.bowAmount = 0;
-          actor.avatar.ritualBowPhase = 'waiting';
+          actor.avatar.ritualBowPhase = 'meditating';
           animateHuman(actor.avatar, now, false);
-          applyHumanBow(actor.avatar, 0, 0);
+          applyHumanBow(actor.avatar, 0, actor.avatar.kneelBlend);
           continue;
         }
         const offeringElapsed = Number.isFinite(actor.offeringStartedAt)
