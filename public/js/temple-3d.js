@@ -54,8 +54,8 @@ async function boot() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x28140b);
-  scene.fog = new THREE.FogExp2(0x322015, 0.016);
+  scene.background = new THREE.Color(0x705a43);
+  scene.fog = new THREE.FogExp2(0x766047, 0.0075);
   const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 140);
   const cameraHomePosition = new THREE.Vector3(0, 11.75, 28.5);
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
@@ -292,6 +292,9 @@ async function boot() {
           metalness: options.metalness ?? 0.08,
           side: THREE.DoubleSide
         });
+    // Painted backdrop artwork must keep its designed brightness and not be
+    // darkened by scene fog or PBR lighting.
+    material.fog = options.fog ?? !options.unlit;
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
     mesh.name = name;
     mesh.position.set(position[0], position[1], position[2]);
@@ -304,6 +307,14 @@ async function boot() {
     return mesh;
   }
 
+  // Full-width illuminated rear mural closes the dark void above and beside
+  // the narrow ceiling fascia. It sits behind pillars, altar and Buddha.
+  addSanctuaryImagePlane(
+    'BrightUpperHallBackdrop',
+    '/assets/temple-kit/upper-hall-backdrop.svg',
+    19.2, 11.6, [0, 8.05, -12.62], [0, 0, 0],
+    { unlit: true }
+  );
   scene.add(new THREE.HemisphereLight(0xffe4b9, 0x382011, 2.25));
   const ambient = new THREE.AmbientLight(0xffd79a, 0.92); scene.add(ambient);
   const key = new THREE.DirectionalLight(0xffdfaa, 3.65);
