@@ -12,7 +12,26 @@ const { normalizeTempleSettings } = require('./lib/temple-settings.cjs');
 const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
 
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+// Bind to loopback by default. Set HOST=0.0.0.0 only for an intentionally
+// exposed LAN/container deployment; never publish the unauthenticated RPC port to the internet.
+const HOST = process.env.HOST || '127.0.0.1';
+const ALLOWED_CORS_ORIGINS = new Set(
+  String(process.env.TEMPLE_CORS_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean)
+);
+
+function isAllowedRequestOrigin(origin, request) {
+  if (!origin) return true;
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
+  try {
+    const parsed = new URL(origin);
+    const expectedHost = String(request.headers.host || '').toLowerCase();
+    const forwardedProtocol = String(request.headers['x-forwarded-proto'] || request.protocol || 'http')
+      .split(',')[0].trim().toLowerCase();
+    return parsed.host.toLowerCase() === expectedHost && parsed.protocol === `${forwardedProtocol}:`;
+  } catch (_) {
+    return false;
+  }
+}
 const DATA_DIR = path.resolve(process.env.TEMPLE_DATA_DIR || path.join(__dirname, 'data'));
 const TTS_CACHE_DIR = path.join(DATA_DIR, 'tts-cache');
 const STATE_FILE = path.join(DATA_DIR, 'merit-state.json');
@@ -128,9 +147,23 @@ class ZeroTTSManager {
   }
 
   resolvePythonBin() {
-    const venvPy = path.join(__dirname, '.venv', 'bin', 'python');
-    if (fs.existsSync(venvPy)) return venvPy;
-    return 'python3';
+    const configured = String(process.env.TEMPLE_PYTHON_BIN || process.env.PYTHON || '').trim();
+    if (configured) return configured;
+    const candidates = process.platform === 'win32'
+      ? [path.join(__dirname, '.venv', 'Scripts', 'python.exe'), path.join(__dirname, '.venv', 'bin', 'python')]
+      : [path.join(__dirname, '.venv', 'bin', 'python'), path.join(__dirname, '.venv', 'Scripts', 'python.exe')];
+    const localPython = candidates.find((candidate) => fs.existsSync(candidate));
+    if (localPython) return localPython;
+    return process.platform === 'win32' ? 'python' : 'python3';
+  }
+
+  settlePendingWorkerRequests(error) {
+    for (const [, item] of this.pending) {
+      clearTimeout(item.timer);
+      item.resolve({ ok: false, error });
+    }
+    this.pending.clear();
+    this.inflight.clear();
   }
 
   startWorker() {
@@ -139,12 +172,25 @@ class ZeroTTSManager {
     console.log(`[ZeroTTS] Khởi chạy worker với ${pyBin} (Giọng mặc định: Mai Chi)...`);
 
     this.status = 'loading';
-    this.proc = spawn(pyBin, [scriptPath], {
+    const worker = spawn(pyBin, [scriptPath], {
       cwd: __dirname,
       stdio: ['pipe', 'pipe', 'pipe']
     });
+    this.proc = worker;
 
-    this.proc.stdout.on('data', (chunk) => {
+    // Missing Python or a broken venv must degrade TTS, not crash the RPC server.
+    worker.on('error', (error) => {
+      if (this.proc !== worker) return;
+      console.warn('[ZeroTTS] Không khởi chạy được Python worker:', error.message);
+      this.proc = null;
+      this.ready = false;
+      this.status = 'error';
+      this.buffer = '';
+      this.settlePendingWorkerRequests(error.message || 'ZeroTTS worker could not start');
+      broadcastNotification('tts.status', this.getStatus());
+    });
+
+    worker.stdout.on('data', (chunk) => {
       this.buffer += chunk.toString('utf8');
       let lines = this.buffer.split('\n');
       this.buffer = lines.pop() || '';
@@ -154,20 +200,20 @@ class ZeroTTSManager {
       }
     });
 
-    this.proc.stderr.on('data', (chunk) => {
+    worker.stderr.on('data', (chunk) => {
       const msg = chunk.toString('utf8').trim();
       if (msg) console.log(`[ZeroTTS stderr] ${msg}`);
     });
 
-    this.proc.on('exit', (code) => {
+    worker.on('exit', (code) => {
+      if (this.proc !== worker) return;
       console.warn(`[ZeroTTS] Worker thoát với mã ${code}`);
+      this.proc = null;
       this.ready = false;
-      this.status = 'stopped';
-      for (const [, item] of this.pending) {
-        clearTimeout(item.timer);
-        item.resolve({ ok: false, error: 'ZeroTTS worker exited' });
-      }
-      this.pending.clear();
+      this.status = code === 0 ? 'stopped' : 'error';
+      this.buffer = '';
+      this.settlePendingWorkerRequests('ZeroTTS worker exited');
+      broadcastNotification('tts.status', this.getStatus());
     });
   }
 
@@ -1135,7 +1181,22 @@ async function handleRpcCall(method, params = {}) {
 // 8. EXPRESS + WEBSOCKET SERVER
 // ============================================================================
 const app = express();
-app.use(cors());
+app.use((req, res, next) => {
+  if (!isAllowedRequestOrigin(req.headers.origin, req)) {
+    return res.status(403).json({ error: 'Origin này không được phép điều khiển Temple RPC' });
+  }
+  next();
+});
+app.use(cors({
+  origin(origin, callback) {
+    if (origin && ALLOWED_CORS_ORIGINS.has(origin)) return callback(null, origin);
+    return callback(null, false);
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 600
+}));
 app.use(express.json({ limit: '2mb' }));
 app.use('/tts-cache', express.static(TTS_CACHE_DIR, { maxAge: '7d' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1191,6 +1252,8 @@ app.get('/healthz', (_req, res) => {
     service: 'temple-live',
     uptimeSeconds: Math.floor(process.uptime()),
     tiktokConnected: Boolean(state.tiktok.connected),
+    autoSimEnabled: Boolean(state.settings.autoSim),
+    autoSimRunning: Boolean(autoSimTimer),
     tts: zeroTts.getStatus()
   });
 });
@@ -1211,7 +1274,11 @@ function broadcastNotification(method, params) {
   }
 }
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, request) => {
+  if (!isAllowedRequestOrigin(request.headers.origin, request)) {
+    ws.close(1008, 'Origin not allowed');
+    return;
+  }
   ws.send(
     JSON.stringify({
       jsonrpc: '2.0',
@@ -1261,7 +1328,12 @@ server.listen(PORT, HOST, () => {
   console.log(`📺 Màn hình Live (9:16 OBS): http://localhost:${PORT}`);
   console.log(`🎛️ Bảng điều khiển RPC Admin: http://localhost:${PORT}/admin`);
   console.log(`🔌 JSON-RPC 2.0 Endpoint   : http://localhost:${PORT}/rpc (ws://localhost:${PORT}/ws)`);
+  console.log(`🌐 Bind: ${HOST} • CORS allowlist: ${ALLOWED_CORS_ORIGINS.size} external origin(s)`);
   console.log(`============================================================`);
+
+  // Restore an explicitly enabled simulation after restart; do not leave the
+  // UI showing an enabled toggle while the interval is actually stopped.
+  if (state.settings.autoSim) configureAutoSim(true);
 
   // Visual/browser audits can opt out of external live connections.
   if (process.env.DISABLE_TIKTOK_AUTOCONNECT !== '1') {

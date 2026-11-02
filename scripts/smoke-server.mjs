@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +10,10 @@ import WebSocket from 'ws';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'temple-rpc-smoke-'));
 const dataDirectory = path.join(temporaryRoot, 'data');
+await mkdir(dataDirectory, { recursive: true });
+await writeFile(path.join(dataDirectory, 'merit-state.json'), JSON.stringify({
+  settings: { autoSim: true, autoSimIntervalMs: 60000 }
+}), 'utf8');
 const portServer = createServer();
 const port = await new Promise((resolve, reject) => {
   portServer.once('error', reject);
@@ -28,7 +32,8 @@ const child = spawn('bun', ['run', 'server.js'], {
     HOST: '127.0.0.1',
     TEMPLE_DATA_DIR: dataDirectory,
     DISABLE_TIKTOK_AUTOCONNECT: '1',
-    DISABLE_ZEROTTS_WORKER: '1'
+    DISABLE_ZEROTTS_WORKER: '1',
+    TEMPLE_CORS_ORIGINS: 'https://trusted.example'
   },
   stdio: ['ignore', 'pipe', 'pipe']
 });
@@ -73,6 +78,23 @@ try {
   assert.equal(health.ok, true);
   assert.equal(health.tiktokConnected, false);
   assert.equal(health.tts.status, 'disabled');
+  assert.equal(health.autoSimEnabled, true);
+  assert.equal(health.autoSimRunning, true);
+
+  const stopSimulation = await fetch(baseUrl + '/rpc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 9, method: 'temple.updateSettings', params: { autoSim: false } })
+  }).then((response) => response.json());
+  assert.equal(stopSimulation.result.settings.autoSim, false);
+  const stoppedHealth = await fetch(baseUrl + '/healthz').then((response) => response.json());
+  assert.equal(stoppedHealth.autoSimRunning, false);
+
+  const blockedOrigin = await fetch(baseUrl + '/healthz', { headers: { Origin: 'https://evil.example' } });
+  assert.equal(blockedOrigin.status, 403);
+  const allowedOrigin = await fetch(baseUrl + '/healthz', { headers: { Origin: 'https://trusted.example' } });
+  assert.equal(allowedOrigin.status, 200);
+  assert.equal(allowedOrigin.headers.get('access-control-allow-origin'), 'https://trusted.example');
 
   const page = await fetch(baseUrl + '/');
   assert.equal(page.status, 200);

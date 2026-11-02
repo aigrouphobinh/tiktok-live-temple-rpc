@@ -10,10 +10,15 @@ describe('TikTok comment intent classification', () => {
     (comment) => expect(classifyTempleComment(comment)).toBe('fortune')
   );
 
-  it.each(['quen rồi', 'đừng quên', 'quê hương', 'que huong', 'quen biết nhau'])(
+  it.each(['quen rồi', 'đừng quên', 'quê hương', 'que huong', 'quen biết nhau', 'về quê', 'đi quê', 'quê tôi'])(
     'does not misread ordinary text as a fortune request: %s',
     (comment) => expect(classifyTempleComment(comment)).toBe('default')
   );
+
+  it('normalizes uppercase Vietnamese text and explicit one-stroke requests', () => {
+    expect(classifyTempleComment('ĐANG HƯƠNG')).toBe('incense');
+    expect(classifyTempleComment('XIN MỘT QUẺ')).toBe('fortune');
+  });
 
   it('preserves ritual priority for bell, wooden fish, incense and prayer', () => {
     expect(classifyTempleComment('thỉnh chuông cầu an')).toBe('bell');
