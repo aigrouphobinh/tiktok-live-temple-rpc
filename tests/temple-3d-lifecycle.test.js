@@ -77,9 +77,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
-    expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -5.0, -0.105, 11.4);');
+    expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
-    expect(source).toContain('actor.group.position.set(-5.0 - index * 0.08, 0.05, 15.3 + index * 0.35);');
+    expect(source).toContain('actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);');
     expect(source).toContain('actor.moveTarget = null;');
     expect(source).toContain('actor.moveCurve = null;');
     expect(source).toContain('actor.moveStartedAt = 0;');
