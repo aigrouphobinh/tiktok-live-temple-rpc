@@ -2664,9 +2664,15 @@ async function boot() {
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      // Stable two-column queue, with every new visitor waiting behind the
-      // person currently at the altar. Promotion removes only the first slot.
-      const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;
+      // Compact the line after every promotion: each remaining visitor
+      // advances one slot instead of leaving an empty space at the front.
+      const slot = index;
+      if (actor.slot !== slot) {
+        actor.slot = slot;
+        const nameTagLayout = getCrowdNameTagLayout(slot);
+        actor.nameTag.position.set(0, nameTagLayout.y, 0);
+        actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
+      }
       const queuePosition = getHorizontalFormationPosition(slot, {
         columns: 2, spacing: 1.0, y: 0.05, baseZ: 10.5, rowSpacing: 1.4
       });
