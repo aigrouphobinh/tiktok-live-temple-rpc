@@ -62,7 +62,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('const queueActorPool = [];');
     expect(source).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 5;');
     expect(source).toContain('function createQueueActor(event)');
-    expect(source).toContain('function refreshQueueActors()');
+    expect(source).toContain('function refreshQueueActors(now = performance.now())');
     expect(source).toContain('function releaseQueueActor(event)');
     expect(source).toContain('queueActors.get(event)');
     expect(source).toContain('function setQueueActorTarget(actor, target, index, now)');
