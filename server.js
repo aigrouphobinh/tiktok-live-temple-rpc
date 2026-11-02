@@ -7,6 +7,7 @@ const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
 const { normalizeGiftPayload, getGiftComboDelta, clearGiftComboTracker } = require('./lib/tiktok-gift-payload.cjs');
+const { formatTikTokConnectionError } = require('./lib/tiktok-connection-error.cjs');
 const { classifyTempleComment } = require('./lib/temple-comment-parser.cjs');
 const { normalizeTempleSettings } = require('./lib/temple-settings.cjs');
 const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
@@ -997,45 +998,6 @@ function extractUserFromEvent(data) {
   return { user, uniqueId, avatar };
 }
 
-function getTikTokErrorMessage(error) {
-  const scalarText = (value) => {
-    if (typeof value === 'string') return value.trim();
-    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-    if (value instanceof Error) return value.message || value.name;
-    if (value && typeof value === 'object') {
-      const nested = value.message ?? value.error ?? value.reason ?? value.handshakeMsg ?? value.handshakeMessage;
-      if (nested != null && nested !== value) return scalarText(nested);
-      try { return JSON.stringify(value); } catch (_) { return '[unserializable error details]'; }
-    }
-    return '';
-  };
-
-  const messageValue = error?.message ?? error?.error ?? error?.reason ?? error;
-  const message = scalarText(messageValue);
-  const headers = error?.response?.headers || error?.headers || {};
-  const handshakeMessage = scalarText(
-    error?.handshakeMsg
-      ?? error?.handshakeMessage
-      ?? headers['handshake-msg']
-      ?? headers['Handshake-Msg']
-      ?? headers['handshake_message']
-  );
-  const handshakeStatus = scalarText(
-    error?.handshakeStatus ?? headers['handshake-status'] ?? headers['Handshake-Status']
-  );
-  const code = scalarText(error?.code);
-  const status = scalarText(error?.statusCode ?? error?.status ?? error?.response?.status);
-
-  const details = [];
-  if (handshakeMessage && !message.toLowerCase().includes(handshakeMessage.toLowerCase())) {
-    details.push(`handshake-msg: ${handshakeMessage}`);
-  }
-  if (handshakeStatus) details.push(`handshake-status: ${handshakeStatus}`);
-  if (code) details.push(`code: ${code}`);
-  if (status) details.push(`http-status: ${status}`);
-  return [message || 'TikTok Live connection failed', ...details].join(' | ');
-}
-
 async function connectTikTokLive(usernameOrUrl) {
   const cleanUser = await resolveTikTokUsername(usernameOrUrl);
   if (!cleanUser) {
@@ -1096,7 +1058,7 @@ async function connectTikTokLive(usernameOrUrl) {
 
   connection.on(ControlEvent.ERROR, (err) => {
     if (!isCurrentConnection()) return;
-    state.tiktok.lastError = getTikTokErrorMessage(err);
+    state.tiktok.lastError = formatTikTokConnectionError(err);
     state.tiktok.connecting = false;
     console.warn('[TikTok Live Warning]', state.tiktok.lastError);
     broadcastNotification('temple.state', getPublicState());
@@ -1215,7 +1177,7 @@ async function connectTikTokLive(usernameOrUrl) {
     broadcastNotification('temple.state', getPublicState());
     return state.tiktok;
   } catch (err) {
-    const message = getTikTokErrorMessage(err) || 'Không thể kết nối phòng Live (kiểm tra tài khoản đang phát Live chưa)';
+    const message = formatTikTokConnectionError(err) || 'Không thể kết nối phòng Live (kiểm tra tài khoản đang phát Live chưa)';
     if (isCurrentConnection()) {
       clearGiftComboTracker(giftComboTracker);
       state.tiktok.connected = false;
@@ -1522,7 +1484,7 @@ server.listen(PORT, HOST, () => {
     const defaultChannel = process.env.TIKTOK_USER || state.tiktok?.username || 'zenfacts_vn';
     if (defaultChannel) {
       connectTikTokLive(defaultChannel).catch((err) => {
-        console.warn(`[Auto-Connect @${defaultChannel}] Chưa kết nối được ngay: ${getTikTokErrorMessage(err)}`);
+        console.warn(`[Auto-Connect @${defaultChannel}] Chưa kết nối được ngay: ${formatTikTokConnectionError(err)}`);
       });
     }
   }
