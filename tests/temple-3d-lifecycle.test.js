@@ -108,9 +108,14 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("devoteeState.phase === 'ritual'\n        ? 0");
   });
 
-  it('animates the previous visitor leaving while the next visitor enters', () => {
+  it('animates the previous visitor walking out while the next visitor enters', () => {
     expect(source).toContain('const leaving = mainDevotee.clone(true);');
-    expect(source).toContain('function finishActiveDevotee(event');
+    expect(source).toContain('function cloneHumanAvatarForExit(leavingGroup)');
+    expect(source).toContain('const leavingAvatar = cloneHumanAvatarForExit(leaving);');
+    expect(source).toContain('durationMs: 10500');
+    expect(source).toContain('leaving.curve.getPointAt(eased)');
+    expect(source).toContain('leaving.curve.getTangentAt(eased)');
+    expect(source).toContain('animateHuman(leaving.avatar, now, true');
     expect(source).toContain('for (let i = departingDevotees.length - 1; i >= 0; i--)');
     expect(source).toContain('startNextDevotee(now);');
   });
