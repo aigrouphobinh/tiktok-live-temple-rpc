@@ -484,6 +484,18 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
       `Thí chủ ${ev.user} đang thành tâm xin quẻ...`,
       false
     );
+    if (ev.testOnly) {
+      // A control-panel test must show the fortune UI without synthesizing speech or reward data.
+      showFortuneModal(ev.user, ev.fortune);
+      updateCentralWorshipper(
+        ev.user,
+        ev.avatar,
+        '🎋 Quẻ số ' + ev.fortune?.number + ' (' + ev.fortune?.rank + ')',
+        ev.fortune?.meaning || '',
+        true
+      );
+      return;
+    }
     audio.enqueueTts(ev.ttsText || '', {
       voice: ev.ttsVoice || 'maichi',
       onStart: () => {
@@ -709,6 +721,13 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
           if (msg.params?.event) triggerRitualVisuals(msg.params.event);
+        } else if (msg.method === 'temple.test-effect') {
+          // Test notifications are visual-only: they never mutate server merit or event history.
+          for (const testEvent of (Array.isArray(msg.params?.events) ? msg.params.events : [])) {
+            if (testEvent && typeof testEvent.type === 'string') {
+              triggerRitualVisuals({ ...testEvent, testOnly: true });
+            }
+          }
         } else if (msg.method === 'tts.play') {
           if (msg.params?.url) {
             audio.enqueueTts(msg.params.text || 'Nam mô A Di Đà Phật', {
