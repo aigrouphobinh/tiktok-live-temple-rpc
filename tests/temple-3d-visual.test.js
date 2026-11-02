@@ -145,8 +145,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(aoDaiSource).toContain('eyeWhites,');
     expect(aoDaiSource).toContain('eyePupils,');
     expect(scene).toContain('const blinkCycle = ((time * 0.001 + avatar.phase * 0.17) % 4.6 + 4.6) % 4.6;');
-    expect(scene).toContain('avatar.congregationRole = avatarIndex % 4;');
-    expect(scene).toContain('function updateCongregationWorshipPose(avatar, now)');
+    expect(scene).toContain('if (avatar.queueWaiting && !walking)');
+    expect(scene).toContain('const offeringPose = getRitualPoseState({');
     expect(scene).toContain('avatar.eyeWhites[index].scale.y = eyeOpen;');
     expect(scene).toContain('avatar.eyePupils[index].position.x = Math.sin(time*0.00065+avatar.phase)*0.006 + giftReaction * (index === 0 ? 0.009 : -0.009);');
     expect(scene).toContain('avatar.eyePupils[index].position.y = giftReaction * 0.008;');
