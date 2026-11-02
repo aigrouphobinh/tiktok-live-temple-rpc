@@ -62,3 +62,29 @@ export function getCrowdNameTagLayout(slot, options = {}) {
   const height = Number.isFinite(options.height) && options.height > 0 ? options.height : 0.30;
   return { screenIndex, lane: screenIndex % 2, y: baseY + (screenIndex % 2) * staggerY, width, height };
 }
+
+export const MAX_CONCURRENT_WORSHIPPERS = 5;
+export const MAX_QUEUED_WORSHIPPERS = MAX_CONCURRENT_WORSHIPPERS - 1;
+
+const QUEUED_WORSHIP_POSITIONS = Object.freeze([
+  Object.freeze({ x: -3.15, y: 0.05, z: -1.35 }),
+  Object.freeze({ x: -1.05, y: 0.05, z: -1.65 }),
+  Object.freeze({ x: 1.05, y: 0.05, z: -1.65 }),
+  Object.freeze({ x: 3.15, y: 0.05, z: -1.35 })
+]);
+
+/**
+ * First four queued visitors receive prayer positions beside the main altar
+ * worshipper. Later visitors remain in a seated single-file meditation line.
+ */
+export function getQueueActorFormationPosition(slot) {
+  if (!Number.isInteger(slot) || slot < 0) return null;
+  if (slot < MAX_QUEUED_WORSHIPPERS) {
+    return { slot, role: 'worship', ...QUEUED_WORSHIP_POSITIONS[slot] };
+  }
+  const waiting = getHorizontalFormationPosition(
+    slot - MAX_QUEUED_WORSHIPPERS,
+    { columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 8.2, rowSpacing: 1.28 }
+  );
+  return { ...waiting, slot, role: 'waiting' };
+}
