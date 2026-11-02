@@ -2187,10 +2187,43 @@ async function boot() {
     nameTag.userData.setName(event.user || 'Thí Chủ');
     group.visible = true;
     world.add(group);
-    return { group, avatar, nameTag, event, target: new THREE.Vector3(-5.0, 0.05, 8.0) };
+    return {
+      group, avatar, nameTag, event,
+      target: new THREE.Vector3(-5.0, 0.05, 8.0),
+      moveTarget: null,
+      moveCurve: null,
+      moveStartedAt: 0,
+      moveDurationMs: 0
+    };
   }
 
-  function refreshQueueActors() {
+  function setQueueActorTarget(actor, target, index, now) {
+    if (actor.moveTarget && actor.moveTarget.distanceToSquared(target) < 0.001) return;
+    actor.target.copy(target);
+    actor.moveTarget = target.clone();
+    const start = actor.group.position.clone();
+    const distance = start.distanceTo(target);
+    if (distance < 0.05) {
+      actor.group.position.copy(target);
+      actor.moveCurve = null;
+      actor.moveStartedAt = 0;
+      actor.moveDurationMs = 0;
+      return;
+    }
+    const middle = start.clone().lerp(target, 0.5);
+    middle.x += (index % 2 === 0 ? 1 : -1) * 0.045;
+    actor.moveCurve = new THREE.CatmullRomCurve3(
+      [start, middle, target.clone()],
+      false,
+      'centripetal'
+    );
+    actor.moveStartedAt = now;
+    // A real walking pace, with a small minimum so a 1.45m queue advance
+    // remains visible instead of snapping forward between frames.
+    actor.moveDurationMs = Math.max(950, actor.moveCurve.getLength() / 1.45 * 1000);
+  }
+
+  function refreshQueueActors(now = performance.now()) {
     const visibleEvents = devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS);
     for (const [event, actor] of queueActors) {
       if (visibleEvents.includes(event)) continue;
@@ -2206,10 +2239,20 @@ async function boot() {
         actor.event = event;
         actor.group.visible = true;
         actor.group.position.set(-5.0 - index * 0.08, 0.05, 15.3 + index * 0.35);
+        actor.group.rotation.set(0, 0, 0);
+        actor.moveTarget = null;
+        actor.moveCurve = null;
+        actor.moveStartedAt = 0;
+        actor.moveDurationMs = 0;
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      actor.target.set(-5.0, 0.05, 8.0 + index * 1.45);
+      setQueueActorTarget(
+        actor,
+        new THREE.Vector3(-5.0, 0.05, 8.0 + index * 1.45),
+        index,
+        now
+      );
     });
   }
 
@@ -2947,9 +2990,35 @@ async function boot() {
       if (avatar.prayerPose) applyStandingPrayerPose(avatar);
     });
     for (const actor of queueActors.values()) {
-      actor.group.position.lerp(actor.target, 1 - Math.exp(-Math.min(50, dt) / 320));
-      const moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
-      animateHuman(actor.avatar, now, moving, now * 0.0085 + actor.avatar.phase);
+      let moving = false;
+      if (actor.moveCurve) {
+        const progress = Math.min(1, Math.max(
+          0,
+          (now - actor.moveStartedAt) / Math.max(1, actor.moveDurationMs)
+        ));
+        const eased = progress * progress * (3 - 2 * progress);
+        const point = actor.moveCurve.getPointAt(eased);
+        const tangent = actor.moveCurve.getTangentAt(eased);
+        actor.group.position.copy(point);
+        actor.group.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
+        const gaitPhase = getDistanceBasedGaitPhase(
+          eased,
+          actor.moveCurve.getLength(),
+          1.2,
+          actor.avatar.phase
+        );
+        moving = progress < 1;
+        animateHuman(actor.avatar, now, moving, gaitPhase);
+        if (!moving) {
+          actor.group.position.copy(actor.target);
+          actor.moveCurve = null;
+          actor.moveStartedAt = 0;
+          actor.moveDurationMs = 0;
+        }
+      } else {
+        moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
+        animateHuman(actor.avatar, now, moving);
+      }
       if (actor.avatar.prayerPose && !moving) applyStandingPrayerPose(actor.avatar);
     }
     if (devoteeState.active && devoteeState.pausedAt) {
