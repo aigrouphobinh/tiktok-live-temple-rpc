@@ -86,7 +86,7 @@ describe('getHumanUpperPose', () => {
 describe('getRitualPoseState', () => {
   it('walks toward the altar before beginning a kneel', () => {
     expect(getRitualPoseState({ travel: 0.5 })).toEqual({
-      walking: true, kneelBlend: 0, bowAmount: 0
+      walking: true, kneelBlend: 0, bowAmount: 0, bowPhase: 'approach', bowCycle: 0
     });
     expect(getRitualPoseState({ travel: 1, elapsedAfterArrival: 0 }).kneelBlend).toBe(0);
   });
@@ -109,16 +109,40 @@ describe('getRitualPoseState', () => {
       kneelInMs: 0,
       bowDelayMs: 100,
       bowCycles: 3,
-      bowCycleMs: 1000
+      bowCycleMs: 1000,
+      bowDownRatio: 0.30,
+      bowHoldRatio: 0.20,
+      bowUpRatio: 0.30
     });
     expect(poseAt(200).bowAmount).toBeGreaterThan(0);
-    expect(poseAt(500).bowAmount).toBeGreaterThan(0.95);
-    expect(poseAt(1000).bowAmount).toBeCloseTo(0, 8);
-    expect(poseAt(1500).bowAmount).toBeGreaterThan(0.95);
+    expect(poseAt(200).bowPhase).toBe('lowering');
+    expect(poseAt(500).bowAmount).toBe(1);
+    expect(poseAt(500).bowPhase).toBe('holding');
+    expect(poseAt(650).bowPhase).toBe('rising');
+    expect(poseAt(850).bowAmount).toBeCloseTo(0, 8);
+    expect(poseAt(850).bowPhase).toBe('resting');
+    expect(poseAt(1200).bowCycle).toBe(2);
+    expect(poseAt(1500).bowAmount).toBe(1);
+    expect(poseAt(1500).bowPhase).toBe('holding');
     expect(poseAt(2000).bowAmount).toBeCloseTo(0, 8);
-    expect(poseAt(2500).bowAmount).toBeGreaterThan(0.95);
+    expect(poseAt(2000).bowPhase).toBe('resting');
+    expect(poseAt(2500).bowAmount).toBe(1);
+    expect(poseAt(2500).bowPhase).toBe('holding');
     expect(poseAt(3200).bowAmount).toBeCloseTo(0, 8);
+    expect(poseAt(3200).bowPhase).toBe('complete');
     expect(poseAt(5000).kneelBlend).toBeCloseTo(1, 8);
+  });
+
+
+  it('normalizes overlapping custom bow phase ratios and never produces invalid weights', () => {
+    const pose = getRitualPoseState({
+      travel: 1, elapsedAfterArrival: 500, remainingMs: 10000,
+      bowDelayMs: 0, bowCycles: 3, bowCycleMs: 1000,
+      bowDownRatio: 0.8, bowHoldRatio: 0.8, bowUpRatio: 0.8
+    });
+    expect(pose.bowAmount).toBeGreaterThanOrEqual(0);
+    expect(pose.bowAmount).toBeLessThanOrEqual(1);
+    expect(['lowering', 'holding', 'rising', 'resting']).toContain(pose.bowPhase);
   });
 
   it('fades the kneel and bow out together at the end of the ritual', () => {
@@ -128,7 +152,7 @@ describe('getRitualPoseState', () => {
     expect(pose.bowAmount).toBeGreaterThan(0);
     expect(pose.bowAmount).toBeLessThan(1);
     expect(getRitualPoseState({ travel: 1, elapsedAfterArrival: 3000, remainingMs: 0 })).toEqual({
-      walking: false, kneelBlend: 0, bowAmount: 0
+      walking: false, kneelBlend: 0, bowAmount: 0, bowPhase: 'complete', bowCycle: 0
     });
   });
 
