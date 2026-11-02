@@ -2148,8 +2148,10 @@ async function boot() {
         avatar.root.add(model);
         // Hide procedural fallback only after the imported model is attached.
         // Their primitive geometry/materials may be shared with cached meshes.
-        for (const child of avatar.root.children) {
-          if (child !== model) child.visible = false;
+        // Hide only the two procedural body variants. Other children may
+        // be live name-tag sprites or profile attachments and must stay visible.
+        for (const variant of Object.values(avatar.variants || {})) {
+          if (variant?.group) variant.group.visible = false;
         }
         avatar.gltfRoot = model;
         avatar.gltfActions = gltfActions;
