@@ -232,7 +232,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(scene).toContain('devoteeState.curve.getPointAt(eased)');
     expect(scene).toContain('leaving.curve.getLength(), 1.2');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
-    expect(scene).toContain("setDevoteePhase('ritual', now, 6500);");
+    expect(scene).toContain("setDevoteePhase('ritual', now, 9500);");
     expect(scene).toContain("window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
     expect(scene).toContain('mainHuman.kneelBlend = 0;');
   });

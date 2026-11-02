@@ -36,6 +36,8 @@ describe('Three.js five-shot ritual camera director', () => {
     expect(source).toContain('camera.lookAt(lookTarget);');
     expect(source).toContain('camera.userData.shotSequenceIndex = cameraRitualActive ? activeCameraPresetIndex : -1;');
     expect(source).toContain('updateRitualCamera(dt, now);');
+    expect(source).toContain('window.__TEMPLE_CAMERA_DIAGNOSTIC__ = () => ({');
+    expect(source).toContain('sequenceIndex: Number.isInteger(camera.userData.shotSequenceIndex)');
   });
 
   it('returns smoothly to the master temple shot when the queue drains', () => {

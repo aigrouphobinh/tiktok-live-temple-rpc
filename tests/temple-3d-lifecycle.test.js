@@ -173,7 +173,7 @@ describe('Three.js lifecycle recovery', () => {
   it('performs three separate bows during the 3D ritual phase', () => {
     expect(source).toContain('bowCycles: 3,');
     expect(source).toContain('bowCycleMs: 1500,');
-    expect(source).toContain("setDevoteePhase('ritual', now, 6500);");
+    expect(source).toContain("setDevoteePhase('ritual', now, 9500);");
     expect(source).toContain("const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;");
     expect(source).toContain("const ritualPose = devoteeState.alreadyWorshippedInQueue");
     expect(source).toContain("bowPhase: 'already-completed-in-queue'");

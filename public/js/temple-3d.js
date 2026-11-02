@@ -164,6 +164,17 @@ async function boot() {
     camera.userData.shotPreset = cameraRitualActive ? activeCameraPreset.name : 'home';
     camera.userData.shotSequenceIndex = cameraRitualActive ? activeCameraPresetIndex : -1;
   }
+  // Runtime camera diagnostics let browser audits confirm the preset actually rendered.
+  window.__TEMPLE_CAMERA_DIAGNOSTIC__ = () => ({
+    active: cameraRitualActive,
+    phase: devoteeState.phase,
+    shotName: camera.userData.shotName || 'home',
+    preset: camera.userData.shotPreset || 'home',
+    sequenceIndex: Number.isInteger(camera.userData.shotSequenceIndex) ? camera.userData.shotSequenceIndex : -1,
+    fov: Number(camera.fov.toFixed(2)),
+    position: { x: Number(camera.position.x.toFixed(3)), y: Number(camera.position.y.toFixed(3)), z: Number(camera.position.z.toFixed(3)) },
+    lookAt: camera.userData.lookTarget ? { x: Number(camera.userData.lookTarget.x.toFixed(3)), y: Number(camera.userData.lookTarget.y.toFixed(3)), z: Number(camera.userData.lookTarget.z.toFixed(3)) } : null
+  });
   const mats = {
     wood: new THREE.MeshStandardMaterial({ color: 0x48200e, roughness: 0.55, metalness: 0.18 }),
     woodLight: new THREE.MeshStandardMaterial({ color: 0x79401b, roughness: 0.48, metalness: 0.25 }),

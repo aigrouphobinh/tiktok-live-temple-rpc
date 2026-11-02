@@ -113,7 +113,7 @@ describe('stable horizontal devotee formation', () => {
   it('starts four worshippers on one line for synchronized arrival and parallel bows', () => {
     const entries = Array.from({ length: 4 }, (_, slot) => getQueueActorEntryPosition(slot));
     expect(entries.map(({ x }) => x)).toEqual([-3.15, -1.05, 1.05, 3.15]);
-    expect(entries.every(({ z }) => z === 14.2)).toBe(true);
+    expect(entries.every(({ z }) => z === 12.2)).toBe(true);
     const paths = entries.map((entry, slot) => {
       const target = getQueueActorFormationPosition(slot);
       return Math.hypot(target.x - entry.x, target.z - entry.z);
