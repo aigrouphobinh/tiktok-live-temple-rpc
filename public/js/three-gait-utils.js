@@ -193,6 +193,7 @@ export function getRitualPoseState({
 
   const exitEnvelope = hasArrived ? smoothstep(remaining / Math.max(1, exitFadeMs)) : 0;
   const bowAmount = bowPulse * exitEnvelope;
+  if (hasArrived && remaining <= 0) bowPhase = 'complete';
   return {
     walking: progress < 0.92,
     kneelBlend,
