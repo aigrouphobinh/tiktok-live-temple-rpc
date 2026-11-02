@@ -105,6 +105,25 @@ export function getQueueActorFormationPosition(slot) {
 
 
 /**
+ * Spawn visitors on near-equal walking paths so the four side-lane worshippers
+ * arrive together and can perform their three bows concurrently.
+ */
+export function getQueueActorEntryPosition(slot) {
+  const formation = getQueueActorFormationPosition(slot);
+  if (!formation) return null;
+  if (formation.role === 'worship') {
+    return { slot, role: 'worship', x: formation.x, y: 0.05, z: 14.2 };
+  }
+  return {
+    slot,
+    role: 'waiting',
+    x: formation.x,
+    y: 0.05,
+    z: formation.z + 1.05
+  };
+}
+
+/**
  * Remembers side-lane visitors who have already completed their full bow
  * sequence. Keep the identity reserved until the FIFO state machine emits
  * character-complete; new event objects from that same pending visit are
