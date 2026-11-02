@@ -2013,6 +2013,7 @@ async function boot() {
       giftReactionUntil: 0,
       giftReactionProfile: { tier: 'small', intensity: 0.62, bowAmount: 0.16, durationMs: 2100 },
       queueWaiting: false,
+      queuedWorshipLane: false,
       ritualBowPhase: 'idle',
       ritualBowCycle: 0
     };
@@ -2356,13 +2357,21 @@ async function boot() {
     const walkTarget = walking ? 1 : 0;
     avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));
     if (avatar.queueWaiting) {
-      // Waiting devotees meditate seated like the 2D congregation. They rise
-      // smoothly only while walking forward to the altar/next queue position.
+      // People beyond the five simultaneous worshippers meditate while waiting.
       const waitingKneelTarget = walking ? 0 : 1;
       avatar.kneelBlend += (waitingKneelTarget - (avatar.kneelBlend || 0))
         * (1 - Math.exp(-poseDelta / 0.34));
       avatar.kneeling = avatar.kneelBlend > 0.65;
       avatar.prayerPose = true;
+      avatar.bowAmount = 0;
+    }
+    if (avatar.queuedWorshipLane && walking) {
+      // A seated visitor rises naturally while walking into one of the four
+      // shared prayer positions behind the main worshipper.
+      avatar.kneelBlend += (0 - (avatar.kneelBlend || 0))
+        * (1 - Math.exp(-poseDelta / 0.34));
+      avatar.kneeling = avatar.kneelBlend > 0.65;
+      avatar.prayerPose = false;
       avatar.bowAmount = 0;
     }
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
@@ -2589,8 +2598,29 @@ async function boot() {
   const queueActors = new Map();
   const queueActorPool = [];
   const departingDevotees = [];
-  // One visitor worships at the altar while at most five stand in a single line behind.
+  // Keep one main worshipper at the altar plus four adjacent prayer positions.
+  // The fifth visible queued visitor remains seated in meditation behind them.
   const MAX_VISIBLE_QUEUE_ACTORS = 5;
+  const MAX_CONCURRENT_WORSHIPPERS = 5;
+  const MAX_QUEUED_WORSHIPPERS = MAX_CONCURRENT_WORSHIPPERS - 1;
+  const QUEUED_WORSHIP_POSITIONS = [
+    { x: -3.15, y: 0.05, z: -1.35 },
+    { x: -1.05, y: 0.05, z: -1.65 },
+    { x: 1.05, y: 0.05, z: -1.65 },
+    { x: 3.15, y: 0.05, z: -1.35 }
+  ];
+
+  function getQueueActorPosition(slot) {
+    if (slot < MAX_QUEUED_WORSHIPPERS) {
+      const position = QUEUED_WORSHIP_POSITIONS[slot];
+      return new THREE.Vector3(position.x, position.y, position.z);
+    }
+    const waitingPosition = getHorizontalFormationPosition(
+      slot - MAX_QUEUED_WORSHIPPERS,
+      { columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 8.2, rowSpacing: 1.28 }
+    );
+    return new THREE.Vector3(waitingPosition.x, waitingPosition.y, waitingPosition.z);
+  }
 
   function getAvailableQueueActorSlot() {
     return getAvailableFormationSlot(
@@ -2729,19 +2759,13 @@ async function boot() {
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
       }
-      const queuePosition = getHorizontalFormationPosition(slot, {
-        // A single-file line: one active worshipper at the altar, five visitors behind.
-        columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 7.65, rowSpacing: 1.28
-      });
-      actor.avatar.queueWaiting = true;
+      const isWorshipLane = slot < MAX_QUEUED_WORSHIPPERS;
+      const queuePosition = getQueueActorPosition(slot);
+      actor.avatar.queueWaiting = !isWorshipLane;
+      actor.avatar.queuedWorshipLane = isWorshipLane;
       actor.avatar.offeringIncense = false;
-      actor.avatar.prayerPose = false;
-      setQueueActorTarget(
-        actor,
-        new THREE.Vector3(queuePosition.x, queuePosition.y, queuePosition.z),
-        slot,
-        now
-      );
+      actor.avatar.prayerPose = !isWorshipLane;
+      setQueueActorTarget(actor, queuePosition, slot, now);
     });
   }
 
@@ -2791,6 +2815,7 @@ async function boot() {
         kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
         bowAmount: Number((actor.avatar.bowAmount || 0).toFixed(3)),
         queueWaiting: Boolean(actor.avatar.queueWaiting),
+        queuedWorshipLane: Boolean(actor.avatar.queuedWorshipLane),
         offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),
         offeringStartedAt: Number.isFinite(actor.offeringStartedAt) ? Math.round(actor.offeringStartedAt) : null,
         moveStartedAt: Number.isFinite(actor.moveStartedAt) ? Math.round(actor.moveStartedAt) : null,
@@ -2820,6 +2845,13 @@ async function boot() {
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
       visibleActiveActor: Boolean(devoteeState.active && mainDevotee.visible),
+      maxConcurrentWorshippers: MAX_CONCURRENT_WORSHIPPERS,
+      visibleWorshipQueueActors: queue.filter((actor) => actor.queuedWorshipLane).length,
+      simultaneousWorshippers: Math.min(
+        MAX_CONCURRENT_WORSHIPPERS,
+        (devoteeState.active && mainDevotee.visible ? 1 : 0)
+          + queue.filter((actor) => actor.queuedWorshipLane).length
+      ),
       visibleSceneActorCount: (devoteeState.active && mainDevotee.visible ? 1 : 0) + queue.length + departingDevotees.length,
       backgroundNpcCount: 0,
       kneelingQueueActors: queue.filter((actor) => actor.kneelBlend > 0.65).length,
