@@ -60,10 +60,10 @@ describe('gift reaction value tiers', () => {
 
   it('makes every higher gift tier visibly stronger and keeps durations bounded', () => {
     const tiers = ['small', 'medium', 'large', 'special'].map((tier) => resolveGiftVfxProfile({ tier }));
-    expect(tiers.map((tier) => tier.scale)).toEqual([0.86, 1, 1.24, 1.52]);
-    expect(tiers.map((tier) => tier.particles)).toEqual([10, 18, 30, 44]);
-    expect(tiers.map((tier) => tier.shockwaves)).toEqual([1, 2, 3, 4]);
-    expect(tiers.map((tier) => tier.aura)).toEqual([0.18, 0.36, 0.68, 1]);
+    expect(tiers.map((tier) => tier.scale)).toEqual([0.92, 1.12, 1.42, 1.82]);
+    expect(tiers.map((tier) => tier.particles)).toEqual([16, 28, 48, 72]);
+    expect(tiers.map((tier) => tier.shockwaves)).toEqual([2, 3, 5, 7]);
+    expect(tiers.map((tier) => tier.aura)).toEqual([0.24, 0.46, 0.76, 1]);
     expect(resolveGiftVfxProfile({ tier: 'unknown' }).tier).toBe('small');
     expect(resolveGiftEffectDurationMs('rocket', { tier: 'special' }))
       .toBeGreaterThan(resolveGiftEffectDurationMs('rocket', { tier: 'small' }));
