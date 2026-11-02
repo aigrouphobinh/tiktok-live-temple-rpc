@@ -1086,6 +1086,7 @@ describe('3D multi-devotee incense offering', () => {
   });
 
   it('keeps horizontal crowd slots stable when the featured visitor leaves the row', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function getAvailableQueueActorSlot()');
     expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
     expect(scene).toContain('actor.slot = -1;');

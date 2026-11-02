@@ -11,7 +11,7 @@ describe('stable horizontal devotee formation', () => {
     const positions = Array.from({ length: DEFAULT_FORMATION_COLUMNS }, (_, slot) =>
       getHorizontalFormationPosition(slot)
     );
-    expect(positions.map((position) => position.x)).toEqual([
+    expect(positions.map((position) => Number(position.x.toFixed(2)))).toEqual([
       -0.56, 0.56, -1.68, 1.68, -2.8, 2.8, -3.92, 3.92
     ]);
     expect(positions.every((position) => position.row === 0 && position.z === -1.55)).toBe(true);
