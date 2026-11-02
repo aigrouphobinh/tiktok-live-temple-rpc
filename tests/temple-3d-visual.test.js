@@ -529,29 +529,27 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.gltfCurrentClip = null;');
   });
 
-  it('keeps the hidden source GLB in the scene so cloned avatar resources have one disposal owner', () => {
+  it('keeps the previous imported girl GLB from overriding the Ao Dai crowd', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    const start = scene.indexOf('async function upgradeDevoteesFromGLB()');
-    const end = scene.indexOf('function animateHuman(', start);
-    const loader = scene.slice(start, end);
-    expect(loader).toContain('asset.root.visible = false;');
-    expect(loader).toContain('world.add(asset.root);');
-    expect(loader.indexOf('world.add(asset.root);')).toBeLessThan(loader.indexOf('clone(asset.root)'));
-    expect(loader).toContain('SkeletonUtils');
+    expect(scene).toContain("console.info('[Temple3D] Legacy humanoid GLB override is disabled;");
+    expect(scene).not.toContain('void upgradeDevoteesFromGLB()');
+    expect(scene).toContain('createAoDaiAvatarVariants(THREE, { height, appearance })');
   });
 
-  it('supports optional rigged devotee GLBs while preserving procedural fallback', () => {
+  it('builds male and female Ao Dai models with a shared animation contract', () => {
+    const avatarModule = readFileSync(new URL('../public/js/ao-dai-avatar.js', import.meta.url), 'utf8');
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("loadGLTFAsset('/assets/models/devotee-selected.glb'");
-    expect(scene).toContain("import('three/addons/utils/SkeletonUtils.js')");
-    expect(scene).toContain('allHumanAvatars.map(() => clone(asset.root))');
-    expect(scene).toContain('new THREE.AnimationMixer(model)');
-    expect(scene).toContain('findBestAnimationClip(animations)');
-
-
+    expect(avatarModule).toContain('AoDaiLongTunic');
+    expect(avatarModule).toContain('AoDaiFrontLeft');
+    expect(avatarModule).toContain('AoDaiHighCollar');
+    expect(avatarModule).toContain('AoDaiGoldHem');
+    expect(avatarModule).toContain("gender: 'male'");
+    expect(avatarModule).toContain("gender: 'female'");
+    expect(scene).toContain('function setHumanAppearance(avatar, appearance');
+    expect(scene).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
+    expect(scene).toContain('setHumanAppearance(actor.avatar, appearance)');
     expect(scene).toContain('function applyHumanBow(avatar, amount, kneelBlend = 0)');
-    expect(scene).toContain("Optional devotee GLB unavailable; keeping procedural characters");
-    expect(scene).toContain('void upgradeDevoteesFromGLB()');
+    expect(scene).toContain('const prayerBlend = Math.max(avatar.kneelBlend || 0, avatar.prayerPose ? 1 : 0)');
   });
 
   it('keeps the vignette below the live HUD layer', () => {
