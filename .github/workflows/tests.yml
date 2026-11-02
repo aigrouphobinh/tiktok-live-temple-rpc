@@ -46,7 +46,7 @@ jobs:
           grep -Fq 'new THREE.ShapeGeometry(flameShape)' public/js/temple-3d.js &&
           grep -Fq 'new THREE.SpotLight' public/js/temple-3d.js &&
           grep -Fq 'offeringFlames.forEach' public/js/temple-3d.js &&
-          grep -Fq 'function playWorldGiftAction(action)' public/js/temple-3d.js &&
+          grep -Fq 'function playWorldGiftAction(action, reactionProfile = null)' public/js/temple-3d.js &&
           grep -Fq 'function makeHumanAvatar(height = 1.55, appearance = getAoDaiAppearance(allHumanAvatars.length))' public/js/temple-3d.js &&
           grep -Fq 'upperBody.position.y = 0.48;' public/js/ao-dai-avatar.js &&
           grep -Fq 'The altar is at -Z' public/js/temple-3d.js &&
