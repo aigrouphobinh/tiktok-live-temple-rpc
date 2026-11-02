@@ -307,6 +307,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         machine.transition('BOWING');
       }, 2370)
     ];
+    const ritualDurationMs = window.__TEMPLE_3D_READY__ === true ? 15000 : 12500;
     activeTimer = window.setTimeout(() => {
       if (token !== ritualToken) return;
       phaseTimers.forEach(clearTimeout);
@@ -320,7 +321,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       }
     // Allow an unhurried side entrance, a 6.5s walk from the queue to the altar,
     // and the full three-bow sequence before handing the altar to the next visitor.
-    }, event?.type === 'drawFortune' ? 18000 : 15000);
+    }, event?.type === 'drawFortune' ? 18000 : ritualDurationMs);
   }
 
   function beginEffect(action, giftEvent = null, { hasTarget = false, targetEjected = false } = {}) {
