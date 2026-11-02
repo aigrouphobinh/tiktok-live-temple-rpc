@@ -2046,7 +2046,7 @@ async function boot() {
   function makeDevotee(x,z,scale=1) {
     const group=new THREE.Group();group.position.set(x,0.02,z);group.scale.setScalar(scale);world.add(group);
     const avatarIndex = devoteeAvatars.length;
-    const avatar=makeHumanAvatar(1.42);group.add(avatar.root);
+    const avatar=makeHumanAvatar(1.42, getAoDaiAppearance(avatarIndex));group.add(avatar.root);
     const idlePostures = [
       { kneel: 0, bow: 0.05 },
       { kneel: 0.92, bow: 0.07 },
@@ -2162,9 +2162,9 @@ async function boot() {
   const departingDevotees = [];
   const MAX_VISIBLE_QUEUE_ACTORS = 5;
 
-  function createQueueActor(event) {
+  function createQueueActor(event, appearance = getDevoteeAppearance(event)) {
     const group = new THREE.Group();
-    const avatar = makeHumanAvatar(1.36);
+    const avatar = makeHumanAvatar(1.36, appearance);
     avatar.prayerPose = true;
     avatar.headingOffset = -0.08;
     group.add(avatar.root);
@@ -2176,7 +2176,7 @@ async function boot() {
     group.visible = true;
     world.add(group);
     return {
-      group, avatar, nameTag, event,
+      group, avatar, nameTag, event, appearance,
       target: new THREE.Vector3(-5.0, 0.05, 8.0),
       moveTarget: null,
       moveCurve: null,
@@ -2223,7 +2223,11 @@ async function boot() {
     visibleEvents.forEach((event, index) => {
       let actor = queueActors.get(event);
       if (!actor) {
-        actor = queueActorPool.pop() || createQueueActor(event);
+        const appearance = getDevoteeAppearance(event);
+        actor = queueActorPool.pop();
+        if (actor) setHumanAppearance(actor.avatar, appearance);
+        else actor = createQueueActor(event, appearance);
+        actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
         actor.group.position.set(-5.0 - index * 0.08, 0.05, 15.3 + index * 0.35);
@@ -2250,7 +2254,7 @@ async function boot() {
     queueActors.delete(event);
     const result = {
       position: actor.group.position.clone(),
-      wardrobe: actor.avatar.wardrobeMaterials
+      appearance: actor.appearance || actor.avatar.appearance
     };
     actor.group.visible = false;
     actor.event = null;
@@ -2291,13 +2295,12 @@ async function boot() {
     beginRitualCamera();
     devoteeState.event = devoteeQueue.shift();
     const queuedActor = releaseQueueActor(devoteeState.event);
-    // Preserve the queued visitor's wardrobe as they step into the active
-    // altar role, so the character does not visibly change clothes mid-walk.
-    if (queuedActor?.wardrobe && mainHuman.wardrobeMaterials) {
-      for (const key of ['shirt', 'trim', 'trousers']) {
-        mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);
-      }
-    }
+    // Promote the exact queued visitor appearance to the altar. Gender and
+    // colourway therefore remain stable across the queue-to-main handoff.
+    setHumanAppearance(
+      mainHuman,
+      queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)
+    );
     const queueStart = queuedActor?.position || null;
     refreshQueueActors();
     devoteeState.active = true;
