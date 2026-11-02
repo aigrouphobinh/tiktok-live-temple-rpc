@@ -2286,9 +2286,18 @@ async function boot() {
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
+      // Visitors do not wait in a single-file FIFO before the altar.
+      // They walk into shared horizontal worship rows and offer incense together.
+      const altarColumns = 8;
+      const column = index % altarColumns;
+      const row = Math.floor(index / altarColumns);
+      const altarX = (column - (altarColumns - 1) / 2) * 1.12;
+      const altarZ = -1.55 + row * 1.28;
+      actor.avatar.queueWaiting = false;
+      actor.avatar.offeringIncense = true;
       setQueueActorTarget(
         actor,
-        new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38),
+        new THREE.Vector3(altarX, 0.05, altarZ),
         index,
         now
       );
@@ -3175,10 +3184,31 @@ async function boot() {
           actor.moveCurve = null;
           actor.moveStartedAt = 0;
           actor.moveDurationMs = 0;
+          actor.offeringStartedAt = now;
         }
       } else {
         moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
+        const offeringElapsed = Math.max(0, now - (actor.offeringStartedAt || now));
+        const offeringPose = getRitualPoseState({
+          travel: moving ? 0 : 1,
+          elapsedAfterArrival: offeringElapsed,
+          remainingMs: Number.MAX_SAFE_INTEGER,
+          kneelInMs: 520,
+          bowDelayMs: 350,
+          bowInMs: 900,
+          bowCycles: 3,
+          bowCycleMs: 1500,
+          bowDownRatio: 0.34,
+          bowHoldRatio: 0.20,
+          bowUpRatio: 0.34,
+          exitFadeMs: 450
+        });
+        actor.avatar.kneelBlend = offeringPose.kneelBlend;
+        actor.avatar.kneeling = offeringPose.kneelBlend > 0.035;
+        actor.avatar.ritualBowPhase = offeringPose.bowPhase;
+        actor.avatar.ritualBowCycle = offeringPose.bowCycle;
         animateHuman(actor.avatar, now, moving);
+        applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);
       }
     }
     if (devoteeState.active && devoteeState.pausedAt) {
