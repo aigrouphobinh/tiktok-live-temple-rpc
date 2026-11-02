@@ -45,7 +45,13 @@ async function boot() {
     hardwareConcurrency: navigator.hardwareConcurrency
   });
   const renderer = new THREE.WebGLRenderer({
-    canvas, alpha: false, antialias: true, powerPreference: 'high-performance'
+    canvas,
+    alpha: false,
+    antialias: true,
+    powerPreference: 'high-performance',
+    // Only CI's explicit profileAudit path preserves the last WebGL frame so
+    // the audit can capture the transient five-worshipper moment directly.
+    preserveDrawingBuffer: new URLSearchParams(location.search).has('profileAudit')
   });
   renderer.setPixelRatio(renderProfile.pixelRatio);
   renderer.setSize(1080, 1920, false);
