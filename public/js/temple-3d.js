@@ -2,6 +2,7 @@ import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-reso
 import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
+import { resolveGiftAction } from './gift-action-rules.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2019,7 +2020,8 @@ async function boot() {
   const devoteeQueue = [];
   const devoteeState = {
     active: false, phase: 'idle', event: null, startedAt: 0,
-    phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0
+    phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0,
+    ejectionStart: null, ejectionAction: null
   };
   const devoteeRoutes = {
     enter: [[5.2, 0, 14.5], [4.9, 0, 12.0], [4.2, 0, 9.4], [3.8, 0, 7.2]],
@@ -2047,7 +2049,10 @@ async function boot() {
     updateMainDevoteeName(devoteeState.event.user);
     mainDevotee.visible = true;
     mainDevotee.position.set(5.2, 0.05, 14.5);
+    mainDevotee.rotation.set(0, 0, 0);
     mainDevotee.scale.setScalar(1);
+    devoteeState.ejectionStart = null;
+    devoteeState.ejectionAction = null;
     mainHuman.kneeling = false;
     mainHuman.kneelBlend = 0;
     mainHuman.bowing = false;
@@ -2059,6 +2064,32 @@ async function boot() {
     if (!event) return;
     devoteeQueue.push(event);
     startNextDevotee();
+  }
+
+  function ejectActiveDevotee(action, now = performance.now()) {
+    if (!['rocket', 'donut'].includes(action) || !devoteeState.active || !mainDevotee.visible) return null;
+    const start = mainDevotee.position.clone();
+    devoteeState.ejectionStart = start.clone();
+    devoteeState.ejectionAction = action;
+    mainHuman.kneeling = false;
+    mainHuman.kneelBlend = 0;
+    mainHuman.bowing = false;
+    mainHuman.bowAmount = 0;
+    applyHumanBow(mainHuman, 0);
+
+    if (action === 'rocket') {
+      setDevoteePhase('rocketEject', now, 1450);
+    } else {
+      setDevoteePhase('donutChase', now, 2850);
+      devoteeState.curve = new THREE.CatmullRomCurve3([
+        start,
+        start.clone().add(new THREE.Vector3(1.5, 0, 1.7)),
+        new THREE.Vector3(4.1, 0.05, start.z + 4.8),
+        new THREE.Vector3(5.6, 0.05, start.z + 8.8),
+        new THREE.Vector3(6.2, 0.05, 14.5)
+      ], false, 'centripetal');
+    }
+    return start;
   }
 
   // Prayer flags, side screens and lotus planters give the hall a lived-in scale.
@@ -2297,8 +2328,15 @@ async function boot() {
     }
   }
 
+  // Set only while a targeted gift effect is built; null means the altar is empty.
+  let giftImpactPosition = null;
+
   function playWorldGiftAction(action) {
     if (action === 'rocket') {
+      const impact = giftImpactPosition
+        ? giftImpactPosition.clone().add(new THREE.Vector3(0, 1.4, 0))
+        : new THREE.Vector3(0, 1.25, 1.0);
+      const launch = impact.clone().add(new THREE.Vector3(-8, 2.2, 4.6));
       const rocket = new THREE.Group();
       const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.9, 12), mats.redBright.clone());
       body.rotation.z = -Math.PI / 2; rocket.add(body);
@@ -2309,18 +2347,17 @@ async function boot() {
         const fin = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.34), finMaterial);
         fin.position.set(-0.32, side * 0.14, 0); rocket.add(fin);
       }
-      rocket.position.set(-8, 4.2, 3.5); rocket.rotation.y = -0.08;
+      rocket.position.copy(launch); rocket.rotation.y = -0.08;
       addEffect(rocket, (obj, dt, p) => {
-        obj.position.x = -8 + p * 8.4;
-        obj.position.y = 4.2 + Math.sin(p * Math.PI) * 0.8;
-        obj.position.z = 3.5 - p * 2.4;
+        obj.position.copy(launch).lerp(impact, p);
+        obj.position.y += Math.sin(p * Math.PI) * 0.7;
         obj.rotation.z = -0.08 + p * 0.12;
         if (p >= 0.98 && !obj.userData.detonated) {
           obj.userData.detonated = true;
           world.remove(obj);
-          makeRing(0, 1.25, 1.0, 0xffa52e);
-          makeRing(0, 1.35, 1.0, 0xffe18a);
-          giftSparkBurst(0, 1.5, 1.0, 28, 0xffa52e);
+          makeRing(impact.x, impact.y, impact.z, 0xffa52e);
+          makeRing(impact.x, impact.y + 0.08, impact.z, 0xffe18a);
+          giftSparkBurst(impact.x, impact.y + 0.12, impact.z, 28, 0xffa52e);
         }
       }, 1250);
       return;
@@ -2360,21 +2397,23 @@ async function boot() {
     if (action === 'donut') {
       const donutMaterial = new THREE.MeshStandardMaterial({ color: 0xf1a0bd, roughness: 0.38, metalness: 0.04 });
       const donut = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.22, 14, 36), donutMaterial);
-      donut.position.set(-7, 3.3, 4.0);
+      const target = giftImpactPosition ? giftImpactPosition.clone() : new THREE.Vector3(0, 0, 0);
+      const start = target.clone().add(new THREE.Vector3(-6.4, 2.8, 2.8));
+      const destination = target.clone().add(new THREE.Vector3(6.5, 2.4, 11.5));
+      donut.position.copy(start);
       const icing = new THREE.Mesh(new THREE.TorusGeometry(0.59, 0.055, 8, 36), mats.ivory.clone());
       icing.position.y = 0.08; donut.add(icing);
       addEffect(donut, (obj, dt, p) => {
-        obj.position.x = -7 + p * 14;
-        obj.position.y = 3.3 + Math.sin(p * Math.PI * 3) * 0.65;
-        obj.position.z = 4 - Math.sin(p * Math.PI) * 2.2;
+        obj.position.copy(start).lerp(destination, p);
+        obj.position.y += Math.sin(p * Math.PI * 4) * 0.42;
         obj.rotation.x += dt * 0.002;
         obj.rotation.y += dt * 0.004;
         obj.scale.setScalar(0.65 + Math.sin(p * Math.PI) * 0.3);
-        if (p > 0.55 && !obj.userData.trail) {
+        if (p > 0.42 && !obj.userData.trail) {
           obj.userData.trail = true;
-          for (let i = 0; i < 7; i++) makeRing((i - 3) * 0.32, 1.0, 3.2, 0xffc2dc);
+          for (let i = 0; i < 7; i++) makeRing(target.x + (i - 3) * 0.32, 0.9, target.z + 2.8, 0xffc2dc);
         }
-      }, 2450);
+      }, 2850);
       return;
     }
     if (action === 'rose') {
@@ -2428,7 +2467,10 @@ async function boot() {
     // presents a named devotee, not only incense. The name stays attached to
     // this active avatar until its ritual completes.
     const hasNamedDevotee = ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune'].includes(event.type);
-    if (hasNamedDevotee) enqueueDevotee(event);
+    const targetedGiftAction = ['offerGift', 'grandCeremony'].includes(event.type) ? resolveGiftAction(event) : null;
+    // Rocket/Donut act on the devotee already at the altar; the gift sender is
+    // not incorrectly cloned into a second, ordinary queue visit.
+    if (hasNamedDevotee && !['rocket', 'donut'].includes(targetedGiftAction)) enqueueDevotee(event);
     if (event.type === 'burnIncense') {
       incenseEffect(); makeRing(0, 1.2, -5.6);
     }
@@ -2462,7 +2504,13 @@ async function boot() {
   function onTempleGiftAction(event) {
     const action = event.detail?.action;
     if (!['rocket', 'dragon', 'donut', 'rose'].includes(action)) return;
-    playWorldGiftAction(action);
+    const impact = ['rocket', 'donut'].includes(action) ? ejectActiveDevotee(action) : null;
+    giftImpactPosition = impact;
+    try {
+      playWorldGiftAction(action);
+    } finally {
+      giftImpactPosition = null;
+    }
     applyGiftReactionProfile(event.detail?.reactionProfile);
   }
   function onTempleGiftReaction(event) {
@@ -2504,13 +2552,23 @@ async function boot() {
       const phaseElapsed = now - devoteeState.phaseStartedAt;
       const progress = Math.min(1, phaseElapsed / Math.max(1, devoteeState.phaseDuration));
       const eased = progress * progress * (3 - 2 * progress);
-      const walking = ['enter', 'approach', 'exit'].includes(devoteeState.phase);
+      const walking = ['enter', 'approach', 'exit', 'donutChase'].includes(devoteeState.phase);
       if (walking && devoteeState.curve) {
         const point = devoteeState.curve.getPoint(eased);
         const tangent = devoteeState.curve.getTangent(eased);
         mainDevotee.position.set(point.x, 0.05 + Math.abs(Math.sin(phaseElapsed * 0.012)) * 0.018, point.z);
         // Face the direction of travel; the avatar's local forward axis points toward -Z.
         mainDevotee.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
+      }
+      if (devoteeState.phase === 'rocketEject' && devoteeState.ejectionStart) {
+        const origin = devoteeState.ejectionStart;
+        mainDevotee.position.set(
+          origin.x + eased * 2.8,
+          origin.y + Math.sin(progress * Math.PI) * 2.6 + eased * 1.7,
+          origin.z + eased * 1.8
+        );
+        mainDevotee.rotation.z = -eased * 0.72;
+        mainDevotee.scale.setScalar(Math.max(0.12, 1 - eased * 0.86));
       }
       const walkPhase = phaseElapsed * 0.0085;
       const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;
@@ -2544,12 +2602,23 @@ async function boot() {
           mainHuman.kneelBlend = 0;
           applyHumanBow(mainHuman, 0);
           setDevoteePhase('exit', now, 3600);
+        } else if (['rocketEject', 'donutChase'].includes(devoteeState.phase)) {
+          devoteeState.active = false;
+          devoteeState.phase = 'idle';
+          devoteeState.event = null;
+          devoteeState.curve = null;
+          devoteeState.ejectionStart = null;
+          devoteeState.ejectionAction = null;
+          mainDevotee.visible = false;
+          mainDevotee.rotation.set(0, 0, 0);
+          mainDevotee.scale.setScalar(1);
+          startNextDevotee(now);
         } else if (devoteeState.phase === 'exit') {
           devoteeState.active = false;
           devoteeState.phase = 'idle';
           devoteeState.event = null;
           mainDevotee.visible = false;
-          mainDevotee.rotation.y = 0;
+          mainDevotee.rotation.set(0, 0, 0);
           // Keep the same shot while queued visitors remain; restore only when the queue drains.
           startNextDevotee(now);
         }
