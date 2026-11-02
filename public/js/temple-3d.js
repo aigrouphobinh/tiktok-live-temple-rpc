@@ -2525,7 +2525,12 @@ async function boot() {
   function onTempleGiftAction(event) {
     const action = event.detail?.action;
     if (!['rocket', 'dragon', 'donut', 'rose'].includes(action)) return;
-    const impact = ['rocket', 'donut'].includes(action) ? ejectActiveDevotee(action) : null;
+    // Respect the state machine's target ownership. A Rocket/Donut received
+    // while the altar is empty must not eject an unrelated 3D visitor.
+    const hasTarget = event.detail?.hasTarget === true;
+    const impact = hasTarget && ['rocket', 'donut'].includes(action)
+      ? ejectActiveDevotee(action)
+      : null;
     giftImpactPosition = impact;
     try {
       playWorldGiftAction(action);
