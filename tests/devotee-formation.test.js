@@ -79,13 +79,16 @@ describe('stable horizontal devotee formation', () => {
       x: -3.9,
       z: 11.8
     });
-    expect(getQueueActorFormationPosition(8)).toMatchObject({
+    const firstSeatInSecondRow = getQueueActorFormationPosition(8);
+    expect(firstSeatInSecondRow).toMatchObject({
+      slot: 8,
       role: 'waiting',
       column: 0,
       row: 1,
       x: -5.8,
-      z: 10.45
+      y: 0.05
     });
+    expect(firstSeatInSecondRow.z).toBeCloseTo(10.45, 6);
     const lastSeat = getQueueActorFormationPosition(39);
     expect(lastSeat).toMatchObject({
       role: 'waiting',
