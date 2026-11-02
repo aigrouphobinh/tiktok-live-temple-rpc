@@ -9,12 +9,11 @@ The user explicitly selected these two Sketchfab models. Treat these as the pref
 - License, downloadable status, file format, textures, scale and polygon count: **not yet verified**. Sketchfab model page currently blocks automated page inspection (HTTP 403); do not infer that the model is free or redistributable.
 - Intended integration: replace only the procedural seated Buddha; preserve the altar, custom aureole unless model includes a better one, ritual gift effects, and fixed elevated camera.
 
-## Human character — selected
-- Sketchfab: https://sketchfab.com/3d-models/girl-82f0a2eff77b47448402f40264b82055
-- Model UID: `82f0a2eff77b47448402f40264b82055`
-- Title supplied by user: **Girl**.
-- Creator, license, downloadable status, file format, textures, rig and animation clips: **not yet verified**. Sketchfab model page currently blocks automated page inspection (HTTP 403); do not infer that the model is free or redistributable.
-- Intended integration: replace procedural human devotee after verifying rig/animations; preserve the bow-from-waist animation and crowd/gift action state machine.
+## Human devotees — current approved direction
+- The earlier Sketchfab **Girl** candidate (UID `82f0a2eff77b47448402f40264b82055`) is superseded for the LIVE crowd. Its creator, license, download permission, rig and clips were never verified, and it is not bundled or loaded.
+- Active characters are generated from local Three.js geometry as **Vietnamese Ao Dai male and female rigs**. They have matching joint names and a shared animation contract; each visitor keeps the same gender and colourway from queue through altar and exit.
+- The new clothing includes a high collar, long sleeves, split front/back tunic panels, hem trim and light trousers. No remote model host or unverified third-party binary is required.
+- Keep the male/female silhouettes and animation behaviour together; do not re-enable the old `devotee-selected.glb` override without a separately approved, inspected asset.
 
 ## Required asset handoff and acceptance checks
 1. Download each model through its official Sketchfab **Download 3D Model** action if the creator enables it, and provide the downloaded GLB/glTF package (including textures if separate). If the Download action is unavailable, ask the creator for permission/a source file; do not rip the viewer or bypass access controls.
