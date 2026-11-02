@@ -45,6 +45,16 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('finishGiftEjectionHandoff();');
   });
 
+  it('keeps one-way entrance, FIFO queue order and a separate exit lane', () => {
+    expect(source).toContain("enter: [[-6.25, 0, 15.3], [-5.8, 0, 13.5], [-5.35, 0, 10.2], [-5.18, 0, 6.85]]");
+    expect(source).toContain("approach: [[-5.18, 0, 6.85], [-4.95, 0, 4.8], [-3.2, 0, 2.8], [-1.8, 0, -0.1], [0.0, 0, -3.55]]");
+    expect(source).toContain("exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]");
+    expect(source).toContain('actor.target.set(-5.18, 0.05, 6.85 + index * 1.55);');
+    expect(source).toContain("setDevoteePhase('enter', now, 3600);");
+    expect(source).toContain("setDevoteePhase('approach', now, 4200);");
+    expect(source).toContain("mainDevotee.position.set(-5.18, 0.05, 6.85);");
+  });
+
   it('renders queued visitors as bounded, reusable 3D actors on a separate side lane', () => {
     expect(source).toContain('const queueActors = new Map();');
     expect(source).toContain('const queueActorPool = [];');
