@@ -283,6 +283,8 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     if (!centralEl) return;
 
     clearProstrationTimers();
+    const spriteStack = document.getElementById('centralSpriteStack');
+    if (spriteStack) spriteStack.style.visibility = 'visible';
     updateCentralWorshipper(user, avatar, actionLabel, wish, false);
 
     // Khởi động bước đi từ cuối thảm đỏ lên chính điện
