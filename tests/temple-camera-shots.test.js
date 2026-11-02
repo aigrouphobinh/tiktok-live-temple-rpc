@@ -11,7 +11,20 @@ describe('3D temple camera shot sequence', () => {
     expect(scene).toContain('const cameraRitualPresets = [');
     expect(scene).toContain('if (cameraRitualActive) return;');
     expect(scene).toContain("activeCameraShot = 'procession';");
-    expect(scene).toContain('cameraTargetPosition.copy(activeCameraPreset.position);');
+    expect(scene).toContain('const cameraFollowX = person.x * 0.72;');
+    expect(scene).toContain('cameraTargetPosition.set(');
+    expect(scene).toContain('cameraFollowX + activeCameraPreset.position.x');
+    expect(scene).toContain('cameraFollowX + activeCameraPreset.targetOffsetX');
+  });
+
+  it('keeps the visitor centered during the side entrance and inward procession', () => {
+    const updateStart = scene.indexOf('function updateRitualCamera(dt)');
+    const updateEnd = scene.indexOf('\n  const mats = {', updateStart);
+    const update = scene.slice(updateStart, updateEnd);
+    expect(update).toContain('const cameraFollowX = person.x * 0.72;');
+    expect(update).toContain('cameraTargetPosition.set(');
+    expect(update).toContain('cameraTargetLookAt.set(');
+    expect(update).toContain('person.z');
   });
 
   it('moves to a real medium close-up only after the active visitor reaches the altar', () => {
