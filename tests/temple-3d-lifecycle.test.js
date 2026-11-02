@@ -11,6 +11,25 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('releaseWorldResources();');
   });
 
+  it('uses the character state machine as the sole source of 3D visitor starts and completions', () => {
+    expect(source).toContain("window.addEventListener('temple:character-start', onTempleCharacterStartForThreeD);");
+    expect(source).toContain("window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
+    expect(source).toContain("window.addEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);");
+    expect(source).toContain('const renderedDevoteeEvents = new WeakSet();');
+    expect(source).toContain('if (devoteeQueue.length >= 40) return;');
+    expect(source).toContain('function finishActiveDevotee(event');
+    expect(source).toContain('departingDevotees.push');
+    expect(source).toContain('devoteeState.pausedAt = performance.now();');
+  });
+
+  it('does not create a second 3D visitor for any mapped gift action', () => {
+    const start = source.indexOf('function handleRitual(event)');
+    const end = source.indexOf('function onTempleRitual(event)', start);
+    const handler = source.slice(start, end);
+    expect(handler).toContain('if (hasNamedDevotee && !targetedGiftAction) enqueueDevotee(event);');
+    expect(handler).not.toContain("!['rocket', 'donut'].includes(targetedGiftAction)");
+  });
+
   it('routes Rocket and Donut into 3D target removal and waits for the gift handoff', () => {
     expect(source).toContain("import { resolveGiftAction } from './gift-action-rules.js';");
     expect(source).toContain('function ejectActiveDevotee(action');
@@ -25,6 +44,27 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('finishGiftEjectionHandoff();');
   });
 
+  it('gives the congregation varied clothing, posture and subtle spacing', () => {
+    expect(source).toContain('const HUMAN_WARDROBE = [');
+    expect(source).toContain('avatar.kneelBlend = posture.kneel;');
+    expect(source).toContain('avatar.headingOffset = ((avatarIndex % 3) - 1) * 0.055;');
+    expect(source).toContain('const stagger = row % 2 ? 0.16 : -0.1;');
+  });
+
+  it('performs three separate bows during the 3D ritual phase', () => {
+    expect(source).toContain('bowCycles: 3,');
+    expect(source).toContain('bowCycleMs: 1050,');
+    expect(source).toContain("setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);");
+    expect(source).toContain("devoteeState.phase === 'ritual'\n        ? 0");
+  });
+
+  it('animates the previous visitor leaving while the next visitor enters', () => {
+    expect(source).toContain('const leaving = mainDevotee.clone(true);');
+    expect(source).toContain('function finishActiveDevotee(event');
+    expect(source).toContain('for (let i = departingDevotees.length - 1; i >= 0; i--)');
+    expect(source).toContain('startNextDevotee(now);');
+  });
+
   it('removes both gift event listeners when the scene is disposed', () => {
     const cleanupStart = source.indexOf('function releaseWorldResources()');
     const cleanupEnd = source.indexOf('function onVisibilityChange()', cleanupStart);
@@ -34,7 +74,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("window.addEventListener('temple:gift-reaction', onTempleGiftReaction);");
     expect(cleanup).toContain("window.removeEventListener('temple:gift-action', onTempleGiftAction);");
     expect(cleanup).toContain("window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);");
+    expect(cleanup).toContain("window.removeEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);");
     expect(cleanup).toContain("window.removeEventListener('temple:character-start', onTempleCharacterStartForThreeD);");
+    expect(cleanup).toContain("window.removeEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
     expect(cleanup).toContain("window.removeEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);");
   });
 
