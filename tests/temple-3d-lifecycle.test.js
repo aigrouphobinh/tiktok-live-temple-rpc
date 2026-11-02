@@ -93,6 +93,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('const queueKneelTarget = walking ? 0 : 1;');
+    expect(source).toContain('const queueRitualPose = getRitualPoseState({');
+    expect(source).toContain('bowCycles: 2,');
+    expect(source).toContain('applyHumanBow(avatar, avatar.bowAmount, avatar.kneelBlend);');
     expect(source).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
     expect(source).toContain('actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
