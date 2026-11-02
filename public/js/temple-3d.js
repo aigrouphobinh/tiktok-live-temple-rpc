@@ -2229,7 +2229,6 @@ async function boot() {
         avatar.gltfRig.leftLegChain = inspectLegChain(bones.leftLeg, bones.leftKnee, bones.leftFoot);
         avatar.gltfRig.rightLegChain = inspectLegChain(bones.rightLeg, bones.rightKnee, bones.rightFoot);
       }
-      }
       console.info(`[Temple3D] Quaternius glTF applied to ${pendingAvatars.length} new characters.`,
         'available clips:', Object.fromEntries(['male', 'female'].map((gender) => [gender,
           (devoteeModelAssets[gender].animations || []).map((clip) => ({
