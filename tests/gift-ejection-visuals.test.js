@@ -24,7 +24,7 @@ describe('Rocket and Donut 2D target ejection', () => {
   it('uses the state machine ejection result for the active and chained effect', () => {
     expect(engine).toContain('const targetEjected = Boolean(result.ejectedDevotee)');
     expect(engine).toContain('targetEjected: Boolean(result.ejectedDevotee)');
-    expect(engine).toContain('effectDurationMs: EFFECT_DURATION[action] || 3500');
+    expect(engine).toContain('const effectDurationMs = resolveGiftEffectDurationMs(action, reactionProfile)');
     expect(engine).toContain("new CustomEvent('temple:gift-effects-complete'");
   });
 
