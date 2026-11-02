@@ -102,3 +102,33 @@ export function getQueueActorFormationPosition(slot) {
     z: WAITING_SEAT_BASE_Z - row * WAITING_SEAT_ROW_SPACING
   };
 }
+
+
+/**
+ * Remembers side-lane visitors who have already completed their full bow
+ * sequence. Keep the identity reserved until the FIFO state machine emits
+ * character-complete; new event objects from that same pending visit are
+ * duplicates, not a new 3D worship session.
+ */
+export function createQueueWorshipLedger() {
+  const completedIdentities = new Set();
+  return Object.freeze({
+    mark(identity) {
+      if (typeof identity !== 'string' || !identity.trim()) return false;
+      completedIdentities.add(identity);
+      return true;
+    },
+    has(identity) {
+      return typeof identity === 'string' && completedIdentities.has(identity);
+    },
+    complete(identity) {
+      return typeof identity === 'string' && completedIdentities.delete(identity);
+    },
+    clear() {
+      completedIdentities.clear();
+    },
+    get size() {
+      return completedIdentities.size;
+    }
+  });
+}
