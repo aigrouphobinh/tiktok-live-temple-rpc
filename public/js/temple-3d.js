@@ -3662,9 +3662,10 @@ async function boot() {
     }
     if (devoteeState.active && !devoteeState.pausedAt) {
       const phaseElapsed = now - devoteeState.phaseStartedAt;
-      const progress = devoteeState.phase === 'ritual'
-        ? 0
-        : Math.min(1, phaseElapsed / Math.max(1, devoteeState.phaseDuration));
+      // Ritual is a finite phase too. Previously it was pinned to progress 0
+      // and MAX_SAFE_INTEGER duration, so the 3D visitor could remain frozen
+      // at the altar forever when no external character-complete event arrived.
+      const progress = Math.min(1, phaseElapsed / Math.max(1, devoteeState.phaseDuration));
       const eased = progress * progress * (3 - 2 * progress);
       const walking = ['enter', 'approach', 'exit', 'donutChase'].includes(devoteeState.phase);
       if (walking && devoteeState.curve) {
@@ -3691,7 +3692,9 @@ async function boot() {
       const ritualPose = getRitualPoseState({
         travel: devoteeState.phase === 'ritual' ? 1 : 0,
         elapsedAfterArrival: ritualElapsed,
-        remainingMs: devoteeState.phase === 'ritual' ? Number.MAX_SAFE_INTEGER : 0,
+        remainingMs: devoteeState.phase === 'ritual'
+          ? Math.max(0, devoteeState.phaseDuration - ritualElapsed)
+          : 0,
         kneelInMs: 520,
         bowDelayMs: 350,
         bowInMs: 900,
@@ -3719,7 +3722,9 @@ async function boot() {
         } else if (devoteeState.phase === 'approach') {
           mainDevotee.position.set(0, 0.05, -3.55);
           mainDevotee.rotation.y = 0;
-          setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);
+          // Match the 2D three-bow sequence (~5.35s) with a short settle
+          // buffer, then release the altar and let the visitor walk out.
+          setDevoteePhase('ritual', now, 6500);
         } else if (devoteeState.phase === 'ritual') {
           mainHuman.kneeling = false;
           mainHuman.kneelBlend = 0;
