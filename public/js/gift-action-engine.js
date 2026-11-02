@@ -318,7 +318,9 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
         startCharacterTimer(next.event);
       }
-    }, event?.type === 'drawFortune' ? 18000 : 7600);
+    // Give the 3D visitor enough time to enter, kneel and finish three bows
+    // before the state machine releases the altar to the next person.
+    }, event?.type === 'drawFortune' ? 18000 : 12500);
   }
 
   function beginEffect(action, giftEvent = null, { hasTarget = false, targetEjected = false } = {}) {
