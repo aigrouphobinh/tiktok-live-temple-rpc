@@ -33,19 +33,76 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   // Gift-specific SFX are routed through the shared audio engine so the
   // browser's user-gesture unlock and master SFX toggle remain authoritative.
   window.addEventListener('temple:gift-sfx', (event) => {
-    dispatchGiftSfx(audio, event.detail?.type, event.detail?.effectId);
+    const type = event.detail?.type;
+    const effectId = event.detail?.effectId;
+    const handled = dispatchGiftSfx(audio, type, effectId);
+    audio.lastGiftSfx = {
+      type: type || null,
+      effectId: effectId ?? null,
+      handled,
+      sfxEnabled: audio.sfxEnabled,
+      sfxVolume: audio.sfxVolume,
+      contextState: audio.ctx?.state || 'not-created',
+      at: new Date().toISOString()
+    };
+    if (!handled) console.warn('[TempleAudio] Unknown or unavailable gift SFX:', type);
   });
 
-  function unlockAudioOnce() {
-    audio.ensureContext();
-    const btnUnlock = document.getElementById('btnUnlockAudio');
-    if (btnUnlock) {
-      btnUnlock.textContent = '✅ Âm Thanh Chùa Đã Sẵn Sàng';
-      btnUnlock.classList.remove('gold');
-      btnUnlock.classList.add('active-toggle');
+  function unlockAudioFromGesture() {
+    try {
+      const ctx = audio.ensureContext();
+      if (ctx.state === 'suspended') {
+        // Resume directly inside the real user gesture; browsers may reject
+        // an autoplay resume requested later by an incoming LIVE gift event.
+        ctx.resume().then(() => {
+          audio.unlocked = ctx.state === 'running';
+          updateAudioUnlockButton();
+        }).catch((error) => {
+          audio.lastGiftSfxError = {
+            effect: 'audio-context-unlock',
+            message: String(error?.message || error),
+            at: new Date().toISOString()
+          };
+          console.warn('[TempleAudio] User-gesture unlock failed:', error);
+        });
+      }
+      updateAudioUnlockButton();
+    } catch (error) {
+      audio.lastGiftSfxError = {
+        effect: 'audio-context-unlock',
+        message: String(error?.message || error),
+        at: new Date().toISOString()
+      };
+      console.warn('[TempleAudio] Audio unlock failed:', error);
     }
   }
-  window.addEventListener('pointerdown', unlockAudioOnce, { once: true });
+
+  function updateAudioUnlockButton() {
+    const btnUnlock = document.getElementById('btnUnlockAudio');
+    if (!btnUnlock) return;
+    const ready = audio.ctx?.state === 'running';
+    btnUnlock.textContent = ready
+      ? '✅ Âm Thanh Chùa Đã Sẵn Sàng'
+      : '🔔 Bật Âm Thanh Chùa & Giọng Đọc';
+    btnUnlock.classList.toggle('gold', !ready);
+    btnUnlock.classList.toggle('active-toggle', ready);
+  }
+
+  // Keep retrying on real user gestures. A single failed early gesture must
+  // not permanently leave the LIVE audio context suspended.
+  window.addEventListener('pointerdown', unlockAudioFromGesture, { capture: true });
+  document.getElementById('btnUnlockAudio')?.addEventListener('click', () => {
+    unlockAudioFromGesture();
+    if (audio.sfxEnabled) audio.playIncenseChime();
+  });
+
+  window.__TEMPLE_AUDIO_DIAGNOSTICS__ = () => ({
+    contextState: audio.ctx?.state || 'not-created',
+    sfxEnabled: audio.sfxEnabled,
+    sfxVolume: audio.sfxVolume,
+    lastGiftSfx: audio.lastGiftSfx || null,
+    lastGiftSfxError: audio.lastGiftSfxError || null
+  });
 
   // 3. Vẽ các nén nhang đang cháy trong Lư Hương Đỉnh Đồng (x=540, y=895)
   const incenseHolder = document.getElementById('incenseSticksHolder');
@@ -899,11 +956,17 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     btn.classList.toggle('active-toggle', audio.ttsEnabled);
   });
 
-  document.getElementById('btnToggleSfx')?.addEventListener('click', (e) => {
+  const btnToggleSfx = document.getElementById('btnToggleSfx');
+  function syncSfxButton() {
+    if (!btnToggleSfx) return;
+    btnToggleSfx.textContent = `✨ Hiệu Ứng: ${audio.sfxEnabled ? 'BẬT' : 'TẮT'}`;
+    btnToggleSfx.classList.toggle('active-toggle', audio.sfxEnabled);
+  }
+  syncSfxButton(); // Reflect the persisted setting instead of hard-coding BẬT in HTML.
+  btnToggleSfx?.addEventListener('click', () => {
+    audio.ensureContext(); // The toggle click is also a valid browser audio gesture.
     audio.setSfxEnabled(!audio.sfxEnabled);
-    const btn = e.currentTarget;
-    btn.textContent = `✨ Hiệu Ứng: ${audio.sfxEnabled ? 'BẬT' : 'TẮT'}`;
-    btn.classList.toggle('active-toggle', audio.sfxEnabled);
+    syncSfxButton();
   });
 
   document.getElementById('btnToggleMusic')?.addEventListener('click', (e) => {
