@@ -99,7 +99,8 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('actor.avatar.offeringIncense = true;');
     expect(source).toContain('const offeringPose = getRitualPoseState({');
     expect(source).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
-    expect(source).toContain('actor.group.position.set(\n          (entryColumn - 3.5) * 1.12,');
+    expect(source).toContain('const entrySide = Math.ceil((entryColumn + 1) / 2);');
+    expect(source).toContain('(entryColumn % 2 === 0 ? -1 : 1) * (entrySide - 0.5) * 1.12,');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);');
