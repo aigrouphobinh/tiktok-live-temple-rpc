@@ -143,8 +143,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('function applyStandingPrayerPose(avatar)');
     expect(scene).toContain('rig.leftArm.rotation.z = rig.leftArmRest.z + 0.54;');
     expect(scene).toContain('root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand,');
-    expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18;');
-    expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.armOpen * 0.18;');
+    expect(scene).toContain('avatar.leftHand.rotation.z = -upperPose.handRoll;');
+    expect(scene).toContain('avatar.rightHand.rotation.z = upperPose.handRoll;');
   });
 
   it('uses the shared upper-body pose for a procedural kneeling bow', () => {
@@ -1046,7 +1046,7 @@ it('gives the custom Buddha a fuller seated silhouette and softer facial volume'
 describe('ritual prayer hand alignment', () => {
   it('keeps procedural and GLB forearms gathered through kneel and bow', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('prayer * 0.54 + bow * 0.035');
+    expect(scene).toContain('armOpen: prayer * 0.54 + bow * 0.035');
     expect(scene).toContain('rig.leftArmRest.z + prayer * 0.54 + amount * 0.035');
     expect(scene).toContain('rig.rightArmRest.z - prayer * 0.54 - amount * 0.035');
     expect(scene).toContain('avatar.leftHand.rotation.x = upperPose.wristPitch;');
