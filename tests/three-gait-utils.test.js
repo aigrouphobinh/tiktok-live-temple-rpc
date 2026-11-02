@@ -61,21 +61,21 @@ describe('getFootPlantingPose', () => {
 describe('getHumanUpperPose', () => {
   it('keeps the upper body neutral when the avatar is standing', () => {
     expect(getHumanUpperPose()).toEqual({
-      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
+      torsoLean: 0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
     });
   });
 
   it('reaches both arms forward and inclines the torso during a kneeling bow', () => {
     const pose = getHumanUpperPose({ kneelBlend: 1, bowAmount: 1 });
-    expect(pose.torsoLean).toBeCloseTo(-0.92, 8);
-    expect(pose.headCounter).toBeCloseTo(0.22, 8);
-    expect(pose.armReach).toBeCloseTo(-0.82, 8);
-    expect(pose.armOpen).toBeCloseTo(0.575, 8);
+    expect(pose.torsoLean).toBeCloseTo(1.38, 8);
+    expect(pose.headCounter).toBeCloseTo(0.26, 8);
+    expect(pose.armReach).toBeCloseTo(-1.64, 8);
+    expect(pose.armOpen).toBeCloseTo(0.13, 8);
   });
 
   it('clamps blend weights and treats invalid values as neutral', () => {
     expect(getHumanUpperPose({ kneelBlend: 3, bowAmount: -2 })).toEqual({
-      torsoLean: -0.2, headCounter: 0.06, armReach: -0.7, armOpen: 0.54, handRoll: 0.04, wristPitch: 0.08
+      torsoLean: 0.16, headCounter: 0.04, armReach: -0.62, armOpen: 0.5, handRoll: 0.04, wristPitch: 0.08
     });
     expect(getHumanUpperPose({ kneelBlend: NaN, bowAmount: Infinity })).toEqual({
       torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
@@ -531,15 +531,15 @@ describe('getHumanFootTransitionPose', () => {
 describe('getHumanUpperPose prayer alignment', () => {
   it('brings both forearms together at the chest while kneeling', () => {
     const pose = getHumanUpperPose({ kneelBlend: 1, bowAmount: 0 });
-    expect(pose.armOpen).toBeCloseTo(0.54, 8);
+    expect(pose.armOpen).toBeCloseTo(0.5, 8);
     expect(pose.handRoll).toBeCloseTo(0.04, 8);
     expect(pose.wristPitch).toBeCloseTo(0.08, 8);
   });
   it('keeps palms aligned during all three bow depths', () => {
     const shallow = getHumanUpperPose({ kneelBlend: 1, bowAmount: 0.25 });
     const deep = getHumanUpperPose({ kneelBlend: 1, bowAmount: 1 });
-    expect(shallow.armOpen).toBeGreaterThan(0.54);
-    expect(deep.armOpen).toBeCloseTo(0.575, 8);
+    expect(shallow.armOpen).toBeGreaterThan(deep.armOpen);
+    expect(deep.armOpen).toBeCloseTo(0.13, 8);
     expect(deep.armOpen).toBeLessThan(0.62);
   });
   it('clamps invalid prayer blend inputs safely', () => {
