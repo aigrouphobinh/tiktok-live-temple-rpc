@@ -2134,6 +2134,17 @@ async function boot() {
         const model = clone(asset.root);
         model.visible = true;
         model.traverse((node) => { node.visible = true; });
+        // loadGLTFAsset currently applies a shared -1 world-unit vertical
+        // pivot offset (used by the Buddha placement pipeline). Devotees are
+        // parented directly at their floor position, so cancel that offset
+        // here; otherwise the lower body is buried and only the head/torso show.
+        model.position.y += 1;
+        // Queue avatars use a shorter procedural rig than the main devotee.
+        // Match the imported character height to the avatar's intended size.
+        const intendedHeight = avatar.root.userData?.intendedHeight
+          || (avatar.queueWaiting ? 1.36 : 1.72);
+        const heightFactor = THREE.MathUtils.clamp(intendedHeight / 1.72, 0.72, 1.05);
+        model.scale.multiplyScalar(heightFactor);
         avatar.root.add(model);
         // Hide procedural fallback only after the imported model is attached.
         // Their primitive geometry/materials may be shared with cached meshes.
