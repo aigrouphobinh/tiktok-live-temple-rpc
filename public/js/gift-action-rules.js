@@ -49,10 +49,10 @@ export function resolveGiftReactionProfile(event = {}) {
 /** Bounded per-tier art direction shared by the 2D and Three.js effect paths. */
 export function resolveGiftVfxProfile(profile = {}) {
   const tiers = {
-    small:   { scale: 0.86, durationScale: 0.94, particles: 10, shockwaves: 1, aura: 0.18 },
-    medium:  { scale: 1.00, durationScale: 1.06, particles: 18, shockwaves: 2, aura: 0.36 },
-    large:   { scale: 1.24, durationScale: 1.20, particles: 30, shockwaves: 3, aura: 0.68 },
-    special: { scale: 1.52, durationScale: 1.36, particles: 44, shockwaves: 4, aura: 1.00 }
+    small:   { scale: 0.92, durationScale: 1.00, particles: 16, shockwaves: 2, aura: 0.24 },
+    medium:  { scale: 1.12, durationScale: 1.12, particles: 28, shockwaves: 3, aura: 0.46 },
+    large:   { scale: 1.42, durationScale: 1.28, particles: 48, shockwaves: 5, aura: 0.76 },
+    special: { scale: 1.82, durationScale: 1.48, particles: 72, shockwaves: 7, aura: 1.00 }
   };
   const tier = Object.prototype.hasOwnProperty.call(tiers, profile?.tier)
     ? profile.tier
