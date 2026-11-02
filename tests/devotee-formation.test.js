@@ -119,12 +119,14 @@ describe('stable horizontal devotee formation', () => {
       return Math.hypot(target.x - entry.x, target.z - entry.z);
     });
     expect(Math.max(...paths) - Math.min(...paths)).toBeLessThan(0.35);
-    expect(getQueueActorEntryPosition(4)).toMatchObject({
+    const waitingEntry = getQueueActorEntryPosition(4);
+    expect(waitingEntry).toMatchObject({
+      slot: 4,
       role: 'waiting',
       x: -5.8,
-      y: 0.05,
-      z: 12.85
+      y: 0.05
     });
+    expect(waitingEntry.z).toBeCloseTo(12.85, 6);
   });
 
   it('locks completed side-lane worship until the original FIFO visit completes', () => {
