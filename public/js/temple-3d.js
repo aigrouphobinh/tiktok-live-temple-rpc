@@ -2274,7 +2274,7 @@ async function boot() {
       const start = queueStart.clone();
       devoteeState.phase = 'approach';
       devoteeState.phaseStartedAt = now;
-      devoteeState.phaseDuration = 4200;
+      devoteeState.phaseDuration = 6500;
       devoteeState.curve = new THREE.CatmullRomCurve3([
         start,
         start.clone().add(new THREE.Vector3(0.05, 0, -1.9)),
@@ -2375,6 +2375,14 @@ async function boot() {
     clone.eyeWhites = mainHuman.eyeWhites.map(cloneNode);
     clone.eyePupils = mainHuman.eyePupils.map(cloneNode);
     clone.eyebrows = mainHuman.eyebrows.map(({ mesh, side }) => ({ mesh: cloneNode(mesh), side }));
+    // The previous visitor is cloned while still kneeling at the altar.
+    // Restore an upright pose before the independent exit walk begins.
+    clone.kneeling = false;
+    clone.kneelBlend = 0;
+    clone.bowing = false;
+    clone.bowAmount = 0;
+    clone.prayerPose = false;
+    applyHumanBow(clone, 0);
     return clone;
   }
 
@@ -2987,7 +2995,7 @@ async function boot() {
           mainDevotee.position.set(-3.65, 0.05, 8.0);
           setDevoteePhase('queue', now, 350);
         } else if (devoteeState.phase === 'queue') {
-          setDevoteePhase('approach', now, 4200);
+          setDevoteePhase('approach', now, 6500);
         } else if (devoteeState.phase === 'approach') {
           mainDevotee.position.set(0, 0.05, -3.55);
           mainDevotee.rotation.y = 0;
