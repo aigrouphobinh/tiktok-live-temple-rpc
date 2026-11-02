@@ -128,9 +128,12 @@ export function getRitualPoseState({
   bowInMs = 650,
   bowCycles = 1,
   bowCycleMs = bowInMs,
+  bowDownRatio = 0.30,
+  bowHoldRatio = 0.20,
+  bowUpRatio = 0.30,
   exitFadeMs = 650
 } = {}) {
-  const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const clamp01 = (value) => Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
   const smoothstep = (value) => {
     const t = clamp01(value);
     return t * t * (3 - 2 * t);
@@ -142,28 +145,60 @@ export function getRitualPoseState({
   const kneelBlend = hasArrived
     ? smoothstep(elapsed / Math.max(1, kneelInMs)) * smoothstep(remaining / Math.max(1, exitFadeMs))
     : 0;
+  const delay = Number.isFinite(bowDelayMs) ? Math.max(0, bowDelayMs) : 0;
   let bowPulse = 0;
+  let bowPhase = hasArrived ? 'preparing' : 'approach';
+  let bowCycle = 0;
+
   if (hasArrived && Number.isFinite(bowCycles) && bowCycles > 1
     && Number.isFinite(bowCycleMs) && bowCycleMs > 0) {
-    const cycleElapsed = elapsed - bowDelayMs;
-    const totalCycleMs = Math.floor(bowCycles) * bowCycleMs;
+    const cycleCount = Math.max(1, Math.floor(bowCycles));
+    const cycleElapsed = elapsed - delay;
+    const totalCycleMs = cycleCount * bowCycleMs;
     if (cycleElapsed >= 0 && cycleElapsed < totalCycleMs) {
+      bowCycle = Math.floor(cycleElapsed / bowCycleMs) + 1;
       const cycleProgress = (cycleElapsed % bowCycleMs) / bowCycleMs;
-      const descent = smoothstep(cycleProgress / 0.32);
-      const recovery = 1 - smoothstep((cycleProgress - 0.48) / 0.32);
-      bowPulse = Math.min(descent, recovery);
+      let down = clamp01(bowDownRatio);
+      let hold = clamp01(bowHoldRatio);
+      let up = clamp01(bowUpRatio);
+      const activeRatio = down + hold + up;
+      if (activeRatio > 1) {
+        down /= activeRatio;
+        hold /= activeRatio;
+        up /= activeRatio;
+      }
+      if (down > 0 && cycleProgress < down) {
+        bowPulse = smoothstep(cycleProgress / down);
+        bowPhase = 'lowering';
+      } else if (cycleProgress < down + hold) {
+        bowPulse = 1;
+        bowPhase = 'holding';
+      } else if (up > 0 && cycleProgress < down + hold + up) {
+        bowPulse = 1 - smoothstep((cycleProgress - down - hold) / up);
+        bowPhase = 'rising';
+      } else {
+        bowPhase = 'resting';
+      }
+    } else if (cycleElapsed < 0) {
+      bowPhase = 'preparing';
+    } else {
+      bowPhase = 'complete';
     }
   } else if (hasArrived) {
-    // Preserve the legacy single-bow envelope for existing callers.
-    bowPulse = smoothstep((elapsed - bowDelayMs) / Math.max(1, bowInMs));
+    const bowProgress = (elapsed - delay) / Math.max(1, bowInMs);
+    bowPulse = smoothstep(bowProgress);
+    bowPhase = elapsed < delay ? 'preparing' : bowPulse < 0.999 ? 'lowering' : 'holding';
+    bowCycle = elapsed >= delay ? 1 : 0;
   }
-  const bowAmount = bowPulse * (hasArrived
-    ? smoothstep(remaining / Math.max(1, exitFadeMs))
-    : 0);
+
+  const exitEnvelope = hasArrived ? smoothstep(remaining / Math.max(1, exitFadeMs)) : 0;
+  const bowAmount = bowPulse * exitEnvelope;
   return {
     walking: progress < 0.92,
     kneelBlend,
-    bowAmount
+    bowAmount,
+    bowPhase,
+    bowCycle
   };
 }
 
