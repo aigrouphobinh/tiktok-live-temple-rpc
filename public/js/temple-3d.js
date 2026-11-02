@@ -3635,8 +3635,8 @@ async function boot() {
     statueRimLight.intensity = 0.82 + auraPulse * 1.1;
     mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;
     mats.statueStone.emissiveIntensity = 0.085 + auraPulse * 0.06;
-    buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;
-    altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
+    buddhaLight.intensity = 19 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;
+    altarFill.intensity = 21 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
     offeringFlames.forEach((flame, i) => { const flicker = 1 + Math.sin(elapsed * 0.018 + i * 2.1) * 0.09; flame.scale.set(0.72 * flicker, 1.5 * flicker, 0.72 * flicker); });
     offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
