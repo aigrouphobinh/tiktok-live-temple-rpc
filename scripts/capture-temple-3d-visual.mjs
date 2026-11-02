@@ -554,6 +554,14 @@ try {
           activeUser: profileReport.singleViewerDiagnostic?.activeUser || null,
           visibleSceneActorCount: profileReport.singleViewerDiagnostic?.visibleSceneActorCount || 0
         });
+        // The solo-viewer scenario is created after the shared scene snapshot;
+        // evaluate its assertion only after the synthetic visitor has arrived.
+        profileReport.checks.singleViewerRendersOneCharacter =
+          profileReport.singleViewerDiagnostic?.activeUser === 'AuditSolo'
+          && profileReport.singleViewerDiagnostic?.visibleSceneActorCount === 1
+          && profileReport.singleViewerDiagnostic?.visibleQueueActors === 0
+          && profileReport.singleViewerDiagnostic?.backgroundNpcCount === 0;
+        profileReport.checks.passed = Object.values(profileReport.checks).every(Boolean);
       }
 
       if (scenario.id === 'high') {
