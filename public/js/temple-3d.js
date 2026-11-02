@@ -36,6 +36,9 @@ if (enabled && stage && canvas) {
 
 async function boot() {
   const THREE = await import('three');
+  // Read optional skin configuration before any avatar is constructed below.
+  // makeHumanAvatar() is called before the later model-loading section.
+  const devoteeModelsRequested = new URLSearchParams(location.search).get('devoteeModels') === '1';
   const renderProfile = getTempleRenderProfile({
     devicePixelRatio: window.devicePixelRatio || 1,
     deviceMemory: navigator.deviceMemory,
@@ -3143,7 +3146,7 @@ async function boot() {
   const buddhaModelRequested = modelParams.get('buddha') !== '0';
   // Ao Dai male/female are the default live characters. Imported Quaternius
   // devotees are an explicit optional skin pack, never an automatic replacement.
-  const devoteeModelsRequested = modelParams.get('devoteeModels') === '1';
+
   // Yaw is deliberately applied on a separate pivot so it never overwrites
   // the GLB loader's ground/roll correction quaternion.
   let buddhaYawPivot = null;
