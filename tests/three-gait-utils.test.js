@@ -473,3 +473,32 @@ describe('getDistanceBasedGaitPhase', () => {
     }
   });
 });
+
+
+describe('getHumanFootTransitionPose', () => {
+  it('blends the last walking step smoothly into a kneeling pose', () => {
+    const walking = getHumanFootTransitionPose({ phase: Math.PI / 2, walkBlend: 1, kneelBlend: 0 });
+    const halfway = getHumanFootTransitionPose({ phase: Math.PI / 2, walkBlend: 0.5, kneelBlend: 0.5 });
+    const kneeling = getHumanFootTransitionPose({ phase: Math.PI / 2, walkBlend: 0, kneelBlend: 1 });
+    expect(walking.footLift).toBeGreaterThan(0);
+    expect(halfway.footLift).toBeCloseTo(walking.footLift * 0.5, 8);
+    expect(halfway.kneeRotationX).toBeGreaterThan(walking.kneeRotationX);
+    expect(halfway.kneeRotationX).toBeLessThan(kneeling.kneeRotationX);
+    expect(kneeling.planted).toBe(true);
+  });
+
+  it('normalizes overlapping walk and kneel weights without overdriving joints', () => {
+    const pose = getHumanFootTransitionPose({ phase: 0.8, walkBlend: 1, kneelBlend: 1 });
+    const walkOnly = getHumanFootTransitionPose({ phase: 0.8, walkBlend: 0.5, kneelBlend: 0.5 });
+    expect(pose.hipRotationX).toBeCloseTo(walkOnly.hipRotationX, 8);
+    expect(pose.kneeRotationX).toBeCloseTo(walkOnly.kneeRotationX, 8);
+    expect(pose.footLift).toBeCloseTo(walkOnly.footLift, 8);
+  });
+
+  it('treats invalid transition weights as neutral', () => {
+    const pose = getHumanFootTransitionPose({ phase: NaN, walkBlend: NaN, kneelBlend: Infinity });
+    expect(pose.hipRotationX).toBe(0);
+    expect(pose.kneeRotationX).toBe(0);
+    expect(pose.footLift).toBe(0);
+  });
+});
