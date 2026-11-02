@@ -114,6 +114,40 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .test-hint {
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .test-status {
+      min-height: 22px;
+      color: #9ef0c0;
+      font-size: 13px;
+    }
+    .test-options {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .test-options input {
+      width: auto;
+      accent-color: var(--gold);
+    }
+    @media (max-width: 800px) {
+      body { padding: 14px; }
+      .grid { grid-template-columns: 1fr; }
+      .test-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .top-bar { align-items: flex-start; flex-direction: column; gap: 14px; }
+      .top-links { flex-wrap: wrap; }
+      .row { flex-wrap: wrap; }
+    }
     pre {
       background: #0b0202;
       border: 1px solid rgba(244, 193, 80, 0.25);
@@ -134,8 +168,8 @@
         <div class="top-sub" id="statusBanner">Đang tải trạng thái hệ thống...</div>
       </div>
       <div class="top-links">
-        <a class="btn" href="/?obs=1" target="_blank">📺 Mở Màn Hình OBS 9:16 Sạch (?obs=1)</a>
-        <a class="btn gold" href="/" target="_blank">🪷 Mở Màn Hình Live Chính</a>
+        <a class="btn" href="/?obs=1&3d=1" target="_blank">📺 Mở Màn Hình OBS 9:16 3D</a>
+        <a class="btn gold" href="/?3d=1" target="_blank">🪷 Mở Live 3D</a>
       </div>
     </header>
 
@@ -173,7 +207,31 @@
       </section>
 
       <section class="card">
-        <h2>💬 3. Giả Lập Bình Luận Người Xem TikTok</h2>
+        <h2>🧪 3. Kiểm Tra Hiệu Ứng Live / 3D</h2>
+        <p class="test-hint">Các nút gửi hiệu ứng thử tới những màn hình Live/OBS đang kết nối. Chế độ test không cộng công đức, không tăng bộ đếm và không lưu sự kiện vào lịch sử TikTok.</p>
+        <label class="test-options">
+          <input type="checkbox" id="testWithTarget" checked />
+          Kèm một thí chủ thử nghiệm cho Rocket / Dragon / Donut / Rose
+        </label>
+        <div class="test-grid">
+          <button class="btn" data-test-effect="incense">🔥 Thắp hương</button>
+          <button class="btn" data-test-effect="lantern">🏮 Hoa đăng</button>
+          <button class="btn" data-test-effect="woodenFish">🪵 Tiếng mõ</button>
+          <button class="btn" data-test-effect="bell">🔔 Đại hồng chung</button>
+          <button class="btn" data-test-effect="fortune">🎋 Xin xăm / mở quẻ</button>
+          <button class="btn" data-test-effect="lotusGift">🪷 Dâng hoa sen</button>
+          <button class="btn gold" data-test-effect="rocket">🚀 Rocket + nổ</button>
+          <button class="btn gold" data-test-effect="dragon">🐉 Dragon + long khí</button>
+          <button class="btn" data-test-effect="donut">🍩 Donut dụ thí chủ</button>
+          <button class="btn" data-test-effect="rose">🌹 Hoa hồng + cánh hoa</button>
+          <button class="btn gold" data-test-effect="grand">✨ Đại lễ + hào quang đặc biệt</button>
+        </div>
+        <p class="test-status" id="testEffectStatus" aria-live="polite">Sẵn sàng kiểm tra hiệu ứng.</p>
+        <p class="test-hint">Âm thanh quà tặng đi cùng hiệu ứng (phóng tên lửa, tiếng nổ, tiếng rồng, chuông Donut/Hoa hồng). Để nghe âm thanh, mở màn hình Live/OBS và nhấp một lần vào màn hình đó để mở khóa âm thanh trình duyệt.</p>
+      </section>
+
+      <section class="card">
+        <h2>💬 4. Giả Lập Bình Luận Người Xem TikTok</h2>
         <div class="row">
           <input type="text" id="simComment" value="Con xin gieo quẻ cầu tài lộc đầu tháng ạ" placeholder="Nhập nội dung bình luận TikTok..." />
           <button class="btn gold" id="btnSendComment">Gửi Comment</button>
@@ -184,7 +242,7 @@
       </section>
 
       <section class="card">
-        <h2>🔌 4. Nhật Ký Phản Hồi JSON-RPC 2.0 (`/rpc`)</h2>
+        <h2>🔌 5. Nhật Ký Phản Hồi JSON-RPC 2.0 (`/rpc`)</h2>
         <pre id="rpcOutput">{ "status": "Sẵn sàng nhận lệnh JSON-RPC 2.0" }</pre>
       </section>
     </div>
@@ -210,6 +268,28 @@
       refreshStatus();
       return data;
     }
+
+    async function runEffectTest(effect) {
+      const status = document.getElementById('testEffectStatus');
+      const withTarget = document.getElementById('testWithTarget').checked;
+      status.textContent = 'Đang gửi test: ' + effect + '...';
+      try {
+        const response = await sendRpc('temple.testEffect', { effect, withTarget });
+        if (response?.error) {
+          status.textContent = 'Lỗi test ' + effect + ': ' + response.error.message;
+          return;
+        }
+        const result = response?.result || {};
+        status.textContent = 'Đã gửi ' + (result.label || effect) + ' tới ' +
+          (result.connectedScreens ?? 0) + ' màn hình Live/OBS đang kết nối.';
+      } catch (error) {
+        status.textContent = 'Không gửi được test ' + effect + ': ' + error.message;
+      }
+    }
+
+    document.querySelectorAll('[data-test-effect]').forEach((button) => {
+      button.addEventListener('click', () => runEffectTest(button.dataset.testEffect));
+    });
 
     document.getElementById('btnConn').onclick = () => {
       const username = document.getElementById('ttUser').value.trim();
