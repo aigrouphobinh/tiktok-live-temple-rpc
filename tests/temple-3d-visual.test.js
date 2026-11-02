@@ -31,7 +31,7 @@ describe('3D sanctuary visual treatment', () => {
   expect(scene).toContain("headPivot.name = 'AbbotRespectfulBowHeadPivot';");
   expect(scene).toContain('root.userData.headPivot = headPivot;');
   expect(scene).toContain('templeAbbot.userData.headPivot.rotation.x = 0.015 + abbotBowAmount * 0.22;');
-  expect(scene).toContain("window.__TEMPLE_ABBOT_DIAGNOSTIC__.facing = 'devotees';");
+  expect(scene).toContain("position: root.position.toArray(), height: 2.61, facing: 'devotees', bowAmount: 0");
   expect(scene).toContain('const templeAbbot = makeTempleAbbot();');
   expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
   expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
@@ -410,7 +410,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("const modelsRequested = modelParams.get('models') === '1';");
     expect(scene).toContain('if (disposed) {');
-    expect(scene).toContain('statue.add(asset.root)');
+    expect(scene).toContain('buddhaYawPivot.add(asset.root);');
+    expect(scene).toContain('asset.root.visible = true;');
     expect(scene).toContain("diagnostics.state = 'fallback';");
     expect(scene).toContain('No bundled Buddha GLB could be loaded; procedural statue remains visible.');
     expect(scene).toContain('const statue = new THREE.Group()');
@@ -581,7 +582,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("const devoteeModelsRequested = new URLSearchParams(location.search).get('devoteeModels') === '1';");
     expect(scene).toContain('if (devoteeModelsRequested && devoteeModelAssets) void upgradeDevoteesFromGLB();');
-    expect(scene).not.toContain('void upgradeDevoteesFromGLB()');
+    expect(scene).toContain('if (devoteeModelsRequested) void upgradeDevoteesFromGLB();');
+    expect(scene).not.toContain('if (devoteeModelAssets) void upgradeDevoteesFromGLB();');
     expect(scene).toContain('createAoDaiAvatarVariants(THREE, { height, appearance })');
   });
 
@@ -835,9 +837,10 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 });
   it('eases the devotee bow pose smoothly into and out of the ritual', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('const ritualPose = getRitualPoseState({');
+    expect(scene).toContain('const ritualPose = devoteeState.alreadyWorshippedInQueue');
+    expect(scene).toContain(': getRitualPoseState({');
     expect(scene).toContain('elapsedAfterArrival: ritualElapsed,');
-    expect(scene).toContain('remainingMs: devoteeState.phase === \'ritual\'\n          ? Math.max(0, devoteeState.phaseDuration - ritualElapsed)\n          : 0,');
+    expect(scene).toContain('remainingMs: devoteeState.phase === \'ritual\'\n              ? Math.max(0, devoteeState.phaseDuration - ritualElapsed)\n              : 0,');
     expect(scene).toContain("bowCycles: 3,");
     expect(scene).toContain("bowCycleMs: 1500,");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
@@ -1162,7 +1165,7 @@ describe('3D multi-devotee incense offering', () => {
     const promotion = scene.slice(start, end);
     expect(promotion).toContain('const candidateIndex = requestedEvent\n      ? devoteeQueue.indexOf(requestedEvent)');
     expect(promotion).toContain('const canPromote = !candidateActor || (');
-    expect(promotion).toContain('startNextDevotee(now, startedEvent);');
+    expect(scene).toContain('startNextDevotee(now, startedEvent);');
     expect(promotion).toContain('!actor.avatar.queuedWorshipLane');
     expect(promotion).toContain('!actor.avatar.queueWorshipCompleted');
     expect(scene).toContain('function departCompletedQueueWorship(actor, now = performance.now())');
