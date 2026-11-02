@@ -24,6 +24,7 @@ describe('Ritual visit timing', () => {
     expect(scene).toContain('mainDevotee.position.copy(queueStart || new THREE.Vector3(-4.55, 0.05, 15.3));');
     expect(scene).toContain("enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]]");
     expect(scene).toContain('const altarColumns = 8;');
-    expect(scene).toContain('const altarX = (column - (altarColumns - 1) / 2) * 1.12;');
+    expect(scene).toContain('const altarSide = Math.ceil((column + 1) / 2);');
+    expect(scene).toContain('const altarX = (column % 2 === 0 ? -1 : 1) * (altarSide - 0.5) * 1.12;');
   });
 });
