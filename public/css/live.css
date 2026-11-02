@@ -59,7 +59,10 @@ body.obs-mode .quick-dock {
 }
 
 body.obs-mode .stage-wrapper {
-  height: 100vh;
+  width: min(100vw, 56.25vh);
+  height: min(100vh, 177.777778vw);
+  flex: 0 0 auto;
+  aspect-ratio: 9 / 16;
   border-radius: 0;
   border: none;
 }
