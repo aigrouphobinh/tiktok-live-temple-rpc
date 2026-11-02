@@ -2021,7 +2021,8 @@ async function boot() {
   const devoteeState = {
     active: false, phase: 'idle', event: null, startedAt: 0,
     phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0,
-    ejectionStart: null, ejectionAction: null
+    ejectionStart: null, ejectionAction: null, ejectionMotionDuration: 0,
+    awaitingGiftHandoff: false
   };
   const devoteeRoutes = {
     enter: [[5.2, 0, 14.5], [4.9, 0, 12.0], [4.2, 0, 9.4], [3.8, 0, 7.2]],
@@ -2039,6 +2040,7 @@ async function boot() {
     if (phase === 'ritual') devoteeState.arrivedAt = now;
   }
   function startNextDevotee(now = performance.now()) {
+    if (devoteeState.awaitingGiftHandoff) return;
     if (devoteeState.active || !devoteeQueue.length) {
       if (!devoteeState.active && !devoteeQueue.length) restoreMainCamera();
       return;
@@ -2053,6 +2055,8 @@ async function boot() {
     mainDevotee.scale.setScalar(1);
     devoteeState.ejectionStart = null;
     devoteeState.ejectionAction = null;
+    devoteeState.ejectionMotionDuration = 0;
+    devoteeState.awaitingGiftHandoff = false;
     mainHuman.kneeling = false;
     mainHuman.kneelBlend = 0;
     mainHuman.bowing = false;
@@ -2064,6 +2068,21 @@ async function boot() {
     if (!event) return;
     devoteeQueue.push(event);
     startNextDevotee();
+  }
+
+  function finishGiftEjectionHandoff(now = performance.now()) {
+    if (!devoteeState.awaitingGiftHandoff) return false;
+    devoteeState.awaitingGiftHandoff = false;
+    startNextDevotee(now);
+    return true;
+  }
+
+  function onTempleCharacterStartForThreeD() {
+    finishGiftEjectionHandoff();
+  }
+
+  function onTempleGiftEffectsComplete() {
+    finishGiftEjectionHandoff();
   }
 
   function ejectActiveDevotee(action, now = performance.now()) {
@@ -2078,9 +2097,11 @@ async function boot() {
     applyHumanBow(mainHuman, 0);
 
     if (action === 'rocket') {
-      setDevoteePhase('rocketEject', now, 1450);
+      devoteeState.ejectionMotionDuration = 1450;
+      setDevoteePhase('rocketEject', now, devoteeState.ejectionMotionDuration);
     } else {
-      setDevoteePhase('donutChase', now, 2850);
+      devoteeState.ejectionMotionDuration = 2850;
+      setDevoteePhase('donutChase', now, devoteeState.ejectionMotionDuration);
       devoteeState.curve = new THREE.CatmullRomCurve3([
         start,
         start.clone().add(new THREE.Vector3(1.5, 0, 1.7)),
@@ -2520,6 +2541,8 @@ async function boot() {
   window.addEventListener('temple:ritual', onTempleRitual);
   window.addEventListener('temple:gift-action', onTempleGiftAction);
   window.addEventListener('temple:gift-reaction', onTempleGiftReaction);
+  window.addEventListener('temple:character-start', onTempleCharacterStartForThreeD);
+  window.addEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);
 
   // Add the independent roofless architectural detail layer to the same scene.
   // It shares the renderer, camera and animation loop; no extra lights are created.
@@ -2609,10 +2632,11 @@ async function boot() {
           devoteeState.curve = null;
           devoteeState.ejectionStart = null;
           devoteeState.ejectionAction = null;
+          devoteeState.ejectionMotionDuration = 0;
+          devoteeState.awaitingGiftHandoff = true;
           mainDevotee.visible = false;
           mainDevotee.rotation.set(0, 0, 0);
           mainDevotee.scale.setScalar(1);
-          startNextDevotee(now);
         } else if (devoteeState.phase === 'exit') {
           devoteeState.active = false;
           devoteeState.phase = 'idle';
@@ -2725,6 +2749,8 @@ async function boot() {
     window.removeEventListener('temple:ritual', onTempleRitual);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
     window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);
+    window.removeEventListener('temple:character-start', onTempleCharacterStartForThreeD);
+    window.removeEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);
     canvas.removeEventListener('pointermove', onWorldPointerMove);
     canvas.removeEventListener('pointerdown', onWorldPointerDown);
     canvas.removeEventListener('pointerup', onWorldPointerUp);
