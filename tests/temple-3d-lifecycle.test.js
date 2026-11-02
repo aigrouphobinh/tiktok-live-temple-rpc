@@ -3,8 +3,16 @@ import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
 const avatarSource = readFileSync(new URL('../public/js/ao-dai-avatar.js', import.meta.url), 'utf8');
+const modelLoaderSource = readFileSync(new URL('../public/js/three-model-loader.js', import.meta.url), 'utf8');
 
 describe('Three.js lifecycle recovery', () => {
+  it('keeps GLB triangle counts in scope through the returned asset diagnostics', () => {
+    expect(modelLoaderSource).toContain('let triangleCount = 0;');
+    expect(modelLoaderSource.indexOf('let triangleCount = 0;'))
+      .toBeLessThan(modelLoaderSource.indexOf('try {'));
+    expect(modelLoaderSource).toContain('triangleCount,');
+  });
+
   it('uses one idempotent cleanup path for context loss and page teardown', () => {
     expect(source).toContain('let resourcesDisposed = false;');
     expect(source).toContain('function releaseWorldResources()');
