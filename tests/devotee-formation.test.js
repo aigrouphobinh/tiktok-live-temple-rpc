@@ -79,6 +79,9 @@ describe('stable horizontal devotee formation', () => {
       'worship', 'worship', 'worship', 'worship'
     ]);
     expect(visibleQueue.map(({ x }) => x)).toEqual([-1.05, 1.05, -3.15, 3.15, -0.84]);
+    expect(visibleQueue.slice(0, 4).map(({ x, z }) => [x, z])).toEqual([
+      [-1.05, -1.65], [1.05, -1.65], [-3.15, -1.35], [3.15, -1.35]
+    ]);
 
     const firstWaitingRow = Array.from({ length: WAITING_SEAT_COLUMNS }, (_, column) =>
       getQueueActorFormationPosition(column + MAX_QUEUED_WORSHIPPERS)
