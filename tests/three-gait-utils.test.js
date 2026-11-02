@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -477,9 +477,9 @@ describe('getDistanceBasedGaitPhase', () => {
 
 describe('getHumanFootTransitionPose', () => {
   it('blends the last walking step smoothly into a kneeling pose', () => {
-    const walking = getHumanFootTransitionPose({ phase: Math.PI / 2, walkBlend: 1, kneelBlend: 0 });
-    const halfway = getHumanFootTransitionPose({ phase: Math.PI / 2, walkBlend: 0.5, kneelBlend: 0.5 });
-    const kneeling = getHumanFootTransitionPose({ phase: Math.PI / 2, walkBlend: 0, kneelBlend: 1 });
+    const walking = getHumanFootTransitionPose({ phase: 5.3, walkBlend: 1, kneelBlend: 0 });
+    const halfway = getHumanFootTransitionPose({ phase: 5.3, walkBlend: 0.5, kneelBlend: 0.5 });
+    const kneeling = getHumanFootTransitionPose({ phase: 5.3, walkBlend: 0, kneelBlend: 1 });
     expect(walking.footLift).toBeGreaterThan(0);
     expect(halfway.footLift).toBeCloseTo(walking.footLift * 0.5, 8);
     expect(halfway.kneeRotationX).toBeGreaterThan(walking.kneeRotationX);
