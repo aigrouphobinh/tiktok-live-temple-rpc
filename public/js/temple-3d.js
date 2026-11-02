@@ -1985,7 +1985,46 @@ async function boot() {
   function updateMainDevoteeName(user) {
     devoteeNameTag.userData.setName(user || 'Thí Chủ Hữu Duyên');
   }
-  const devoteeState={active:false,startedAt:0,duration:2600,arrivedAt:0};
+  const devoteeQueue = [];
+  const devoteeState = {
+    active: false, phase: 'idle', event: null, startedAt: 0,
+    phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0
+  };
+  const devoteeRoutes = {
+    enter: [[5.2, 0, 14.5], [4.9, 0, 12.0], [4.2, 0, 9.4], [3.8, 0, 7.2]],
+    approach: [[3.8, 0, 7.2], [3.8, 0, 5.0], [2.6, 0, 2.2], [0.0, 0, -3.55]],
+    exit: [[0.0, 0, -3.55], [-1.8, 0, -0.5], [-3.8, 0, 3.8], [-5.2, 0, 9.0], [-5.5, 0, 13.5]]
+  };
+  function setDevoteePhase(phase, now, duration) {
+    devoteeState.phase = phase;
+    devoteeState.phaseStartedAt = now;
+    devoteeState.phaseDuration = duration;
+    const route = devoteeRoutes[phase];
+    devoteeState.curve = route
+      ? new THREE.CatmullRomCurve3(route.map(([x, y, z]) => new THREE.Vector3(x, y, z)), false, 'centripetal')
+      : null;
+    if (phase === 'ritual') devoteeState.arrivedAt = now;
+  }
+  function startNextDevotee(now = performance.now()) {
+    if (devoteeState.active || !devoteeQueue.length) return;
+    devoteeState.event = devoteeQueue.shift();
+    devoteeState.active = true;
+    updateMainDevoteeName(devoteeState.event.user);
+    mainDevotee.visible = true;
+    mainDevotee.position.set(5.2, 0.05, 14.5);
+    mainDevotee.scale.setScalar(1);
+    mainHuman.kneeling = false;
+    mainHuman.kneelBlend = 0;
+    mainHuman.bowing = false;
+    mainHuman.bowAmount = 0;
+    applyHumanBow(mainHuman, 0);
+    setDevoteePhase('enter', now, 3000);
+  }
+  function enqueueDevotee(event) {
+    if (!event) return;
+    devoteeQueue.push(event);
+    startNextDevotee();
+  }
 
   // Prayer flags, side screens and lotus planters give the hall a lived-in scale.
   for (const x of [-6.2, 6.2]) {
@@ -2354,21 +2393,7 @@ async function boot() {
     // presents a named devotee, not only incense. The name stays attached to
     // this active avatar until its ritual completes.
     const hasNamedDevotee = ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune'].includes(event.type);
-    if (hasNamedDevotee) {
-      updateMainDevoteeName(event.user);
-      mainDevotee.visible = true;
-      mainDevotee.position.z = 7.5;
-      mainDevotee.scale.setScalar(1);
-      mainDevotee.rotation.x = 0;
-      mainHuman.upperBody.rotation.x = 0;
-      mainHuman.head.rotation.x = 0;
-      mainHuman.kneeling = false;
-      mainHuman.kneelBlend = 0;
-      applyHumanBow(mainHuman, 0);
-      devoteeState.active = true;
-      devoteeState.startedAt = performance.now();
-      devoteeState.arrivedAt = 0;
-    }
+    if (hasNamedDevotee) enqueueDevotee(event);
     if (event.type === 'burnIncense') {
       incenseEffect(); makeRing(0, 1.2, -5.6);
     }
@@ -2440,30 +2465,57 @@ async function boot() {
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
     if (devoteeState.active) {
-      const travel = Math.min(1, (now - devoteeState.startedAt) / devoteeState.duration);
-      const eased = travel * travel * (3 - 2 * travel);
-      // Use eased world-space distance, matching the actual translation below.
-      const walkPhase = (eased * 11.2 / 2.2) * Math.PI * 2;
-      if (travel >= 1 && !devoteeState.arrivedAt) devoteeState.arrivedAt = now;
+      const phaseElapsed = now - devoteeState.phaseStartedAt;
+      const progress = Math.min(1, phaseElapsed / Math.max(1, devoteeState.phaseDuration));
+      const eased = progress * progress * (3 - 2 * progress);
+      const walking = ['enter', 'approach', 'exit'].includes(devoteeState.phase);
+      if (walking && devoteeState.curve) {
+        const point = devoteeState.curve.getPoint(eased);
+        const tangent = devoteeState.curve.getTangent(eased);
+        mainDevotee.position.set(point.x, 0.05 + Math.abs(Math.sin(phaseElapsed * 0.012)) * 0.018, point.z);
+        // Face the direction of travel; the avatar's local forward axis points toward -Z.
+        mainDevotee.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
+      }
+      const walkPhase = phaseElapsed * 0.0085;
+      const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;
       const ritualPose = getRitualPoseState({
-        travel,
-        elapsedAfterArrival: devoteeState.arrivedAt ? now - devoteeState.arrivedAt : 0,
-        remainingMs: ritualUntil - now
+        travel: devoteeState.phase === 'ritual' ? 1 : 0,
+        elapsedAfterArrival: ritualElapsed,
+        remainingMs: devoteeState.phase === 'ritual' ? Math.max(0, devoteeState.phaseDuration - phaseElapsed) : 0,
+        kneelInMs: 520,
+        bowDelayMs: 1100,
+        bowInMs: 900,
+        exitFadeMs: 450
       });
       mainHuman.kneelBlend = ritualPose.kneelBlend;
       mainHuman.kneeling = ritualPose.kneelBlend > 0.035;
-      animateHuman(mainHuman, now, ritualPose.walking, walkPhase);
-      mainDevotee.position.z = 7.5 - eased * 11.2;
-      mainDevotee.scale.setScalar(1 - eased * 0.18);
-      // The same eased timeline drives the procedural bow and GLB bow state.
+      animateHuman(mainHuman, now, walking, walkPhase);
       applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);
       applyGiftThankYouGesture(mainHuman, now);
-      if (now > ritualUntil) {
-        devoteeState.active = false;
-        mainHuman.kneeling = false;
-        mainHuman.kneelBlend = 0;
-        applyHumanBow(mainHuman, 0);
-        mainDevotee.visible = false;
+
+      if (progress >= 1) {
+        if (devoteeState.phase === 'enter') {
+          mainDevotee.position.set(3.8, 0.05, 7.2);
+          setDevoteePhase('queue', now, 900);
+        } else if (devoteeState.phase === 'queue') {
+          setDevoteePhase('approach', now, 3300);
+        } else if (devoteeState.phase === 'approach') {
+          mainDevotee.position.set(0, 0.05, -3.55);
+          mainDevotee.rotation.y = 0;
+          setDevoteePhase('ritual', now, 4800);
+        } else if (devoteeState.phase === 'ritual') {
+          mainHuman.kneeling = false;
+          mainHuman.kneelBlend = 0;
+          applyHumanBow(mainHuman, 0);
+          setDevoteePhase('exit', now, 3600);
+        } else if (devoteeState.phase === 'exit') {
+          devoteeState.active = false;
+          devoteeState.phase = 'idle';
+          devoteeState.event = null;
+          mainDevotee.visible = false;
+          mainDevotee.rotation.y = 0;
+          startNextDevotee(now);
+        }
       }
     }
     lanterns.forEach((light, i) => {
