@@ -3279,8 +3279,8 @@ body.obs-mode .stage-wrapper {
   top: 112px;
   right: 18px;
   z-index: 36;
-  width: 210px;
-  max-height: 360px;
+  width: 250px;
+  max-height: 420px;
   min-width: 0;
   padding: 12px 11px 13px;
   display: flex;
@@ -3303,7 +3303,7 @@ body.obs-mode .stage-wrapper {
   border-bottom: 1px solid rgba(255, 218, 135, .3);
   color: #ffe7b0;
   font-family: "Noto Serif", serif;
-  font-size: 15px;
+  font-size: 27px;
   line-height: 1.2;
   font-weight: 900;
   letter-spacing: .08em;
@@ -3322,7 +3322,7 @@ body.obs-mode .stage-wrapper {
 .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-item {
   position: relative;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 68px minmax(0, 1fr);
   grid-template-rows: minmax(20px, auto) minmax(19px, auto);
   align-items: center;
   justify-items: stretch;
@@ -3330,9 +3330,9 @@ body.obs-mode .stage-wrapper {
   row-gap: 2px;
   width: 100%;
   min-width: 0;
-  min-height: 70px;
+  min-height: 88px;
   height: auto;
-  padding: 8px 8px 8px 7px;
+  padding: 9px 9px 9px 8px;
   border: 1px solid rgba(255, 222, 166, .2);
   border-radius: 12px;
   background: linear-gradient(120deg, rgba(255, 230, 181, .09), rgba(30, 20, 15, .34));
@@ -3356,8 +3356,8 @@ body.obs-mode .stage-wrapper {
   grid-row: 1 / span 2;
   justify-self: center;
   align-self: center;
-  width: 43px;
-  height: 43px;
+  width: 60px;
+  height: 60px;
   border-width: 1.5px;
 }
 .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-name {
@@ -3367,7 +3367,7 @@ body.obs-mode .stage-wrapper {
   width: 100%;
   min-width: 0;
   text-align: left;
-  font-size: 12px;
+  font-size: 22px;
   line-height: 1.2;
 }
 .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-merit {
@@ -3377,15 +3377,15 @@ body.obs-mode .stage-wrapper {
   align-self: start;
   margin: 0;
   padding: 2px 7px;
-  font-size: 12px;
+  font-size: 22px;
   line-height: 1.2;
 }
 @media (max-width: 600px) {
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard {
     top: 108px;
     right: 10px;
-    width: 190px;
-    max-height: 330px;
+    width: 250px;
+    max-height: 390px;
     padding: 9px 8px 10px;
     gap: 7px;
     border-radius: 14px;
@@ -3393,26 +3393,26 @@ body.obs-mode .stage-wrapper {
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard .hud-lb-header {
     min-height: 26px;
     padding-bottom: 6px;
-    font-size: 13px;
+    font-size: 25px;
   }
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard .hud-lb-list {
     gap: 6px;
   }
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-item {
-    grid-template-columns: 42px minmax(0, 1fr);
-    min-height: 62px;
+    grid-template-columns: 64px minmax(0, 1fr);
+    min-height: 84px;
     padding: 7px 6px;
     column-gap: 7px;
   }
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-avatar {
-    width: 38px;
-    height: 38px;
+    width: 56px;
+    height: 56px;
   }
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-name {
-    font-size: 10px;
+    font-size: 21px;
   }
   .stage-9x16.temple-3d-mode > .hud-right-leaderboard .leader-merit {
-    font-size: 11px;
+    font-size: 21px;
   }
 }
 
