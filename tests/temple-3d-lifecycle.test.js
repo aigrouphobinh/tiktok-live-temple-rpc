@@ -88,6 +88,17 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
   });
 
+  it('layers the gift acknowledgement after the pause bow so it is not overwritten', () => {
+    const pauseStart = source.indexOf('if (devoteeState.active && devoteeState.pausedAt)');
+    const pauseEnd = source.indexOf("if (devoteeState.active && !devoteeState.pausedAt)", pauseStart);
+    const pausedPose = source.slice(pauseStart, pauseEnd);
+    expect(pausedPose).toContain('applyHumanBow(mainHuman, 0.12, mainHuman.kneelBlend);');
+    expect(pausedPose).toContain('applyGiftThankYouGesture(mainHuman, now);');
+    expect(pausedPose.indexOf('applyHumanBow(mainHuman, 0.12')).toBeLessThan(
+      pausedPose.indexOf('applyGiftThankYouGesture(mainHuman, now)')
+    );
+  });
+
   it('keeps queue prayer hands working for both GLB and procedural character rigs', () => {
     expect(source).toContain('function applyGiftThankYouGesture(avatar, time)');
     expect(source).toContain('const prayerBlend = Math.max(avatar.kneelBlend || 0, avatar.prayerPose ? 1 : 0)');
