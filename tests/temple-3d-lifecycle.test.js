@@ -84,6 +84,8 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('queueActors.get(event)');
     expect(source).toContain('function setQueueActorTarget(actor, target, slot, now)');
     expect(source).toContain('function getAvailableQueueActorSlot()');
+    expect(source).toContain('getCrowdNameTagLayout(slot)');
+    expect(source).toContain('actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);');
     expect(source).toContain('actor.slot = slot;');
     expect(source).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
     expect(source).toContain('actor.slot = -1;');
@@ -102,6 +104,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('actor.avatar.offeringIncense = true;');
     expect(source).toContain('const offeringPose = getRitualPoseState({');
     expect(source).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
+    expect(source).toContain('bowAmount: Number((actor.avatar.bowAmount || 0).toFixed(3)),');
     expect(source).toContain('const entryPosition = getHorizontalFormationPosition(slot, {');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
