@@ -1297,12 +1297,65 @@ async function boot() {
     halo.add(vein);
   }
 
+  // Painted Buddhist ceiling fascia: a warm, ornamented upper backdrop fills
+  // the dark void above the altar without placing an opaque roof in the camera path.
+  const ceilingFascia = new THREE.Group();
+  ceilingFascia.name = 'PaintedBuddhistCeilingFascia';
+  ceilingFascia.position.set(0, 9.45, -11.78);
+  world.add(ceilingFascia);
+  const fasciaPanelMat = new THREE.MeshStandardMaterial({
+    color: 0xd7b77b, roughness: 0.86, metalness: 0.08,
+    emissive: 0x38200c, emissiveIntensity: 0.12
+  });
+  const fasciaInsetMat = new THREE.MeshStandardMaterial({
+    color: 0x7d2630, roughness: 0.72, metalness: 0.12
+  });
+  box(11.8, 3.25, 0.16, mats.wood, 0, 0, 0, ceilingFascia);
+  box(11.52, 3.0, 0.08, fasciaPanelMat, 0, 0, 0.105, ceilingFascia);
+  box(11.3, 0.075, 0.1, mats.goldBright, 0, 1.43, 0.17, ceilingFascia);
+  box(11.3, 0.075, 0.1, mats.goldBright, 0, -1.43, 0.17, ceilingFascia);
+  for (const x of [-5.55, 5.55]) {
+    box(0.075, 2.86, 0.1, mats.goldBright, x, 0, 0.17, ceilingFascia);
+  }
+  // Repeated painted lotus medallions form a temple mural, not a flat dark ceiling.
+  const muralPetalMat = new THREE.MeshStandardMaterial({
+    color: 0xf4d99d, roughness: 0.68, metalness: 0.16,
+    emissive: 0x50320e, emissiveIntensity: 0.1
+  });
+  for (const cx of [-4.35, -2.18, 0, 2.18, 4.35]) {
+    const medallion = new THREE.Group();
+    medallion.position.set(cx, 0, 0.22);
+    ceilingFascia.add(medallion);
+    const outer = new THREE.Mesh(new THREE.TorusGeometry(0.53, 0.035, 7, 48), mats.goldBright);
+    medallion.add(outer);
+    const inner = new THREE.Mesh(new THREE.TorusGeometry(0.39, 0.018, 6, 40), fasciaInsetMat);
+    medallion.add(inner);
+    for (let p = 0; p < 12; p++) {
+      const angle = p * Math.PI / 6;
+      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), muralPetalMat);
+      petal.position.set(Math.cos(angle) * 0.29, Math.sin(angle) * 0.29, 0.018);
+      petal.scale.set(0.62, 1.45, 0.28);
+      petal.rotation.z = angle - Math.PI / 2;
+      medallion.add(petal);
+    }
+    const center = new THREE.Mesh(new THREE.CircleGeometry(0.16, 24), fasciaInsetMat);
+    center.position.z = 0.045;
+    medallion.add(center);
+    const jewel = new THREE.Mesh(new THREE.CircleGeometry(0.07, 20), mats.goldBright);
+    jewel.position.z = 0.052;
+    medallion.add(jewel);
+  }
+  // Small warm fill keeps the painted panel legible without washing out the Buddha.
+  const muralLight = new THREE.PointLight(0xffd99c, 8, 17, 2);
+  muralLight.position.set(0, 10.2, -8.8);
+  world.add(muralLight);
+
   // Resident abbot: a calm, bald monk in layered saffron robes, standing beside
   // the offering table with palms joined. Kept separate from the TikTok visitor queue.
   function makeTempleAbbot() {
     const root = new THREE.Group();
     root.name = 'TempleResidentAbbot';
-    root.position.set(3.05, 0.035, -6.65);
+    root.position.set(3.35, 0.035, -4.28);
     root.rotation.y = Math.PI;
     root.scale.setScalar(1.02);
 
