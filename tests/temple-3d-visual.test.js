@@ -139,7 +139,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(scene).toContain('statueRimLight.castShadow = false;');
     expect(scene).toContain('statueRimLight.intensity = 0.82 + auraPulse * 1.1;');
     expect(scene).toContain('mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;');
-    expect(scene).toContain('mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;');
+    expect(scene).toContain('mats.statueStone.emissiveIntensity = 0.085 + auraPulse * 0.06;');
   });
 
   it('stagger congregation gift reactions and pulse altar lighting with the shared response', () => {
@@ -608,11 +608,11 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(css).toContain('pointer-events: none;');
   });
 
-  it('uses warm ivory stone for the Buddha and the aureole in the reference palette', () => {
+  it('uses a bronze-gold palette for the Buddha and keeps the aureole contrast', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('color: 0x98866d');
-    expect(scene).toContain('color: 0x493724');
-    expect(scene).toContain('color: 0xd9c7a5');
+    expect(scene).toContain('color: 0xc28a32');
+    expect(scene).toContain('color: 0x704415');
+    expect(scene).toContain('color: 0xf0c567');
     expect(scene).toContain('color:0xa59a83');
   });
 
