@@ -7,7 +7,8 @@ import {
   getCrowdNameTagLayout,
   getQueueActorFormationPosition,
   MAX_CONCURRENT_WORSHIPPERS,
-  MAX_QUEUED_WORSHIPPERS
+  MAX_QUEUED_WORSHIPPERS,
+  MAX_VISIBLE_QUEUE_ACTORS
 } from '../public/js/devotee-formation.js';
 
 describe('stable horizontal devotee formation', () => {
@@ -65,10 +66,35 @@ describe('stable horizontal devotee formation', () => {
     ]);
     expect(visibleQueue[4]).toMatchObject({
       role: 'waiting',
-      x: 0,
+      column: 0,
+      row: 0,
+      x: -5.2,
       y: 0.05,
-      z: 8.2
+      z: 13.8
     });
+    expect(getQueueActorFormationPosition(5)).toMatchObject({
+      role: 'waiting',
+      column: 1,
+      row: 0,
+      x: -4,
+      z: 13.8
+    });
+    expect(getQueueActorFormationPosition(8)).toMatchObject({
+      role: 'waiting',
+      column: 0,
+      row: 1,
+      x: -5.2,
+      z: 12.18
+    });
+    expect(getQueueActorFormationPosition(39)).toMatchObject({
+      role: 'waiting',
+      column: 3,
+      row: 8,
+      x: 5.2,
+      z: 0.8399999999999981
+    });
+    expect(MAX_VISIBLE_QUEUE_ACTORS).toBe(40);
+    expect(getQueueActorFormationPosition(40)).toBeNull();
     expect(getQueueActorFormationPosition(-1)).toBeNull();
   });
 
