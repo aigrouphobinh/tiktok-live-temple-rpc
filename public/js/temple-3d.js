@@ -2,7 +2,7 @@ import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-reso
 import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
-import { resolveGiftAction } from './gift-action-rules.js';
+import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 
 /**
@@ -1676,7 +1676,10 @@ async function boot() {
       kneelBlend: 0,
       giftReactionStartedAt: 0,
       giftReactionUntil: 0,
-      giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
+      giftReactionProfile: { tier: 'small', intensity: 0.62, bowAmount: 0.16, durationMs: 2100 },
+      queueWaiting: false,
+      ritualBowPhase: 'idle',
+      ritualBowCycle: 0
     };
     setHumanAppearance(avatar, appearance);
     allHumanAvatars.push(avatar);
@@ -1966,6 +1969,16 @@ async function boot() {
     avatar.lastHumanPoseTime = time;
     const walkTarget = walking ? 1 : 0;
     avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));
+    if (avatar.queueWaiting) {
+      // Visitors in the FIFO lane kneel while waiting, stand only to advance,
+      // then settle back onto their knees when their new queue slot is reached.
+      const queueKneelTarget = walking ? 0 : 1;
+      avatar.kneelBlend += (queueKneelTarget - (avatar.kneelBlend || 0))
+        * (1 - Math.exp(-poseDelta / 0.34));
+      avatar.kneeling = avatar.kneelBlend > 0.08;
+      avatar.prayerPose = true;
+      avatar.bowAmount = walking ? 0 : 0.025 + Math.max(0, Math.sin(time * 0.00072 + avatar.phase)) * 0.035;
+    }
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
     const swing = Math.sin(gaitPhase + avatar.phase);
     const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);
@@ -2041,7 +2054,8 @@ async function boot() {
     for (const eyeWhite of avatar.eyeWhites) eyeWhite.scale.x = 1 + giftReaction * 0.045;
     // Lift the brows subtly and direct the pupils toward the viewer during thanks.
     for (const { mesh, side } of avatar.eyebrows) mesh.rotation.z = -side * 0.12 + giftReaction * side * 0.035;
-    avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;
+    avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012)
+      - avatar.kneelBlend * 0.1 - Math.max(0, avatar.bowAmount || 0) * 0.14;
     applyGiftThankYouGesture(avatar, time);
   }
   function makeDevotee(x,z,scale=1) {
@@ -2184,6 +2198,10 @@ async function boot() {
     const group = new THREE.Group();
     const avatar = makeHumanAvatar(1.36, appearance);
     avatar.prayerPose = true;
+    avatar.queueWaiting = true;
+    avatar.kneelBlend = 0;
+    avatar.kneeling = false;
+    avatar.bowAmount = 0;
     avatar.headingOffset = -0.08;
     group.add(avatar.root);
     const nameTag = createDevoteeNameTag();
@@ -2245,6 +2263,11 @@ async function boot() {
         actor = queueActorPool.pop();
         if (actor) setHumanAppearance(actor.avatar, appearance);
         else actor = createQueueActor(event, appearance);
+        actor.avatar.queueWaiting = true;
+        actor.avatar.prayerPose = true;
+        actor.avatar.kneelBlend = 0;
+        actor.avatar.kneeling = false;
+        actor.avatar.bowAmount = 0;
         actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
@@ -2319,6 +2342,8 @@ async function boot() {
       mainHuman,
       queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)
     );
+    mainHuman.queueWaiting = false;
+    mainHuman.prayerPose = false;
     const queueStart = queuedActor?.position || null;
     refreshQueueActors();
     devoteeState.active = true;
