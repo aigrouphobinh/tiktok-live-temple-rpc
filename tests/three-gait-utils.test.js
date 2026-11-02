@@ -502,3 +502,26 @@ describe('getHumanFootTransitionPose', () => {
     expect(pose.footLift).toBe(0);
   });
 });
+
+
+describe('getHumanUpperPose prayer alignment', () => {
+  it('brings both forearms together at the chest while kneeling', () => {
+    const pose = getHumanUpperPose({ kneelBlend: 1, bowAmount: 0 });
+    expect(pose.armOpen).toBeCloseTo(0.54, 8);
+    expect(pose.handRoll).toBeCloseTo(0.04, 8);
+    expect(pose.wristPitch).toBeCloseTo(0.08, 8);
+  });
+  it('keeps palms aligned during all three bow depths', () => {
+    const shallow = getHumanUpperPose({ kneelBlend: 1, bowAmount: 0.25 });
+    const deep = getHumanUpperPose({ kneelBlend: 1, bowAmount: 1 });
+    expect(shallow.armOpen).toBeGreaterThan(0.54);
+    expect(deep.armOpen).toBeCloseTo(0.575, 8);
+    expect(deep.armOpen).toBeLessThan(0.62);
+  });
+  it('clamps invalid prayer blend inputs safely', () => {
+    const pose = getHumanUpperPose({ kneelBlend: NaN, bowAmount: Infinity, prayerBlend: NaN });
+    expect(pose.armOpen).toBe(0);
+    expect(pose.handRoll).toBe(0);
+    expect(pose.wristPitch).toBe(0);
+  });
+});
