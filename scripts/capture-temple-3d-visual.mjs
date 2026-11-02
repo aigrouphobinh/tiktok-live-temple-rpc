@@ -120,7 +120,7 @@ try {
       });
 
       page.on('console', async (message) => {
-        if (message.type() === 'warning' && message.text().includes('[Temple3D] Buddha')) {
+        if (message.type() === 'warning') {
           modelWarnings.push(message.text());
         }
         if (message.type() === 'error') {
@@ -184,15 +184,25 @@ try {
       try {
         logAuditPhase(scenario.id, 'scene-ready-wait-start');
         await page.waitForFunction(
-          () => window.__TEMPLE_3D_READY__ === true,
+          () => window.__TEMPLE_3D_READY__ === true || Boolean(window.__TEMPLE_3D_BOOT_ERROR__),
           null,
           { timeout: 60000 }
         );
+        profileReport.bootError = await page.evaluate(() => window.__TEMPLE_3D_BOOT_ERROR__ || null);
+        if (profileReport.bootError) {
+          throw new Error(`3D boot failed: ${profileReport.bootError.name}: ${profileReport.bootError.message}`);
+        }
         profileReport.ready = true;
         logAuditPhase(scenario.id, 'scene-ready');
       } catch (error) {
         profileReport.readinessError = error.message;
-        logAuditPhase(scenario.id, 'scene-ready-timeout', { error: error.message });
+        profileReport.bootError = profileReport.bootError
+          || await page.evaluate(() => window.__TEMPLE_3D_BOOT_ERROR__ || null).catch(() => null);
+        logAuditPhase(scenario.id, 'scene-ready-failed', {
+          error: error.message,
+          bootError: profileReport.bootError
+        });
+        if (profileReport.bootError) throw error;
       }
 
       logAuditPhase(scenario.id, 'model-settle-wait-start');
@@ -275,6 +285,7 @@ try {
         });
         return {
           readyFlag: window.__TEMPLE_3D_READY__ === true,
+          bootError: window.__TEMPLE_3D_BOOT_ERROR__ ?? null,
           buddhaModelSource: window.__TEMPLE_BUDDHA_MODEL_SOURCE__ ?? null,
           buddhaModelDiagnostic: window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ ?? null,
           aoDaiDiagnostic: typeof window.__TEMPLE_AODAI_DIAGNOSTIC__ === 'function'
@@ -357,6 +368,7 @@ try {
           && idleStats.drawCalls <= 1200
           && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
+        sceneHasNoBootError: scene.bootError == null && profileReport.bootError == null,
         buddhaStatueSourceLoaded: [
           'kenny-hsieh',
           'mia-cc0-gilt-bronze'
