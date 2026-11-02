@@ -1132,12 +1132,13 @@ describe('3D multi-devotee incense offering', () => {
     expect(audit).toContain('visibleQueueActors === 8');
     expect(audit).toContain('crowdFormationHorizontalTargets');
     expect(audit).toContain('crowdFormationAllKneeling');
-    expect(audit).toContain('crowdFormationAllBowing');
+    expect(audit).toContain('crowdFormationConcurrentWorshipSlots');
+    expect(audit).toContain('worshippers.length === 4');
+    expect(audit).toContain('seated.length === 4');
     expect(audit).toContain('singleViewerRendersOneCharacter');
     expect(audit).toContain('crowdActorCountMatchesViewerEvents');
     expect(audit).toContain('noAmbientDuplicateViewers');
     expect(audit).toContain('actor.kneelBlend >= 0.9');
-    expect(audit).toContain('actor.bowAmount >= 0.08');
     expect(scene).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
     expect(scene).toContain('visibleSceneActorCount: (devoteeState.active && mainDevotee.visible ? 1 : 0) + queue.length + departingDevotees.length,');
     expect(audit).toContain('temple-3d-crowd.png');
