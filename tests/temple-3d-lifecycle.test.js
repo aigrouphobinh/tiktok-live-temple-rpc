@@ -25,7 +25,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
     expect(source).toContain("window.addEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);");
     expect(source).toContain('const renderedDevoteeEvents = new WeakSet();');
-    expect(source).toContain('if (devoteeQueue.length >= 40) return;');
+    expect(source).toContain('if (devoteeQueue.length >= MAX_VISIBLE_QUEUE_ACTORS) return;');
     expect(source).toContain('function finishActiveDevotee(event');
     expect(source).toContain('event: devoteeState.event, curve: exitCurve,');
     expect(source).toContain('departingDevotees.push');
@@ -171,7 +171,7 @@ describe('Three.js lifecycle recovery', () => {
   it('performs three separate bows during the 3D ritual phase', () => {
     expect(source).toContain('bowCycles: 3,');
     expect(source).toContain('bowCycleMs: 1500,');
-    expect(source).toContain("setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);");
+    expect(source).toContain("setDevoteePhase('ritual', now, 6500);");
     expect(source).toContain("devoteeState.phase === 'ritual'\n        ? 0");
   });
 
