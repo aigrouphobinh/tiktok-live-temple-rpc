@@ -359,38 +359,33 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('makeRing(3.75, 0.85, -5.4, 0xffdf83)');
   });
 
-  it('keeps the procedural statue as fallback and gates local GLB replacement behind models=1', () => {
+  it('keeps the procedural statue only as a last-resort fallback when bundled GLBs fail', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("get('models') === '1'");
-    expect(scene).toContain('await isLocalModelAvailable(selectedUrl)');
     expect(scene).toContain('if (disposed) {');
     expect(scene).toContain('statue.add(asset.root)');
-    expect(scene).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
+    expect(scene).toContain("diagnostics.state = 'fallback';");
+    expect(scene).toContain('No bundled Buddha GLB could be loaded; procedural statue remains visible.');
     expect(scene).toContain('const statue = new THREE.Group()');
   });
 
-  it('tries Kenny first, then the CC0 scan, and loads the Buddha by default in 3D', () => {
+  it('tries the selected Kenny model before the CC0 scan and gates legacy custom by explicit query', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     const start = scene.indexOf('async function upgradeBuddhaFromGLB()');
     const end = scene.indexOf('function addEffect', start);
     const loader = scene.slice(start, end);
-    const customIndex = loader.indexOf("loadGLTFAsset(customUrl");
-    const selectedIndex = loader.indexOf("loadGLTFAsset(selectedUrl");
-    const fallbackIndex = loader.indexOf("loadGLTFAsset(fallbackUrl");
-    const customPreflightIndex = loader.indexOf("await isLocalModelAvailable(customUrl)");
-    expect(customPreflightIndex).toBeGreaterThanOrEqual(0);
-    expect(customPreflightIndex).toBeLessThan(customIndex);
+    const selectedIndex = loader.indexOf("{ url: selectedUrl, source: 'kenny-hsieh' }");
+    const fallbackIndex = loader.indexOf("{ url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }");
+    const customIndex = loader.indexOf("{ url: customUrl, source: 'user-custom' }");
+    expect(selectedIndex).toBeGreaterThanOrEqual(0);
+    expect(fallbackIndex).toBeGreaterThan(selectedIndex);
+    expect(customIndex).toBeGreaterThanOrEqual(0);
+    expect(customIndex).toBeLessThan(selectedIndex);
     expect(loader).toContain("const customUrl = '/assets/models/buddha.glb'");
-    expect(loader).toContain("assetSource = 'user-custom'");
+    expect(loader).toContain("modelParams.get('buddha') === 'custom'");
+    expect(loader).toContain('await loadGLTFAsset(candidate.url');
     expect(loader).toContain("assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze'");
-    expect(loader).toContain("applyGiltFinish(asset.root)");
-    const preflightIndex = loader.indexOf("await isLocalModelAvailable(selectedUrl)");
-    const fallbackPreflightIndex = loader.indexOf("await isLocalModelAvailable(fallbackUrl)");
-    expect(preflightIndex).toBeGreaterThanOrEqual(0);
-    expect(preflightIndex).toBeLessThan(selectedIndex);
-    expect(fallbackPreflightIndex).toBeLessThan(fallbackIndex);
-    expect(scene).toContain("method: 'HEAD'");
-    expect(loader).toContain('skipping its load request');
+    expect(loader).toContain('applyGiltFinish(asset.root)');
     expect(scene).toContain("modelParams.get('buddha') !== '0'");
     expect(scene).toContain('modelsRequested || buddhaModelRequested');
     expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading'");
@@ -400,7 +395,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('material.color.setHex(0xc99a3c)');
     expect(scene).toContain('material.metalness = 0.68');
     expect(scene).toContain('material.roughness = 0.42');
-    expect(loader).toContain('Optional Buddha GLB unavailable; keeping procedural statue');
+    expect(scene).not.toContain("method: 'HEAD'");
   });
 
   it('normalizes bundled GLB assets and keeps GLTFLoader lazy-loaded', () => {
