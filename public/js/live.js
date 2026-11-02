@@ -874,6 +874,22 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     const { user, wish } = getFormInput();
     callRpc('temple.offerGift', { user, giftType: 'lotus', coins: 20, giftName: 'Đài Hoa Sen Vàng', wish, source: 'ritual-side-lotus' });
   });
+  document.getElementById('sideRoseAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.offerGift', { user, giftType: 'lotus', coins: 20, giftName: 'Hoa Hồng', wish, source: 'ritual-side-rose' });
+  });
+  document.getElementById('sideRocketAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.offerGift', { user, giftType: 'fruit', coins: 30, giftName: 'Rocket', wish, source: 'ritual-side-rocket' });
+  });
+  document.getElementById('sideDragonAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.offerGift', { user, giftType: 'dragon', coins: 199, giftName: 'Rồng Thiêng Chầu Phật', wish, source: 'ritual-side-dragon' });
+  });
+  document.getElementById('sideDonutAction')?.addEventListener('click', () => {
+    const { user, wish } = getFormInput();
+    callRpc('temple.offerGift', { user, giftType: 'lamp', coins: 10, giftName: 'Donut', wish, source: 'ritual-side-donut' });
+  });
 
   document.getElementById('woodenFishStation')?.addEventListener('click', () => {
     const { user } = getFormInput();

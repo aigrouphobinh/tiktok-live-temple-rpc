@@ -2781,12 +2781,16 @@ body.obs-mode .stage-wrapper {
   top: 142px;
   left: 22px;
   width: 166px;
-  min-height: 456px;
-  padding: 20px 13px 24px;
+  min-height: 0;
+  max-height: calc(100% - 170px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  padding: 18px 13px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 9px;
   border: 2px solid rgba(255, 211, 126, .82);
   border-radius: 27px 27px 20px 20px;
   color: #ffe9b5;
@@ -2830,9 +2834,9 @@ body.obs-mode .stage-wrapper {
   z-index: 1;
   display: grid;
   place-items: center;
-  flex: 0 0 108px;
-  width: 124px;
-  height: 108px;
+  flex: 0 0 76px;
+  width: 100px;
+  height: 76px;
   padding: 0;
   border: 2px solid rgba(255, 217, 145, .78);
   border-radius: 50%;
@@ -2848,9 +2852,10 @@ body.obs-mode .stage-wrapper {
   border-color: #fff0bb;
   box-shadow: inset 0 0 0 5px rgba(255, 220, 154, .13), 0 0 22px rgba(255, 205, 111, .38);
 }
+.stage-9x16.temple-3d-mode .ritual-side-panel::-webkit-scrollbar { display: none; }
 .stage-9x16.temple-3d-mode .ritual-side-icon {
   display: block;
-  font-size: 59px;
+  font-size: 49px;
   line-height: 1;
   filter: drop-shadow(0 3px 5px rgba(0,0,0,.42));
 }
@@ -2874,19 +2879,21 @@ body.obs-mode .stage-wrapper {
     top: 116px;
     left: 10px;
     width: 112px;
-    min-height: 322px;
-    padding: 13px 8px 17px;
-    gap: 10px;
+    min-height: 0;
+    max-height: calc(100% - 150px);
+    overflow-y: auto;
+    padding: 11px 8px 16px;
+    gap: 7px;
     border-radius: 19px 19px 14px 14px;
   }
   .stage-9x16.temple-3d-mode .ritual-side-title { font-size: 14px; }
   .stage-9x16.temple-3d-mode .ritual-side-subtitle { font-size: 8px; margin-top: -7px; }
   .stage-9x16.temple-3d-mode .ritual-side-action {
-    width: 84px;
-    height: 82px;
-    flex-basis: 82px;
+    width: 76px;
+    height: 66px;
+    flex-basis: 66px;
   }
-  .stage-9x16.temple-3d-mode .ritual-side-icon { font-size: 43px; }
+  .stage-9x16.temple-3d-mode .ritual-side-icon { font-size: 36px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .stage-9x16.temple-3d-mode .ritual-side-action { transition: none; }
