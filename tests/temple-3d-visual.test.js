@@ -161,7 +161,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('sequences the main devotee through approach, kneel and bow with a shared timeline', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase } from './three-gait-utils.js';");
+    expect(scene).toContain("getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
     expect(scene).toContain('avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
@@ -790,9 +790,9 @@ describe('3D sanctuary visual treatment', () => {
   it('routes procedural avatars through the shared idle, walk and kneel foot-pose controller', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase }");
-    expect(scene).toContain("const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';");
-    expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });");
-    expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });");
+    expect(scene).toContain("const leftFootPose = getHumanFootTransitionPose({");
+    expect(scene).toContain('walkBlend: avatar.walkBlend, kneelBlend: avatar.kneelBlend');
+    expect(scene).toContain('avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));');
     expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;');
   });
 
