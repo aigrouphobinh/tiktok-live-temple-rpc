@@ -402,6 +402,12 @@ try {
         };
       });
 
+      // For the high-profile crowd checks, assert against the exact snapshot
+      // captured during the concurrent bow. The live scene may advance while
+      // the later renderer inspection is collecting GPU/profile details.
+      if (scenario.id === 'high' && profileReport.crowdFormationDiagnostic) {
+        scene.devoteeFlowDiagnostic = profileReport.crowdFormationDiagnostic;
+      }
       profileReport.buddhaModelSource = scene.buddhaModelSource;
       profileReport.buddhaModelDiagnostic = scene.buddhaModelDiagnostic;
       profileReport.abbotDiagnostic = scene.abbotDiagnostic;
