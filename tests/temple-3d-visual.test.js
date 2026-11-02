@@ -769,7 +769,7 @@ describe('3D sanctuary visual treatment', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const ritualPose = getRitualPoseState({');
     expect(scene).toContain('elapsedAfterArrival: ritualElapsed,');
-    expect(scene).toContain('remainingMs: devoteeState.phase === 'ritual' ? Math.max(0, devoteeState.phaseDuration - phaseElapsed) : 0');
+    expect(scene).toContain("remainingMs: devoteeState.phase === 'ritual' ? Math.max(0, devoteeState.phaseDuration - phaseElapsed) : 0");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
   });
