@@ -52,7 +52,8 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('actor.target.set(-5.0, 0.05, 8.0 + index * 1.45);');
     expect(source).not.toContain('for (let slot = 0; slot < 5; slot++)');
     expect(source).toContain("setDevoteePhase('enter', now, 3600);");
-    expect(source).toContain("setDevoteePhase('approach', now, 4200);");
+    expect(source).toContain("setDevoteePhase('approach', now, 6500);");
+    expect(source).toContain('devoteeState.phaseDuration = 6500;');
     expect(source).toContain("mainDevotee.position.set(-3.65, 0.05, 8.0);");
   });
 
@@ -112,6 +113,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('const leaving = mainDevotee.clone(true);');
     expect(source).toContain('function cloneHumanAvatarForExit(leavingGroup)');
     expect(source).toContain('const leavingAvatar = cloneHumanAvatarForExit(leaving);');
+    expect(source).toContain('clone.kneelBlend = 0;');
+    expect(source).toContain('clone.kneeling = false;');
+    expect(source).toContain('applyHumanBow(clone, 0);');
     expect(source).toContain('durationMs: 10500');
     expect(source).toContain('leaving.curve.getPointAt(eased)');
     expect(source).toContain('leaving.curve.getTangentAt(eased)');
