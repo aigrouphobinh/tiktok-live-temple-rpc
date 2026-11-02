@@ -152,7 +152,7 @@ describe('getRitualPoseState', () => {
     expect(pose.bowAmount).toBeGreaterThan(0);
     expect(pose.bowAmount).toBeLessThan(1);
     expect(getRitualPoseState({ travel: 1, elapsedAfterArrival: 3000, remainingMs: 0 })).toEqual({
-      walking: false, kneelBlend: 0, bowAmount: 0, bowPhase: 'complete', bowCycle: 0
+      walking: false, kneelBlend: 0, bowAmount: 0, bowPhase: 'complete', bowCycle: 1
     });
   });
 
