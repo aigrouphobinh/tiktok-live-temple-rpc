@@ -49,7 +49,7 @@ async function boot() {
   const cameraHomePosition = new THREE.Vector3(0, 11.75, 28.5);
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
   const cameraHomeFov = 42;
-  const cameraRitualFov = 39.5;
+  const cameraRitualFov = 38.5;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
   // One restrained 3/4 visitor shot is selected for an entire queue session.
@@ -85,9 +85,9 @@ async function boot() {
       // Track only a small part of the visitor's movement. The shot remains a
       // stable temple view, but its focus no longer points below the floor.
       cameraTargetLookAt.set(
-        THREE.MathUtils.clamp(person.x * 0.28 + activeCameraPreset.targetOffsetX, -1.8, 1.8),
-        1.45,
-        THREE.MathUtils.clamp(-3.55 + (person.z + 3.55) * 0.34, -4.7, 4.2)
+        THREE.MathUtils.clamp(person.x + activeCameraPreset.targetOffsetX, -4.1, 4.1),
+        1.25,
+        person.z
       );
     } else if (!cameraRitualActive) {
       cameraTargetLookAt.copy(cameraHomeTarget);
