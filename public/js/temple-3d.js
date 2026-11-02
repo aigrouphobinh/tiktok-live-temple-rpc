@@ -65,14 +65,16 @@ async function boot() {
   const cameraShotBlendMs = 720;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
-  // One restrained 3/4 visitor shot is selected for an entire queue session.
-  // Unlike the old ±0.7-unit presets, this actually changes focal length,
-  // camera distance and aim height so the person at the altar is visible.
+  // Rotate through varied but restrained cinematic angles per visitor.
+  // The main hall remains the home shot; these are only ritual-session views.
   const cameraRitualPresets = [
-    { position: new THREE.Vector3(-1.05, 10.7, 26.4), targetOffsetX: -0.48 },
-    { position: new THREE.Vector3(1.05, 10.7, 26.4), targetOffsetX: 0.48 },
-    { position: new THREE.Vector3(0.15, 10.55, 26.2), targetOffsetX: 0.05 }
+    { name: 'left-three-quarter', position: new THREE.Vector3(-2.15, 11.2, 27.2), targetOffsetX: -0.82, closeSide: -1 },
+    { name: 'right-three-quarter', position: new THREE.Vector3(2.15, 11.2, 27.2), targetOffsetX: 0.82, closeSide: 1 },
+    { name: 'center-elevated', position: new THREE.Vector3(0.1, 12.6, 29.4), targetOffsetX: 0.05, closeSide: 0 },
+    { name: 'left-side', position: new THREE.Vector3(-3.35, 10.4, 25.5), targetOffsetX: -1.18, closeSide: -1 },
+    { name: 'right-side', position: new THREE.Vector3(3.35, 10.4, 25.5), targetOffsetX: 1.18, closeSide: 1 }
   ];
+  let cameraPresetCursor = -1;
   let cameraTargetPosition = cameraHomePosition.clone();
   let cameraTargetLookAt = cameraHomeTarget.clone();
   let cameraTargetFov = cameraHomeFov;
@@ -80,9 +82,15 @@ async function boot() {
   let cameraRitualActive = false;
   let activeCameraShot = 'home';
   function beginRitualCamera() {
-    if (cameraRitualActive) return;
+    // Pick a different angle for every visitor, not once for the whole queue.
+    // Cycling avoids repeating the same view on consecutive worshippers.
+    let nextIndex = Math.floor(Math.random() * cameraRitualPresets.length);
+    if (cameraRitualPresets.length > 1 && nextIndex === cameraPresetCursor) {
+      nextIndex = (nextIndex + 1 + Math.floor(Math.random() * (cameraRitualPresets.length - 1))) % cameraRitualPresets.length;
+    }
+    cameraPresetCursor = nextIndex;
+    activeCameraPreset = cameraRitualPresets[nextIndex];
     cameraRitualActive = true;
-    activeCameraPreset = cameraRitualPresets[Math.floor(Math.random() * cameraRitualPresets.length)];
     activeCameraShot = 'procession';
     cameraTargetPosition.copy(activeCameraPreset.position);
     cameraTargetFov = cameraRitualFov;
@@ -102,17 +110,16 @@ async function boot() {
         // One medium close-up begins only after the visitor reaches the altar.
         // It holds for the full bow sequence, then eases back to the procession
         // view when another visitor starts or the altar is released.
-        const side = activeCameraPreset.targetOffsetX < -0.1 ? -1
-          : activeCameraPreset.targetOffsetX > 0.1 ? 1 : 0.55;
+        const side = activeCameraPreset.closeSide;
         // Use a raised, wider close shot from the aisle. The former low
         // camera sat behind altar geometry and cropped the visitor/nameplate.
         cameraTargetPosition.set(
-          person.x + side * 1.25,
-          6.4,
-          person.z + 9.2
+          person.x + side * 1.45,
+          side === 0 ? 7.1 : 6.2,
+          person.z + (side === 0 ? 10.2 : 9.4)
         );
-        cameraTargetLookAt.set(person.x + side * 0.06, 1.45, person.z - 0.35);
-        cameraTargetFov = 36;
+        cameraTargetLookAt.set(person.x + side * 0.08, 1.5, person.z - 0.35);
+        cameraTargetFov = side === 0 ? 38 : 36;
         activeCameraShot = 'altar-close';
       } else {
         // Keep the full hall visible while the person enters, walks in the
@@ -2642,8 +2649,10 @@ async function boot() {
         actor.event = event;
         actor.group.visible = true;
         // Visitors enter in rows and keep their assigned place as others leave.
+        // New arrivals walk into a visible two-column waiting line behind
+        // the active worshipper instead of appearing beside the altar.
         const entryPosition = getHorizontalFormationPosition(slot, {
-          y: 0.05, baseZ: 15.3, rowSpacing: 1.28
+          columns: 2, spacing: 1.0, y: 0.05, baseZ: 15.3, rowSpacing: 1.4
         });
         actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
@@ -2655,17 +2664,18 @@ async function boot() {
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      // Slot ownership is stable: promoting one visitor never makes the
-      // remaining congregation shuffle into newly numbered places.
+      // Stable two-column queue, with every new visitor waiting behind the
+      // person currently at the altar. Promotion removes only the first slot.
       const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;
-      const altarPosition = getHorizontalFormationPosition(slot, {
-        y: 0.05, baseZ: -1.55, rowSpacing: 1.28
+      const queuePosition = getHorizontalFormationPosition(slot, {
+        columns: 2, spacing: 1.0, y: 0.05, baseZ: 10.5, rowSpacing: 1.4
       });
-      actor.avatar.queueWaiting = false;
-      actor.avatar.offeringIncense = true;
+      actor.avatar.queueWaiting = true;
+      actor.avatar.offeringIncense = false;
+      actor.avatar.prayerPose = false;
       setQueueActorTarget(
         actor,
-        new THREE.Vector3(altarPosition.x, altarPosition.y, altarPosition.z),
+        new THREE.Vector3(queuePosition.x, queuePosition.y, queuePosition.z),
         slot,
         now
       );
@@ -3636,11 +3646,23 @@ async function boot() {
         }
       } else {
         moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
+        if (actor.avatar.queueWaiting) {
+          // Waiting visitors stand calmly in line; only the promoted visitor
+          // performs the kneeling and three-bow ritual at the altar.
+          actor.avatar.offeringElapsedMs = 0;
+          actor.avatar.kneelBlend = 0;
+          actor.avatar.kneeling = false;
+          actor.avatar.bowing = false;
+          actor.avatar.bowAmount = 0;
+          actor.avatar.ritualBowPhase = 'waiting';
+          animateHuman(actor.avatar, now, false);
+          applyHumanBow(actor.avatar, 0, 0);
+          continue;
+        }
         const offeringElapsed = Number.isFinite(actor.offeringStartedAt)
           ? Math.max(0, now - actor.offeringStartedAt)
           : 0;
         actor.avatar.offeringElapsedMs = offeringElapsed;
-        actor.avatar.queueWaiting = false;
         const offeringPose = getRitualPoseState({
           travel: moving ? 0 : 1,
           elapsedAfterArrival: offeringElapsed,
