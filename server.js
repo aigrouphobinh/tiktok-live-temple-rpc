@@ -5,7 +5,12 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
-const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
+const {
+  TikTokLiveConnection,
+  WebcastEvent,
+  ControlEvent,
+  VERSION: TIKTOK_CONNECTOR_VERSION
+} = require('tiktok-live-connector');
 const { normalizeGiftPayload, getGiftComboDelta, clearGiftComboTracker } = require('./lib/tiktok-gift-payload.cjs');
 const { formatTikTokConnectionError } = require('./lib/tiktok-connection-error.cjs');
 const { classifyTempleComment } = require('./lib/temple-comment-parser.cjs');
@@ -1473,6 +1478,9 @@ server.listen(PORT, HOST, () => {
   console.log(`🔌 JSON-RPC 2.0 Endpoint   : http://localhost:${PORT}/rpc (ws://localhost:${PORT}/ws)`);
   console.log(`🌐 Bind: ${HOST} • CORS allowlist: ${ALLOWED_CORS_ORIGINS.size} external origin(s)`);
   console.log(`============================================================`);
+  console.info(
+    `[TikTok] Connector version=${TIKTOK_CONNECTOR_VERSION || 'unknown'}; WebSocket auth=anonymous (authenticateWs=false)`
+  );
 
   // Restore an explicitly enabled simulation after restart; do not leave the
   // UI showing an enabled toggle while the interval is actually stopped.
