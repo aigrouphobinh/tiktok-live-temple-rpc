@@ -6,6 +6,7 @@ import {
   getHorizontalFormationPosition,
   getCrowdNameTagLayout,
   getQueueActorFormationPosition,
+  getQueueActorEntryPosition,
   createQueueWorshipLedger,
   MAX_CONCURRENT_WORSHIPPERS,
   MAX_QUEUED_WORSHIPPERS,
@@ -107,6 +108,23 @@ describe('stable horizontal devotee formation', () => {
     expect(MAX_VISIBLE_QUEUE_ACTORS).toBe(40);
     expect(getQueueActorFormationPosition(40)).toBeNull();
     expect(getQueueActorFormationPosition(-1)).toBeNull();
+  });
+
+  it('starts four worshippers on one line for synchronized arrival and parallel bows', () => {
+    const entries = Array.from({ length: 4 }, (_, slot) => getQueueActorEntryPosition(slot));
+    expect(entries.map(({ x }) => x)).toEqual([-3.15, -1.05, 1.05, 3.15]);
+    expect(entries.every(({ z }) => z === 14.2)).toBe(true);
+    const paths = entries.map((entry, slot) => {
+      const target = getQueueActorFormationPosition(slot);
+      return Math.hypot(target.x - entry.x, target.z - entry.z);
+    });
+    expect(Math.max(...paths) - Math.min(...paths)).toBeLessThan(0.35);
+    expect(getQueueActorEntryPosition(4)).toMatchObject({
+      role: 'waiting',
+      x: -5.8,
+      y: 0.05,
+      z: 12.85
+    });
   });
 
   it('locks completed side-lane worship until the original FIFO visit completes', () => {
