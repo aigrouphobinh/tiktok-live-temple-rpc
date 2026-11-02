@@ -391,10 +391,11 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
         .slice(0, 4)
         .map(
           (item) => `
-          <div class="leader-item">
+          <div class="leader-item" title="@${escapeHtml(item.uniqueId || item.name || '')}">
             <span class="leader-rank">${item.rank}</span>
-            <span class="leader-name">${escapeHtml(shortenName(item.name, 14))}</span>
-            <span class="leader-merit">${Number(item.merit).toLocaleString('vi-VN')}</span>
+            <span class="leader-avatar">${safeAvatarMarkup(item.avatar, item.name)}</span>
+            <span class="leader-name">${escapeHtml(item.name || item.uniqueId || 'Thí chủ')}</span>
+            <span class="leader-merit">${Number(item.merit || 0).toLocaleString('vi-VN')}</span>
           </div>
         `
         )
@@ -961,6 +962,15 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   function shortenName(name, maxLen = 13) {
     const str = String(name || '');
     return str.length > maxLen ? str.slice(0, maxLen - 1) + '…' : str;
+  }
+
+  function safeAvatarMarkup(avatar, name) {
+    const url = String(avatar || '').trim();
+    if (/^https:\/\//i.test(url)) {
+      return `<img src="${escapeHtml(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`;
+    }
+    const initial = String(name || 'T').trim().charAt(0).toUpperCase() || 'T';
+    return escapeHtml(initial);
   }
 
   function escapeHtml(str) {
