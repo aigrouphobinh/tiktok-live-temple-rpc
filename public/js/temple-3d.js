@@ -3029,6 +3029,9 @@ async function boot() {
       // softer gift instead of freezing with one leg raised mid-stride.
       animateHuman(mainHuman, now, false);
       applyHumanBow(mainHuman, 0.12, mainHuman.kneelBlend);
+      // The base ritual bow is composed first; the gift acknowledgement is
+      // layered last so Dragon/Rose interruptions do not erase the reaction.
+      applyGiftThankYouGesture(mainHuman, now);
     }
     if (devoteeState.active && !devoteeState.pausedAt) {
       const phaseElapsed = now - devoteeState.phaseStartedAt;
