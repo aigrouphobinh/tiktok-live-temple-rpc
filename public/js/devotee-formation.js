@@ -76,9 +76,9 @@ const QUEUED_WORSHIP_POSITIONS = Object.freeze([
 
 // Four columns flank the processional carpet: two on the left, two on the
 // right. Each row moves toward the altar while keeping the central aisle clear.
-const WAITING_SEAT_X = Object.freeze([-5.2, -4.0, 4.0, 5.2]);
-const WAITING_SEAT_BASE_Z = 13.8;
-const WAITING_SEAT_ROW_SPACING = 1.62;
+const WAITING_SEAT_X = Object.freeze([-5.8, -3.9, 3.9, 5.8]);
+const WAITING_SEAT_BASE_Z = 11.8;
+const WAITING_SEAT_ROW_SPACING = 1.35;
 
 /**
  * The active visitor and first four queued visitors share five prayer places.
