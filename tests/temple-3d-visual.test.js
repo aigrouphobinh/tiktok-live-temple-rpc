@@ -982,16 +982,16 @@ it('validates gift-burst renderer cost against each profile idle baseline', () =
     'const samplesBeforeIdle = rendererStatsSamples.length;'
   );
   const idleSampleWaitIndex = auditScript.indexOf(
-    'waitForReliableRendererSample(\n        rendererStatsSamples,\n        samplesBeforeIdle'
+    'waitForRendererDiagnostic(\n        rendererStatsSamples,\n        samplesBeforeIdle'
   );
   expect(modelSettledIndex).toBeGreaterThanOrEqual(0);
   expect(idleSampleCountIndex).toBeGreaterThan(modelSettledIndex);
   expect(idleSampleWaitIndex).toBeGreaterThan(idleSampleCountIndex);
-  expect(auditScript).toContain("sample.sampleQuality === 'reliable'");
-  expect(auditScript).toContain('Number(sample.frameSamples) >= 30');
-  expect(auditScript).toContain('Number(sample.sampleWindowMs) >= 4000');
-  expect(auditScript).toContain('idleSampleQualityReliable:');
-  expect(auditScript).toContain('giftBurstSampleQualityReliable:');
+  expect(auditScript).toContain('waitForRendererDiagnostic(');
+  expect(auditScript).toContain('(sample) => Number(sample.activeEffects) > 0');
+  expect(auditScript).toContain('idleDiagnosticAvailable:');
+  expect(auditScript).toContain('giftBurstDiagnosticAvailable:');
+  expect(auditScript).not.toContain('waitForReliableRendererSample');
   expect(auditScript).not.toContain('waitForRendererSample(rendererStatsSamples, 1)');
 });
 
