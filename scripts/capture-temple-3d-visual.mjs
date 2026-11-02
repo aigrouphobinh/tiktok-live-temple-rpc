@@ -329,6 +329,9 @@ try {
           bootError: window.__TEMPLE_3D_BOOT_ERROR__ ?? null,
           buddhaModelSource: window.__TEMPLE_BUDDHA_MODEL_SOURCE__ ?? null,
           buddhaModelDiagnostic: window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ ?? null,
+          abbotDiagnostic: window.__TEMPLE_ABBOT_DIAGNOSTIC__ ?? null,
+          tetDiagnostic: window.__TEMPLE_TET_DIAGNOSTIC__ ?? null,
+          lightingDiagnostic: window.__TEMPLE_LIGHTING_DIAGNOSTIC__ ?? null,
           aoDaiDiagnostic: typeof window.__TEMPLE_AODAI_DIAGNOSTIC__ === 'function'
             ? window.__TEMPLE_AODAI_DIAGNOSTIC__()
             : null,
@@ -368,6 +371,9 @@ try {
 
       profileReport.buddhaModelSource = scene.buddhaModelSource;
       profileReport.buddhaModelDiagnostic = scene.buddhaModelDiagnostic;
+      profileReport.abbotDiagnostic = scene.abbotDiagnostic;
+      profileReport.tetDiagnostic = scene.tetDiagnostic;
+      profileReport.lightingDiagnostic = scene.lightingDiagnostic;
       profileReport.aoDaiDiagnostic = scene.aoDaiDiagnostic;
       profileReport.crowdFormationDiagnostic = scenario.id === 'high'
         ? scene.devoteeFlowDiagnostic
@@ -424,6 +430,16 @@ try {
           && scene.buddhaModelDiagnostic?.source === scene.buddhaModelSource
           && Array.isArray(scene.buddhaModelDiagnostic?.attempts)
           && scene.buddhaModelDiagnostic.attempts.some((attempt) => attempt.ok),
+        buddhaUsesAgedGoldBronze: scene.buddhaModelDiagnostic?.surfaceFinish?.name === 'aged-gold bronze'
+          && scene.buddhaModelDiagnostic?.surfaceFinish?.metalness >= 0.6,
+        residentAbbotVisible: scene.abbotDiagnostic?.visible === true
+          && scene.abbotDiagnostic?.pose === 'standing-prayer',
+        TetDecorationsVisible: scene.tetDiagnostic?.enabled === true
+          && scene.tetDiagnostic?.blossomTreeCount === 2
+          && scene.tetDiagnostic?.coupletCount === 2
+          && scene.tetDiagnostic?.redLanternCount === 2,
+        portraitLightingBrighter: Number(scene.lightingDiagnostic?.exposure) >= 1.3
+          && Number(scene.lightingDiagnostic?.ambientIntensity) >= 0.9,
         buddhaModelGroundedAndLevel: ['already-level', 'aligned'].includes(
           scene.buddhaModelDiagnostic?.groundAlignment?.status
         ),

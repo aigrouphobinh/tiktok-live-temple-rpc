@@ -22,7 +22,33 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).not.toContain('if (await isLocalModelAvailable(customUrl))');
   });
 
-  it('adds a non-interactive cinematic vignette only in 3D mode', () => {
+  it('adds a standing resident abbot beside the altar without counting him as a viewer', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain("root.name = 'TempleResidentAbbot';");
+  expect(scene).toContain("root.userData.kind = 'resident-abbot';");
+  expect(scene).toContain("root.userData.pose = 'standing-prayer';");
+  expect(scene).toContain('const templeAbbot = makeTempleAbbot();');
+  expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
+  expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
+});
+
+it('dresses the hall for Tet with mai and peach blossoms, red couplets and lanterns', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain("tree.name = side < 0 ? 'TetMaiBlossomTree' : 'TetPeachBlossomTree';");
+  expect(scene).toContain("makeTetCouplet('PHÚC', -4.55);");
+  expect(scene).toContain("makeTetCouplet('LỘC', 4.55);");
+  expect(scene).toContain("lantern.name = 'TetRedLantern';");
+  expect(scene).toContain('window.__TEMPLE_TET_DIAGNOSTIC__');
+});
+
+it('raises the scene light level for the 9:16 live view', () => {
+  const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+  expect(scene).toContain('renderer.toneMappingExposure = 1.32;');
+  expect(scene).toContain('new THREE.AmbientLight(0xffd79a, 0.92)');
+  expect(scene).toContain('window.__TEMPLE_LIGHTING_DIAGNOSTIC__');
+});
+
+it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(css).toContain('.stage-9x16.temple-3d-mode::after');
     expect(css).toContain('pointer-events: none;');
     expect(css).toContain('radial-gradient(ellipse at 50% 43%');
@@ -397,7 +423,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(loader).toContain("const customUrl = '/assets/models/buddha.glb'");
     expect(loader).toContain("modelParams.get('buddha') === 'custom'");
     expect(loader).toContain('await loadGLTFAsset(candidate.url');
-    expect(loader).toContain("assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze'");
+    expect(loader).not.toContain("if (assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze')");
     expect(loader).toContain('applyGiltFinish(asset.root)');
     expect(scene).toContain("modelParams.get('buddha') !== '0'");
     expect(scene).toContain('modelsRequested || buddhaModelRequested');
@@ -992,12 +1018,14 @@ it('shows a designed and truthful empty state for the 3D merit panel', () => {
 });
 
 
-it('uses warm aged-stone tones and a controlled Buddha focal fill', () => {
+it('uses a warm bronze-gold Buddha finish and a brighter altar focal fill', () => {
   const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0x98866d, roughness: 0.92 })');
-  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x493724, roughness: 0.96 })');
-  expect(scene).toContain('statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 })');
-  expect(scene).toContain('new THREE.PointLight(0xffd1a0, 15, 18, 2)');
+  expect(scene).toContain('statueStone: new THREE.MeshStandardMaterial({ color: 0xc28a32, roughness: 0.44, metalness: 0.68 })');
+  expect(scene).toContain('statueShadow: new THREE.MeshStandardMaterial({ color: 0x704415, roughness: 0.52, metalness: 0.58 })');
+  expect(scene).toContain('statueLight: new THREE.MeshStandardMaterial({ color: 0xf0c567, roughness: 0.32, metalness: 0.62 })');
+  expect(scene).toContain('new THREE.PointLight(0xffd6a0, 20, 20, 2)');
+  expect(scene).toContain('new THREE.DirectionalLight(0xffe9c8, 0.95)');
+  expect(scene).toContain('renderer.toneMappingExposure = 1.32;');
   expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
   expect(scene).toContain('A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.');
 });

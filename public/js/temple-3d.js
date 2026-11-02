@@ -49,13 +49,13 @@ async function boot() {
   renderer.setClearColor(0x160904, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.32;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1a0a05);
-  scene.fog = new THREE.FogExp2(0x241006, 0.018);
+  scene.background = new THREE.Color(0x28140b);
+  scene.fog = new THREE.FogExp2(0x322015, 0.016);
   const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 140);
   const cameraHomePosition = new THREE.Vector3(0, 11.75, 28.5);
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
@@ -149,9 +149,9 @@ async function boot() {
     red: new THREE.MeshPhysicalMaterial({ color: 0x741321, roughness: 0.48, metalness: 0.22, clearcoat: 0.28, clearcoatRoughness: 0.32 }),
     redBright: new THREE.MeshPhysicalMaterial({ color: 0x9d2030, roughness: 0.4, metalness: 0.3, clearcoat: 0.42, clearcoatRoughness: 0.22 }),
     stone: new THREE.MeshStandardMaterial({ color: 0x777a7c, roughness: 0.92 }),
-    statueStone: new THREE.MeshStandardMaterial({ color: 0x98866d, roughness: 0.92 }),
-    statueShadow: new THREE.MeshStandardMaterial({ color: 0x493724, roughness: 0.96 }),
-    statueLight: new THREE.MeshStandardMaterial({ color: 0xd9c7a5, roughness: 0.9 }),
+    statueStone: new THREE.MeshStandardMaterial({ color: 0xc28a32, roughness: 0.44, metalness: 0.68 }),
+    statueShadow: new THREE.MeshStandardMaterial({ color: 0x704415, roughness: 0.52, metalness: 0.58 }),
+    statueLight: new THREE.MeshStandardMaterial({ color: 0xf0c567, roughness: 0.32, metalness: 0.62 }),
     ivory: new THREE.MeshStandardMaterial({ color: 0xffe0a0, roughness: 0.35, metalness: 0.18 }),
     skin: new THREE.MeshStandardMaterial({ color: 0xe7ad6b, roughness: 0.52 }),
     robe: new THREE.MeshStandardMaterial({ color: 0x71859a, roughness: 0.82 }),
@@ -228,11 +228,14 @@ async function boot() {
   for (const material of [mats.statueStone, mats.statueShadow, mats.statueLight]) {
     material.bumpMap = stoneGrain;
     material.bumpScale = material === mats.statueStone ? 0.022 : 0.012;
-    material.roughness = material === mats.statueLight ? 0.92 : 0.98;
+    material.roughness = material === mats.statueLight ? 0.34 : (material === mats.statueStone ? 0.46 : 0.54);
+    material.metalness = material === mats.statueShadow ? 0.58 : 0.66;
     material.needsUpdate = true;
   }
-  mats.statueStone.emissive.setHex(0x241507);
-  mats.statueStone.emissiveIntensity = 0.035;
+  mats.statueStone.emissive.setHex(0x512b08);
+  mats.statueStone.emissiveIntensity = 0.085;
+  mats.statueLight.emissive.setHex(0x5d390b);
+  mats.statueLight.emissiveIntensity = 0.055;
 
   const world = new THREE.Group();
   scene.add(world);
@@ -268,17 +271,28 @@ async function boot() {
     mesh.position.set(x, y, z); mesh.rotation.x = rx; mesh.receiveShadow = true; world.add(mesh); return mesh;
   };
 
-  scene.add(new THREE.HemisphereLight(0xffdba2, 0x29130a, 1.8));
-  const ambient = new THREE.AmbientLight(0xffc777, 0.55); scene.add(ambient);
-  const key = new THREE.DirectionalLight(0xffd28a, 3.0);
+  scene.add(new THREE.HemisphereLight(0xffe4b9, 0x382011, 2.25));
+  const ambient = new THREE.AmbientLight(0xffd79a, 0.92); scene.add(ambient);
+  const key = new THREE.DirectionalLight(0xffdfaa, 3.65);
   key.position.set(-7, 15, 8); key.castShadow = true;
   key.shadow.mapSize.set(renderProfile.shadowMapSize, renderProfile.shadowMapSize); key.shadow.camera.left = -14; key.shadow.camera.right = 14;
   key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
   key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
   scene.add(key);
   // A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.
-  const buddhaLight = new THREE.PointLight(0xffd1a0, 15, 18, 2);
+  const buddhaLight = new THREE.PointLight(0xffd6a0, 20, 20, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
+  const portraitFill = new THREE.DirectionalLight(0xffe9c8, 0.95);
+  portraitFill.position.set(0, 8, 13);
+  portraitFill.castShadow = false;
+  scene.add(portraitFill);
+  window.__TEMPLE_LIGHTING_DIAGNOSTIC__ = {
+    exposure: renderer.toneMappingExposure,
+    ambientIntensity: ambient.intensity,
+    hemisphereIntensity: 2.25,
+    keyIntensity: key.intensity,
+    portraitFillIntensity: portraitFill.intensity
+  };
 
   // A restrained rear-side rim separates the ivory statue from the dark altar.
   // It deliberately casts no shadows; gift light is layered onto this same light.
@@ -303,7 +317,7 @@ async function boot() {
     spot.castShadow = false;
     scene.add(spot);
   }
-  const altarFill = new THREE.PointLight(0xff8f42, 18, 9, 2);
+  const altarFill = new THREE.PointLight(0xffad5a, 21, 10, 2);
   altarFill.position.set(0, 2.8, -5.4); scene.add(altarFill);
 
   // Courtyard floor, raised processional path and inlaid gold borders.
@@ -1283,6 +1297,102 @@ async function boot() {
     halo.add(vein);
   }
 
+  // Resident abbot: a calm, bald monk in layered saffron robes, standing beside
+  // the offering table with palms joined. Kept separate from the TikTok visitor queue.
+  function makeTempleAbbot() {
+    const root = new THREE.Group();
+    root.name = 'TempleResidentAbbot';
+    root.position.set(3.05, 0.035, -6.65);
+    root.rotation.y = Math.PI;
+    root.scale.setScalar(1.02);
+
+    const robe = new THREE.MeshStandardMaterial({ color: 0xc96e1f, roughness: 0.88, metalness: 0.025 });
+    const robeLight = new THREE.MeshStandardMaterial({ color: 0xe58d35, roughness: 0.82, metalness: 0.035 });
+    const robeShadow = new THREE.MeshStandardMaterial({ color: 0x873e17, roughness: 0.92 });
+    const skin = new THREE.MeshStandardMaterial({ color: 0xb98260, roughness: 0.86 });
+    const faceShadow = new THREE.MeshStandardMaterial({ color: 0x57372a, roughness: 0.9 });
+    const eyes = new THREE.MeshStandardMaterial({ color: 0x241811, roughness: 0.58 });
+
+    sphere(0.12, robeShadow, -0.13, 0.105, 0.015, 1.35, 0.38, 1.72, root);
+    sphere(0.12, robeShadow, 0.13, 0.105, 0.015, 1.35, 0.38, 1.72, root);
+    cylinder(0.245, 0.37, 1.25, robe, 0, 0.76, 0, root, 28);
+    const breathingTorso = sphere(0.34, robe, 0, 1.32, 0, 1.08, 0.9, 0.78, root);
+    sphere(0.37, robeLight, 0, 1.48, -0.02, 1.04, 0.47, 0.76, root);
+
+    const foldCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.29, 1.57, 0.11),
+      new THREE.Vector3(-0.13, 1.36, 0.24),
+      new THREE.Vector3(0.02, 1.08, 0.30),
+      new THREE.Vector3(0.15, 0.72, 0.29)
+    ]);
+    const robeFoldMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(foldCurve, 24, 0.022, 7, false), robeShadow
+    );
+    robeFoldMesh.castShadow = true;
+    root.add(robeFoldMesh);
+
+    const addLimb = (start, end, radius, material) => {
+      const from = new THREE.Vector3(...start);
+      const to = new THREE.Vector3(...end);
+      const direction = to.clone().sub(from);
+      const length = direction.length();
+      const geometry = getPrimitiveGeometry(
+        `abbot-limb:${radius}:${length.toFixed(3)}`,
+        () => new THREE.CylinderGeometry(radius * 0.92, radius, length, 12)
+      );
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.copy(from).add(to).multiplyScalar(0.5);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      root.add(mesh);
+    };
+    for (const side of [-1, 1]) {
+      addLimb([side * 0.29, 1.48, 0.02], [side * 0.16, 1.30, 0.25], 0.145, robeLight);
+      addLimb([side * 0.16, 1.30, 0.25], [side * 0.055, 1.34, 0.37], 0.095, robe);
+      sphere(0.09, robeLight, side * 0.18, 1.29, 0.24, 1.05, 1.12, 1.0, root);
+      sphere(0.078, skin, side * 0.045, 1.345, 0.405, 0.72, 1.45, 0.48, root);
+      sphere(0.055, skin, side * 0.026, 1.405, 0.418, 0.82, 0.78, 0.44, root);
+    }
+
+    cylinder(0.12, 0.14, 0.2, skin, 0, 1.61, 0.015, root, 18);
+    sphere(0.245, skin, 0, 1.82, 0.02, 0.9, 1.07, 0.82, root);
+    for (const side of [-1, 1]) {
+      sphere(0.055, skin, side * 0.22, 1.82, 0.005, 0.78, 1.08, 0.65, root);
+      sphere(0.018, eyes, side * 0.083, 1.85, 0.216, 0.78, 0.8, 0.45, root);
+      const brow = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(side * 0.14, 1.90, 0.198),
+        new THREE.Vector3(side * 0.085, 1.925, 0.214),
+        new THREE.Vector3(side * 0.035, 1.90, 0.218)
+      ]);
+      const browMesh = new THREE.Mesh(
+        new THREE.TubeGeometry(brow, 10, 0.009, 5, false), faceShadow
+      );
+      browMesh.castShadow = false;
+      root.add(browMesh);
+    }
+    sphere(0.032, skin, 0, 1.785, 0.232, 0.88, 1.25, 0.9, root);
+    const mouth = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.055, 1.72, 0.211),
+      new THREE.Vector3(0, 1.708, 0.224),
+      new THREE.Vector3(0.055, 1.72, 0.211)
+    ]);
+    const mouthMesh = new THREE.Mesh(new THREE.TubeGeometry(mouth, 10, 0.008, 5, false), faceShadow);
+    mouthMesh.castShadow = false;
+    root.add(mouthMesh);
+
+    root.userData.kind = 'resident-abbot';
+    root.userData.pose = 'standing-prayer';
+    root.userData.breathingTorso = breathingTorso;
+    world.add(root);
+    window.__TEMPLE_ABBOT_DIAGNOSTIC__ = {
+      visible: true, kind: 'resident-abbot', pose: 'standing-prayer',
+      position: root.position.toArray(), height: 1.95, facing: 'altar'
+    };
+    return root;
+  }
+  const templeAbbot = makeTempleAbbot();
+
   // Main hall architecture: paired carved pillars and short side crossbeams; roof intentionally removed.
   for (const x of [-7.2, 7.2]) {
     for (const z of [-10, -4, 2, 8, 13]) {
@@ -1404,6 +1514,125 @@ async function boot() {
       sphere(0.075, mats.goldBright, railX, 1.02, z, 1, 0.7, 1);
     }
   }
+
+  // Lunar New Year dressing: yellow mai and pink peach blossoms, lucky red couplets,
+  // and warm red lanterns bring a clear Tet identity while keeping the Buddha visible.
+  const tetBlossomMaterials = {
+    mai: new THREE.MeshStandardMaterial({ color: 0xffd35a, roughness: 0.58, metalness: 0.08 }),
+    peach: new THREE.MeshStandardMaterial({ color: 0xf0a2b3, roughness: 0.62, metalness: 0.04 }),
+    center: new THREE.MeshStandardMaterial({ color: 0xffed9a, roughness: 0.42, metalness: 0.26 })
+  };
+  const springDecorTrees = [];
+  function makeTetBlossomTree(side) {
+    const tree = new THREE.Group();
+    tree.name = side < 0 ? 'TetMaiBlossomTree' : 'TetPeachBlossomTree';
+    tree.position.set(side * 4.28, 0, -9.22);
+    tree.userData.phase = side < 0 ? 0.4 : 2.2;
+    world.add(tree);
+
+    cylinder(0.34, 0.27, 0.5, mats.redBright, 0, 0.27, 0, tree, 24);
+    cylinder(0.38, 0.38, 0.075, mats.goldBright, 0, 0.51, 0, tree, 24);
+    cylinder(0.25, 0.31, 0.09, mats.gold, 0, 0.045, 0, tree, 24);
+
+    const branch = (points, radius) => {
+      const curve = new THREE.CatmullRomCurve3(points.map((point) =>
+        new THREE.Vector3(point[0], point[1], point[2])
+      ));
+      const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, radius, 7, false), mats.woodLight);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      tree.add(mesh);
+    };
+    branch([[0, 0.48, 0], [0.04, 1.18, 0], [-side * 0.12, 1.8, 0.02], [-side * 0.48, 2.48, 0.05]], 0.065);
+    branch([[0.01, 1.25, 0], [side * 0.28, 1.78, 0.02], [side * 0.62, 2.34, 0.05], [side * 0.86, 2.82, 0.07]], 0.044);
+    branch([[-side * 0.1, 1.8, 0.02], [-side * 0.42, 2.08, 0.04], [-side * 0.86, 2.12, 0.06]], 0.032);
+    branch([[-side * 0.3, 2.18, 0.03], [-side * 0.25, 2.67, 0.06], [-side * 0.36, 3.05, 0.07]], 0.026);
+
+    const clusters = [
+      [-side * 0.54, 2.53, 0.11], [-side * 0.88, 2.13, 0.1],
+      [side * 0.62, 2.37, 0.11], [side * 0.88, 2.85, 0.11],
+      [-side * 0.31, 3.04, 0.1], [side * 0.31, 1.85, 0.1],
+      [-side * 0.08, 2.45, 0.13]
+    ];
+    const petalMaterial = side < 0 ? tetBlossomMaterials.mai : tetBlossomMaterials.peach;
+    for (const [cx, cy, cz] of clusters) {
+      for (let petal = 0; petal < 5; petal++) {
+        const angle = petal * Math.PI * 2 / 5;
+        const bloom = sphere(0.068, petalMaterial,
+          cx + Math.cos(angle) * 0.075, cy + Math.sin(angle) * 0.075, cz,
+          0.78, 1.15, 0.48, tree);
+        bloom.rotation.z = angle;
+        bloom.castShadow = false;
+      }
+      sphere(0.034, tetBlossomMaterials.center, cx, cy, cz + 0.045, 1, 1, 0.72, tree).castShadow = false;
+    }
+    springDecorTrees.push(tree);
+    return tree;
+  }
+  makeTetBlossomTree(-1);
+  makeTetBlossomTree(1);
+
+  function makeTetCouplet(label, x) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 1024;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#9d1722';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = '#eac66c';
+    context.lineWidth = 13;
+    context.strokeRect(13, 13, canvas.width - 26, canvas.height - 26);
+    context.lineWidth = 4;
+    context.strokeRect(27, 27, canvas.width - 54, canvas.height - 54);
+    context.fillStyle = '#ffe09a';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.font = 'bold 132px serif';
+    context.shadowColor = 'rgba(255,215,120,.55)';
+    context.shadowBlur = 18;
+    context.fillText(label, 128, 485, 190);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    const material = new THREE.MeshStandardMaterial({
+      map: texture, roughness: 0.58, metalness: 0.08,
+      emissive: 0x5a1008, emissiveIntensity: 0.18,
+      side: THREE.DoubleSide
+    });
+    const plaque = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 2.85), material);
+    plaque.name = `TetLuckyCouplet_${label}`;
+    plaque.position.set(x, 4.25, -10.985);
+    plaque.castShadow = false;
+    plaque.receiveShadow = false;
+    world.add(plaque);
+    box(0.72, 0.085, 0.12, mats.goldBright, x, 5.72, -10.94);
+    box(0.72, 0.085, 0.12, mats.goldBright, x, 2.78, -10.94);
+    return plaque;
+  }
+  makeTetCouplet('PHÚC', -4.55);
+  makeTetCouplet('LỘC', 4.55);
+
+  const tetLanterns = [];
+  for (const side of [-1, 1]) {
+    const lantern = new THREE.Group();
+    lantern.name = 'TetRedLantern';
+    lantern.position.set(side * 5.45, 5.62, -10.55);
+    world.add(lantern);
+    cylinder(0.22, 0.25, 0.52, mats.redBright, 0, -0.04, 0, lantern, 20);
+    cylinder(0.25, 0.25, 0.075, mats.goldBright, 0, 0.25, 0, lantern, 20);
+    cylinder(0.25, 0.25, 0.075, mats.goldBright, 0, -0.33, 0, lantern, 20);
+    cylinder(0.035, 0.035, 0.28, mats.gold, 0, -0.5, 0, lantern, 10);
+    sphere(0.055, mats.redBright, 0, -0.67, 0, 1, 1.35, 1, lantern);
+    const light = new THREE.PointLight(0xffc067, 8, 4.4, 2);
+    light.position.set(0, -0.02, 0);
+    lantern.add(light);
+    tetLanterns.push(light);
+  }
+  window.__TEMPLE_TET_DIAGNOSTIC__ = {
+    enabled: true, season: 'Lunar New Year / Tet',
+    blossomTreeCount: springDecorTrees.length, coupletCount: 2,
+    redLanternCount: tetLanterns.length, couplets: ['PHÚC', 'LỘC']
+  };
 
   // Lanterns with warm emissive cores along the side aisles.
   const lanterns = [];
@@ -2807,11 +3036,9 @@ async function boot() {
         groundAlignment: asset.groundAlignment
       });
 
-      // The CC0 museum scan is a neutral/light photogrammetry mesh. Apply an
-      // aged-gold PBR finish while preserving the source GLB's geometry.
-      if (assetSource === 'user-custom' || assetSource === 'mia-cc0-gilt-bronze') {
-        applyGiltFinish(asset.root);
-      }
+      // Use the same aged-bronze material treatment for the preferred Kenny
+      // model, the CC0 museum scan and any explicitly supplied custom GLB.
+      applyGiltFinish(asset.root);
       if (assetSource === 'mia-cc0-gilt-bronze') {
         // The museum scan reads slightly narrow in the 9:16 altar composition.
         // Widen only the horizontal axis; preserve height, ground contact and center.
@@ -2839,6 +3066,7 @@ async function boot() {
       diagnostics.finishedAt = new Date().toISOString();
       diagnostics.triangles = asset.triangleCount;
       diagnostics.groundAlignment = asset.groundAlignment;
+      diagnostics.surfaceFinish = { name: 'aged-gold bronze', color: '#c99a3c', metalness: 0.68, roughness: 0.42 };
     } catch (error) {
       diagnostics.state = 'error';
       diagnostics.source = 'procedural';
@@ -3184,6 +3412,11 @@ async function boot() {
     updateRitualCamera(dt);
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
+    springDecorTrees.forEach((tree) => {
+      tree.rotation.z = Math.sin(elapsed * 0.00032 + tree.userData.phase) * 0.008;
+    });
+    const abbotBreath = Math.sin(elapsed * 0.00115) * 0.012;
+    templeAbbot.userData.breathingTorso.scale.y = 0.9 + abbotBreath;
     for (const actor of queueActors.values()) {
       let moving = false;
       if (actor.moveCurve) {
@@ -3401,7 +3634,7 @@ async function boot() {
     // and gilded trim catch the special-gift beat without a full-scene flash.
     statueRimLight.intensity = 0.82 + auraPulse * 1.1;
     mats.goldBright.emissiveIntensity = 0.25 + auraPulse * 0.38;
-    mats.statueStone.emissiveIntensity = 0.035 + auraPulse * 0.045;
+    mats.statueStone.emissiveIntensity = 0.085 + auraPulse * 0.06;
     buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;
     altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;
     updateRitualStationAnimations(now);
