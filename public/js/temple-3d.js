@@ -2202,6 +2202,9 @@ async function boot() {
     const start = mainDevotee.position.clone();
     devoteeState.ejectionStart = start.clone();
     devoteeState.ejectionAction = action;
+    // A Rocket/Donut can supersede Dragon/Rose while that visitor is paused.
+    // Ejection must resume the frame loop or it would remain frozen offstage.
+    devoteeState.pausedAt = 0;
     mainHuman.kneeling = false;
     mainHuman.kneelBlend = 0;
     mainHuman.bowing = false;
