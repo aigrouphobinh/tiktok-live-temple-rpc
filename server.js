@@ -5,12 +5,10 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
-const {
-  TikTokLiveConnection,
-  WebcastEvent,
-  ControlEvent,
-  VERSION: TIKTOK_CONNECTOR_VERSION
-} = require('tiktok-live-connector');
+const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
+// The package explicitly exports ./package.json; use it for a reliable
+// installed-version diagnostic instead of depending on an undocumented VERSION export.
+const TIKTOK_CONNECTOR_VERSION = require('tiktok-live-connector/package.json').version;
 const { normalizeGiftPayload, getGiftComboDelta, clearGiftComboTracker } = require('./lib/tiktok-gift-payload.cjs');
 const { formatTikTokConnectionError } = require('./lib/tiktok-connection-error.cjs');
 const { classifyTempleComment } = require('./lib/temple-comment-parser.cjs');
