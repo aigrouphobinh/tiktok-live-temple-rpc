@@ -20,9 +20,10 @@ describe('Ritual visit timing', () => {
     expect(engine).toContain("event?.type === 'drawFortune' ? 18000 : ritualDurationMs");
   });
 
-  it('keeps the first visitor on the same side entrance as the visible queue', () => {
+  it('keeps the first visitor on the side entrance and subsequent visitors in horizontal altar rows', () => {
     expect(scene).toContain('mainDevotee.position.copy(queueStart || new THREE.Vector3(-4.55, 0.05, 15.3));');
     expect(scene).toContain("enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]]");
-    expect(scene).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
+    expect(scene).toContain('const altarColumns = 8;');
+    expect(scene).toContain('const altarX = (column - (altarColumns - 1) / 2) * 1.12;');
   });
 });
