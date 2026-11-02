@@ -3,6 +3,7 @@ import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpp
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction } from './gift-action-rules.js';
+import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -1599,98 +1600,76 @@ async function boot() {
   const devotees = [];
   const devoteeAvatars = [];
   const allHumanAvatars = [];
-  const HUMAN_WARDROBE = [
-    { shirt: 0x76513c, trim: 0x4b3429, trousers: 0x4a5057 },
-    { shirt: 0x667568, trim: 0x3e5144, trousers: 0x444a52 },
-    { shirt: 0x73585d, trim: 0x523e42, trousers: 0x4c4e56 },
-    { shirt: 0x8a765e, trim: 0x5e4d3c, trousers: 0x54524a },
-    { shirt: 0x555d68, trim: 0x3e454f, trousers: 0x403f42 },
-    { shirt: 0x8c6350, trim: 0x614435, trousers: 0x55514b }
-  ];
+  // Male/female Vietnamese Ao Dai avatars. Both variants are prebuilt once
+  // per visitor and share identical animation pivots, so switching clothing
+  // never resets the current walk, queue or ritual state.
+  const devoteeAppearanceAssignments = new WeakMap();
+  let nextDevoteeAppearanceIndex = 0;
 
-  function makeHumanAvatar(height = 1.55) {
-    const wardrobe = HUMAN_WARDROBE[allHumanAvatars.length % HUMAN_WARDROBE.length];
+  function getDevoteeAppearance(event) {
+    if (event && typeof event === 'object') {
+      const existing = devoteeAppearanceAssignments.get(event);
+      if (existing) return existing;
+      const appearance = getAoDaiAppearance(nextDevoteeAppearanceIndex++);
+      devoteeAppearanceAssignments.set(event, appearance);
+      return appearance;
+    }
+    return getAoDaiAppearance(nextDevoteeAppearanceIndex++);
+  }
+
+  function setHumanAppearance(avatar, appearance = getAoDaiAppearance(0)) {
+    const gender = appearance?.gender === 'female' ? 'female' : 'male';
+    const rig = avatar.variants[gender];
+    for (const [variantGender, variant] of Object.entries(avatar.variants)) {
+      variant.group.visible = variantGender === gender;
+    }
+    avatar.gender = gender;
+    avatar.appearance = {
+      gender,
+      paletteIndex: Number.isInteger(appearance?.paletteIndex) ? appearance.paletteIndex : 0,
+      sequence: Number.isInteger(appearance?.sequence) ? appearance.sequence : 0
+    };
+    for (const key of [
+      'upperBody', 'torso', 'tunicShell', 'head',
+      'eyeWhites', 'eyePupils', 'eyebrows', 'smile',
+      'leftArm', 'rightArm', 'leftHand', 'rightHand',
+      'leftLeg', 'rightLeg', 'leftKnee', 'rightKnee',
+      'leftFoot', 'rightFoot', 'wardrobeMaterials'
+    ]) {
+      avatar[key] = rig[key];
+    }
+    return avatar;
+  }
+
+  function makeHumanAvatar(height = 1.55, appearance = getAoDaiAppearance(allHumanAvatars.length)) {
     const root = new THREE.Group();
     // The altar is at -Z; turn the avatar away from the +Z camera so devotees face it.
     root.rotation.y = Math.PI;
-    // Upper body pivots at the waist so the devotee bows naturally instead of
-    // rotating the entire body around the feet (which makes the knees clip the floor).
-    const upperBody = new THREE.Group();
-    upperBody.position.y = 0.48;
-    root.add(upperBody);
-    const pink = new THREE.MeshStandardMaterial({color:wardrobe.shirt,roughness:0.84});
-    const pinkDark = new THREE.MeshStandardMaterial({color:wardrobe.trim,roughness:0.88});
-    const denim = new THREE.MeshStandardMaterial({color:wardrobe.trousers,roughness:0.9});
-    const skin = new THREE.MeshStandardMaterial({color:0xf1c49a,roughness:0.82});
-    const hair = new THREE.MeshStandardMaterial({color:0x39231d,roughness:0.9});
-    const white = new THREE.MeshStandardMaterial({color:0xf2eee8,roughness:0.65});
-    const eye = new THREE.MeshStandardMaterial({color:0x201b1a,roughness:0.6});
-    const torso = sphere(0.27,pink,0,0.40,0,1.08,1.25,0.68,upperBody);
-    sphere(0.12,pinkDark,0,0.24,0,1.08,0.45,0.72,upperBody);
-    const head = new THREE.Group(); head.position.set(0,0.80,0.02); upperBody.add(head);
-    sphere(0.27,skin,0,0,0,0.88,1.08,0.78,head);
-    sphere(0.29,hair,0,0.12,-0.09,0.98,1.18,0.86,head);
-    // Long back hair and shoulder-length side locks match the reference avatar silhouette.
-    sphere(0.27,hair,0,-0.25,-0.11,0.92,1.55,0.72,head);
-    sphere(0.13,hair,-0.22,-0.25,0.015,0.62,1.75,0.78,head);
-    sphere(0.13,hair,0.22,-0.25,0.015,0.62,1.75,0.78,head);
-    sphere(0.25,skin,0,0.02,0.06,0.9,1.0,0.78,head);
-    // Soft fringe pieces sit above the forehead without covering the eyes.
-    for (const [x,y,sx] of [[-0.13,0.19,0.58],[0,0.22,0.62],[0.13,0.19,0.58]]) {
-      const fringe=sphere(0.105,hair,x,y,0.22,sx,0.72,0.42,head);
-      fringe.rotation.z=-x*0.8;
-    }
-    const eyeWhites = [], eyePupils = [], eyebrows = [];
-    for(const side of [-1,1]){
-      const eyeGroup = new THREE.Group(); eyeGroup.position.set(side*0.105,0.045,0.22); head.add(eyeGroup);
-      const sclera = sphere(0.052,white,0,0,0,1,1,0.45,eyeGroup);
-      const pupil = sphere(0.026,eye,0,0,0.027,1,1,0.45,eyeGroup);
-      eyeWhites.push(sclera); eyePupils.push(pupil);
-      const brow=sphere(0.052,hair,side*0.105,0.115,0.205,1.25,0.22,0.35,head);
-      brow.rotation.z=-side*0.12;
-      eyebrows.push({ mesh: brow, side });
-      sphere(0.035,skin,side*0.265,-0.02,0.05,0.7,0.7,0.7,head);
-    }
-    sphere(0.035,skin,0,-0.045,0.25,0.7,0.7,0.7,head);
-    const smile = new THREE.Mesh(new THREE.TorusGeometry(0.075,0.012,6,18,Math.PI),pinkDark);
-    smile.position.set(0,-0.105,0.235); smile.rotation.z=Math.PI; head.add(smile);
-    const leftArm = new THREE.Group(); leftArm.position.set(-0.29,0.57,0); upperBody.add(leftArm);
-    const rightArm = new THREE.Group(); rightArm.position.set(0.29,0.57,0); upperBody.add(rightArm);
-    const leftHand = new THREE.Group(); leftHand.position.set(0,-0.43,0.02); leftArm.add(leftHand);
-    const rightHand = new THREE.Group(); rightHand.position.set(0,-0.43,0.02); rightArm.add(rightHand);
-    for(const [pivot,side,hand] of [[leftArm,-1,leftHand],[rightArm,1,rightHand]]){
-      const sleeve=cylinder(0.105,0.12,0.42,pink,0,-0.2,0,pivot,12); sleeve.rotation.z=side*0.18;
-      // Small articulated palms and separated fingers keep the prayer gesture readable at scene scale.
-      sphere(0.064,skin,0,-0.025,0,0.92,1.18,0.48,hand);
-      for(let finger=0;finger<4;finger++){
-        const x=(finger-1.5)*0.027;
-        cylinder(0.011,0.014,0.105,skin,x,0.075,0,hand,8);
-        sphere(0.013,skin,x,0.128,0,0.85,0.9,0.85,hand);
-      }
-      sphere(0.025,skin,side*0.066,-0.005,0.008,0.9,1.2,0.9,hand);
-    }
-    const leftLeg = new THREE.Group(); leftLeg.position.set(-0.13,0.48,0); root.add(leftLeg);
-    const rightLeg = new THREE.Group(); rightLeg.position.set(0.13,0.48,0); root.add(rightLeg);
-    const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);
-    const rightKnee = new THREE.Group(); rightKnee.position.y = -0.24; rightLeg.add(rightKnee);
-    const leftFoot = new THREE.Group(); leftFoot.position.y = -0.24; leftKnee.add(leftFoot);
-    const rightFoot = new THREE.Group(); rightFoot.position.y = -0.24; rightKnee.add(rightFoot);
-    for(const [upper,lower,foot,side] of [[leftLeg,leftKnee,leftFoot,-1],[rightLeg,rightKnee,rightFoot,1]]){
-      cylinder(0.105,0.12,0.25,denim,0,-0.12,0,upper,12);
-      cylinder(0.095,0.11,0.25,denim,0,-0.12,0,lower,12);
-      const shoe=sphere(0.13,white,0,-0.025,0.09,1.35,0.55,1.9,foot);
-      shoe.rotation.y=side*0.04;
-    }
-    root.scale.setScalar(height/1.72);
+    const variants = createAoDaiAvatarVariants(THREE, { height, appearance });
+    root.add(variants.male.group, variants.female.group);
     const avatar = {
-      root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
-      wardrobeMaterials: { shirt: pink, trim: pinkDark, trousers: denim },
+      root,
+      variants,
       phase: Math.random() * Math.PI * 2,
       headingOffset: 0,
       prayerPose: false,
-      gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
-      gltfLastTime: 0, lastHumanPoseTime: 0, walkBlend: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionStartedAt: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
+      gltfRoot: null,
+      gltfMixer: null,
+      gltfActions: null,
+      gltfActionName: null,
+      gltfLastTime: 0,
+      lastHumanPoseTime: 0,
+      walkBlend: 0,
+      gltfRig: null,
+      bowing: false,
+      bowAmount: 0,
+      kneeling: false,
+      kneelBlend: 0,
+      giftReactionStartedAt: 0,
+      giftReactionUntil: 0,
+      giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
     };
+    setHumanAppearance(avatar, appearance);
     allHumanAvatars.push(avatar);
     return avatar;
   }
