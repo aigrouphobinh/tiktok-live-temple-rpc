@@ -2616,7 +2616,7 @@ async function boot() {
     // Compact labels sit just above each seated devotee's nameplate. The
     // wider featured label remains reserved for the central active visitor.
     sprite.position.set(0, compact ? 2.20 : 2.78, 0);
-    sprite.scale.set(compact ? 1.94 : 3.45, compact ? 0.22 : 0.42, 1);
+    sprite.scale.set(compact ? 1.78 : 3.45, compact ? 0.20 : 0.42, 1);
     sprite.renderOrder = 31;
 
     function setWish(value) {
@@ -2624,6 +2624,7 @@ async function boot() {
       const wish = compact
         ? formatDevoteePrayerLabel(value)
         : String(value || fallback).trim() || fallback;
+      sprite.userData.wishText = wish;
       const padY = compact ? 10 : 13;
       const cornerRadius = compact ? 44 : 54;
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -2972,6 +2973,7 @@ async function boot() {
       .sort((a, b) => a.group.position.z - b.group.position.z)
       .map((actor) => ({
         user: actor.event?.user || '',
+        prayerLabel: actor.prayerTag?.userData?.wishText || '',
         slot: actor.slot,
         gender: actor.avatar.gender,
         kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
