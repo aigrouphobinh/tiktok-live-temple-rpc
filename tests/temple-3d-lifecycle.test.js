@@ -45,6 +45,22 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('finishGiftEjectionHandoff();');
   });
 
+  it('renders queued visitors as bounded, reusable 3D actors on a separate side lane', () => {
+    expect(source).toContain('const queueActors = new Map();');
+    expect(source).toContain('const queueActorPool = [];');
+    expect(source).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 5;');
+    expect(source).toContain('function createQueueActor(event)');
+    expect(source).toContain('function refreshQueueActors()');
+    expect(source).toContain('function releaseQueueActor(event)');
+    expect(source).toContain('queueActors.get(event)');
+    expect(source).toContain('actor.group.position.lerp(actor.target');
+    expect(source).toContain('animateHuman(actor.avatar, now, moving, now * 0.0085 + actor.avatar.phase);');
+    expect(source).toContain('actor.avatar.prayerPose');
+    expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
+    expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
+    expect(source).toContain('box(0.92, 0.035, 10.4, mats.woodLight, -5.18, -0.105, 10.15);');
+  });
+
   it('gives the congregation varied clothing, posture and subtle spacing', () => {
     expect(source).toContain('const HUMAN_WARDROBE = [');
     expect(source).toContain('avatar.kneelBlend = posture.kneel;');
