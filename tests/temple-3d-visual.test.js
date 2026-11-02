@@ -5,12 +5,18 @@ import { findBestAnimationClip } from '../public/js/three-animation-utils.js';
 const css = readFileSync(new URL('../public/css/live.css', import.meta.url), 'utf8');
 
 describe('3D sanctuary visual treatment', () => {
-  it('loads the vendored gold Buddha GLB by default in 3D mode', () => {
+  it('loads the selected Buddha GLB first and keeps legacy custom models opt-in', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain("const buddhaModelRequested = modelParams.get('buddha') !== '0';");
     expect(scene).toContain("const selectedUrl = '/assets/models/buddha-selected.glb';");
-    expect(scene).toContain('if (modelsRequested || buddhaModelRequested) {');
-    expect(scene).toContain('if (!asset && await isLocalModelAvailable(selectedUrl)) {');
+    expect(scene).toContain("const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';");
+    expect(scene).toContain("modelParams.get('buddha') === 'custom'");
+    expect(scene).toContain("{ url: selectedUrl, source: 'kenny-hsieh' }");
+    expect(scene).toContain("{ url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }");
+    expect(scene).toContain('window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ = diagnostics;');
+    expect(scene).toContain("diagnostics.state = 'loaded';");
+    expect(scene).toContain('asset.root.visible = true;');
+    expect(scene).not.toContain('if (await isLocalModelAvailable(customUrl))');
   });
 
   it('adds a non-interactive cinematic vignette only in 3D mode', () => {
