@@ -2109,8 +2109,8 @@ async function boot() {
 
   // A separate side waiting lane makes the visitor flow legible without
   // placing queue markers on the sacred red processional carpet.
-  box(0.92, 0.035, 7.1, mats.woodLight, -5.0, -0.105, 11.4);
-  for (const x of [-5.48, -4.52]) {
+  box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);
+  for (const x of [-3.96, -3.0]) {
     box(0.028, 0.045, 7.05, mats.gold, x, -0.075, 11.4);
   }
   const mainDevotee=new THREE.Group();
