@@ -2092,7 +2092,7 @@ async function boot() {
   const effects = [];
   // Keep transient gift/ritual meshes bounded during high-volume live sessions.
   // Evicted effects are detached and disposed by addEffect() before insertion.
-  const MAX_EFFECTS = 64;
+  const MAX_EFFECTS = 48;
   let raf = 0, lastFrame = 0, elapsed = 0, disposed = false;
   let ritualUntil = 0;
   const clock = new THREE.Clock();
