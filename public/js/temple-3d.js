@@ -4,7 +4,7 @@ import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
-import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS } from './devotee-formation.js';
+import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2455,6 +2455,9 @@ async function boot() {
       applyHumanBow(avatar, avatar.bowAmount, avatar.kneelBlend);
     }
     applyGiftThankYouGesture(avatar, time);
+    if (avatar.queueWaiting && !walking && getAvatarGiftReactionBlend(avatar, time) < 0.04) {
+      applySutraReadingPose(avatar, time);
+    }
   }
   // No ambient NPC crowd is spawned. Every visible person must correspond to an actual viewer event.
 
@@ -2463,7 +2466,8 @@ async function boot() {
   const mainHuman=makeHumanAvatar(1.72);mainDevotee.add(mainHuman.root);
   // Full TikTok username tag follows the active devotee's head in 3D mode,
   // matching the untruncated name shown above the 2D central worshipper.
-  function createDevoteeNameTag() {
+  function createDevoteeNameTag(options = {}) {
+    const featured = options.featured === true;
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 192;
@@ -2478,7 +2482,7 @@ async function boot() {
     sprite.position.set(0, 2.18, 0);
     // Keep the profile plate compact above the character; long TikTok IDs
     // are shortened visually instead of stretching across the scene.
-    sprite.scale.set(2.55, 0.48, 1);
+    sprite.scale.set(featured ? 2.9 : 2.55, featured ? 0.56 : 0.48, 1);
     sprite.renderOrder = 30;
     let avatarImage = null;
     let avatarUrl = '';
@@ -2493,8 +2497,8 @@ async function boot() {
       context.roundRect(padX, boxY, canvas.width - padX * 2, boxH, radius);
       context.fillStyle = 'rgba(24, 12, 5, 0.92)';
       context.fill();
-      context.lineWidth = 5;
-      context.strokeStyle = 'rgba(255, 218, 139, 0.96)';
+      context.lineWidth = featured ? 7 : 5;
+      context.strokeStyle = featured ? 'rgba(255, 232, 160, 1)' : 'rgba(255, 218, 139, 0.96)';
       context.stroke();
 
       // TikTok profile photo in a gold circular frame, left of the full username.
@@ -2579,10 +2583,53 @@ async function boot() {
     sprite.userData.setProfile = setProfile;
     return sprite;
   }
-  const devoteeNameTag = createDevoteeNameTag();
-  mainHuman.root.add(devoteeNameTag);
-  function updateMainDevoteeName(user, avatarUrl) {
+  function createDevoteeWishBubble() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 144;
+    const context = canvas.getContext('2d');
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: texture, transparent: true, depthTest: false, depthWrite: false
+    }));
+    sprite.position.set(0, 2.78, 0);
+    sprite.scale.set(3.45, 0.42, 1);
+    sprite.renderOrder = 31;
+
+    function setWish(value) {
+      const wish = String(value || 'Nguyện cầu gia đình bình an, vạn sự cát tường').trim()
+        || 'Nguyện cầu gia đình bình an, vạn sự cát tường';
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      context.roundRect(18, 13, 988, 118, 54);
+      context.fillStyle = 'rgba(31, 15, 7, 0.94)';
+      context.fill();
+      context.lineWidth = 5;
+      context.strokeStyle = 'rgba(255, 210, 116, 0.98)';
+      context.stroke();
+      context.font = '600 48px "Be Vietnam Pro", Arial, sans-serif';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillStyle = '#ffe9b0';
+      context.shadowColor = 'rgba(255, 184, 64, 0.5)';
+      context.shadowBlur = 10;
+      context.fillText(wish, 512, 73, 900);
+      context.shadowBlur = 0;
+      texture.needsUpdate = true;
+    }
+
+    sprite.userData.setWish = setWish;
+    setWish('');
+    return sprite;
+  }
+  const devoteeNameTag = createDevoteeNameTag({ featured: true });
+  const devoteeWishBubble = createDevoteeWishBubble();
+  mainHuman.root.add(devoteeNameTag, devoteeWishBubble);
+  function updateMainDevoteeName(user, avatarUrl, wish) {
     devoteeNameTag.userData.setProfile(user || 'Thí Chủ Hữu Duyên', avatarUrl || '');
+    devoteeWishBubble.userData.setWish(wish || '');
   }
   const devoteeQueue = [];
   // Normalize viewer identity so repeated comments/gifts from one TikTok user
@@ -2598,9 +2645,8 @@ async function boot() {
   const queueActors = new Map();
   const queueActorPool = [];
   const departingDevotees = [];
-  // Keep one main worshipper at the altar plus four adjacent prayer positions.
-  // The fifth visible queued visitor remains seated in meditation behind them.
-  const MAX_VISIBLE_QUEUE_ACTORS = 5;
+  // The main devotee plus four adjacent queue positions can worship together;
+  // the remaining real viewers are rendered in the seated congregation grid.
 
   function getAvailableQueueActorSlot() {
     return getAvailableFormationSlot(
@@ -2631,6 +2677,53 @@ async function boot() {
   }
   window.__TEMPLE_AODAI_DIAGNOSTIC__ = getAoDaiRuntimeDiagnostics;
 
+  function createMeditationSeat(parent) {
+    const seat = new THREE.Group();
+    seat.name = 'LotusMeditationCushion';
+    cylinder(0.39, 0.43, 0.14, mats.redBright, 0, 0.09, 0, seat, 32);
+    cylinder(0.35, 0.39, 0.025, mats.gold, 0, 0.17, 0, seat, 32);
+    const rimGeometry = getPrimitiveGeometry('lotus-seat-rim', () =>
+      new THREE.TorusGeometry(0.38, 0.018, 8, 36));
+    const rim = new THREE.Mesh(rimGeometry, mats.goldBright);
+    rim.rotation.x = -Math.PI / 2;
+    rim.position.y = 0.185;
+    rim.castShadow = false;
+    seat.add(rim);
+    parent.add(seat);
+    return seat;
+  }
+
+  function createSutraBook(avatar) {
+    const book = new THREE.Group();
+    book.name = 'DevoteeSutraBook';
+    // A small red scripture with ivory pages and a restrained gilt spine.
+    box(0.35, 0.035, 0.24, mats.red, 0, 0, 0, book);
+    box(0.322, 0.012, 0.215, mats.ivory, 0, 0.022, 0, book);
+    box(0.018, 0.012, 0.23, mats.goldBright, 0, 0.025, 0, book);
+    for (const x of [-0.135, 0.135]) {
+      box(0.008, 0.004, 0.17, mats.gold, x, 0.031, 0, book);
+    }
+    book.position.set(0, 0.48, -0.34);
+    book.rotation.x = -0.08;
+    avatar.root.add(book);
+    return book;
+  }
+
+  function applySutraReadingPose(avatar, time) {
+    if (avatar.gltfRoot || !avatar.upperBody) return;
+    const breath = Math.sin(time * 0.0013 + avatar.phase) * 0.018;
+    avatar.upperBody.rotation.x = 0.025 + breath;
+    // Elbows draw gently inward and hands rest over the open scripture on the lap.
+    avatar.leftArm.rotation.x = -0.24 + breath;
+    avatar.rightArm.rotation.x = -0.24 + breath;
+    avatar.leftArm.rotation.z = 0.48;
+    avatar.rightArm.rotation.z = -0.48;
+    avatar.leftHand.rotation.x = -0.08;
+    avatar.rightHand.rotation.x = -0.08;
+    avatar.leftHand.rotation.z = -0.06;
+    avatar.rightHand.rotation.z = 0.06;
+  }
+
   function createQueueActor(event, appearance = getDevoteeAppearance(event)) {
     const group = new THREE.Group();
     const avatar = makeHumanAvatar(1.36, appearance);
@@ -2641,6 +2734,8 @@ async function boot() {
     avatar.bowAmount = 0;
     avatar.headingOffset = -0.08;
     group.add(avatar.root);
+    const seat = createMeditationSeat(group);
+    const sutraBook = createSutraBook(avatar);
     const nameTag = createDevoteeNameTag();
     nameTag.position.set(0, 1.82, 0);
     nameTag.scale.set(1.94, 0.30, 1);
@@ -2649,7 +2744,7 @@ async function boot() {
     group.visible = true;
     world.add(group);
     return {
-      group, avatar, nameTag, event, appearance, slot: -1,
+      group, avatar, nameTag, seat, sutraBook, event, appearance, slot: -1,
       target: new THREE.Vector3(-3.48, 0.05, 8.35),
       moveTarget: null,
       moveCurve: null,
@@ -2744,6 +2839,8 @@ async function boot() {
       const queuePosition = new THREE.Vector3(queueFormation.x, queueFormation.y, queueFormation.z);
       actor.avatar.queueWaiting = !isWorshipLane;
       actor.avatar.queuedWorshipLane = isWorshipLane;
+      actor.seat.visible = !isWorshipLane;
+      actor.sutraBook.visible = !isWorshipLane;
       actor.avatar.offeringIncense = false;
       actor.avatar.prayerPose = !isWorshipLane;
       setQueueActorTarget(actor, queuePosition, slot, now);
@@ -2825,6 +2922,8 @@ async function boot() {
       bowCycle: mainHuman.ritualBowCycle || 0,
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
+      seatedWaitingActors: queue.filter((actor) => actor.queueWaiting).length,
+      visibleSeatingCapacity: MAX_VISIBLE_QUEUE_ACTORS,
       visibleActiveActor: Boolean(devoteeState.active && mainDevotee.visible),
       maxConcurrentWorshippers: MAX_CONCURRENT_WORSHIPPERS,
       visibleWorshipQueueActors: queue.filter((actor) => actor.queuedWorshipLane).length,
@@ -2872,7 +2971,8 @@ async function boot() {
     const queueStart = queuedActor?.position || null;
     refreshQueueActors();
     devoteeState.active = true;
-    updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar);
+    updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar,
+        devoteeState.event.wish || devoteeState.event.prayer || devoteeState.event.comment);
     mainDevotee.visible = true;
     mainDevotee.position.copy(queueStart || new THREE.Vector3(-4.55, 0.05, 15.3));
     mainDevotee.rotation.set(0, 0, 0);
@@ -2910,7 +3010,8 @@ async function boot() {
     if (identity && devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity) {
       // The same viewer sent another action while their avatar is already active.
       Object.assign(devoteeState.event, event);
-      updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar);
+      updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar,
+        devoteeState.event.wish || devoteeState.event.prayer || devoteeState.event.comment);
       renderedDevoteeEvents.add(event);
       return;
     }
@@ -2941,7 +3042,7 @@ async function boot() {
     }
     // Match the gameplay queue's capacity. The state machine remains the
     // authority; this is only its visible 3D presentation queue.
-    if (devoteeQueue.length >= 40) return;
+    if (devoteeQueue.length >= MAX_VISIBLE_QUEUE_ACTORS) return;
     renderedDevoteeEvents.add(event);
     devoteeQueue.push(event);
     // Do not instantiate a waiting duplicate for the first visitor; only
@@ -3143,6 +3244,61 @@ async function boot() {
   dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
   const dust = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ color: 0xffd98b, size: 0.045, transparent: true, opacity: 0.72 }));
   world.add(dust);
+
+  // A slow foreground stream of gilded lotus petals rises from the lower edge
+  // of the portrait frame. Instancing keeps the effect inexpensive for LIVE.
+  const foregroundLotusPetalCount = 34;
+  const foregroundLotusPetalGeometry = new THREE.SphereGeometry(0.12, 10, 8);
+  const foregroundLotusPetalMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffd477,
+    roughness: 0.36,
+    metalness: 0.62,
+    emissive: 0x75430b,
+    emissiveIntensity: 0.22,
+    transparent: true,
+    opacity: 0.88
+  });
+  const foregroundLotusPetals = new THREE.InstancedMesh(
+    foregroundLotusPetalGeometry,
+    foregroundLotusPetalMaterial,
+    foregroundLotusPetalCount
+  );
+  foregroundLotusPetals.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  foregroundLotusPetals.frustumCulled = false;
+  foregroundLotusPetals.castShadow = false;
+  foregroundLotusPetals.receiveShadow = false;
+  world.add(foregroundLotusPetals);
+  const foregroundLotusSeeds = Array.from({ length: foregroundLotusPetalCount }, (_, index) => ({
+    x: (Math.random() - 0.5) * 7.2,
+    z: 13.2 + Math.random() * 4.6,
+    phase: index / foregroundLotusPetalCount,
+    speed: 0.58 + Math.random() * 0.62,
+    size: 0.72 + Math.random() * 0.65
+  }));
+  const foregroundLotusTransform = new THREE.Object3D();
+
+  function updateForegroundLotusPetals(time) {
+    for (let index = 0; index < foregroundLotusPetalCount; index++) {
+      const seed = foregroundLotusSeeds[index];
+      const progress = (seed.phase + time * 0.000105 * seed.speed) % 1;
+      const drift = Math.sin(time * 0.00072 + seed.phase * Math.PI * 2);
+      foregroundLotusTransform.position.set(
+        seed.x + drift * 0.42,
+        0.12 + progress * 2.45,
+        seed.z - progress * 1.45
+      );
+      foregroundLotusTransform.rotation.set(
+        1.05 + Math.sin(time * 0.00055 + seed.phase * 5) * 0.55,
+        seed.phase * Math.PI * 2 + time * 0.00035,
+        time * 0.00048 * seed.speed + seed.phase * Math.PI * 2
+      );
+      const scale = seed.size * (0.82 + Math.sin(progress * Math.PI) * 0.18);
+      foregroundLotusTransform.scale.set(scale * 1.35, scale * 0.22, scale * 0.72);
+      foregroundLotusTransform.updateMatrix();
+      foregroundLotusPetals.setMatrixAt(index, foregroundLotusTransform.matrix);
+    }
+    foregroundLotusPetals.instanceMatrix.needsUpdate = true;
+  }
 
   const effects = [];
   // Keep transient gift/ritual meshes bounded during high-volume live sessions.
@@ -3938,6 +4094,7 @@ async function boot() {
     offeringGlow.intensity = 7 + Math.sin(elapsed * 0.009) * 1.1;
     updateIncenseWisps(now);
     dust.rotation.y += dt * 0.000018;
+    updateForegroundLotusPetals(elapsed);
     for (let i = effects.length - 1; i >= 0; i--) {
       const effect = effects[i]; effect.elapsed += dt;
       const p = Math.min(1, effect.elapsed / effect.duration);
