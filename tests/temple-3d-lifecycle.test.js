@@ -85,7 +85,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('actor.moveStartedAt = 0;');
     expect(source).toContain('actor.moveDurationMs = 0;');
     expect(source).toContain('actor.group.position.distanceToSquared(actor.target) > 0.018');
-    expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
+    expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
   });
 
   it('keeps queue prayer hands working for both GLB and procedural character rigs', () => {
