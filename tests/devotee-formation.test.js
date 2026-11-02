@@ -78,7 +78,7 @@ describe('stable horizontal devotee formation', () => {
     expect(visibleQueue.slice(0, 4).map((position) => position.role)).toEqual([
       'worship', 'worship', 'worship', 'worship'
     ]);
-    expect(visibleQueue.map(({ x }) => x)).toEqual([-3.15, -1.05, 1.05, 3.15, -0.84]);
+    expect(visibleQueue.map(({ x }) => x)).toEqual([-1.05, 1.05, -3.15, 3.15, -0.84]);
 
     const firstWaitingRow = Array.from({ length: WAITING_SEAT_COLUMNS }, (_, column) =>
       getQueueActorFormationPosition(column + MAX_QUEUED_WORSHIPPERS)
@@ -136,7 +136,7 @@ describe('stable horizontal devotee formation', () => {
 
   it('starts four worshippers on one line for synchronized arrival and parallel bows', () => {
     const entries = Array.from({ length: 4 }, (_, slot) => getQueueActorEntryPosition(slot));
-    expect(entries.map(({ x }) => x)).toEqual([-3.15, -1.05, 1.05, 3.15]);
+    expect(entries.map(({ x }) => x)).toEqual([-1.05, 1.05, -3.15, 3.15]);
     expect(entries.every(({ z }) => z === 12.2)).toBe(true);
     const paths = entries.map((entry, slot) => {
       const target = getQueueActorFormationPosition(slot);
