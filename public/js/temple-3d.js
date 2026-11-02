@@ -2317,6 +2317,45 @@ async function boot() {
     approach: [[-3.65, 0, 8.0], [-3.55, 0, 5.3], [-2.7, 0, 3.1], [-1.6, 0, 0.15], [0.0, 0, -3.55]],
     exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]
   };
+  function getDevoteeFlowDiagnostics(now = performance.now()) {
+    const phaseElapsedMs = devoteeState.active
+      ? Math.max(0, now - devoteeState.phaseStartedAt)
+      : 0;
+    const phaseProgress = devoteeState.phaseDuration > 0
+      ? Math.min(1, phaseElapsedMs / devoteeState.phaseDuration)
+      : 0;
+    const queue = [...queueActors.values()]
+      .filter((actor) => actor.group.visible)
+      .sort((a, b) => a.group.position.z - b.group.position.z)
+      .map((actor) => ({
+        user: actor.event?.user || '',
+        gender: actor.avatar.gender,
+        kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
+        moving: Boolean(actor.moveCurve),
+        position: {
+          x: Number(actor.group.position.x.toFixed(2)),
+          z: Number(actor.group.position.z.toFixed(2))
+        }
+      }));
+    return {
+      active: devoteeState.active,
+      activeUser: devoteeState.event?.user || null,
+      phase: devoteeState.phase,
+      phaseElapsedMs: Math.round(phaseElapsedMs),
+      phaseProgress: Number(phaseProgress.toFixed(3)),
+      kneelBlend: Number((mainHuman.kneelBlend || 0).toFixed(3)),
+      bowAmount: Number((mainHuman.bowAmount || 0).toFixed(3)),
+      bowPhase: mainHuman.ritualBowPhase || 'idle',
+      bowCycle: mainHuman.ritualBowCycle || 0,
+      queueLength: devoteeQueue.length,
+      visibleQueueActors: queue.length,
+      kneelingQueueActors: queue.filter((actor) => actor.kneelBlend > 0.65).length,
+      queue,
+      departingCount: departingDevotees.length
+    };
+  }
+  window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__ = getDevoteeFlowDiagnostics;
+
   function setDevoteePhase(phase, now, duration) {
     devoteeState.phase = phase;
     devoteeState.phaseStartedAt = now;
@@ -2366,7 +2405,7 @@ async function boot() {
       const start = queueStart.clone();
       devoteeState.phase = 'approach';
       devoteeState.phaseStartedAt = now;
-      devoteeState.phaseDuration = 6500;
+      devoteeState.phaseDuration = 3000;
       devoteeState.curve = new THREE.CatmullRomCurve3([
         start,
         start.clone().add(new THREE.Vector3(0.05, 0, -1.9)),
@@ -2376,7 +2415,7 @@ async function boot() {
         new THREE.Vector3(0, 0.05, -3.55)
       ], false, 'centripetal');
     } else {
-      setDevoteePhase('enter', now, 3600);
+      setDevoteePhase('enter', now, 1700);
     }
   }
   function enqueueDevotee(event) {
@@ -3117,17 +3156,19 @@ async function boot() {
         elapsedAfterArrival: ritualElapsed,
         remainingMs: devoteeState.phase === 'ritual' ? Number.MAX_SAFE_INTEGER : 0,
         kneelInMs: 520,
-        bowDelayMs: 500,
+        bowDelayMs: 350,
         bowInMs: 900,
         bowCycles: 3,
-        bowCycleMs: 1050,
-        bowDownRatio: 0.30,
+        bowCycleMs: 1500,
+        bowDownRatio: 0.34,
         bowHoldRatio: 0.20,
-        bowUpRatio: 0.30,
+        bowUpRatio: 0.34,
         exitFadeMs: 450
       });
       mainHuman.kneelBlend = ritualPose.kneelBlend;
       mainHuman.kneeling = ritualPose.kneelBlend > 0.035;
+      mainHuman.ritualBowPhase = ritualPose.bowPhase;
+      mainHuman.ritualBowCycle = ritualPose.bowCycle;
       animateHuman(mainHuman, now, walking, walkPhase);
       applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);
       applyGiftThankYouGesture(mainHuman, now);
@@ -3135,9 +3176,9 @@ async function boot() {
       if (progress >= 1) {
         if (devoteeState.phase === 'enter') {
           mainDevotee.position.set(-3.65, 0.05, 8.0);
-          setDevoteePhase('queue', now, 350);
+          setDevoteePhase('queue', now, 200);
         } else if (devoteeState.phase === 'queue') {
-          setDevoteePhase('approach', now, 6500);
+          setDevoteePhase('approach', now, 3000);
         } else if (devoteeState.phase === 'approach') {
           mainDevotee.position.set(0, 0.05, -3.55);
           mainDevotee.rotation.y = 0;
