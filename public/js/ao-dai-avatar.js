@@ -127,7 +127,7 @@ function createAoDaiAvatarRig(THREE, {
   // split panels layer over this shell instead of using a short T-shirt mesh.
   const tunicShell = addMesh(
     upperBody,
-    cylinderGeometry(0.235, 0.17, 0.88, 24),
+    cylinderGeometry(THREE, 0.235, 0.17, 0.88, 24),
     cloth,
     [0, 0.105, 0],
     [1, 1, 0.72]
@@ -165,14 +165,14 @@ function createAoDaiAvatarRig(THREE, {
   // High standing collar, centre placket and restrained brass buttons.
   const collar = addMesh(
     upperBody,
-    cylinderGeometry(0.082, 0.108, 0.105, 20),
+    cylinderGeometry(THREE, 0.082, 0.108, 0.105, 20),
     trim,
     [0, 0.565, 0]
   );
   collar.name = 'AoDaiHighCollar';
   const placket = addMesh(
     upperBody,
-    cylinderGeometry(0.012, 0.012, 0.31, 8),
+    cylinderGeometry(THREE, 0.012, 0.012, 0.31, 8),
     trim,
     [0, 0.31, -0.153]
   );
@@ -290,7 +290,7 @@ function createAoDaiAvatarRig(THREE, {
     [rightArm, 1, rightHand]
   ]) {
     const sleeve = addMesh(
-      pivot, cylinderGeometry(0.108, 0.072, 0.46, 14), cloth,
+      pivot, cylinderGeometry(THREE, 0.108, 0.072, 0.46, 14), cloth,
       [0, -0.205, 0]
     );
     sleeve.rotation.z = side * 0.16;
@@ -307,7 +307,7 @@ function createAoDaiAvatarRig(THREE, {
     for (let finger = 0; finger < 4; finger++) {
       const x = (finger - 1.5) * 0.027;
       addMesh(
-        hand, cylinderGeometry(0.011, 0.014, 0.105, 8), skin,
+        hand, cylinderGeometry(THREE, 0.011, 0.014, 0.105, 8), skin,
         [x, 0.075, 0]
       );
       addMesh(
@@ -345,11 +345,11 @@ function createAoDaiAvatarRig(THREE, {
     [rightLeg, rightKnee, rightFoot, 1]
   ]) {
     addMesh(
-      upper, cylinderGeometry(0.086, 0.103, 0.25, 12), trousers,
+      upper, cylinderGeometry(THREE, 0.086, 0.103, 0.25, 12), trousers,
       [0, -0.12, 0]
     );
     addMesh(
-      lower, cylinderGeometry(0.078, 0.094, 0.25, 12), trousers,
+      lower, cylinderGeometry(THREE, 0.078, 0.094, 0.25, 12), trousers,
       [0, -0.12, 0]
     );
     const shoe = addMesh(
