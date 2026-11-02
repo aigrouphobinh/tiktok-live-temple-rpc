@@ -18,7 +18,7 @@ describe('Rocket and Donut 2D target ejection', () => {
     expect(rocket).toContain('hideCentralCharacterAfter(token, 1160)');
     expect(donut).toContain('if (hasTarget)');
     expect(donut).toContain('translate3d(690px,118px,0)');
-    expect(donut).toContain('hideCentralCharacterAfter(token, 2520)');
+    expect(donut).toContain('hideCentralCharacterAfter(token, Math.round(2520 * durationScale))');
   });
 
   it('uses the state machine ejection result for the active and chained effect', () => {
