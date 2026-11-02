@@ -2266,6 +2266,10 @@ async function boot() {
     };
     actor.group.visible = false;
     actor.event = null;
+    actor.moveTarget = null;
+    actor.moveCurve = null;
+    actor.moveStartedAt = 0;
+    actor.moveDurationMs = 0;
     queueActorPool.push(actor);
     return result;
   }
