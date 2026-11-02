@@ -58,7 +58,7 @@ describe('Three.js scene performance safeguards', () => {
   it('keeps the sanctuary roofless and preserves the open altar sightline', () => {
     expect(source).not.toMatch(/makeCurvedRoofSide|roofTile|roofTrim|roofStartZ|const ridge =/);
     expect(source).toContain('Open-air sanctuary: keep the upper sightline clear');
-    expect(source).toContain('camera.lookAt(0, -1.5, -5.5);');
+    expect(source).toContain('camera.lookAt(cameraHomeTarget);');
   });
 
 });
