@@ -146,7 +146,7 @@ describe('CharacterStateMachine', () => {
     machine.interrupt('rocket', { giftName: 'Rocket' });
     const result = machine.interrupt('donut', { giftName: 'Donut' });
     expect(result.queuedEffect).toBe(true);
-    expect(machine.finishEffect().nextEffect.action).toBe('donut');
+    expect(machine.finishEffect()).toMatchObject({ nextEffect: { action: 'donut' }, ejectedDevotee: true });
     expect(machine.finishEffect().cooldown).toBe(true);
     expect(machine.finishCooldown()).toMatchObject({ started: false });
   });
