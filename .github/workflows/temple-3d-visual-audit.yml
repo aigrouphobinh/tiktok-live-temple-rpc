@@ -39,6 +39,33 @@ jobs:
       - name: Install application dependencies
         run: bun install --frozen-lockfile
 
+      - name: Validate bundled Buddha GLB files
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, statSync } from 'node:fs';
+          import { parseGLB } from './scripts/inspect-glb.mjs';
+          for (const file of [
+            'public/assets/models/buddha-selected.glb',
+            'public/assets/models/buddha-cc0-fallback.glb'
+          ]) {
+            const result = parseGLB(readFileSync(file));
+            if (result.externalUris.length) {
+              throw new Error(`${file} contains external URIs: ${result.externalUris.join(', ')}`);
+            }
+            console.log(JSON.stringify({
+              file,
+              bytes: statSync(file).size,
+              meshes: result.meshes,
+              primitives: result.primitives.length,
+              triangles: result.triangleEstimate,
+              nodes: result.nodes,
+              materials: result.materials,
+              textures: result.textures,
+              externalUris: result.externalUris
+            }));
+          }
+          NODE
+
       - name: Start application server
         run: |
           DISABLE_TIKTOK_AUTOCONNECT=1 DISABLE_ZEROTTS_WORKER=1 PORT=3000 bun run server.js > /tmp/temple-server.log 2>&1 &
