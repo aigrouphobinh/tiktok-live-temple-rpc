@@ -164,9 +164,8 @@ function estimateCenterlineRoll(root, minY, height) {
       const t = (worldY - minY) / height;
       if (t < 0.12 || t > 0.92) continue;
       const bandIndex = Math.min(7, Math.floor((t - 0.12) / 0.1));
-      // The near/far Z band prevents an unusually deep robe fold from biasing
-      // the horizontal silhouette center at one height.
-      if (!Number.isFinite(worldX + worldZ)) continue;
+      // Reject invalid transformed vertices before measuring the silhouette center.
+      if (!Number.isFinite(worldX + worldY + worldZ)) continue;
       bands[bandIndex].x.push(worldX);
       bands[bandIndex].y.push(worldY);
     }
