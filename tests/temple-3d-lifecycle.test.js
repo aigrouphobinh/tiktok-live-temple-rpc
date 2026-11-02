@@ -49,7 +49,7 @@ describe('Three.js lifecycle recovery', () => {
   });
 
   it('routes Rocket and Donut into 3D target removal and waits for the gift handoff', () => {
-    expect(source).toContain("import { resolveGiftAction } from './gift-action-rules.js';");
+    expect(source).toContain("import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';");
     expect(source).toContain('function ejectActiveDevotee(action');
     expect(source).toContain('devoteeState.pausedAt = 0;');
     expect(source).toContain("setDevoteePhase('rocketEject', now, devoteeState.ejectionMotionDuration)");
@@ -67,11 +67,11 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]]");
     expect(source).toContain("approach: [[-3.65, 0, 8.0], [-3.55, 0, 5.3], [-2.7, 0, 3.1], [-1.6, 0, 0.15], [0.0, 0, -3.55]]");
     expect(source).toContain("exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]");
-    expect(source).toContain('new THREE.Vector3(-5.0, 0.05, 8.0 + index * 1.45)');
+    expect(source).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
     expect(source).not.toContain('for (let slot = 0; slot < 5; slot++)');
-    expect(source).toContain("setDevoteePhase('enter', now, 3600);");
-    expect(source).toContain("setDevoteePhase('approach', now, 6500);");
-    expect(source).toContain('devoteeState.phaseDuration = 6500;');
+    expect(source).toContain("setDevoteePhase('enter', now, 1700);");
+    expect(source).toContain("setDevoteePhase('approach', now, 3000);");
+    expect(source).toContain('devoteeState.phaseDuration = duration;');
     expect(source).toContain("mainDevotee.position.set(-3.65, 0.05, 8.0);");
   });
 
@@ -151,7 +151,7 @@ describe('Three.js lifecycle recovery', () => {
 
   it('performs three separate bows during the 3D ritual phase', () => {
     expect(source).toContain('bowCycles: 3,');
-    expect(source).toContain('bowCycleMs: 1050,');
+    expect(source).toContain('bowCycleMs: 1500,');
     expect(source).toContain("setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);");
     expect(source).toContain("devoteeState.phase === 'ritual'\n        ? 0");
   });
