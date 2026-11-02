@@ -27,7 +27,7 @@ describe('Ritual visit timing', () => {
     expect(scene).toContain('const queueFormation = getQueueActorFormationPosition(slot);');
     expect(scene).toContain('const entryPosition = getQueueActorEntryPosition(slot);');
     expect(scene).toContain('actor.avatar.queuedWorshipLane = isWorshipLane;');
-    expect(scene).toContain('actor.seat.visible = !isWorshipLane;');
+    expect(scene).toContain('actor.seat.visible = false;');
     expect(scene).toContain('actor.slot = slot;');
   });
 });
