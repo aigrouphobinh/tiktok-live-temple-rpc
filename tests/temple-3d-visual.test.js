@@ -166,9 +166,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
     expect(scene).toContain('avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
     expect(scene).toContain('animateHuman(mainHuman, now, walking, walkPhase);');
-    expect(scene).toContain('getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2, mainHuman.phase)');
+    expect(scene).toContain('getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2)');
     expect(scene).toContain('devoteeState.curve.getPointAt(eased)');
-    expect(scene).toContain('leaving.curve.getLength(), 1.2, leaving.avatar.phase');
+    expect(scene).toContain('leaving.curve.getLength(), 1.2');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
     expect(scene).toContain("setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);");
     expect(scene).toContain("window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
