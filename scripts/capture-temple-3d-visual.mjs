@@ -328,12 +328,15 @@ try {
         // three bows and begin their exit walks.
         if (profileReport.crowdFormationDiagnostic?.visibleQueueActors === 8) {
           profileReport.crowdScreenshot = `${artifactDir}/temple-3d-crowd.png`;
-          await page.locator('#stage9x16').screenshot({
-            path: profileReport.crowdScreenshot,
-            animations: 'disabled',
-            timeout: 45000,
-            scale: 'css'
+          const crowdDataUrl = await page.evaluate(() => {
+            const canvas = document.getElementById('temple3dCanvas');
+            return canvas?.toDataURL('image/png') || '';
           });
+          const crowdImageMatch = crowdDataUrl.match(/^data:image\/png;base64,([A-Za-z0-9+/=]+)$/);
+          if (!crowdImageMatch) {
+            throw new Error('Unable to capture the synchronized WebGL crowd frame');
+          }
+          await writeFile(profileReport.crowdScreenshot, Buffer.from(crowdImageMatch[1], 'base64'));
           logAuditPhase(scenario.id, 'crowd-screenshot-complete', {
             path: profileReport.crowdScreenshot,
             simultaneousWorshippers: profileReport.crowdFormationDiagnostic.simultaneousWorshippers
