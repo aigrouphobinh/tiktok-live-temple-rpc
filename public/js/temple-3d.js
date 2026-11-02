@@ -2046,7 +2046,7 @@ async function boot() {
     box(0.028, 0.045, 10.35, mats.gold, x, -0.075, 10.15);
   }
   for (let slot = 0; slot < 5; slot++) {
-    const z = 13.05 - slot * 1.55;
+    const z = 6.85 + slot * 1.55;
     cylinder(0.18, 0.18, 0.018, mats.gold, -5.18, -0.078, z, world, 24);
     cylinder(0.12, 0.12, 0.02, mats.wood, -5.18, -0.064, z, world, 24);
   }
@@ -2149,7 +2149,7 @@ async function boot() {
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      actor.target.set(-5.18, 0.05, 13.05 - index * 1.55);
+      actor.target.set(-5.18, 0.05, 6.85 + index * 1.55);
     });
   }
 
@@ -2173,9 +2173,9 @@ async function boot() {
     awaitingGiftHandoff: false, pausedAt: 0
   };
   const devoteeRoutes = {
-    enter: [[5.2, 0, 14.5], [4.9, 0, 12.0], [4.2, 0, 9.4], [3.8, 0, 7.2]],
-    approach: [[3.8, 0, 7.2], [3.8, 0, 5.0], [2.6, 0, 2.2], [0.0, 0, -3.55]],
-    exit: [[0.0, 0, -3.55], [-1.8, 0, -0.5], [-3.8, 0, 3.8], [-5.2, 0, 9.0], [-5.5, 0, 13.5]]
+    enter: [[-6.25, 0, 15.3], [-5.8, 0, 13.5], [-5.35, 0, 10.2], [-5.18, 0, 6.85]],
+    approach: [[-5.18, 0, 6.85], [-4.95, 0, 4.8], [-3.2, 0, 2.8], [-1.8, 0, -0.1], [0.0, 0, -3.55]],
+    exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]
   };
   function setDevoteePhase(phase, now, duration) {
     devoteeState.phase = phase;
@@ -2208,7 +2208,7 @@ async function boot() {
     devoteeState.active = true;
     updateMainDevoteeName(devoteeState.event.user);
     mainDevotee.visible = true;
-    mainDevotee.position.copy(queueStart || new THREE.Vector3(5.2, 0.05, 14.5));
+    mainDevotee.position.copy(queueStart || new THREE.Vector3(-6.25, 0.05, 15.3));
     mainDevotee.rotation.set(0, 0, 0);
     mainDevotee.scale.setScalar(1);
     devoteeState.ejectionStart = null;
@@ -2225,12 +2225,13 @@ async function boot() {
       const start = queueStart.clone();
       devoteeState.phase = 'approach';
       devoteeState.phaseStartedAt = now;
-      devoteeState.phaseDuration = 2500;
+      devoteeState.phaseDuration = 4200;
       devoteeState.curve = new THREE.CatmullRomCurve3([
         start,
-        start.clone().add(new THREE.Vector3(0.35, 0, -1.8)),
-        new THREE.Vector3(-3.35, 0.05, 4.2),
-        new THREE.Vector3(-2.5, 0.05, 0.8),
+        start.clone().add(new THREE.Vector3(0.05, 0, -1.9)),
+        new THREE.Vector3(-4.95, 0.05, 4.8),
+        new THREE.Vector3(-3.2, 0.05, 2.8),
+        new THREE.Vector3(-1.8, 0.05, -0.1),
         new THREE.Vector3(0, 0.05, -3.55)
       ], false, 'centripetal');
     } else {
@@ -2311,10 +2312,10 @@ async function boot() {
       nameTag?.removeFromParent();
       const exitCurve = new THREE.CatmullRomCurve3([
         start,
-        start.clone().add(new THREE.Vector3(-0.9, 0, 1.3)),
-        new THREE.Vector3(-3.6, 0.05, 3.6),
-        new THREE.Vector3(-5.0, 0.05, 8.3),
-        new THREE.Vector3(-5.5, 0.05, 13.5)
+        start.clone().add(new THREE.Vector3(0.9, 0, 1.3)),
+        new THREE.Vector3(4.8, 0.05, 3.0),
+        new THREE.Vector3(5.7, 0.05, 8.5),
+        new THREE.Vector3(6.2, 0.05, 13.5)
       ], false, 'centripetal');
       world.add(leaving);
       departingDevotees.push({ group: leaving, curve: exitCurve, startedAt: now, durationMs: 1500 });
@@ -2900,10 +2901,10 @@ async function boot() {
 
       if (progress >= 1) {
         if (devoteeState.phase === 'enter') {
-          mainDevotee.position.set(3.8, 0.05, 7.2);
+          mainDevotee.position.set(-5.18, 0.05, 6.85);
           setDevoteePhase('queue', now, 350);
         } else if (devoteeState.phase === 'queue') {
-          setDevoteePhase('approach', now, 1700);
+          setDevoteePhase('approach', now, 4200);
         } else if (devoteeState.phase === 'approach') {
           mainDevotee.position.set(0, 0.05, -3.55);
           mainDevotee.rotation.y = 0;
