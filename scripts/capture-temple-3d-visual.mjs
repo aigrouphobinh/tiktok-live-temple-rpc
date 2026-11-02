@@ -286,9 +286,8 @@ try {
           }
         });
         try {
-          // Arrival and prayer are separate phases: the last visitor can reach
-          // a distant seat just before the timeout, so do not require a settled
-          // kneel in the same frame that the walking curve ends.
+          // Sample during the first concurrent side-lane ritual. The four
+          // worshippers bow together while the next four stay seated.
           await page.waitForFunction(() => {
             const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
             const queue = diagnostic?.queue || [];
@@ -304,7 +303,7 @@ try {
             const seated = queue.filter((actor) => actor.queueWaiting);
             return worshippers.length === 4
               && seated.length === 4
-              && queue.every((actor) => actor.kneelBlend >= 0.9)
+              && worshippers.every((actor) => actor.kneelBlend >= 0.9)
               && worshippers.some((actor) => actor.bowAmount >= 0.08);
           }, null, { timeout: 8000 });
         } catch (error) {
@@ -489,7 +488,9 @@ try {
             ]);
           })(),
         crowdFormationAllKneeling: scenario.id !== 'high'
-          || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.kneelBlend >= 0.9),
+          || (scene.devoteeFlowDiagnostic?.queue || [])
+            .filter((actor) => actor.queuedWorshipLane)
+            .every((actor) => actor.kneelBlend >= 0.9),
         crowdFormationConcurrentWorshipSlots: scenario.id !== 'high'
           || (scene.devoteeFlowDiagnostic?.queue || [])
             .filter((actor) => actor.queuedWorshipLane).length === 4,
