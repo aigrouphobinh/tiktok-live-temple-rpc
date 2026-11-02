@@ -2128,12 +2128,18 @@ async function boot() {
         const asset = avatar.gender === 'female' ? devoteeModelAssets.female : devoteeModelAssets.male;
         const animations = asset.animations || [];
         const gltfActions = findBestAnimationClip(animations);
-        // Keep procedural fallback nodes attached but hidden: their primitive
-        // geometry/materials may be shared with the sanctuary's cached meshes.
-        // Scene teardown owns and releases these resources exactly once.
-        for (const child of avatar.root.children) child.visible = false;
+        // The shared source roots are intentionally hidden in the world.
+        // SkeletonUtils.clone preserves Object3D.visible, so explicitly enable
+        // each per-avatar clone before attaching it or it remains invisible.
         const model = clone(asset.root);
+        model.visible = true;
+        model.traverse((node) => { node.visible = true; });
         avatar.root.add(model);
+        // Hide procedural fallback only after the imported model is attached.
+        // Their primitive geometry/materials may be shared with cached meshes.
+        for (const child of avatar.root.children) {
+          if (child !== model) child.visible = false;
+        }
         avatar.gltfRoot = model;
         avatar.gltfActions = gltfActions;
         avatar.gltfMixer = animations.length ? new THREE.AnimationMixer(model) : null;
