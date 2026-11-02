@@ -2891,3 +2891,140 @@ body.obs-mode .stage-wrapper {
 @media (prefers-reduced-motion: reduce) {
   .stage-9x16.temple-3d-mode .ritual-side-action { transition: none; }
 }
+
+
+/* Wide, enlarged Tấm Lòng Thành board: one horizontal band across the 9:16 stage. */
+.stage-9x16.temple-3d-mode .bottom-hud-bar {
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: 208px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+}
+.stage-9x16.temple-3d-mode .bottom-hud-bar .hud-left-col { display: none; }
+.stage-9x16.temple-3d-mode .bottom-hud-bar .hud-right-leaderboard {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .hud-lb-header {
+  min-height: 34px;
+  margin: 0 0 9px;
+  padding: 0 0 8px 30px;
+  font-size: 21px;
+  line-height: 1.15;
+  letter-spacing: 1.1px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .hud-lb-list {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 9px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-item {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 8px 9px;
+  display: grid;
+  grid-template-columns: 24px 42px minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 3px;
+  border: 1px solid rgba(255, 220, 157, .45);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(255, 224, 165, .13), rgba(67, 23, 14, .38));
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-rank {
+  grid-column: 1;
+  grid-row: 1;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar {
+  grid-column: 2;
+  grid-row: 1;
+  width: 42px;
+  height: 42px;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-name {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 900;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-merit {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: center;
+  font-size: 21px;
+  line-height: 1.15;
+  font-weight: 900;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .bottom-hud-bar {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    height: 190px;
+  }
+  .stage-9x16.temple-3d-mode .bottom-hud-bar .hud-right-leaderboard {
+    padding: 9px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .hud-lb-header {
+    min-height: 27px;
+    margin-bottom: 7px;
+    padding-bottom: 6px;
+    font-size: 18px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .hud-lb-list {
+    gap: 6px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-item {
+    grid-template-columns: 20px 34px minmax(0, 1fr);
+    padding: 6px 5px;
+    column-gap: 4px;
+    border-radius: 9px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-rank {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar {
+    width: 34px;
+    height: 34px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-name {
+    font-size: 12px;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-merit {
+    font-size: 18px;
+  }
+}
