@@ -2604,8 +2604,8 @@ async function boot() {
   function createDevoteeWishBubble(options = {}) {
     const compact = options.compact === true;
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = compact ? 112 : 144;
+    canvas.width = compact ? 512 : 1024;
+    canvas.height = compact ? 56 : 144;
     const context = canvas.getContext('2d');
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -2625,25 +2625,25 @@ async function boot() {
         ? formatDevoteePrayerLabel(value)
         : String(value || fallback).trim() || fallback;
       sprite.userData.wishText = wish;
-      const padY = compact ? 10 : 13;
-      const cornerRadius = compact ? 44 : 54;
+      const padY = compact ? 5 : 13;
+      const cornerRadius = compact ? 22 : 54;
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.beginPath();
-      context.roundRect(18, padY, 988, canvas.height - padY * 2, cornerRadius);
+      context.roundRect(compact ? 9 : 18, padY, canvas.width - (compact ? 18 : 36), canvas.height - padY * 2, cornerRadius);
       context.fillStyle = 'rgba(31, 15, 7, 0.96)';
       context.fill();
       context.lineWidth = compact ? 4 : 5;
       context.strokeStyle = 'rgba(255, 210, 116, 0.98)';
       context.stroke();
       context.font = compact
-        ? '600 36px "Be Vietnam Pro", Arial, sans-serif'
+        ? '600 18px "Be Vietnam Pro", Arial, sans-serif'
         : '600 48px "Be Vietnam Pro", Arial, sans-serif';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.fillStyle = '#ffe9b0';
       context.shadowColor = 'rgba(255, 184, 64, 0.5)';
       context.shadowBlur = compact ? 6 : 10;
-      context.fillText(wish, 512, canvas.height / 2, 900);
+      context.fillText(wish, canvas.width / 2, canvas.height / 2, compact ? 450 : 900);
       context.shadowBlur = 0;
       texture.needsUpdate = true;
     }
