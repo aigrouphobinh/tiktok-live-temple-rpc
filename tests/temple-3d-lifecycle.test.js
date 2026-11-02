@@ -100,9 +100,10 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('Compact the line after every promotion');
-    expect(source).toContain('getQueueActorFormationPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS');
+    expect(source).toContain('getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS');
     expect(source).toContain('getHorizontalFormationPosition(slot, {');
     expect(source).toContain('const queueFormation = getQueueActorFormationPosition(slot);');
+    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
     expect(source).toContain('actor.avatar.offeringIncense = false;');
     expect(source).toContain('const offeringPose = getRitualPoseState({');
     expect(source).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
