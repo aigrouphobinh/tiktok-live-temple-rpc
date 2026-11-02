@@ -9,7 +9,8 @@ describe('Three.js visitor camera director', () => {
     expect(source).toContain('const cameraRitualFov = 38.5;');
     expect(source).toContain('cameraTargetFov = cameraRitualFov;');
     expect(source).toContain('cameraTargetFov = cameraHomeFov;');
-    expect(source).toContain('const blend = 1 - Math.exp(-Math.min(50, dt) / 720);');
+    expect(source).toContain('const cameraShotBlendMs = 720;');
+    expect(source).toContain('const blend = 1 - Math.exp(-Math.min(50, dt) / cameraShotBlendMs);');
     expect(source).toContain('camera.fov += (cameraTargetFov - camera.fov) * blend;');
     expect(source).toContain('camera.updateProjectionMatrix();');
   });
@@ -17,7 +18,8 @@ describe('Three.js visitor camera director', () => {
   it('aims at the active visitor instead of a point below the floor', () => {
     expect(source).toContain('cameraRitualActive && devoteeState?.active && mainDevotee?.visible');
     expect(source).toContain('const person = mainDevotee.position;');
-    expect(source).toContain('THREE.MathUtils.clamp(person.x + activeCameraPreset.targetOffsetX, -4.1, 4.1)');
+    expect(source).toContain('cameraTargetLookAt.set(\n          cameraFollowX + activeCameraPreset.targetOffsetX,\n          1.25,\n          person.z\n        );');
+    expect(source).toContain('cameraTargetLookAt.set(person.x + side * 0.08, 1.22, person.z - 0.42);');
     expect(source).toContain('1.25,');
     expect(source).toContain('person.z');
   });
