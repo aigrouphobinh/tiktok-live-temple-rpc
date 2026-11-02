@@ -63,7 +63,8 @@ describe('3D temple camera shot sequence', () => {
     expect(restore).toContain('cameraTargetPosition.copy(cameraHomePosition);');
     expect(restore).toContain('cameraTargetLookAt.copy(cameraHomeTarget);');
     expect(restore).toContain('cameraTargetFov = cameraHomeFov;');
-    expect(scene).toContain('if (!devoteeState.active && !devoteeQueue.length) restoreMainCamera();');
+    expect(scene).toContain('if (!devoteeState.active && !devoteeState.awaitingGiftHandoff && !devoteeQueue.length) restoreMainCamera();');
+    expect(scene).toContain('if (nextIndex < 0) {\n      restoreMainCamera();\n      return;\n    }');
   });
 
   it('does not layer the old CSS camera transform over the Three.js shot director', () => {
