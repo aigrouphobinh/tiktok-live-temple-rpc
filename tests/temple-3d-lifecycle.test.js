@@ -43,7 +43,8 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('function giftExplosionBurst(position, vfx, color = 0xffa52e)');
     expect(source).toContain('blending: THREE.AdditiveBlending');
     expect(source).toContain('const smokeCount = Math.min(14, 5 + vfx.shockwaves);');
-    expect(source).toContain('giftSparkBurst(center.x, center.y + 0.12, center.z,');
+    expect(source).toContain('MAX_EFFECTS - 1 - smokeCount - vfx.shockwaves');
+    expect(source).toContain('giftSparkBurst(center.x, center.y + 0.12, center.z, sparkCount, color);');
     expect(source).toContain('giftExplosionBurst(impact, vfx, 0xffa52e);');
   });
 
