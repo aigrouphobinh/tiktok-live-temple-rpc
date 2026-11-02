@@ -63,11 +63,10 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('finishGiftEjectionHandoff();');
   });
 
-  it('keeps one-way entrance, FIFO queue order and a separate exit lane', () => {
+  it('keeps one-way entrance, horizontal altar formation and a separate exit lane', () => {
     expect(source).toContain("enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]]");
     expect(source).toContain("approach: [[-3.65, 0, 8.0], [-3.55, 0, 5.3], [-2.7, 0, 3.1], [-1.6, 0, 0.15], [0.0, 0, -3.55]]");
     expect(source).toContain("exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]");
-    expect(source).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
     expect(source).not.toContain('for (let slot = 0; slot < 5; slot++)');
     expect(source).toContain("setDevoteePhase('enter', now, 1700);");
     expect(source).toContain("setDevoteePhase('approach', now, 3000);");
@@ -75,7 +74,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("mainDevotee.position.set(-3.65, 0.05, 8.0);");
   });
 
-  it('renders queued visitors as bounded, reusable 3D actors on a separate side lane', () => {
+  it('renders all waiting visitors as reusable actors in horizontal incense-offering rows', () => {
     expect(source).toContain('const queueActors = new Map();');
     expect(source).toContain('const queueActorPool = [];');
     expect(source).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
@@ -92,17 +91,18 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('actor.group.position.lerp(actor.target');
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('avatar.prayerPose = true;');
-    expect(source).toContain('Keep the waiting line upright like the 2D procession');
-    expect(source).toContain('avatar.bowAmount = 0;');
-    expect(source).toContain('avatar.kneeling = false;');
-    expect(source).toContain('applyHumanBow(avatar, avatar.bowAmount, avatar.kneelBlend);');
-    expect(source).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
-    expect(source).toContain('actor.group.position.set(-3.62, 0.05, 15.3 + index * 1.38);');
+    expect(source).toContain('Visitors do not wait in a single-file FIFO before the altar.');
+    expect(source).toContain('const altarColumns = 8;');
+    expect(source).toContain('const altarX = (column - (altarColumns - 1) / 2) * 1.12;');
+    expect(source).toContain('const altarZ = -1.55 + row * 1.28;');
+    expect(source).toContain('actor.avatar.offeringIncense = true;');
+    expect(source).toContain('const offeringPose = getRitualPoseState({');
+    expect(source).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
+    expect(source).toContain('actor.group.position.set(\n          (entryColumn - 3.5) * 1.12,');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
-    expect(source).toContain('actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);');
     expect(source).toContain('actor.moveTarget = null;');
     expect(source).toContain('actor.moveCurve = null;');
     expect(source).toContain('actor.moveStartedAt = 0;');
