@@ -2595,13 +2595,6 @@ async function boot() {
     lastStatsAt = 0;
   }
 
-  // Probe optional same-origin GLBs before the model loader requests them.
-  // A missing preferred asset is an expected fallback state.
-  async function isLocalModelAvailable(url) {
-    const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-    return response.ok;
-  }
-
   function applyGiltFinish(root) {
     root.traverse((node) => {
       if (!node.isMesh || !node.material) return;
