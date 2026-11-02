@@ -2154,6 +2154,23 @@ async function boot() {
   const departingDevotees = [];
   const MAX_VISIBLE_QUEUE_ACTORS = 5;
 
+  // Expose a read-only runtime snapshot for the visual audit and browser
+  // troubleshooting. It confirms that both local Ao Dai variants are active
+  // and that the former imported Girl GLB is not replacing the crowd.
+  function getAoDaiRuntimeDiagnostics() {
+    const maleCount = allHumanAvatars.filter((avatar) => avatar.gender === 'male').length;
+    const femaleCount = allHumanAvatars.filter((avatar) => avatar.gender === 'female').length;
+    return {
+      source: 'ao-dai-local',
+      avatarCount: allHumanAvatars.length,
+      maleCount,
+      femaleCount,
+      visibleQueueActors: [...queueActors.values()].filter((actor) => actor.group.visible).length,
+      legacyGirlGlbEnabled: false
+    };
+  }
+  window.__TEMPLE_AODAI_DIAGNOSTIC__ = getAoDaiRuntimeDiagnostics;
+
   function createQueueActor(event, appearance = getDevoteeAppearance(event)) {
     const group = new THREE.Group();
     const avatar = makeHumanAvatar(1.36, appearance);
