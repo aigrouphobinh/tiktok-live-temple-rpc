@@ -93,7 +93,8 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('Visitors do not wait in a single-file FIFO before the altar.');
     expect(source).toContain('const altarColumns = 8;');
-    expect(source).toContain('const altarX = (column - (altarColumns - 1) / 2) * 1.12;');
+    expect(source).toContain('const altarSide = Math.ceil((column + 1) / 2);');
+    expect(source).toContain('const altarX = (column % 2 === 0 ? -1 : 1) * (altarSide - 0.5) * 1.12;');
     expect(source).toContain('const altarZ = -1.55 + row * 1.28;');
     expect(source).toContain('actor.avatar.offeringIncense = true;');
     expect(source).toContain('const offeringPose = getRitualPoseState({');
