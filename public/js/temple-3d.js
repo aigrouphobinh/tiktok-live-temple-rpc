@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction } from './gift-action-rules.js';
@@ -2955,8 +2955,8 @@ async function boot() {
       const eased = progress * progress * (3 - 2 * progress);
       const walking = ['enter', 'approach', 'exit', 'donutChase'].includes(devoteeState.phase);
       if (walking && devoteeState.curve) {
-        const point = devoteeState.curve.getPoint(eased);
-        const tangent = devoteeState.curve.getTangent(eased);
+        const point = devoteeState.curve.getPointAt(eased);
+        const tangent = devoteeState.curve.getTangentAt(eased);
         mainDevotee.position.set(point.x, 0.05 + Math.abs(Math.sin(phaseElapsed * 0.012)) * 0.018, point.z);
         // Face the direction of travel; the avatar's local forward axis points toward -Z.
         mainDevotee.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
@@ -2971,7 +2971,9 @@ async function boot() {
         mainDevotee.rotation.z = -eased * 0.72;
         mainDevotee.scale.setScalar(Math.max(0.12, 1 - eased * 0.86));
       }
-      const walkPhase = phaseElapsed * 0.0085;
+      const walkPhase = walking && devoteeState.curve
+        ? getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2, mainHuman.phase)
+        : phaseElapsed * 0.0085;
       const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;
       const ritualPose = getRitualPoseState({
         travel: devoteeState.phase === 'ritual' ? 1 : 0,
@@ -3037,7 +3039,9 @@ async function boot() {
       const tangent = leaving.curve.getTangentAt(eased);
       leaving.group.position.copy(point);
       leaving.group.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
-      animateHuman(leaving.avatar, now, true, (now - leaving.startedAt) * 0.0085);
+      animateHuman(leaving.avatar, now, true, getDistanceBasedGaitPhase(
+        eased, leaving.curve.getLength(), 1.2, leaving.avatar.phase
+      ));
       leaving.group.scale.setScalar(1 - eased * 0.12);
       if (progress >= 1) {
         world.remove(leaving.group);
