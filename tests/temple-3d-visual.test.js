@@ -150,8 +150,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(scene).toContain('avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;');
     expect(scene).toContain('avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;');
     expect(scene).toContain('const congregationGiftGlow = allHumanAvatars.reduce((peak, avatar) => Math.max(');
-    expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
-    expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
+    expect(scene).toContain('buddhaLight.intensity = 19 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
+    expect(scene).toContain('altarFill.intensity = 21 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
   });
 
   it('animates subtle torso breathing and head micro-movements without moving the planted root', () => {
@@ -638,8 +638,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
   it('softens shadow acne and animates independent warm temple light sources', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;');
-    expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
-    expect(scene).toContain('altarFill.intensity = 17 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
+    expect(scene).toContain('buddhaLight.intensity = 19 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
+    expect(scene).toContain('altarFill.intensity = 21 + Math.sin(elapsed * 0.0045 + 0.8) * 2.2 + congregationGiftGlow * 4.5;');
     expect(scene).toContain('Math.sin(elapsed * 0.007 + i) * 0.35');
   });
 
@@ -1026,8 +1026,8 @@ it('uses a warm bronze-gold Buddha finish and a brighter altar focal fill', () =
   expect(scene).toContain('new THREE.PointLight(0xffd6a0, 20, 20, 2)');
   expect(scene).toContain('new THREE.DirectionalLight(0xffe9c8, 0.95)');
   expect(scene).toContain('renderer.toneMappingExposure = 1.32;');
-  expect(scene).toContain('buddhaLight.intensity = 14 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
-  expect(scene).toContain('A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.');
+  expect(scene).toContain('buddhaLight.intensity = 19 + Math.sin(elapsed * 0.0018) * 1.0 + congregationGiftGlow * 2.2;');
+  expect(scene).toContain('A warm, brighter focal fill keeps the bronze-gold statue readable without bleaching its carved planes.');
 });
 
 it('validates gift-burst renderer cost against each profile idle baseline', () => {
