@@ -5,6 +5,7 @@ import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
+import { getQueueActorFormationSlots, WAITING_SEAT_COLUMNS, WAITING_SEAT_ROWS } from './devotee-formation.js';
 import { formatDevoteePrayerLabel } from './devotee-labels.js';
 import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualCloseShot, getTempleRitualShotIndex } from './temple-camera-presets.js';
 
@@ -2721,21 +2722,54 @@ async function boot() {
   }
   window.__TEMPLE_AODAI_DIAGNOSTIC__ = getAoDaiRuntimeDiagnostics;
 
-  function createMeditationSeat(parent) {
-    const seat = new THREE.Group();
-    seat.name = 'LotusMeditationCushion';
-    cylinder(0.39, 0.43, 0.14, mats.redBright, 0, 0.09, 0, seat, 32);
-    cylinder(0.35, 0.39, 0.025, mats.gold, 0, 0.17, 0, seat, 32);
+  function createCongregationSeatPlaceholders() {
+    const positions = getQueueActorFormationSlots();
+    const dummy = new THREE.Object3D();
+
+    function createLayer(name, geometry, material, yOffset, rotationX = 0) {
+      const mesh = new THREE.InstancedMesh(geometry, material, positions.length);
+      mesh.name = name;
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      mesh.frustumCulled = false;
+      mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+
+      positions.forEach((position, index) => {
+        const scale = position.role === 'worship' ? 1 : 0.86;
+        dummy.position.set(position.x, position.y + yOffset * scale, position.z);
+        dummy.rotation.set(rotationX, 0, 0);
+        dummy.scale.setScalar(scale);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(index, dummy.matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+      world.add(mesh);
+      return mesh;
+    }
+
+    const baseGeometry = getPrimitiveGeometry('congregation-seat-base', () =>
+      new THREE.CylinderGeometry(0.39, 0.43, 0.14, 32));
+    const topGeometry = getPrimitiveGeometry('congregation-seat-top', () =>
+      new THREE.CylinderGeometry(0.35, 0.39, 0.025, 32));
     const rimGeometry = getPrimitiveGeometry('lotus-seat-rim', () =>
       new THREE.TorusGeometry(0.38, 0.018, 8, 36));
-    const rim = new THREE.Mesh(rimGeometry, mats.goldBright);
-    rim.rotation.x = -Math.PI / 2;
-    rim.position.y = 0.185;
-    rim.castShadow = false;
-    seat.add(rim);
-    parent.add(seat);
-    return seat;
+
+    createLayer('CongregationSeatBases', baseGeometry, mats.redBright, 0.09);
+    createLayer('CongregationSeatGoldTops', topGeometry, mats.gold, 0.17);
+    createLayer('CongregationSeatLotusRims', rimGeometry, mats.goldBright, 0.185, -Math.PI / 2);
+
+    return Object.freeze({
+      count: positions.length,
+      worshipCount: positions.filter(({ role }) => role === 'worship').length,
+      waitingCount: positions.filter(({ role }) => role === 'waiting').length
+    });
   }
+
+  // Keep all 40 empty/occupied places visible from scene boot. Visitors only
+  // provide the avatar and name/prayer labels; the shared instanced seat layers
+  // avoid allocating three new meshes for every queue actor.
+  const congregationSeatPlaceholders = createCongregationSeatPlaceholders();
 
   function createSutraBook(avatar) {
     const book = new THREE.Group();
@@ -2779,7 +2813,7 @@ async function boot() {
     avatar.headingOffset = -0.08;
     group.add(avatar.root);
     avatar.queueWorshipCompleted = false;
-    const seat = createMeditationSeat(group);
+    const seat = { visible: false };
     const sutraBook = createSutraBook(avatar);
     const nameTag = createDevoteeNameTag();
     nameTag.position.set(0, 1.82, 0);
@@ -2863,10 +2897,9 @@ async function boot() {
         actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
-        // Visitors enter in rows and keep their assigned place as others leave.
-        // New arrivals walk into a visible two-column waiting line behind
-        // the active worshipper instead of appearing beside the altar.
-        const entryPosition = getQueueActorEntryPosition(index);
+        // Enter just outside the actor's assigned slot, then move into the
+        // first free inner seat before filling farther rows and outer columns.
+        const entryPosition = getQueueActorEntryPosition(slot);
         actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
@@ -2892,7 +2925,8 @@ async function boot() {
       const queuePosition = new THREE.Vector3(queueFormation.x, queueFormation.y, queueFormation.z);
       actor.avatar.queueWaiting = !isWorshipLane;
       actor.avatar.queuedWorshipLane = isWorshipLane;
-      actor.seat.visible = !isWorshipLane;
+      // The fixed 40-seat instanced grid stays visible; never add a duplicate actor seat.
+      actor.seat.visible = false;
       actor.sutraBook.visible = !isWorshipLane;
       actor.group.scale.setScalar(isWorshipLane ? 1 : 0.86);
       actor.avatar.offeringIncense = false;
@@ -3028,6 +3062,10 @@ async function boot() {
       seatedWaitingActors: queue.filter((actor) => actor.queueWaiting).length,
       completedSideWorshipPendingFifo: completedQueueWorship.size,
       visibleSeatingCapacity: MAX_VISIBLE_QUEUE_ACTORS,
+      visibleSeatPlaceholderCount: congregationSeatPlaceholders.count,
+      worshipSeatPlaceholderCount: congregationSeatPlaceholders.worshipCount,
+      waitingSeatPlaceholderCount: congregationSeatPlaceholders.waitingCount,
+      waitingSeatGrid: { columns: WAITING_SEAT_COLUMNS, rows: WAITING_SEAT_ROWS, fillOrder: 'altar-center-out' },
       visibleActiveActor: Boolean(devoteeState.active && mainDevotee.visible),
       maxConcurrentWorshippers: MAX_CONCURRENT_WORSHIPPERS,
       visibleWorshipQueueActors: queue.filter((actor) => actor.queuedWorshipLane).length,

@@ -508,6 +508,10 @@ try {
           || scene.devoteeFlowDiagnostic?.visibleSceneActorCount === 9,
         crowdFormationActorsVisible: scenario.id !== 'high'
           || scene.devoteeFlowDiagnostic?.visibleQueueActors === 8,
+        crowdSeatPlaceholdersReady: scenario.id !== 'high'
+          || (scene.devoteeFlowDiagnostic?.visibleSeatPlaceholderCount === 40
+            && scene.devoteeFlowDiagnostic?.worshipSeatPlaceholderCount === 4
+            && scene.devoteeFlowDiagnostic?.waitingSeatPlaceholderCount === 36),
         crowdFormationSlotsUnique: scenario.id !== 'high'
           || new Set(scene.devoteeFlowDiagnostic?.queue?.map((actor) => actor.slot) || []).size === 8,
         crowdFormationHorizontalTargets: scenario.id !== 'high'
@@ -522,7 +526,7 @@ try {
             return JSON.stringify(worshipTargets) === JSON.stringify([
               '-1.05:-1.65', '-3.15:-1.35', '1.05:-1.65', '3.15:-1.35'
             ]) && JSON.stringify(seatedTargets) === JSON.stringify([
-              '-3.9:11.8', '-5.8:11.8', '3.9:11.8', '5.8:11.8'
+              '-0.84:1.8', '-2.52:1.8', '0.84:1.8', '2.52:1.8'
             ]);
           })(),
         crowdFormationAllKneeling: scenario.id !== 'high'

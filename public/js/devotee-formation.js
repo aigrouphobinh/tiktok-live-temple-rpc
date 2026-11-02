@@ -67,22 +67,26 @@ export const MAX_CONCURRENT_WORSHIPPERS = 5;
 export const MAX_QUEUED_WORSHIPPERS = MAX_CONCURRENT_WORSHIPPERS - 1;
 export const MAX_VISIBLE_QUEUE_ACTORS = DEFAULT_FORMATION_CAPACITY;
 
+/** The 36 waiting places form a compact 6×6 grid, centered on the processional axis. */
+export const WAITING_SEAT_COLUMNS = 6;
+export const WAITING_SEAT_ROWS = 6;
+export const WAITING_SEAT_COUNT = WAITING_SEAT_COLUMNS * WAITING_SEAT_ROWS;
+// Slot allocation is deliberately center-out: inner pair, middle pair, outer pair.
+// The first waiting row is closest to the altar; following rows extend outward.
+const WAITING_SEAT_X = Object.freeze([-0.84, 0.84, -2.52, 2.52, -4.2, 4.2]);
+export const WAITING_SEAT_FRONT_Z = 1.8;
+export const WAITING_SEAT_ROW_SPACING = 1.08;
+
 const QUEUED_WORSHIP_POSITIONS = Object.freeze([
-  Object.freeze({ x: -3.15, y: 0.05, z: -1.35 }),
   Object.freeze({ x: -1.05, y: 0.05, z: -1.65 }),
   Object.freeze({ x: 1.05, y: 0.05, z: -1.65 }),
+  Object.freeze({ x: -3.15, y: 0.05, z: -1.35 }),
   Object.freeze({ x: 3.15, y: 0.05, z: -1.35 })
 ]);
 
-// Four columns flank the processional carpet: two on the left, two on the
-// right. Each row moves toward the altar while keeping the central aisle clear.
-const WAITING_SEAT_X = Object.freeze([-5.8, -3.9, 3.9, 5.8]);
-const WAITING_SEAT_BASE_Z = 11.8;
-const WAITING_SEAT_ROW_SPACING = 1.35;
-
 /**
- * The active visitor and first four queued visitors share five prayer places.
- * Everyone else sits on a round lotus cushion in a four-column congregation grid.
+ * Slots 0–3 are the four worship positions near the altar. Slots 4–39 fill the
+ * permanent waiting-seat grid from the inner pair outward and altar to back.
  */
 export function getQueueActorFormationPosition(slot) {
   if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_VISIBLE_QUEUE_ACTORS) return null;
@@ -90,8 +94,8 @@ export function getQueueActorFormationPosition(slot) {
     return { slot, role: 'worship', ...QUEUED_WORSHIP_POSITIONS[slot] };
   }
   const waitingSlot = slot - MAX_QUEUED_WORSHIPPERS;
-  const column = waitingSlot % WAITING_SEAT_X.length;
-  const row = Math.floor(waitingSlot / WAITING_SEAT_X.length);
+  const column = waitingSlot % WAITING_SEAT_COLUMNS;
+  const row = Math.floor(waitingSlot / WAITING_SEAT_COLUMNS);
   return {
     slot,
     role: 'waiting',
@@ -99,15 +103,18 @@ export function getQueueActorFormationPosition(slot) {
     row,
     x: WAITING_SEAT_X[column],
     y: 0.05,
-    z: WAITING_SEAT_BASE_Z - row * WAITING_SEAT_ROW_SPACING
+    z: WAITING_SEAT_FRONT_Z + row * WAITING_SEAT_ROW_SPACING
   };
 }
 
+/** Returns all 40 permanent seat/ritual positions in their intended fill order. */
+export function getQueueActorFormationSlots() {
+  return Array.from({ length: MAX_VISIBLE_QUEUE_ACTORS }, (_, slot) =>
+    getQueueActorFormationPosition(slot)
+  );
+}
 
-/**
- * Spawn visitors on near-equal walking paths so the four side-lane worshippers
- * arrive together and can perform their three bows concurrently.
- */
+/** Spawn visitors slightly behind their assigned position before walking into it. */
 export function getQueueActorEntryPosition(slot) {
   const formation = getQueueActorFormationPosition(slot);
   if (!formation) return null;
