@@ -438,7 +438,7 @@ describe('getWalkBodyPose', () => {
 
   it('fades all body motion to zero when the avatar is not walking', () => {
     expect(getWalkBodyPose(1.2, 0)).toEqual({
-      bodyBob: 0, lateralSway: 0, torsoLean: -0, torsoTwist: 0
+      bodyBob: 0, lateralSway: 0, torsoLean: 0, torsoTwist: 0
     });
   });
 
