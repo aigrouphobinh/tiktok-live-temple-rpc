@@ -19,7 +19,7 @@ describe('Three.js visitor camera director', () => {
     expect(source).toContain('cameraRitualActive && devoteeState?.active && mainDevotee?.visible');
     expect(source).toContain('const person = mainDevotee.position;');
     expect(source).toContain('cameraTargetLookAt.set(\n          cameraFollowX + activeCameraPreset.targetOffsetX,\n          1.25,\n          person.z\n        );');
-    expect(source).toContain('cameraTargetLookAt.set(person.x + side * 0.08, 1.22, person.z - 0.42);');
+    expect(source).toContain('cameraTargetLookAt.set(person.x + side * 0.08, 1.5, person.z - 0.35);');
     expect(source).toContain('1.25,');
     expect(source).toContain('person.z');
   });
@@ -28,8 +28,9 @@ describe('Three.js visitor camera director', () => {
     const start = source.indexOf('function beginRitualCamera()');
     const end = source.indexOf('function restoreMainCamera()', start);
     const begin = source.slice(start, end);
-    expect(begin).toContain('if (cameraRitualActive) return;');
-    expect(begin).toContain('cameraRitualPresets[Math.floor(Math.random() * cameraRitualPresets.length)]');
+    expect(begin).toContain('let nextIndex = Math.floor(Math.random() * cameraRitualPresets.length);');
+    expect(begin).toContain('nextIndex === cameraPresetCursor');
+    expect(begin).toContain('cameraPresetCursor = nextIndex;')
     expect(begin).toContain('cameraTargetPosition.copy(activeCameraPreset.position);');
   });
 
