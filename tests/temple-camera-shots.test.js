@@ -9,7 +9,8 @@ describe('3D temple camera shot sequence', () => {
     expect(scene).toContain('const cameraHomePosition = new THREE.Vector3(0, 11.75, 28.5);');
     expect(scene).toContain('const cameraHomeFov = 42;');
     expect(scene).toContain('const cameraRitualPresets = [');
-    expect(scene).toContain('if (cameraRitualActive) return;');
+    expect(scene).toContain('let nextIndex = Math.floor(Math.random() * cameraRitualPresets.length);');
+    expect(scene).toContain('cameraPresetCursor = nextIndex;');
     expect(scene).toContain("activeCameraShot = 'procession';");
     expect(scene).toContain('const cameraFollowX = person.x * 0.72;');
     expect(scene).toContain('cameraTargetPosition.set(');
@@ -34,9 +35,9 @@ describe('3D temple camera shot sequence', () => {
 
     expect(update).toContain("if (devoteeState.phase === 'ritual')");
     expect(update).toContain('cameraTargetPosition.set(');
-    expect(update).toContain('person.x + side * 1.55');
-    expect(update).toContain('person.z + 6.2');
-    expect(update).toContain('cameraTargetLookAt.set(person.x + side * 0.08, 1.22, person.z - 0.42);');
+    expect(update).toContain('person.x + side * 1.45');
+    expect(update).toContain('person.z + (side === 0 ? 10.2 : 9.4)');
+    expect(update).toContain('cameraTargetLookAt.set(person.x + side * 0.08, 1.5, person.z - 0.35);');
     expect(update).toContain("activeCameraShot = 'altar-close';");
     expect(update).toContain('cameraTargetFov = cameraAltarCloseFov;');
     expect(scene).toContain('const cameraAltarCloseFov = 31;');
