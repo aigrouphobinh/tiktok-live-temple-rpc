@@ -633,7 +633,12 @@ class TempleAudioEngine {
       if (data && data.ok && data.url) {
         return data;
       }
-      return { ok: false, error: data?.error || 'ZeroTTS unavailable' };
+      return {
+        ok: false,
+        error: data?.error || 'ZeroTTS unavailable',
+        code: data?.code || 'TTS_UNAVAILABLE',
+        queueLimit: data?.queueLimit
+      };
     } catch (err) {
       return { ok: false, error: err.message };
     }

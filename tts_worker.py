@@ -62,7 +62,7 @@ def emit(payload: dict) -> None:
 
 def clean_and_normalize_text(raw_text: str) -> tuple[str, bool]:
     if not raw_text:
-        return ""
+        return "", False
     # 1. Chuẩn hóa NFKC (biến chữ kiểu toán học 𝒯𝒽𝒾ê𝓃 𝒯â𝓂 -> Thiên Tâm) rồi NFC
     text = unicodedata.normalize("NFC", unicodedata.normalize("NFKC", str(raw_text)))
     # 2. Xóa các mã emote kiểu [thanks], [rose]
