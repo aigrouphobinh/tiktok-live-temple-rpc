@@ -78,8 +78,8 @@ export const WAITING_SEAT_FRONT_Z = 1.8;
 export const WAITING_SEAT_ROW_SPACING = 1.08;
 
 const QUEUED_WORSHIP_POSITIONS = Object.freeze([
-  Object.freeze({ x: -1.05, y: 0.05, z: -1.35 }),
-  Object.freeze({ x: 1.05, y: 0.05, z: -1.35 }),
+  Object.freeze({ x: -1.05, y: 0.05, z: -1.65 }),
+  Object.freeze({ x: 1.05, y: 0.05, z: -1.65 }),
   Object.freeze({ x: -3.15, y: 0.05, z: -1.35 }),
   Object.freeze({ x: 3.15, y: 0.05, z: -1.35 })
 ]);
