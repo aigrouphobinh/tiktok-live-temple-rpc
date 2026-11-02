@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { spawn } = require('child_process');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
@@ -17,9 +18,17 @@ const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
 const { BoundedSerialQueue } = require('./lib/bounded-serial-queue.cjs');
 
 const PORT = process.env.PORT || 3000;
-// Bind to loopback by default. Set HOST=0.0.0.0 only for an intentionally
-// exposed LAN/container deployment; never publish the unauthenticated RPC port to the internet.
-const HOST = process.env.HOST || '127.0.0.1';
+// Listen on all interfaces so devices on the same LAN can open the live/OBS page.
+// Set HOST=127.0.0.1 to restrict access to this computer only. Do not expose this
+// unauthenticated RPC service directly to the public internet.
+const HOST = process.env.HOST || '0.0.0.0';
+
+function getLanIPv4Addresses() {
+  const interfaces = os.networkInterfaces();
+  return Object.values(interfaces).flat().filter((item) =>
+    item && item.family === 'IPv4' && !item.internal
+  ).map((item) => item.address);
+}
 const ALLOWED_CORS_ORIGINS = new Set(
   String(process.env.TEMPLE_CORS_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean)
 );
@@ -1478,9 +1487,20 @@ const zeroTts = new ZeroTTSManager();
 server.listen(PORT, HOST, () => {
   console.log(`============================================================`);
   console.log(`🪷 CHÙA ONLINE TIKTOK LIVE RPC ĐÃ KHỞI ĐỘNG`);
-  console.log(`📺 Màn hình Live (9:16 OBS): http://localhost:${PORT}`);
+  console.log(`📺 Màn hình Live (9:16 OBS): http://localhost:${PORT}/obs`);
   console.log(`🎛️ Bảng điều khiển RPC Admin: http://localhost:${PORT}/admin`);
   console.log(`🔌 JSON-RPC 2.0 Endpoint   : http://localhost:${PORT}/rpc (ws://localhost:${PORT}/ws)`);
+  if (HOST === '0.0.0.0' || HOST === '::') {
+    const lanAddresses = getLanIPv4Addresses();
+    if (lanAddresses.length) {
+      lanAddresses.forEach((address) => {
+        console.log(`🌐 LAN OBS: http://${address}:${PORT}/obs`);
+        console.log(`🌐 LAN Admin: http://${address}:${PORT}/admin`);
+      });
+    } else {
+      console.log('🌐 LAN: Chưa phát hiện IPv4; hãy kiểm tra kết nối mạng của máy chủ.');
+    }
+  }
   console.log(`🌐 Bind: ${HOST} • CORS allowlist: ${ALLOWED_CORS_ORIGINS.size} external origin(s)`);
   console.log(`============================================================`);
   console.info(
