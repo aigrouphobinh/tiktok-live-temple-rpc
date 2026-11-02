@@ -5,6 +5,7 @@ import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
+import { formatDevoteePrayerLabel } from './devotee-labels.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2508,7 +2509,7 @@ async function boot() {
     sprite.renderOrder = 30;
     let avatarImage = null;
     let avatarUrl = '';
-    let profileName = 'Thí Chủ Hữu Duyên';
+    let profileName = featured ? 'Bảo Ngọc' : 'Thí Chủ Hữu Duyên';
     let imageRequest = 0;
 
     function drawProfile() {
@@ -2595,15 +2596,16 @@ async function boot() {
       drawProfile();
     }
 
-    setProfile('Thí Chủ Hữu Duyên', '');
+    setProfile(featured ? 'Bảo Ngọc' : 'Thí Chủ Hữu Duyên', '');
     sprite.userData.setName = (name) => setProfile(name, avatarUrl);
     sprite.userData.setProfile = setProfile;
     return sprite;
   }
-  function createDevoteeWishBubble() {
+  function createDevoteeWishBubble(options = {}) {
+    const compact = options.compact === true;
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 144;
+    canvas.width = compact ? 512 : 1024;
+    canvas.height = compact ? 56 : 144;
     const context = canvas.getContext('2d');
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -2611,28 +2613,37 @@ async function boot() {
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: texture, transparent: true, depthTest: false, depthWrite: false
     }));
-    sprite.position.set(0, 2.78, 0);
-    sprite.scale.set(3.45, 0.42, 1);
+    // Compact labels sit just above each seated devotee's nameplate. The
+    // wider featured label remains reserved for the central active visitor.
+    sprite.position.set(0, compact ? 2.20 : 2.78, 0);
+    sprite.scale.set(compact ? 1.78 : 3.45, compact ? 0.20 : 0.42, 1);
     sprite.renderOrder = 31;
 
     function setWish(value) {
-      const wish = String(value || 'Nguyện cầu gia đình bình an, vạn sự cát tường').trim()
-        || 'Nguyện cầu gia đình bình an, vạn sự cát tường';
+      const fallback = 'Nguyện cầu gia đình bình an, vạn sự cát tường';
+      const wish = compact
+        ? formatDevoteePrayerLabel(value)
+        : String(value || fallback).trim() || fallback;
+      sprite.userData.wishText = wish;
+      const padY = compact ? 5 : 13;
+      const cornerRadius = compact ? 22 : 54;
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.beginPath();
-      context.roundRect(18, 13, 988, 118, 54);
-      context.fillStyle = 'rgba(31, 15, 7, 0.94)';
+      context.roundRect(compact ? 9 : 18, padY, canvas.width - (compact ? 18 : 36), canvas.height - padY * 2, cornerRadius);
+      context.fillStyle = 'rgba(31, 15, 7, 0.96)';
       context.fill();
-      context.lineWidth = 5;
+      context.lineWidth = compact ? 4 : 5;
       context.strokeStyle = 'rgba(255, 210, 116, 0.98)';
       context.stroke();
-      context.font = '600 48px "Be Vietnam Pro", Arial, sans-serif';
+      context.font = compact
+        ? '600 18px "Be Vietnam Pro", Arial, sans-serif'
+        : '600 48px "Be Vietnam Pro", Arial, sans-serif';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.fillStyle = '#ffe9b0';
       context.shadowColor = 'rgba(255, 184, 64, 0.5)';
-      context.shadowBlur = 10;
-      context.fillText(wish, 512, 73, 900);
+      context.shadowBlur = compact ? 6 : 10;
+      context.fillText(wish, canvas.width / 2, canvas.height / 2, compact ? 450 : 900);
       context.shadowBlur = 0;
       texture.needsUpdate = true;
     }
@@ -2645,7 +2656,7 @@ async function boot() {
   const devoteeWishBubble = createDevoteeWishBubble();
   mainHuman.root.add(devoteeNameTag, devoteeWishBubble);
   function updateMainDevoteeName(user, avatarUrl, wish) {
-    devoteeNameTag.userData.setProfile(user || 'Thí Chủ Hữu Duyên', avatarUrl || '');
+    devoteeNameTag.userData.setProfile(user || 'Bảo Ngọc', avatarUrl || '');
     devoteeWishBubble.userData.setWish(wish || '');
   }
   const devoteeQueue = [];
@@ -2758,8 +2769,10 @@ async function boot() {
     const nameTag = createDevoteeNameTag();
     nameTag.position.set(0, 1.82, 0);
     nameTag.scale.set(1.94, 0.30, 1);
-    avatar.root.add(nameTag);
+    const prayerTag = createDevoteeWishBubble({ compact: true });
+    avatar.root.add(nameTag, prayerTag);
     nameTag.userData.setProfile(event.user || 'Thí Chủ', event.avatar || '');
+    prayerTag.userData.setWish(event.wish || event.prayer || event.comment || '');
     // The congregation is background seating, not the shadow-casting focal subject.
     group.traverse((node) => {
       if (!node.isMesh) return;
@@ -2769,7 +2782,7 @@ async function boot() {
     group.visible = true;
     world.add(group);
     return {
-      group, avatar, nameTag, seat, sutraBook, event, appearance, slot: -1,
+      group, avatar, nameTag, prayerTag, seat, sutraBook, event, appearance, slot: -1,
       target: new THREE.Vector3(-3.48, 0.05, 8.35),
       moveTarget: null,
       moveCurve: null,
@@ -2846,7 +2859,8 @@ async function boot() {
         actor.moveStartedAt = 0;
         actor.moveDurationMs = 0;
         actor.offeringStartedAt = 0;
-        actor.nameTag.userData.setName(event.user || 'Thí Chủ');
+        actor.nameTag.userData.setProfile(event.user || 'Thí Chủ', event.avatar || '');
+        actor.prayerTag.userData.setWish(event.wish || event.prayer || event.comment || '');
         queueActors.set(event, actor);
       }
       // Compact the line after every promotion: each remaining visitor
@@ -2959,6 +2973,7 @@ async function boot() {
       .sort((a, b) => a.group.position.z - b.group.position.z)
       .map((actor) => ({
         user: actor.event?.user || '',
+        prayerLabel: actor.prayerTag?.userData?.wishText || '',
         slot: actor.slot,
         gender: actor.avatar.gender,
         kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
@@ -3145,6 +3160,9 @@ async function boot() {
       if (queuedActor) {
         queuedActor.event = existingQueuedEvent;
         queuedActor.nameTag.userData.setProfile(existingQueuedEvent.user || 'Thí Chủ', existingQueuedEvent.avatar || '');
+        queuedActor.prayerTag.userData.setWish(
+          existingQueuedEvent.wish || existingQueuedEvent.prayer || existingQueuedEvent.comment || ''
+        );
       }
       renderedDevoteeEvents.add(event);
       return;
