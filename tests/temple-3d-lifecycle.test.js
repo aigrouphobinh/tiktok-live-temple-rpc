@@ -178,7 +178,8 @@ describe('Three.js lifecycle recovery', () => {
   });
 
   it('does not promote a visitor who already worshipped in a side lane and sends them out once', () => {
-    expect(source).toContain('const nextIndex = devoteeQueue.findIndex((event) => {');
+    expect(source).toContain('const candidateIndex = requestedEvent\n      ? devoteeQueue.indexOf(requestedEvent)');
+    expect(source).toContain('startNextDevotee(now, startedEvent);');
     expect(source).toContain('actor.avatar.queueWaiting');
     expect(source).toContain('!actor.avatar.queuedWorshipLane');
     expect(source).toContain('!actor.avatar.queueWorshipCompleted');
