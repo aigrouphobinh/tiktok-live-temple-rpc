@@ -3718,6 +3718,9 @@ async function boot() {
         animateHuman(actor.avatar, now, moving, gaitPhase);
         if (!moving) {
           actor.group.position.copy(actor.target);
+          // Once the visitor reaches a worship/m meditation position, face
+          // them squarely toward the Buddha instead of keeping the walk tangent.
+          actor.group.rotation.set(0, 0, 0);
           actor.moveCurve = null;
           actor.moveStartedAt = 0;
           actor.moveDurationMs = 0;
