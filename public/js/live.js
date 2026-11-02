@@ -776,6 +776,11 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
           updateUIState(msg.params);
         } else if (msg.method === 'temple.gift-streak-end') {
           window.TempleGiftActionEngine?.clearStreak?.(msg.params?.groupId);
+        } else if (msg.method === 'temple.viewer-enter') {
+          const viewer = msg.params?.viewer;
+          if (viewer && (viewer.uniqueId || viewer.user)) {
+            window.dispatchEvent(new CustomEvent('temple:viewer-enter', { detail: viewer }));
+          }
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
           if (msg.params?.event) triggerRitualVisuals(msg.params.event);
