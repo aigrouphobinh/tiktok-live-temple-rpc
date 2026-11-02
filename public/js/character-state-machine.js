@@ -50,10 +50,12 @@ export class CharacterStateMachine {
     if (this.effect) {
       if (priority > this.effect.priority) {
         const previous = this.effect;
-        if (['rocket', 'donut'].includes(action)) this.discardInterruptedDevotee();
+        const ejectedDevotee = ['rocket', 'donut'].includes(action)
+          ? this.discardInterruptedDevotee()
+          : false;
         this.effect = { action, priority, event: giftEvent };
         this.state = 'INTERRUPTED';
-        return { interrupted: true, superseded: true, previous: previous.action, action };
+        return { interrupted: true, superseded: true, previous: previous.action, action, ejectedDevotee };
       }
       let evicted = null;
       if (this.effectQueue.length >= this.maxQueue) {
@@ -81,9 +83,12 @@ export class CharacterStateMachine {
     // devotee's handoff. A gift arriving in this window must remain a gift
     // effect, not fall through and become an ordinary queued visit.
     if (!this.active && this.state === 'COOLDOWN') {
+      const ejectedDevotee = ['rocket', 'donut'].includes(action)
+        ? this.discardInterruptedDevotee()
+        : false;
       this.effect = { action, priority, event: giftEvent };
       this.state = 'INTERRUPTED';
-      return { interrupted: true, resumesCooldown: true, action };
+      return { interrupted: true, resumesCooldown: true, action, ejectedDevotee };
     }
 
     if (!this.active && this.state === 'IDLE') {
@@ -98,7 +103,8 @@ export class CharacterStateMachine {
 
     // Rocket ejects the active devotee and Donut lures them away from the altar.
     // Softer reactions preserve the same visit at the front of the FIFO queue.
-    if (['rocket', 'donut'].includes(action)) {
+    const ejectedDevotee = ['rocket', 'donut'].includes(action);
+    if (ejectedDevotee) {
       this.interruptedDevotee = null;
     } else if (this.maxQueue > 0) {
       if (this.queue.length >= this.maxQueue) this.queue.pop();
@@ -108,7 +114,7 @@ export class CharacterStateMachine {
     this.active = null;
     this.effect = { action, priority, event: giftEvent };
     this.state = 'INTERRUPTED';
-    return { interrupted: true, action };
+    return { interrupted: true, action, ejectedDevotee };
   }
 
   discardInterruptedDevotee() {
@@ -122,9 +128,11 @@ export class CharacterStateMachine {
   finishEffect() {
     if (this.effectQueue.length) {
       this.effect = this.effectQueue.shift();
-      if (['rocket', 'donut'].includes(this.effect.action)) this.discardInterruptedDevotee();
+      const ejectedDevotee = ['rocket', 'donut'].includes(this.effect.action)
+        ? this.discardInterruptedDevotee()
+        : false;
       this.state = 'INTERRUPTED';
-      return { nextEffect: this.effect };
+      return { nextEffect: this.effect, ejectedDevotee };
     }
     this.effect = null;
     this.state = 'COOLDOWN';
