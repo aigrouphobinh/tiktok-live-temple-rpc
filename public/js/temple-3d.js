@@ -2854,7 +2854,10 @@ async function boot() {
   // Set only while a targeted gift effect is built; null means the altar is empty.
   let giftImpactPosition = null;
 
-  function playWorldGiftAction(action) {
+  function playWorldGiftAction(action, reactionProfile = null) {
+    const vfx = resolveGiftVfxProfile(reactionProfile || {});
+    const scale = vfx.scale;
+    const durationScale = vfx.durationScale;
     if (action === 'rocket') {
       const impact = giftImpactPosition
         ? giftImpactPosition.clone().add(new THREE.Vector3(0, 1.4, 0))
@@ -2871,6 +2874,7 @@ async function boot() {
         fin.position.set(-0.32, side * 0.14, 0); rocket.add(fin);
       }
       rocket.position.copy(launch); rocket.rotation.y = -0.08;
+      rocket.scale.setScalar(scale);
       addEffect(rocket, (obj, dt, p) => {
         obj.position.copy(launch).lerp(impact, p);
         obj.position.y += Math.sin(p * Math.PI) * 0.7;
@@ -2878,20 +2882,25 @@ async function boot() {
         if (p >= 0.98 && !obj.userData.detonated) {
           obj.userData.detonated = true;
           world.remove(obj);
-          makeRing(impact.x, impact.y, impact.z, 0xffa52e);
-          makeRing(impact.x, impact.y + 0.08, impact.z, 0xffe18a);
-          giftSparkBurst(impact.x, impact.y + 0.12, impact.z, 28, 0xffa52e);
+          for (let wave = 0; wave < vfx.shockwaves; wave++) {
+            makeRing(impact.x, impact.y + wave * 0.09, impact.z, wave % 2 ? 0xffe18a : 0xffa52e);
+          }
+          giftSparkBurst(impact.x, impact.y + 0.12, impact.z, Math.min(60, Math.max(14, vfx.particles + 8)), 0xffa52e);
         }
-      }, 1250);
+      }, Math.round(1250 * durationScale));
       return;
     }
     if (action === 'dragon') {
       const dragon = new THREE.Group();
       const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2d9a54, roughness: 0.5, metalness: 0.12 });
       const goldMaterial = mats.goldBright.clone();
-      for (let i = 0; i < 5; i++) {
-        const segment = new THREE.Mesh(new THREE.SphereGeometry(0.28 - i * 0.025, 12, 8), bodyMaterial);
-        segment.position.set(-i * 0.42, Math.sin(i * 0.8) * 0.12, 0);
+      const segmentCount = 4 + vfx.shockwaves;
+      for (let i = 0; i < segmentCount; i++) {
+        const segment = new THREE.Mesh(
+          new THREE.SphereGeometry(0.30 - i * 0.018, 12, 8),
+          bodyMaterial
+        );
+        segment.position.set(-i * 0.38, Math.sin(i * 0.8) * 0.12, 0);
         dragon.add(segment);
       }
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 14, 10), bodyMaterial);
@@ -2908,13 +2917,15 @@ async function boot() {
         obj.position.y = 6.2 + Math.sin(p * Math.PI * 4) * 0.55;
         obj.position.z = -1.5 + Math.sin(p * Math.PI * 2) * 0.7;
         obj.rotation.z = Math.sin(p * Math.PI * 4) * 0.08;
-        obj.scale.setScalar(0.72 + Math.sin(p * Math.PI) * 0.22);
+        obj.scale.setScalar((0.72 + Math.sin(p * Math.PI) * 0.22) * scale);
         if (p > 0.72 && !obj.userData.gust) {
           obj.userData.gust = true;
-          makeRing(0, 1.5, -0.2, 0x65d9a0);
-          giftSparkBurst(0, 2.0, -0.2, 14, 0x65d9a0);
+          for (let wave = 0; wave < vfx.shockwaves; wave++) {
+            makeRing(0, 1.5 + wave * 0.12, -0.2, wave % 2 ? 0xffd978 : 0x65d9a0);
+          }
+          giftSparkBurst(0, 2.0, -0.2, vfx.particles, 0x65d9a0);
         }
-      }, 2900);
+      }, Math.round(2900 * durationScale));
       return;
     }
     if (action === 'donut') {
@@ -2931,20 +2942,24 @@ async function boot() {
         obj.position.y += Math.sin(p * Math.PI * 4) * 0.42;
         obj.rotation.x += dt * 0.002;
         obj.rotation.y += dt * 0.004;
-        obj.scale.setScalar(0.65 + Math.sin(p * Math.PI) * 0.3);
+        obj.scale.setScalar((0.65 + Math.sin(p * Math.PI) * 0.3) * scale);
         if (p > 0.42 && !obj.userData.trail) {
           obj.userData.trail = true;
-          for (let i = 0; i < 7; i++) makeRing(target.x + (i - 3) * 0.32, 0.9, target.z + 2.8, 0xffc2dc);
+          const trailCount = Math.min(14, 5 + Math.round(vfx.shockwaves * 2));
+          for (let i = 0; i < trailCount; i++) {
+            makeRing(target.x + (i - (trailCount - 1) / 2) * 0.32, 0.9 + (i % 2) * 0.08, target.z + 2.8, 0xffc2dc);
+          }
         }
-      }, 2850);
+      }, Math.round(2850 * durationScale));
       return;
     }
     if (action === 'rose') {
       const bloom = new THREE.Group();
       bloom.position.set(0, 3.0, 2.5);
       const petalMaterial = mats.lotus.clone();
-      for (let i = 0; i < 10; i++) {
-        const angle = i * Math.PI * 2 / 10;
+      const petalCount = 8 + vfx.shockwaves * 3;
+      for (let i = 0; i < petalCount; i++) {
+        const angle = i * Math.PI * 2 / petalCount;
         const petal = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), petalMaterial);
         petal.position.set(Math.cos(angle) * 0.35, Math.sin(angle) * 0.35, 0);
         petal.scale.set(1.0, 0.58, 0.48);
@@ -2956,13 +2971,13 @@ async function boot() {
       addEffect(bloom, (obj, dt, p) => {
         obj.position.y = 3.0 + p * 1.8;
         obj.rotation.z += dt * 0.0007;
-        obj.scale.setScalar(0.35 + Math.sin(Math.min(1, p * 1.5) * Math.PI / 2) * 0.85);
+        obj.scale.setScalar((0.35 + Math.sin(Math.min(1, p * 1.5) * Math.PI / 2) * 0.85) * scale);
         obj.children.forEach((petal, i) => { petal.rotation.z += dt * (i % 2 ? 0.0003 : -0.0003); });
         if (p > 0.28 && !obj.userData.petalBurst) {
           obj.userData.petalBurst = true;
-          giftSparkBurst(0, 4.0, 2.5, 12, 0xf18eae);
+          giftSparkBurst(0, 4.0, 2.5, Math.max(10, vfx.particles), 0xf18eae);
         }
-      }, 2100);
+      }, Math.round(2100 * durationScale));
     }
   }
 
@@ -3014,14 +3029,18 @@ async function boot() {
     for (const avatar of allHumanAvatars) {
       const wasActive = avatar.giftReactionUntil > now;
       if (!wasActive) {
-        // Phase-based delay creates a soft wave through the congregation without randomness per gift.
+        // Phase-based delay creates a visible congregation wave without random jumps.
         const phase = ((avatar.phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         avatar.giftReactionStartedAt = now + (phase / (Math.PI * 2)) * 420;
         avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs;
+        avatar.giftReactionProfile = resolved;
       } else {
-        avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, avatar.giftReactionStartedAt + resolved.durationMs);
+        avatar.giftReactionUntil = Math.max(avatar.giftReactionUntil, now + resolved.durationMs);
+        if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) {
+          avatar.giftReactionProfile = resolved;
+          avatar.giftReactionStartedAt = Math.min(avatar.giftReactionStartedAt, now);
+        }
       }
-      if (resolved.intensity >= (avatar.giftReactionProfile?.intensity || 0)) avatar.giftReactionProfile = resolved;
     }
   }
   function onTempleGiftAction(event) {
@@ -3030,16 +3049,17 @@ async function boot() {
     // Respect the state machine's target ownership. A Rocket/Donut received
     // while the altar is empty must not eject an unrelated 3D visitor.
     const hasTarget = event.detail?.hasTarget === true;
+    const reactionProfile = event.detail?.reactionProfile || { tier: 'small', intensity: 0.62, bowAmount: 0.16, durationMs: 2100 };
     const impact = hasTarget && ['rocket', 'donut'].includes(action)
       ? ejectActiveDevotee(action)
       : null;
     giftImpactPosition = impact;
     try {
-      playWorldGiftAction(action);
+      playWorldGiftAction(action, reactionProfile);
     } finally {
       giftImpactPosition = null;
     }
-    applyGiftReactionProfile(event.detail?.reactionProfile);
+    applyGiftReactionProfile(reactionProfile);
   }
   function onTempleGiftReaction(event) {
     // Combo frames update gratitude intensity without replaying the 3D gift effect.
@@ -3240,7 +3260,12 @@ async function boot() {
       peak,
       avatar.giftReactionProfile?.tier === 'special' ? getAvatarGiftReactionBlend(avatar, now) : 0
     ), 0);
-    const auraPulse = specialGiftGlow * (0.94 + Math.sin(elapsed * 0.008) * 0.06);
+    const tierGiftGlow = allHumanAvatars.reduce((peak, avatar) => {
+      const blend = getAvatarGiftReactionBlend(avatar, now);
+      const aura = ({ small: 0.18, medium: 0.36, large: 0.68, special: 1.0 })[avatar.giftReactionProfile?.tier] || 0.18;
+      return Math.max(peak, blend * aura);
+    }, 0);
+    const auraPulse = Math.max(specialGiftGlow, tierGiftGlow) * (0.94 + Math.sin(elapsed * 0.008) * 0.06);
     lotusSparkMaterial.opacity = auraPulse * 0.88;
     if (auraPulse > 0.001) {
       for (let i = 0; i < lotusSparkCount; i++) {
@@ -3260,9 +3285,9 @@ async function boot() {
       const opening = auraPulse * (index === 0 ? 0.13 : 0.09);
       ring.scale.set(1 + opening, 1, 1 + opening);
     });
-    haloGiftAuraMaterial.opacity = auraPulse * 0.42;
+    haloGiftAuraMaterial.opacity = auraPulse * 0.58;
     haloGiftAura.scale.setScalar(1 + auraPulse * 0.12);
-    lotusGiftAuraMaterial.opacity = auraPulse * 0.34;
+    lotusGiftAuraMaterial.opacity = auraPulse * 0.48;
     lotusGiftAura.scale.setScalar(1 + auraPulse * 0.18);
     haloGlow.intensity = 8 + auraPulse * 13;
     // A warm edge light and restrained material emission make stone reliefs
