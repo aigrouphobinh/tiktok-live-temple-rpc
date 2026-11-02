@@ -301,11 +301,15 @@ try {
             const queue = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.()?.queue || [];
             const worshippers = queue.filter((actor) => actor.queuedWorshipLane);
             const seated = queue.filter((actor) => actor.queueWaiting);
-            return worshippers.length === 4
+            return queue.length === 8
+              && worshippers.length === 4
               && seated.length === 4
-              && worshippers.every((actor) => actor.kneelBlend >= 0.9)
-              && worshippers.some((actor) => actor.bowAmount >= 0.08);
-          }, null, { timeout: 8000 });
+              && worshippers.every((actor) => actor.kneelBlend >= 0.9
+                && actor.ritualBowCycle >= 1
+                && actor.bowAmount >= 0.01)
+              && seated.every((actor) => actor.ritualBowPhase === 'meditating'
+                && actor.bowAmount === 0);
+          }, null, { timeout: 6000 });
         } catch (error) {
           profileReport.crowdFormationWaitError = error.message;
         }
@@ -315,9 +319,26 @@ try {
         logAuditPhase(scenario.id, 'crowd-formation-result', {
           visibleQueueActors: profileReport.crowdFormationDiagnostic?.visibleQueueActors || 0,
           visibleSceneActorCount: profileReport.crowdFormationDiagnostic?.visibleSceneActorCount || 0,
-          backgroundNpcCount: profileReport.crowdFormationDiagnostic?.backgroundNpcCount ?? null,
+          simultaneousWorshippers: profileReport.crowdFormationDiagnostic?.simultaneousWorshippers || 0,
+          worshipLanes: profileReport.crowdFormationDiagnostic?.queue?.filter((actor) => actor.queuedWorshipLane).length || 0,
+          seatedWaiting: profileReport.crowdFormationDiagnostic?.queue?.filter((actor) => actor.queueWaiting).length || 0,
           slots: profileReport.crowdFormationDiagnostic?.queue?.map((actor) => actor.slot) || []
         });
+        // Capture the concurrent moment before side-lane visitors finish their
+        // three bows and begin their exit walks.
+        if (profileReport.crowdFormationDiagnostic?.visibleQueueActors === 8) {
+          profileReport.crowdScreenshot = `${artifactDir}/temple-3d-crowd.png`;
+          await page.locator('#stage9x16').screenshot({
+            path: profileReport.crowdScreenshot,
+            animations: 'disabled',
+            timeout: 45000,
+            scale: 'css'
+          });
+          logAuditPhase(scenario.id, 'crowd-screenshot-complete', {
+            path: profileReport.crowdScreenshot,
+            simultaneousWorshippers: profileReport.crowdFormationDiagnostic.simultaneousWorshippers
+          });
+        }
       }
 
       logAuditPhase(scenario.id, 'scene-inspection-start');
@@ -387,9 +408,9 @@ try {
       profileReport.tetDiagnostic = scene.tetDiagnostic;
       profileReport.lightingDiagnostic = scene.lightingDiagnostic;
       profileReport.aoDaiDiagnostic = scene.aoDaiDiagnostic;
-      profileReport.crowdFormationDiagnostic = scenario.id === 'high'
-        ? scene.devoteeFlowDiagnostic
-        : null;
+      if (scenario.id === 'high' && !profileReport.crowdFormationDiagnostic) {
+        profileReport.crowdFormationDiagnostic = scene.devoteeFlowDiagnostic;
+      }
       profileReport.modelWarnings = modelWarnings;
       profileReport.httpErrors = httpErrors;
       profileReport.browserHints = scene.browserHints;
@@ -566,16 +587,7 @@ try {
         profileReport.checks.passed = Object.values(profileReport.checks).every(Boolean);
       }
 
-      if (scenario.id === 'high') {
-          await page.locator('#stage9x16').screenshot({
-            path: `${artifactDir}/temple-3d-crowd.png`,
-            animations: 'disabled',
-            timeout: 45000,
-            scale: 'css'
-          });
-          profileReport.crowdScreenshot = `${artifactDir}/temple-3d-crowd.png`;
-        }
-        logAuditPhase(scenario.id, 'screenshot-complete', { path: screenshotPath, crowd: profileReport.crowdScreenshot || null });
+      logAuditPhase(scenario.id, 'screenshot-complete', { path: screenshotPath, crowd: profileReport.crowdScreenshot || null });
 
         if (scenario.id === 'high') {
           await page.screenshot({
