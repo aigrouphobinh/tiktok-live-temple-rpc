@@ -279,7 +279,7 @@ async function boot() {
   key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
   key.shadow.bias = -0.00018; key.shadow.normalBias = 0.025; key.shadow.radius = 3;
   scene.add(key);
-  // A warm, restrained focal fill keeps the stone readable without bleaching its carved planes.
+  // A warm, brighter focal fill keeps the bronze-gold statue readable without bleaching its carved planes.
   const buddhaLight = new THREE.PointLight(0xffd6a0, 20, 20, 2);
   buddhaLight.position.set(0, 6.8, -7); scene.add(buddhaLight);
   const portraitFill = new THREE.DirectionalLight(0xffe9c8, 0.95);
