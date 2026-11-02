@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from '../public/js/three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, applyTwoBoneIKToBones, getFootPlantingWorldTarget, solveTwoBoneIK, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from '../public/js/three-gait-utils.js';
 
 describe('getFootPlantingStep', () => {
   const tau = Math.PI * 2;
@@ -547,5 +547,22 @@ describe('getHumanUpperPose prayer alignment', () => {
     expect(pose.armOpen).toBe(0);
     expect(pose.handRoll).toBe(0);
     expect(pose.wristPitch).toBe(0);
+  });
+});
+
+
+describe('getScheduledGiftReactionBlend', () => {
+  it('waits for each devotee stagger before starting the gift gesture', () => {
+    expect(getScheduledGiftReactionBlend(900, 1000, 2800, 1800)).toBe(0);
+    expect(getScheduledGiftReactionBlend(1000, 1000, 2800, 1800)).toBe(0);
+    expect(getScheduledGiftReactionBlend(1130, 1000, 2800, 1800)).toBeGreaterThan(0);
+    expect(getScheduledGiftReactionBlend(1900, 1000, 2800, 1800)).toBe(1);
+  });
+
+  it('fades after the reaction window and rejects malformed timing', () => {
+    expect(getScheduledGiftReactionBlend(2670, 1000, 2800, 1800)).toBeGreaterThan(0);
+    expect(getScheduledGiftReactionBlend(2800, 1000, 2800, 1800)).toBe(0);
+    expect(getScheduledGiftReactionBlend(NaN, 1000, 2800, 1800)).toBe(0);
+    expect(getScheduledGiftReactionBlend(1200, 1500, 1300, 1800)).toBe(0);
   });
 });
