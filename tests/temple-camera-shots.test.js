@@ -25,7 +25,7 @@ describe('3D temple camera shot sequence', () => {
       [preset.closePositionOffset.join(','), preset.closeLookAtOffset.join(','), preset.closeFov].join('|')
     );
     expect(new Set(signatures).size).toBe(5);
-    expect(TEMPLE_CAMERA_RITUAL_PRESETS.map((preset) => preset.closeFov)).toEqual([40, 40, 42, 39, 39]);
+    expect(TEMPLE_CAMERA_RITUAL_PRESETS.map((preset) => preset.closeFov)).toEqual([38.5, 38.5, 40, 38.5, 38.5]);
     expect(scene).toContain("activeCameraShot = 'altar-close';");
   });
 
