@@ -45,8 +45,39 @@ async function boot() {
   scene.background = new THREE.Color(0x1a0a05);
   scene.fog = new THREE.FogExp2(0x241006, 0.018);
   const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 140);
-  camera.position.set(0, 11.75, 28.5);
-  camera.lookAt(0, -1.5, -5.5);
+  const cameraHomePosition = new THREE.Vector3(0, 11.75, 28.5);
+  const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
+  camera.position.copy(cameraHomePosition);
+  camera.lookAt(cameraHomeTarget);
+  // Real Three.js camera direction: subtle framing variants, interpolated every frame.
+  // One preset is held for the entire active queue, never changed per viewer or gift.
+  const cameraRitualPresets = [
+    { position: new THREE.Vector3(-0.72, 11.92, 28.25), target: new THREE.Vector3(-0.28, -1.48, -5.55) },
+    { position: new THREE.Vector3(0.72, 11.92, 28.25), target: new THREE.Vector3(0.28, -1.48, -5.55) },
+    { position: new THREE.Vector3(0.12, 12.02, 28.18), target: new THREE.Vector3(0.08, -1.38, -5.65) }
+  ];
+  let cameraTargetPosition = cameraHomePosition.clone();
+  let cameraTargetLookAt = cameraHomeTarget.clone();
+  let cameraRitualActive = false;
+  function beginRitualCamera() {
+    if (cameraRitualActive) return;
+    cameraRitualActive = true;
+    const preset = cameraRitualPresets[Math.floor(Math.random() * cameraRitualPresets.length)];
+    cameraTargetPosition.copy(preset.position);
+    cameraTargetLookAt.copy(preset.target);
+  }
+  function restoreMainCamera() {
+    cameraRitualActive = false;
+    cameraTargetPosition.copy(cameraHomePosition);
+    cameraTargetLookAt.copy(cameraHomeTarget);
+  }
+  function updateRitualCamera(dt) {
+    const blend = 1 - Math.exp(-Math.min(50, dt) / 1050);
+    camera.position.lerp(cameraTargetPosition, blend);
+    const lookTarget = camera.userData.lookTarget || (camera.userData.lookTarget = cameraHomeTarget.clone());
+    lookTarget.lerp(cameraTargetLookAt, blend);
+    camera.lookAt(lookTarget);
+  }
 
   const mats = {
     wood: new THREE.MeshStandardMaterial({ color: 0x48200e, roughness: 0.55, metalness: 0.18 }),
@@ -2006,7 +2037,11 @@ async function boot() {
     if (phase === 'ritual') devoteeState.arrivedAt = now;
   }
   function startNextDevotee(now = performance.now()) {
-    if (devoteeState.active || !devoteeQueue.length) return;
+    if (devoteeState.active || !devoteeQueue.length) {
+      if (!devoteeState.active && !devoteeQueue.length) restoreMainCamera();
+      return;
+    }
+    beginRitualCamera();
     devoteeState.event = devoteeQueue.shift();
     devoteeState.active = true;
     updateMainDevoteeName(devoteeState.event.user);
@@ -2461,6 +2496,7 @@ async function boot() {
     }
     const dt = Math.min(50, now - (lastFrame || now));
     lastFrame = now; elapsed += dt;
+    updateRitualCamera(dt);
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
@@ -2514,6 +2550,7 @@ async function boot() {
           devoteeState.event = null;
           mainDevotee.visible = false;
           mainDevotee.rotation.y = 0;
+          // Keep the same shot while queued visitors remain; restore only when the queue drains.
           startNextDevotee(now);
         }
       }
