@@ -446,7 +446,8 @@ try {
         buddhaUsesAgedGoldBronze: scene.buddhaModelDiagnostic?.surfaceFinish?.name === 'aged-gold bronze'
           && scene.buddhaModelDiagnostic?.surfaceFinish?.metalness >= 0.6,
         residentAbbotVisible: scene.abbotDiagnostic?.visible === true
-          && scene.abbotDiagnostic?.pose === 'standing-prayer',
+          && ['standing-prayer', 'standing-bow'].includes(scene.abbotDiagnostic?.pose)
+          && scene.abbotDiagnostic?.facing === 'devotees',
         TetDecorationsVisible: scene.tetDiagnostic?.enabled === true
           && scene.tetDiagnostic?.blossomTreeCount === 2
           && scene.tetDiagnostic?.coupletCount === 2
