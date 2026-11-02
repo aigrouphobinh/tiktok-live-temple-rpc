@@ -710,8 +710,9 @@ async function boot() {
     ring.add(redPetals, goldPetals, petalVeins);
     return ring;
   }
-  createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1);
-  createLotusPetalRing(12, 1.12, 0.1, 0.78, 0.06);
+  // Broader, fuller lotus tiers frame the seated statue clearly in the 9:16 view.
+  createLotusPetalRing(20, 1.62, 0.02, 1.22, 0.1);
+  createLotusPetalRing(16, 1.22, 0.1, 0.96, 0.06);
 
   // A fixed, low-cost point cloud carries warm sparks from the lotus toward
   // the Buddha halo during special gifts. Buffers are reused every frame.
