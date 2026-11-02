@@ -15,6 +15,7 @@ export class CharacterStateMachine {
     this.effect = null;
     this.effectQueue = [];
     this.interruptedDevotee = null;
+    this.ejectedTargetPending = false;
   }
 
   transition(nextState) {
@@ -50,12 +51,16 @@ export class CharacterStateMachine {
     if (this.effect) {
       if (priority > this.effect.priority) {
         const previous = this.effect;
-        const ejectedDevotee = ['rocket', 'donut'].includes(action)
+        const removedDevotee = ['rocket', 'donut'].includes(action)
           ? this.discardInterruptedDevotee()
           : false;
+        if (removedDevotee) this.ejectedTargetPending = true;
         this.effect = { action, priority, event: giftEvent };
         this.state = 'INTERRUPTED';
-        return { interrupted: true, superseded: true, previous: previous.action, action, ejectedDevotee };
+        return {
+          interrupted: true, superseded: true, previous: previous.action, action,
+          ejectedDevotee: this.ejectedTargetPending
+        };
       }
       let evicted = null;
       if (this.effectQueue.length >= this.maxQueue) {
@@ -83,12 +88,13 @@ export class CharacterStateMachine {
     // devotee's handoff. A gift arriving in this window must remain a gift
     // effect, not fall through and become an ordinary queued visit.
     if (!this.active && this.state === 'COOLDOWN') {
-      const ejectedDevotee = ['rocket', 'donut'].includes(action)
+      const removedDevotee = ['rocket', 'donut'].includes(action)
         ? this.discardInterruptedDevotee()
         : false;
+      if (removedDevotee) this.ejectedTargetPending = true;
       this.effect = { action, priority, event: giftEvent };
       this.state = 'INTERRUPTED';
-      return { interrupted: true, resumesCooldown: true, action, ejectedDevotee };
+      return { interrupted: true, resumesCooldown: true, action, ejectedDevotee: this.ejectedTargetPending };
     }
 
     if (!this.active && this.state === 'IDLE') {
@@ -106,6 +112,7 @@ export class CharacterStateMachine {
     const ejectedDevotee = ['rocket', 'donut'].includes(action);
     if (ejectedDevotee) {
       this.interruptedDevotee = null;
+      this.ejectedTargetPending = true;
     } else if (this.maxQueue > 0) {
       if (this.queue.length >= this.maxQueue) this.queue.pop();
       this.queue.unshift(this.active);
@@ -128,11 +135,12 @@ export class CharacterStateMachine {
   finishEffect() {
     if (this.effectQueue.length) {
       this.effect = this.effectQueue.shift();
-      const ejectedDevotee = ['rocket', 'donut'].includes(this.effect.action)
+      const removedDevotee = ['rocket', 'donut'].includes(this.effect.action)
         ? this.discardInterruptedDevotee()
         : false;
+      if (removedDevotee) this.ejectedTargetPending = true;
       this.state = 'INTERRUPTED';
-      return { nextEffect: this.effect, ejectedDevotee };
+      return { nextEffect: this.effect, ejectedDevotee: this.ejectedTargetPending };
     }
     this.effect = null;
     this.state = 'COOLDOWN';
@@ -143,6 +151,7 @@ export class CharacterStateMachine {
     this.state = 'IDLE';
     const next = this.startNext();
     this.interruptedDevotee = null;
+    this.ejectedTargetPending = false;
     return next;
   }
 
@@ -167,6 +176,7 @@ export class CharacterStateMachine {
       active: this.active,
       queueLength: this.queue.length,
       effect: this.effect?.action || null,
+      ejectedTargetPending: this.ejectedTargetPending,
       queuedEffects: this.effectQueue.map((item) => item.action)
     };
   }
