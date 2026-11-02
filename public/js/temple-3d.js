@@ -2091,14 +2091,14 @@ async function boot() {
 
   // A separate side waiting lane makes the visitor flow legible without
   // placing queue markers on the sacred red processional carpet.
-  box(0.92, 0.035, 7.1, mats.woodLight, -3.65, -0.105, 11.4);
-  for (const x of [-4.13, -3.17]) {
+  box(0.92, 0.035, 7.1, mats.woodLight, -4.55, -0.105, 11.4);
+  for (const x of [-5.03, -4.07]) {
     box(0.028, 0.045, 7.05, mats.gold, x, -0.075, 11.4);
   }
   for (let slot = 0; slot < 5; slot++) {
     const z = 8.0 + slot * 1.45;
-    cylinder(0.18, 0.18, 0.018, mats.gold, -3.65, -0.078, z, world, 24);
-    cylinder(0.12, 0.12, 0.02, mats.wood, -3.65, -0.064, z, world, 24);
+    cylinder(0.18, 0.18, 0.018, mats.gold, -4.55, -0.078, z, world, 24);
+    cylinder(0.12, 0.12, 0.02, mats.wood, -4.55, -0.064, z, world, 24);
   }
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
@@ -2177,7 +2177,7 @@ async function boot() {
     nameTag.userData.setName(event.user || 'Thí Chủ');
     group.visible = true;
     world.add(group);
-    return { group, avatar, nameTag, event, target: new THREE.Vector3(-3.65, 0.05, 8.0) };
+    return { group, avatar, nameTag, event, target: new THREE.Vector3(-4.55, 0.05, 8.0) };
   }
 
   function refreshQueueActors() {
@@ -2199,7 +2199,7 @@ async function boot() {
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      actor.target.set(-3.65, 0.05, 8.0 + index * 1.45);
+      actor.target.set(-4.55, 0.05, 8.0 + index * 1.45);
     });
   }
 
