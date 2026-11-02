@@ -4,7 +4,7 @@ import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
-import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
+import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2832,12 +2832,7 @@ async function boot() {
         // Visitors enter in rows and keep their assigned place as others leave.
         // New arrivals walk into a visible two-column waiting line behind
         // the active worshipper instead of appearing beside the altar.
-        const arrivalFormation = getQueueActorFormationPosition(index);
-        const entryPosition = arrivalFormation?.role === 'waiting'
-          ? { x: arrivalFormation.x, y: 0.05, z: arrivalFormation.z + 1.05 }
-          : getHorizontalFormationPosition(slot, {
-              columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 14.2, rowSpacing: 1.28
-            });
+        const entryPosition = getQueueActorEntryPosition(index);
         actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
