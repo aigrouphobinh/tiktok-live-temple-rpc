@@ -1370,7 +1370,7 @@ async function boot() {
   addSanctuaryImagePlane(
     'PaintedLotusCeilingMural',
     '/assets/temple-kit/ceiling-mural.svg',
-    11.24, 2.82, [0, 0, 0.225], [0, 0, 0],
+    11.0, 2.76, [0, 9.45, -11.555], [0, 0, 0],
     { unlit: true }
   );
   // Small warm fill keeps the painted panel legible without washing out the Buddha.
