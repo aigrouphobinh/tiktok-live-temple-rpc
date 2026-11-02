@@ -1027,9 +1027,10 @@ async function connectTikTokLive(usernameOrUrl) {
     } catch (_) {}
     tiktokConn = null;
   }
-  // A reconnect starts a new streak session; never carry cumulative counts
-  // across rooms/connections even if TikTok reuses a group ID.
+  // A reconnect starts a fresh room-presence snapshot as well as a fresh
+  // gift streak session, so initial MEMBER hydration can repopulate the seats.
   clearGiftComboTracker(giftComboTracker);
+  viewerEntryCooldownMap.clear();
 
   state.tiktok = {
     connected: false,
