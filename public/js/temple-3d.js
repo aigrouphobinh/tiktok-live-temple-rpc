@@ -1632,6 +1632,7 @@ async function boot() {
       root, upperBody, torso, head, eyeWhites, eyePupils, eyebrows, smile, leftArm, rightArm, leftHand, rightHand, leftLeg, rightLeg, leftKnee, rightKnee, leftFoot, rightFoot,
       phase: Math.random() * Math.PI * 2,
       headingOffset: 0,
+      prayerPose: false,
       gltfRoot: null, gltfMixer: null, gltfActions: null, gltfActionName: null,
       gltfLastTime: 0, gltfRig: null, bowing: false, bowAmount: 0, kneeling: false, kneelBlend: 0, giftReactionStartedAt: 0, giftReactionUntil: 0, giftReactionProfile: { tier: 'small', intensity: 0.55, bowAmount: 0.08, durationMs: 1800 }
     };
@@ -1986,6 +1987,17 @@ async function boot() {
     makeDevotee(-4.3+stagger,z+0.12,scale);
     makeDevotee(4.3-stagger,z-0.1,scale);
   }
+  // A separate side waiting lane makes the visitor flow legible without
+  // placing queue markers on the sacred red processional carpet.
+  box(0.92, 0.035, 10.4, mats.woodLight, -5.18, -0.105, 10.15);
+  for (const x of [-5.66, -4.70]) {
+    box(0.028, 0.045, 10.35, mats.gold, x, -0.075, 10.15);
+  }
+  for (let slot = 0; slot < 5; slot++) {
+    const z = 13.05 - slot * 1.55;
+    cylinder(0.18, 0.18, 0.018, mats.gold, -5.18, -0.078, z, world, 24);
+    cylinder(0.12, 0.12, 0.02, mats.wood, -5.18, -0.064, z, world, 24);
+  }
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
   const mainHuman=makeHumanAvatar(1.72);mainDevotee.add(mainHuman.root);
@@ -2043,10 +2055,62 @@ async function boot() {
     devoteeNameTag.userData.setName(user || 'Thí Chủ Hữu Duyên');
   }
   const devoteeQueue = [];
-  // Events are keyed by object identity because the 2D state machine emits the
-  // same event object for start, interruption, resume and completion.
+  // The 2D state machine owns ordering; this scene only renders that same FIFO.
   const renderedDevoteeEvents = new WeakSet();
+  const queueActors = new Map();
+  const queueActorPool = [];
   const departingDevotees = [];
+  const MAX_VISIBLE_QUEUE_ACTORS = 5;
+
+  function createQueueActor(event) {
+    const group = new THREE.Group();
+    const avatar = makeHumanAvatar(1.36);
+    avatar.prayerPose = true;
+    avatar.headingOffset = -0.08;
+    group.add(avatar.root);
+    const nameTag = createDevoteeNameTag();
+    nameTag.position.set(0, 1.82, 0);
+    nameTag.scale.set(2.5, 0.39, 1);
+    avatar.root.add(nameTag);
+    nameTag.userData.setName(event.user || 'Thí Chủ');
+    group.visible = true;
+    world.add(group);
+    return { group, avatar, nameTag, event, target: new THREE.Vector3(-5.18, 0.05, 13.05) };
+  }
+
+  function refreshQueueActors() {
+    const visibleEvents = devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS);
+    for (const [event, actor] of queueActors) {
+      if (visibleEvents.includes(event)) continue;
+      queueActors.delete(event);
+      actor.group.visible = false;
+      actor.event = null;
+      queueActorPool.push(actor);
+    }
+    visibleEvents.forEach((event, index) => {
+      let actor = queueActors.get(event);
+      if (!actor) {
+        actor = queueActorPool.pop() || createQueueActor(event);
+        actor.event = event;
+        actor.group.visible = true;
+        actor.group.position.set(-6.25, 0.05, 15.3);
+        actor.nameTag.userData.setName(event.user || 'Thí Chủ');
+        queueActors.set(event, actor);
+      }
+      actor.target.set(-5.18, 0.05, 13.05 - index * 1.55);
+    });
+  }
+
+  function releaseQueueActor(event) {
+    const actor = queueActors.get(event);
+    if (!actor) return null;
+    queueActors.delete(event);
+    const start = actor.group.position.clone();
+    actor.group.visible = false;
+    actor.event = null;
+    queueActorPool.push(actor);
+    return start;
+  }
   const devoteeState = {
     active: false, phase: 'idle', event: null, startedAt: 0,
     phaseStartedAt: 0, phaseDuration: 0, curve: null, arrivedAt: 0,
@@ -2076,10 +2140,12 @@ async function boot() {
     }
     beginRitualCamera();
     devoteeState.event = devoteeQueue.shift();
+    const queueStart = releaseQueueActor(devoteeState.event);
+    refreshQueueActors();
     devoteeState.active = true;
     updateMainDevoteeName(devoteeState.event.user);
     mainDevotee.visible = true;
-    mainDevotee.position.set(5.2, 0.05, 14.5);
+    mainDevotee.position.copy(queueStart || new THREE.Vector3(5.2, 0.05, 14.5));
     mainDevotee.rotation.set(0, 0, 0);
     mainDevotee.scale.setScalar(1);
     devoteeState.ejectionStart = null;
@@ -2092,7 +2158,21 @@ async function boot() {
     mainHuman.bowing = false;
     mainHuman.bowAmount = 0;
     applyHumanBow(mainHuman, 0);
-    setDevoteePhase('enter', now, 1500);
+    if (queueStart) {
+      const start = queueStart.clone();
+      devoteeState.phase = 'approach';
+      devoteeState.phaseStartedAt = now;
+      devoteeState.phaseDuration = 2500;
+      devoteeState.curve = new THREE.CatmullRomCurve3([
+        start,
+        start.clone().add(new THREE.Vector3(0.35, 0, -1.8)),
+        new THREE.Vector3(-3.35, 0.05, 4.2),
+        new THREE.Vector3(-2.5, 0.05, 0.8),
+        new THREE.Vector3(0, 0.05, -3.55)
+      ], false, 'centripetal');
+    } else {
+      setDevoteePhase('enter', now, 1500);
+    }
   }
   function enqueueDevotee(event) {
     if (!event || typeof event !== 'object' || renderedDevoteeEvents.has(event)) return;
@@ -2101,6 +2181,7 @@ async function boot() {
     if (devoteeQueue.length >= 40) return;
     renderedDevoteeEvents.add(event);
     devoteeQueue.push(event);
+    refreshQueueActors();
     startNextDevotee();
   }
 
@@ -2693,6 +2774,24 @@ async function boot() {
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
     devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
+    for (const actor of queueActors.values()) {
+      actor.group.position.lerp(actor.target, 1 - Math.exp(-Math.min(50, dt) / 320));
+      animateHuman(actor.avatar, now, false);
+      if (actor.avatar.prayerPose) {
+        actor.avatar.leftArm.rotation.x = -0.48;
+        actor.avatar.rightArm.rotation.x = -0.48;
+        actor.avatar.leftArm.rotation.z = 0.54;
+        actor.avatar.rightArm.rotation.z = -0.54;
+        actor.avatar.leftHand.rotation.z = -0.04;
+        actor.avatar.rightHand.rotation.z = 0.04;
+      }
+    }
+    if (devoteeState.active && devoteeState.pausedAt) {
+      // The visitor stays at the same floor position while acknowledging a
+      // softer gift instead of freezing with one leg raised mid-stride.
+      animateHuman(mainHuman, now, false);
+      applyHumanBow(mainHuman, 0.12, mainHuman.kneelBlend);
+    }
     if (devoteeState.active && !devoteeState.pausedAt) {
       const phaseElapsed = now - devoteeState.phaseStartedAt;
       const progress = devoteeState.phase === 'ritual'
@@ -2894,6 +2993,11 @@ async function boot() {
     window.removeEventListener('temple:character-start', onTempleCharacterStartForThreeD);
     window.removeEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);
     window.removeEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);
+    for (const actor of [...queueActors.values(), ...queueActorPool]) {
+      world.remove(actor.group);
+    }
+    queueActors.clear();
+    queueActorPool.length = 0;
     canvas.removeEventListener('pointermove', onWorldPointerMove);
     canvas.removeEventListener('pointerdown', onWorldPointerDown);
     canvas.removeEventListener('pointerup', onWorldPointerUp);
