@@ -2653,7 +2653,7 @@ async function boot() {
       for (const candidate of candidates) {
         try {
           // Load directly instead of probing with HEAD first. This avoids an
-          // extra request, preserves the actual GLTFLoader error and removes
+          // extra request, preserves the original model-loading error and removes
           // false-positive 404s for optional legacy model paths.
           asset = await loadGLTFAsset(candidate.url, {
             targetHeight: 5.88,
