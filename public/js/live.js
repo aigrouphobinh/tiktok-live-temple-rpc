@@ -384,11 +384,11 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
       );
     }
 
-    // Cập nhật Bảng TẤM LÒNG THÀNH ở góc dưới phải (Top 4)
+    // Wide horizontal TẤM LÒNG THÀNH board: show the three leading supporters.
     const lbList = document.getElementById('leaderboardList');
     if (lbList) {
       lbList.innerHTML = lb
-        .slice(0, 4)
+        .slice(0, 3)
         .map(
           (item) => `
           <div class="leader-item" title="@${escapeHtml(item.uniqueId || item.name || '')}">
