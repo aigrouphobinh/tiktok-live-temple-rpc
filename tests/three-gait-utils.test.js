@@ -78,7 +78,7 @@ describe('getHumanUpperPose', () => {
       torsoLean: 0.16, headCounter: 0.04, armReach: -0.62, armOpen: 0.5, handRoll: 0.04, wristPitch: 0.08
     });
     expect(getHumanUpperPose({ kneelBlend: NaN, bowAmount: Infinity })).toEqual({
-      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
+      torsoLean: 0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
     });
   });
 });
