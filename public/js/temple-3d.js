@@ -3001,10 +3001,22 @@ async function boot() {
       visibleActiveActor: Boolean(devoteeState.active && mainDevotee.visible),
       maxConcurrentWorshippers: MAX_CONCURRENT_WORSHIPPERS,
       visibleWorshipQueueActors: queue.filter((actor) => actor.queuedWorshipLane).length,
+      centralDevoteeActuallyWorshipping: Boolean(
+        devoteeState.active
+        && mainDevotee.visible
+        && devoteeState.phase === 'ritual'
+        && mainHuman.kneelBlend >= 0.9
+      ),
+      centralDevoteeBowAmount: Number((mainHuman.bowAmount || 0).toFixed(3)),
       simultaneousWorshippers: Math.min(
         MAX_CONCURRENT_WORSHIPPERS,
-        (devoteeState.active && mainDevotee.visible ? 1 : 0)
-          + queue.filter((actor) => actor.queuedWorshipLane).length
+        (devoteeState.active
+          && mainDevotee.visible
+          && devoteeState.phase === 'ritual'
+          && mainHuman.kneelBlend >= 0.9 ? 1 : 0)
+          + queue.filter((actor) => actor.avatar.queuedWorshipLane
+            && !actor.moving
+            && actor.kneelBlend >= 0.9).length
       ),
       visibleSceneActorCount: (devoteeState.active && mainDevotee.visible ? 1 : 0) + queue.length + departingDevotees.length,
       backgroundNpcCount: 0,
