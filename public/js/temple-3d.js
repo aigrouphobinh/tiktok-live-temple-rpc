@@ -2586,8 +2586,8 @@ async function boot() {
   const queueActors = new Map();
   const queueActorPool = [];
   const departingDevotees = [];
-  // Match the 2D queue capacity: render the full line, not five-person waves.
-  const MAX_VISIBLE_QUEUE_ACTORS = 40;
+  // One visitor worships at the altar while at most five stand in a single line behind.
+  const MAX_VISIBLE_QUEUE_ACTORS = 5;
 
   function getAvailableQueueActorSlot() {
     return getAvailableFormationSlot(
@@ -2690,7 +2690,7 @@ async function boot() {
         if (actor) setHumanAppearance(actor.avatar, appearance);
         else actor = createQueueActor(event, appearance);
         actor.slot = slot;
-        const nameTagLayout = getCrowdNameTagLayout(slot);
+        const nameTagLayout = getCrowdNameTagLayout(slot, { columns: 1, width: 1.72, height: 0.28, staggerY: 0 });
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
         actor.avatar.queueWaiting = true;
@@ -2705,7 +2705,7 @@ async function boot() {
         // New arrivals walk into a visible two-column waiting line behind
         // the active worshipper instead of appearing beside the altar.
         const entryPosition = getHorizontalFormationPosition(slot, {
-          columns: 5, centered: true, spacing: 1.42, y: 0.05, baseZ: 14.2, rowSpacing: 1.05
+          columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 14.2, rowSpacing: 1.28
         });
         actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
@@ -2727,9 +2727,8 @@ async function boot() {
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
       }
       const queuePosition = getHorizontalFormationPosition(slot, {
-        // Five evenly spaced columns, raised in the portrait frame and packed
-        // more tightly in depth so the waiting line does not sink behind the altar.
-        columns: 5, centered: true, spacing: 1.42, y: 0.05, baseZ: 7.65, rowSpacing: 1.05
+        // A single-file line: one active worshipper at the altar, five visitors behind.
+        columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 7.65, rowSpacing: 1.28
       });
       actor.avatar.queueWaiting = true;
       actor.avatar.offeringIncense = false;
