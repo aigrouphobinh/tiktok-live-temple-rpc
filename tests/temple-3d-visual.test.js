@@ -1130,7 +1130,7 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS');
     expect(scene).toContain('const slot = index;');
     expect(scene).toContain('const queueFormation = getQueueActorFormationPosition(slot);');
-    expect(scene).toContain('const entryPosition = getQueueActorEntryPosition(index);');
+    expect(scene).toContain('const entryPosition = getQueueActorEntryPosition(slot);');
     expect(scene).toContain('getAvailableQueueActorSlot');
     expect(scene).toContain('target: {\n          x: Number(actor.target.x.toFixed(2)),\n          z: Number(actor.target.z.toFixed(2))');
   });
