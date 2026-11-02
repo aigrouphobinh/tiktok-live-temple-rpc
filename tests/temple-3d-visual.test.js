@@ -1161,6 +1161,9 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
     expect(scene).toContain('visibleSceneActorCount: (devoteeState.active && mainDevotee.visible ? 1 : 0) + queue.length + departingDevotees.length,');
     expect(audit).toContain('temple-3d-crowd.png');
+    expect(audit).toContain("canvas?.toDataURL('image/png')");
+    expect(audit).toContain("writeFile(profileReport.crowdScreenshot, Buffer.from(crowdImageMatch[1], 'base64'))");
+    expect(scene).toContain("preserveDrawingBuffer: new URLSearchParams(location.search).has('profileAudit')");
   });
 
   it('marks a side-lane worshipper complete, exits them once, and never promotes them to the altar', () => {
