@@ -27,6 +27,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('const renderedDevoteeEvents = new WeakSet();');
     expect(source).toContain('if (devoteeQueue.length >= 40) return;');
     expect(source).toContain('function finishActiveDevotee(event');
+    expect(source).toContain('event: devoteeState.event, curve: exitCurve,');
     expect(source).toContain('departingDevotees.push');
     expect(source).toContain('devoteeState.pausedAt = performance.now();');
   });
@@ -140,23 +141,31 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('applyGiftThankYouGesture(avatar, time);');
   });
 
-  it('stagger worship cycles across the eight background devotees', () => {
-    expect(source).toContain('avatar.congregationRole = avatarIndex % 4;');
-    expect(source).toContain('avatar.congregationOffset = avatar.phase * 1500;');
-    expect(source).toContain('function updateCongregationWorshipPose(avatar, now)');
-    expect(source).toContain('const cycleMs = 24000;');
-    expect(source).toContain('bowCycles: 2,');
-    expect(source).toContain('bowCycleMs: 1450,');
-    expect(source).toContain('updateCongregationWorshipPose(avatar, now);');
+  it('does not spawn background NPCs when there are no corresponding viewer events', () => {
+    expect(source).not.toContain('function makeDevotee(');
+    expect(source).not.toContain('devoteeAvatars');
+    expect(source).not.toContain('updateCongregationWorshipPose');
+    expect(source).not.toContain('for(let row=0;row<4;row++)');
+    expect(source).toContain('const mainHuman=makeHumanAvatar(1.72)');
+    expect(source).toContain('const queueActors = new Map();');
+    expect(source).toContain('backgroundNpcCount: 0,');
   });
 
-  it('gives the congregation varied clothing, posture and subtle spacing', () => {
+  it('keeps both Ao Dai variants available without creating decorative extra people', () => {
     expect(avatarSource).toContain('const AO_DAI_PALETTES = Object.freeze([');
     expect(avatarSource).toContain("gender: 'female'");
     expect(avatarSource).toContain("gender: 'male'");
-    expect(source).toContain('avatar.kneelBlend = posture.kneel;');
-    expect(source).toContain('avatar.headingOffset = ((avatarIndex % 3) - 1) * 0.055;');
-    expect(source).toContain('const stagger = row % 2 ? 0.16 : -0.1;');
+    expect(source).toContain('const maleRigCount = allHumanAvatars.filter((avatar) => Boolean(avatar.variants?.male)).length;');
+    expect(source).toContain('const femaleRigCount = allHumanAvatars.filter((avatar) => Boolean(avatar.variants?.female)).length;');
+    expect(source).not.toContain('makeDevotee(');
+  });
+
+  it('coalesces repeated events from one viewer into the existing active or queued avatar', () => {
+    expect(source).toContain('function getDevoteeIdentityKey(event)');
+    expect(source).toContain('getDevoteeIdentityKey(devoteeState.event) === identity');
+    expect(source).toContain('const existingQueuedEvent = identity');
+    expect(source).toContain('Object.assign(existingQueuedEvent, event);');
+    expect(source).toContain('getDevoteeIdentityKey(departing.event) !== identity');
   });
 
   it('performs three separate bows during the 3D ritual phase', () => {

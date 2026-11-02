@@ -16,6 +16,36 @@ describe('CharacterStateMachine', () => {
     expect(machine.snapshot().state).toBe('IDLE');
   });
 
+  it('keeps one active avatar when the same TikTok viewer sends repeated actions', () => {
+    const machine = new CharacterStateMachine();
+    const first = { type: 'burnIncense', user: 'Bình', uniqueId: '@viewer_01', count: 1 };
+    expect(machine.request(first).started).toBe(true);
+    const duplicate = { type: 'sendPrayer', user: 'Bình', uniqueId: 'viewer_01', wish: 'Cầu an' };
+    expect(machine.request(duplicate)).toMatchObject({ accepted: true, updated: true, active: true });
+    expect(machine.snapshot().active).toBe(first);
+    expect(machine.snapshot().active.type).toBe('sendPrayer');
+    expect(machine.snapshot().queueLength).toBe(0);
+  });
+
+  it('updates an existing queued viewer instead of adding another character', () => {
+    const machine = new CharacterStateMachine();
+    machine.request({ ...devotee('A'), uniqueId: 'viewer_a' });
+    const queued = { ...devotee('B'), uniqueId: 'viewer_b', wish: 'first' };
+    machine.request(queued);
+    const duplicate = { type: 'ringBell', user: 'B', uniqueId: '@VIEWER_B', wish: 'latest' };
+    expect(machine.request(duplicate)).toMatchObject({ accepted: true, updated: true, queued: true, position: 1 });
+    expect(machine.snapshot().queueLength).toBe(1);
+    expect(machine.queue[0]).toBe(queued);
+    expect(machine.queue[0]).toMatchObject({ type: 'ringBell', wish: 'latest' });
+  });
+
+  it('falls back to a normalized display name when a TikTok uniqueId is unavailable', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('Viewer Name'));
+    expect(machine.request(devotee(' viewer name '))).toMatchObject({ accepted: true, updated: true, active: true });
+    expect(machine.snapshot().queueLength).toBe(0);
+  });
+
   it('tracks the approach, offering and bow phases in order', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));

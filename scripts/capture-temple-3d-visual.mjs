@@ -302,6 +302,8 @@ try {
         );
         logAuditPhase(scenario.id, 'crowd-formation-result', {
           visibleQueueActors: profileReport.crowdFormationDiagnostic?.visibleQueueActors || 0,
+          visibleSceneActorCount: profileReport.crowdFormationDiagnostic?.visibleSceneActorCount || 0,
+          backgroundNpcCount: profileReport.crowdFormationDiagnostic?.backgroundNpcCount ?? null,
           slots: profileReport.crowdFormationDiagnostic?.queue?.map((actor) => actor.slot) || []
         });
       }
@@ -423,9 +425,17 @@ try {
           && Array.isArray(scene.buddhaModelDiagnostic?.attempts)
           && scene.buddhaModelDiagnostic.attempts.some((attempt) => attempt.ok),
         aoDaiRigsActive: scene.aoDaiDiagnostic?.source === 'ao-dai-local'
-          && Number(scene.aoDaiDiagnostic?.maleCount) > 0
-          && Number(scene.aoDaiDiagnostic?.femaleCount) > 0
+          && Number(scene.aoDaiDiagnostic?.maleRigCount) > 0
+          && Number(scene.aoDaiDiagnostic?.femaleRigCount) > 0
           && scene.aoDaiDiagnostic?.legacyGirlGlbEnabled === false,
+        noAmbientDuplicateViewers: scene.aoDaiDiagnostic?.backgroundNpcCount === 0,
+        singleViewerRendersOneCharacter: scenario.id !== 'low'
+          || (scene.devoteeFlowDiagnostic?.activeUser === 'AuditSolo'
+            && scene.devoteeFlowDiagnostic?.visibleSceneActorCount === 1
+            && scene.devoteeFlowDiagnostic?.visibleQueueActors === 0
+            && scene.devoteeFlowDiagnostic?.backgroundNpcCount === 0),
+        crowdActorCountMatchesViewerEvents: scenario.id !== 'high'
+          || scene.devoteeFlowDiagnostic?.visibleSceneActorCount === 9,
         crowdFormationActorsVisible: scenario.id !== 'high'
           || scene.devoteeFlowDiagnostic?.visibleQueueActors === 8,
         crowdFormationSlotsUnique: scenario.id !== 'high'
@@ -467,7 +477,40 @@ try {
           scale: 'css'
         });
         profileReport.screenshot = screenshotPath;
-        if (scenario.id === 'high') {
+        if (scenario.id === 'low') {
+        logAuditPhase(scenario.id, 'single-viewer-start');
+        await page.evaluate(() => {
+          window.dispatchEvent(new CustomEvent('temple:ritual', {
+            detail: {
+              type: 'burnIncense',
+              user: 'AuditSolo',
+              uniqueId: 'audit_solo',
+              count: 3,
+              merit: 3
+            }
+          }));
+        });
+        try {
+          await page.waitForFunction(() => {
+            const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
+            return diagnostic?.activeUser === 'AuditSolo'
+              && diagnostic.visibleSceneActorCount === 1
+              && diagnostic.visibleQueueActors === 0
+              && diagnostic.backgroundNpcCount === 0;
+          }, null, { timeout: 10000 });
+        } catch (error) {
+          profileReport.singleViewerWaitError = error.message;
+        }
+        profileReport.singleViewerDiagnostic = await page.evaluate(() =>
+          window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.() || null
+        );
+        logAuditPhase(scenario.id, 'single-viewer-result', {
+          activeUser: profileReport.singleViewerDiagnostic?.activeUser || null,
+          visibleSceneActorCount: profileReport.singleViewerDiagnostic?.visibleSceneActorCount || 0
+        });
+      }
+
+      if (scenario.id === 'high') {
           await page.locator('#stage9x16').screenshot({
             path: `${artifactDir}/temple-3d-crowd.png`,
             animations: 'disabled',

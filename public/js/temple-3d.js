@@ -1608,8 +1608,6 @@ async function boot() {
   // Stylized human devotees replace the temporary animal crowd.
   // The avatar is deliberately built from lightweight Three.js geometry so it
   // is local, deterministic and does not depend on a third-party model host.
-  const devotees = [];
-  const devoteeAvatars = [];
   const allHumanAvatars = [];
   // Male/female Vietnamese Ao Dai avatars. Both variants are prebuilt once
   // per visitor and share identical animation pivots, so switching clothing
@@ -2063,54 +2061,7 @@ async function boot() {
     }
     applyGiftThankYouGesture(avatar, time);
   }
-  function makeDevotee(x,z,scale=1) {
-    const group=new THREE.Group();group.position.set(x,0.02,z);group.scale.setScalar(scale);world.add(group);
-    const avatarIndex = devoteeAvatars.length;
-    const avatar=makeHumanAvatar(1.42, getAoDaiAppearance(avatarIndex));group.add(avatar.root);
-    const idlePostures = [
-      { kneel: 0, bow: 0.05 },
-      { kneel: 0.92, bow: 0.07 },
-      { kneel: 1, bow: 0.2 },
-      { kneel: 0, bow: 0.16 }
-    ];
-    const posture = idlePostures[avatarIndex % idlePostures.length];
-    avatar.headingOffset = ((avatarIndex % 3) - 1) * 0.055;
-    avatar.congregationRole = avatarIndex % 4;
-    avatar.congregationOffset = avatar.phase * 1500;
-    avatar.prayerPose = avatar.congregationRole === 0;
-    avatar.kneelBlend = posture.kneel;
-    avatar.kneeling = posture.kneel > 0.05;
-    applyHumanBow(avatar, posture.bow, posture.kneel);
-    devotees.push(group);devoteeAvatars.push(avatar);return group;
-  }
-  for(let row=0;row<4;row++){
-    const z=-3.2+row*3.1, scale=1.0-row*0.065;
-    const stagger = row % 2 ? 0.16 : -0.1;
-    makeDevotee(-4.3+stagger,z+0.12,scale);
-    makeDevotee(4.3-stagger,z-0.1,scale);
-  }
-
-  function updateCongregationWorshipPose(avatar, now) {
-    const role = avatar.congregationRole;
-    if (!Number.isInteger(role)) return;
-    const cycleMs = 24000;
-    const elapsed = ((now + avatar.congregationOffset) % cycleMs + cycleMs) % cycleMs;
-    const bowPose = getRitualPoseState({
-      travel: 1,
-      elapsedAfterArrival: elapsed,
-      remainingMs: Number.MAX_SAFE_INTEGER,
-      kneelInMs: 0,
-      bowDelayMs: 300,
-      bowInMs: 820,
-      bowCycles: 2,
-      bowCycleMs: 1450,
-      exitFadeMs: 450
-    });
-    const kneelBlend = role === 0 ? 0 : role === 2 ? 0.78 : role === 3 ? 0.18 : 1;
-    avatar.kneelBlend = kneelBlend;
-    avatar.kneeling = kneelBlend > 0.035;
-    applyHumanBow(avatar, bowPose.bowAmount * (role === 0 ? 0.62 : 1), kneelBlend);
-  }
+  // No ambient NPC crowd is spawned. Every visible person must correspond to an actual viewer event.
 
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
@@ -2169,6 +2120,14 @@ async function boot() {
     devoteeNameTag.userData.setName(user || 'Thí Chủ Hữu Duyên');
   }
   const devoteeQueue = [];
+  // Normalize viewer identity so repeated comments/gifts from one TikTok user
+  // update the same avatar instead of creating one character per event.
+  function getDevoteeIdentityKey(event) {
+    const uniqueId = String(event?.uniqueId || '').trim().replace(/^@+/, '').toLowerCase();
+    const user = String(event?.user || '').trim().replace(/^@+/, '').toLowerCase();
+    const identity = uniqueId || user;
+    return identity ? `viewer:${identity}` : null;
+  }
   // The 2D state machine owns ordering; this scene only renders that same FIFO.
   const renderedDevoteeEvents = new WeakSet();
   const queueActors = new Map();
@@ -2190,12 +2149,17 @@ async function boot() {
   function getAoDaiRuntimeDiagnostics() {
     const maleCount = allHumanAvatars.filter((avatar) => avatar.gender === 'male').length;
     const femaleCount = allHumanAvatars.filter((avatar) => avatar.gender === 'female').length;
+    const maleRigCount = allHumanAvatars.filter((avatar) => Boolean(avatar.variants?.male)).length;
+    const femaleRigCount = allHumanAvatars.filter((avatar) => Boolean(avatar.variants?.female)).length;
     return {
       source: 'ao-dai-local',
       avatarCount: allHumanAvatars.length,
       maleCount,
       femaleCount,
+      maleRigCount,
+      femaleRigCount,
       visibleQueueActors: [...queueActors.values()].filter((actor) => actor.group.visible).length,
+      backgroundNpcCount: 0,
       legacyGirlGlbEnabled: false
     };
   }
@@ -2389,6 +2353,9 @@ async function boot() {
       bowCycle: mainHuman.ritualBowCycle || 0,
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
+      visibleActiveActor: Boolean(devoteeState.active && mainDevotee.visible),
+      visibleSceneActorCount: (devoteeState.active && mainDevotee.visible ? 1 : 0) + queue.length + departingDevotees.length,
+      backgroundNpcCount: 0,
       kneelingQueueActors: queue.filter((actor) => actor.kneelBlend > 0.65).length,
       queue,
       departingCount: departingDevotees.length
@@ -2460,6 +2427,39 @@ async function boot() {
   }
   function enqueueDevotee(event) {
     if (!event || typeof event !== 'object' || renderedDevoteeEvents.has(event)) return;
+    const identity = getDevoteeIdentityKey(event);
+    if (identity && devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity) {
+      // The same viewer sent another action while their avatar is already active.
+      Object.assign(devoteeState.event, event);
+      updateMainDevoteeName(devoteeState.event.user);
+      renderedDevoteeEvents.add(event);
+      return;
+    }
+    const existingQueuedEvent = identity
+      ? devoteeQueue.find((queued) => getDevoteeIdentityKey(queued) === identity)
+      : null;
+    if (existingQueuedEvent) {
+      // Keep the queued visitor and its stable formation slot; only refresh
+      // their latest action/details. Never create another avatar for this viewer.
+      Object.assign(existingQueuedEvent, event);
+      const queuedActor = queueActors.get(existingQueuedEvent);
+      if (queuedActor) {
+        queuedActor.event = existingQueuedEvent;
+        queuedActor.nameTag.userData.setName(existingQueuedEvent.user || 'Thí Chủ');
+      }
+      renderedDevoteeEvents.add(event);
+      return;
+    }
+    if (identity) {
+      // If this viewer returns while their previous avatar is still walking
+      // out, remove that exit clone before allowing the new visit to begin.
+      for (let index = departingDevotees.length - 1; index >= 0; index--) {
+        const departing = departingDevotees[index];
+        if (getDevoteeIdentityKey(departing.event) !== identity) continue;
+        world.remove(departing.group);
+        departingDevotees.splice(index, 1);
+      }
+    }
     // Match the gameplay queue's capacity. The state machine remains the
     // authority; this is only its visible 3D presentation queue.
     if (devoteeQueue.length >= 40) return;
@@ -2578,7 +2578,7 @@ async function boot() {
       ], false, 'centripetal');
       world.add(leaving);
       departingDevotees.push({
-        group: leaving, avatar: leavingAvatar, curve: exitCurve,
+        group: leaving, avatar: leavingAvatar, event: devoteeState.event, curve: exitCurve,
         startedAt: now, durationMs: 10500
       });
     }
@@ -3180,10 +3180,6 @@ async function boot() {
     updateRitualCamera(dt);
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
-    devoteeAvatars.forEach((avatar) => {
-      updateCongregationWorshipPose(avatar, now);
-      animateHuman(avatar, now, false);
-    });
     for (const actor of queueActors.values()) {
       let moving = false;
       if (actor.moveCurve) {

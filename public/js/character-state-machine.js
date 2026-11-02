@@ -4,6 +4,13 @@
  */
 export const GIFT_PRIORITY = Object.freeze({ rocket: 100, dragon: 80, donut: 60, rose: 30 });
 
+function getViewerIdentity(event) {
+  const uniqueId = String(event?.uniqueId || '').trim().replace(/^@+/, '').toLowerCase();
+  const user = String(event?.user || '').trim().replace(/^@+/, '').toLowerCase();
+  const identity = uniqueId || user;
+  return identity ? `viewer:${identity}` : null;
+}
+
 export class CharacterStateMachine {
   constructor({ maxQueue = 40 } = {}) {
     // A zero-capacity queue is valid (reject all waiting work); malformed
@@ -34,6 +41,19 @@ export class CharacterStateMachine {
 
   request(event) {
     if (!event || typeof event !== 'object') return { accepted: false };
+    const identity = getViewerIdentity(event);
+    if (identity && this.active && getViewerIdentity(this.active) === identity) {
+      Object.assign(this.active, event);
+      return { accepted: true, updated: true, active: true, event: this.active };
+    }
+    const queuedIndex = identity
+      ? this.queue.findIndex((queued) => getViewerIdentity(queued) === identity)
+      : -1;
+    if (queuedIndex >= 0) {
+      const queuedEvent = this.queue[queuedIndex];
+      Object.assign(queuedEvent, event);
+      return { accepted: true, updated: true, queued: true, position: queuedIndex + 1, event: queuedEvent };
+    }
     if (!this.active && !this.effect && this.state === 'IDLE') {
       this.active = event;
       this.state = 'APPROACHING';
