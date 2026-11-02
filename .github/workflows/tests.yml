@@ -129,7 +129,7 @@ jobs:
           grep -Fq "three/addons/utils/SkeletonUtils.js" public/js/temple-3d.js &&
           grep -Fq 'upperBody.position.y = 0.48' public/js/temple-3d.js &&
           grep -Fq 'avatar.upperBody.rotation.x = upperPose.torsoLean' public/js/temple-3d.js &&
-          grep -Fq 'mainHuman.upperBody.rotation.x = 0' public/js/temple-3d.js &&
+          grep -Fq 'applyHumanBow(mainHuman, 0);' public/js/temple-3d.js &&
           grep -Fq 'function animateHuman(avatar, time, walking = false, walkPhase = null)' public/js/temple-3d.js &&
           grep -Fq 'const mainHuman=makeHumanAvatar(1.72)' public/js/temple-3d.js &&
           ! grep -Fq 'GLTFLoader' public/js/temple-3d.js &&
