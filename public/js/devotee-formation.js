@@ -46,7 +46,7 @@ export function getAvailableFormationSlot(occupiedSlots, capacity = DEFAULT_FORM
 /** Layouts crowd name labels in two staggered vertical lanes. */
 export function getCrowdNameTagLayout(slot, options = {}) {
   if (!Number.isInteger(slot) || slot < 0) return null;
-  const columns = Number.isInteger(options.columns) && options.columns > 1
+  const columns = Number.isInteger(options.columns) && options.columns > 0
     ? options.columns
     : DEFAULT_FORMATION_COLUMNS;
   const half = Math.floor(columns / 2);
