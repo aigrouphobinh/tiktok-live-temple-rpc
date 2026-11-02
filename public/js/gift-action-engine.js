@@ -329,7 +329,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         machine.transition('BOWING');
       }, 2370)
     ];
-    const ritualDurationMs = window.__TEMPLE_3D_READY__ === true ? 15000 : 12500;
+    const ritualDurationMs = window.__TEMPLE_3D_READY__ === true ? 18500 : 12500;
     activeTimer = window.setTimeout(() => {
       if (token !== ritualToken) return;
       phaseTimers.forEach(clearTimeout);
@@ -341,8 +341,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
         startCharacterTimer(next.event);
       }
-    // Allow an unhurried side entrance, a 6.5s walk from the queue to the altar,
-    // and the full three-bow sequence before handing the altar to the next visitor.
+    // In 3D mode, keep FIFO ownership through the longer synchronized
+    // five-person bow and the main visitor's exit walk.
     }, event?.type === 'drawFortune' ? 18000 : ritualDurationMs);
   }
 
