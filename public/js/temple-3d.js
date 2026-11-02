@@ -2701,9 +2701,11 @@ async function boot() {
   // the remaining real viewers are rendered in the seated congregation grid.
 
   function getAvailableQueueActorSlot() {
+    // Four side-lane places are reserved for ritual queue actors. The other
+    // 36 formation slots belong exclusively to passive live viewers.
     return getAvailableFormationSlot(
       [...queueActors.values()].map((actor) => actor.slot),
-      MAX_VISIBLE_QUEUE_ACTORS
+      MAX_CONCURRENT_WORSHIPPERS - 1
     );
   }
 
@@ -2915,6 +2917,11 @@ async function boot() {
     const viewer = event?.detail;
     const identity = getDevoteeIdentityKey(viewer);
     if (!viewer || !identity) return;
+    if (
+      (devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity)
+      || devoteeQueue.some((queued) => getDevoteeIdentityKey(queued) === identity)
+      || [...queueActors.values()].some((actor) => getDevoteeIdentityKey(actor.event) === identity)
+    ) return;
     liveViewerRoster.delete(identity);
     liveViewerRoster.set(identity, {
       ...viewer,
@@ -2947,10 +2954,7 @@ async function boot() {
     if (!identity) return false;
     liveViewerRoster.delete(identity);
     const actor = liveViewerActors.get(identity);
-    if (!actor) {
-      syncLiveViewerSeats();
-      return false;
-    }
+    if (!actor) return false;
     liveViewerActors.delete(identity);
     actor.group.visible = false;
     actor.event = null;
@@ -2959,7 +2963,6 @@ async function boot() {
     actor.moveStartedAt = 0;
     actor.moveDurationMs = 0;
     queueActorPool.push(actor);
-    syncLiveViewerSeats();
     return true;
   }
 
@@ -3024,7 +3027,7 @@ async function boot() {
   }
 
   function refreshQueueActors(now = performance.now()) {
-    const visibleEvents = devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS);
+    const visibleEvents = devoteeQueue.slice(0, MAX_CONCURRENT_WORSHIPPERS - 1);
     for (const [event, actor] of queueActors) {
       if (visibleEvents.includes(event)) continue;
       queueActors.delete(event);
@@ -4136,6 +4139,7 @@ async function boot() {
     else if (event.type === 'offerGift') lotusBurst(Math.min(18, 5 + Math.ceil((event.coins || 10) / 10)));
     else if (event.type === 'grandCeremony') { lotusBurst(18); for (let i = 0; i < 5; i++) makeRing(0, 0.2 + i * 0.2, -7); }
     else if (event.type === 'drawFortune') { lotusBurst(5); makeRing(3.75, 0.85, -5.4, 0xffdf83); }
+    syncLiveViewerSeats();
     start();
   }
   function onTempleRitual(event) { handleRitual(event.detail); }
