@@ -5,6 +5,14 @@ import { findBestAnimationClip } from '../public/js/three-animation-utils.js';
 const css = readFileSync(new URL('../public/css/live.css', import.meta.url), 'utf8');
 
 describe('3D sanctuary visual treatment', () => {
+  it('loads the vendored gold Buddha GLB by default in 3D mode', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain("const buddhaModelRequested = modelParams.get('buddha') !== '0';");
+    expect(scene).toContain("const selectedUrl = '/assets/models/buddha-selected.glb';");
+    expect(scene).toContain('if (modelsRequested || buddhaModelRequested) {');
+    expect(scene).toContain('if (!asset && await isLocalModelAvailable(selectedUrl)) {');
+  });
+
   it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(css).toContain('.stage-9x16.temple-3d-mode::after');
     expect(css).toContain('pointer-events: none;');
