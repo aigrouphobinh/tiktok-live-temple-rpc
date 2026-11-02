@@ -160,6 +160,14 @@ export async function loadGLTFAsset(url, {
   let sourceSize;
   let scale;
   let triangleCount = 0;
+  let groundAlignment = {
+    requested: Boolean(alignGroundPlane),
+    status: alignGroundPlane ? 'not-detected' : 'not-requested',
+    applied: false,
+    angleDegrees: null,
+    sampleCount: 0,
+    planarity: null
+  };
   try {
     root.updateMatrixWorld(true);
     sourceBounds = new THREE.Box3().setFromObject(root);
@@ -169,14 +177,6 @@ export async function loadGLTFAsset(url, {
       throw new Error(`GLB has invalid vertical bounds: ${url}`);
     }
 
-    let groundAlignment = {
-      requested: Boolean(alignGroundPlane),
-      status: alignGroundPlane ? 'not-detected' : 'not-requested',
-      applied: false,
-      angleDegrees: null,
-      sampleCount: 0,
-      planarity: null
-    };
     if (alignGroundPlane) {
       const plane = estimateGroundPlane(root, sourceBounds.min.y, sourceSize.y);
       if (plane) {
