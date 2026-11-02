@@ -111,7 +111,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('offeringElapsedMs: Math.round(actor.avatar.offeringElapsedMs || 0),');
     expect(source).toContain('actor.avatar.queueWaiting = !isWorshipLane;');
     expect(source).toContain('const offeringElapsed = Number.isFinite(actor.offeringStartedAt)');
-    expect(source).toContain("const entryPosition = arrivalFormation?.role === 'waiting'");
+    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).not.toContain('continuous side procession lane');
