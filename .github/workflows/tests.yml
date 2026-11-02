@@ -144,7 +144,7 @@ jobs:
           grep -Fq "action === 'donut'" public/js/temple-3d.js &&
           grep -Fq "action === 'rose'" public/js/temple-3d.js &&
           grep -Fq "temple:character-interrupted" public/js/gift-action-engine.js &&
-          grep -Fq "temple:gift-action" public/js/gift-action-engine.js && grep -Fq 'resolveGiftReactionProfile(giftEvent || {})' public/js/gift-action-engine.js && grep -Fq 'beginEffect(action, event)' public/js/gift-action-engine.js && grep -Fq "temple:gift-reaction" public/js/gift-action-engine.js && grep -Fq "temple:gift-reaction" public/js/temple-3d.js &&
+          grep -Fq "temple:gift-action" public/js/gift-action-engine.js && grep -Fq 'resolveGiftReactionProfile(giftEvent || {})' public/js/gift-action-engine.js && grep -Fq 'function beginEffect(action, giftEvent = null, { hasTarget = false, targetEjected = false } = {})' public/js/gift-action-engine.js && grep -Fq "temple:gift-reaction" public/js/gift-action-engine.js && grep -Fq "temple:gift-reaction" public/js/temple-3d.js &&
           grep -Fq "temple:gift-action" public/js/temple-3d.js &&
           grep -Fq 'Open-air sanctuary: keep the upper sightline clear' public/js/temple-3d.js &&
           ! grep -Eq 'makeCurvedRoofSide|roofTile|roofTrim|roofStartZ|const ridge =' public/js/temple-3d.js &&
