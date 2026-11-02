@@ -1977,6 +1977,9 @@ async function boot() {
     ];
     const posture = idlePostures[avatarIndex % idlePostures.length];
     avatar.headingOffset = ((avatarIndex % 3) - 1) * 0.055;
+    avatar.congregationRole = avatarIndex % 4;
+    avatar.congregationOffset = avatar.phase * 1500;
+    avatar.prayerPose = avatar.congregationRole === 0;
     avatar.kneelBlend = posture.kneel;
     avatar.kneeling = posture.kneel > 0.05;
     applyHumanBow(avatar, posture.bow, posture.kneel);
@@ -1988,6 +1991,29 @@ async function boot() {
     makeDevotee(-4.3+stagger,z+0.12,scale);
     makeDevotee(4.3-stagger,z-0.1,scale);
   }
+
+  function updateCongregationWorshipPose(avatar, now) {
+    const role = avatar.congregationRole;
+    if (!Number.isInteger(role)) return;
+    const cycleMs = 24000;
+    const elapsed = ((now + avatar.congregationOffset) % cycleMs + cycleMs) % cycleMs;
+    const bowPose = getRitualPoseState({
+      travel: 1,
+      elapsedAfterArrival: elapsed,
+      remainingMs: Number.MAX_SAFE_INTEGER,
+      kneelInMs: 0,
+      bowDelayMs: 300,
+      bowInMs: 820,
+      bowCycles: 2,
+      bowCycleMs: 1450,
+      exitFadeMs: 450
+    });
+    const kneelBlend = role === 0 ? 0 : role === 2 ? 0.78 : role === 3 ? 0.18 : 1;
+    avatar.kneelBlend = kneelBlend;
+    avatar.kneeling = kneelBlend > 0.035;
+    applyHumanBow(avatar, bowPose.bowAmount * (role === 0 ? 0.62 : 1), kneelBlend);
+  }
+
   // A separate side waiting lane makes the visitor flow legible without
   // placing queue markers on the sacred red processional carpet.
   box(0.92, 0.035, 10.4, mats.woodLight, -5.18, -0.105, 10.15);
@@ -2787,7 +2813,18 @@ async function boot() {
     updateRitualCamera(dt);
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
-    devoteeAvatars.forEach((avatar) => animateHuman(avatar, now, false));
+    devoteeAvatars.forEach((avatar) => {
+      updateCongregationWorshipPose(avatar, now);
+      animateHuman(avatar, now, false);
+      if (avatar.prayerPose) {
+        avatar.leftArm.rotation.x = -0.48;
+        avatar.rightArm.rotation.x = -0.48;
+        avatar.leftArm.rotation.z = 0.54;
+        avatar.rightArm.rotation.z = -0.54;
+        avatar.leftHand.rotation.z = -0.04;
+        avatar.rightHand.rotation.z = 0.04;
+      }
+    });
     for (const actor of queueActors.values()) {
       actor.group.position.lerp(actor.target, 1 - Math.exp(-Math.min(50, dt) / 320));
       const moving = actor.group.position.distanceToSquared(actor.target) > 0.018;
