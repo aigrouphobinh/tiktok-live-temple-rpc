@@ -2972,7 +2972,7 @@ async function boot() {
         mainDevotee.scale.setScalar(Math.max(0.12, 1 - eased * 0.86));
       }
       const walkPhase = walking && devoteeState.curve
-        ? getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2, mainHuman.phase)
+        ? getDistanceBasedGaitPhase(eased, devoteeState.curve.getLength(), 1.2)
         : phaseElapsed * 0.0085;
       const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;
       const ritualPose = getRitualPoseState({
@@ -3040,7 +3040,7 @@ async function boot() {
       leaving.group.position.copy(point);
       leaving.group.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
       animateHuman(leaving.avatar, now, true, getDistanceBasedGaitPhase(
-        eased, leaving.curve.getLength(), 1.2, leaving.avatar.phase
+        eased, leaving.curve.getLength(), 1.2
       ));
       leaving.group.scale.setScalar(1 - eased * 0.12);
       if (progress >= 1) {
