@@ -17,6 +17,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ = diagnostics;');
     expect(scene).toContain("diagnostics.state = 'loaded';");
     expect(scene).toContain('asset.root.visible = true;');
+    expect(scene).toContain('alignGroundPlane: true');
+    expect(scene).toContain('diagnostics.groundAlignment = asset.groundAlignment;');
     expect(scene).not.toContain('if (await isLocalModelAvailable(customUrl))');
   });
 

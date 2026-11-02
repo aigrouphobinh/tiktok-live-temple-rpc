@@ -424,6 +424,9 @@ try {
           && scene.buddhaModelDiagnostic?.source === scene.buddhaModelSource
           && Array.isArray(scene.buddhaModelDiagnostic?.attempts)
           && scene.buddhaModelDiagnostic.attempts.some((attempt) => attempt.ok),
+        buddhaModelGroundedAndLevel: ['already-level', 'aligned'].includes(
+          scene.buddhaModelDiagnostic?.groundAlignment?.status
+        ),
         aoDaiRigsActive: scene.aoDaiDiagnostic?.source === 'ao-dai-local'
           && Number(scene.aoDaiDiagnostic?.maleRigCount) > 0
           && Number(scene.aoDaiDiagnostic?.femaleRigCount) > 0

@@ -18,6 +18,17 @@ describe('Three.js GLB resource lifecycle', () => {
     expect(loaderSource).toContain('triangleCount,');
   });
 
+  it('can level a tilted photogrammetry model from its bottom-plane samples without changing its facing direction', () => {
+    expect(loaderSource).toContain('function estimateGroundPlane(root, minY, height)');
+    expect(loaderSource).toContain('const sampleStride = Math.max(1, Math.ceil(totalVertices / 120000));');
+    expect(loaderSource).toContain('smallest / next > 0.22');
+    expect(loaderSource).toContain('alignGroundPlane = false');
+    expect(loaderSource).toContain('root.quaternion.setFromUnitVectors(plane.normal, up);');
+    expect(loaderSource).toContain("status: alignGroundPlane ? 'not-detected' : 'not-requested'");
+    expect(loaderSource).toContain('groundAlignment,');
+    expect(loaderSource).toContain("groundAlignment.status = 'tilt-out-of-range';");
+  });
+
   it('keeps GLB loading restricted to same-origin project model assets', () => {
     expect(loaderSource).toContain("!url.startsWith('/assets/models/')");
     expect(loaderSource).toContain("url.startsWith('//')");

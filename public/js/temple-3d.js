@@ -2761,14 +2761,16 @@ async function boot() {
           // false-positive 404s for optional legacy model paths.
           asset = await loadGLTFAsset(candidate.url, {
             targetHeight: 5.88,
-            centerXZ: true
+            centerXZ: true,
+            alignGroundPlane: true
           });
           assetSource = candidate.source;
           diagnostics.attempts.push({
             source: candidate.source,
             url: candidate.url,
             ok: true,
-            triangles: asset.triangleCount
+            triangles: asset.triangleCount,
+            groundAlignment: asset.groundAlignment
           });
           break;
         } catch (error) {
@@ -2801,7 +2803,8 @@ async function boot() {
       console.info('[Temple3D] Buddha mesh budget', {
         source: assetSource,
         triangles: asset.triangleCount,
-        castsShadow: asset.castsShadow
+        castsShadow: asset.castsShadow,
+        groundAlignment: asset.groundAlignment
       });
 
       // The CC0 museum scan is a neutral/light photogrammetry mesh. Apply an
@@ -2835,6 +2838,7 @@ async function boot() {
       diagnostics.source = assetSource;
       diagnostics.finishedAt = new Date().toISOString();
       diagnostics.triangles = asset.triangleCount;
+      diagnostics.groundAlignment = asset.groundAlignment;
     } catch (error) {
       diagnostics.state = 'error';
       diagnostics.source = 'procedural';
