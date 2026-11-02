@@ -46,13 +46,13 @@ describe('Three.js lifecycle recovery', () => {
   });
 
   it('keeps one-way entrance, FIFO queue order and a separate exit lane', () => {
-    expect(source).toContain("enter: [[-6.25, 0, 15.3], [-5.8, 0, 13.5], [-5.35, 0, 10.2], [-5.18, 0, 6.85]]");
-    expect(source).toContain("approach: [[-5.18, 0, 6.85], [-4.95, 0, 4.8], [-3.2, 0, 2.8], [-1.8, 0, -0.1], [0.0, 0, -3.55]]");
+    expect(source).toContain("enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]]");
+    expect(source).toContain("approach: [[-3.65, 0, 8.0], [-3.55, 0, 5.3], [-2.7, 0, 3.1], [-1.6, 0, 0.15], [0.0, 0, -3.55]]");
     expect(source).toContain("exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]");
-    expect(source).toContain('actor.target.set(-5.18, 0.05, 6.85 + index * 1.55);');
+    expect(source).toContain('actor.target.set(-3.65, 0.05, 8.0 + index * 1.45);');
     expect(source).toContain("setDevoteePhase('enter', now, 3600);");
     expect(source).toContain("setDevoteePhase('approach', now, 4200);");
-    expect(source).toContain("mainDevotee.position.set(-5.18, 0.05, 6.85);");
+    expect(source).toContain("mainDevotee.position.set(-3.65, 0.05, 8.0);");
   });
 
   it('renders queued visitors as bounded, reusable 3D actors on a separate side lane', () => {
@@ -68,9 +68,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('actor.avatar.prayerPose');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
-    expect(source).toContain('box(0.92, 0.035, 10.4, mats.woodLight, -5.18, -0.105, 10.15);');
+    expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -3.65, -0.105, 11.4);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
-    expect(source).toContain('actor.group.position.set(-6.25 - index * 0.16, 0.05, 15.3 + index * 0.82);');
+    expect(source).toContain('actor.group.position.set(-4.55 - index * 0.08, 0.05, 15.3 + index * 0.35);');
     expect(source).toContain('actor.group.position.distanceToSquared(actor.target) > 0.018');
     expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
   });
