@@ -2636,8 +2636,13 @@ async function boot() {
         frameTimeP50Ms: percentile(0.50),
         frameTimeP95Ms: percentile(0.95)
       });
-      frameIntervals.length = 0;
-      frameWindowStartedAt = now;
+      // Preserve intervals until percentile metrics meet the reliability threshold.
+      // Slow software renderers otherwise reset their sample window before
+      // collecting enough frames to report meaningful P50/P95 values.
+      if (percentilesReliable) {
+        frameIntervals.length = 0;
+        frameWindowStartedAt = now;
+      }
       lastStatsAt = now;
     }
     if (!effects.length && now > ritualUntil && elapsed > 60000) elapsed = 0;
