@@ -4140,6 +4140,11 @@ async function boot() {
   }
   function onTempleRitual(event) { handleRitual(event.detail); }
   window.addEventListener('temple:viewer-enter', onTempleViewerEnter);
+  // Replay member arrivals buffered while the asynchronous 3D scene booted.
+  const pendingViewerEntries = Array.isArray(window.__TEMPLE_PENDING_VIEWER_ENTRIES__)
+    ? window.__TEMPLE_PENDING_VIEWER_ENTRIES__.splice(0)
+    : [];
+  pendingViewerEntries.forEach((viewer) => onTempleViewerEnter({ detail: viewer }));
   // A gift can arrive while the altar is empty; listen to the effect lifecycle,
   // not the character-interruption signal, so every started gift renders once.
   function applyGiftReactionProfile(profile) {
