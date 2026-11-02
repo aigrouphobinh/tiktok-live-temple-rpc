@@ -925,6 +925,11 @@ const Rituals = {
 let tiktokConn = null;
 
 const commentCooldownMap = new Map();
+// TikTok may replay MEMBER events during initial room hydration and reconnects.
+// Keep one arrival per viewer per short window so the 36-seat congregation does
+// not fill with duplicate copies of the same account.
+const viewerEntryCooldownMap = new Map();
+const VIEWER_ENTRY_COOLDOWN_MS = 30000;
 
 function parseViewerComment(commentText, user, uniqueId, avatar) {
   const raw = String(commentText || '').trim();
@@ -1088,7 +1093,24 @@ async function connectTikTokLive(usernameOrUrl) {
   connection.on(WebcastEvent.MEMBER, (data) => {
     if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
-    recordDevotee(user, uniqueId, avatar, 1, 0, 0, 'Đã vào Chánh Điện lễ Phật');
+    const identity = String(uniqueId || user || '').trim().replace(/^@+/, '').toLowerCase();
+    if (!identity) return;
+    const now = Date.now();
+    const lastSeenAt = viewerEntryCooldownMap.get(identity) || 0;
+    if (now - lastSeenAt < VIEWER_ENTRY_COOLDOWN_MS) return;
+    viewerEntryCooldownMap.set(identity, now);
+    if (viewerEntryCooldownMap.size > 1200) {
+      const oldestKey = viewerEntryCooldownMap.keys().next().value;
+      viewerEntryCooldownMap.delete(oldestKey);
+    }
+
+    // A room entry is presence, not a donation: create/update the profile with
+    // zero merit and let the 3D client seat the visitor in the 36-place grid.
+    recordDevotee(user, uniqueId, avatar, 0, 0, 0, 'Vừa vào Chánh Điện');
+    broadcastNotification('temple.viewer-enter', {
+      viewer: { user, uniqueId, avatar, joinedAt: now },
+      viewerCount: Number(state.tiktok.viewerCount || 0)
+    });
     broadcastNotification('temple.state', getPublicState());
   });
 
@@ -1209,6 +1231,7 @@ function disconnectTikTokLive() {
     tiktokConn = null;
   }
   clearGiftComboTracker(giftComboTracker);
+  viewerEntryCooldownMap.clear();
   state.tiktok.connected = false;
   state.tiktok.connecting = false;
   state.tiktok.viewerCount = 0;
