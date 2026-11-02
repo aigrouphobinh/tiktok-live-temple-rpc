@@ -1971,27 +1971,14 @@ async function boot() {
     const walkTarget = walking ? 1 : 0;
     avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));
     if (avatar.queueWaiting) {
-      // Visitors in the FIFO lane kneel while waiting, stand only to advance,
-      // then settle back onto their knees when their new queue slot is reached.
-      const queueKneelTarget = walking ? 0 : 1;
-      avatar.kneelBlend += (queueKneelTarget - (avatar.kneelBlend || 0))
+      // Keep the waiting line upright like the 2D procession: visitors stand
+      // in FIFO order, then walk forward when a slot opens. Kneeling and the
+      // three-bow sequence belong to the altar, not the queue.
+      avatar.kneelBlend += (0 - (avatar.kneelBlend || 0))
         * (1 - Math.exp(-poseDelta / 0.34));
-      avatar.kneeling = avatar.kneelBlend > 0.08;
+      avatar.kneeling = false;
       avatar.prayerPose = true;
-      const queueRitualElapsed = ((time + avatar.phase * 1150) % 8200 + 8200) % 8200;
-      const queueRitualPose = getRitualPoseState({
-        travel: 1,
-        elapsedAfterArrival: queueRitualElapsed,
-        remainingMs: Number.MAX_SAFE_INTEGER,
-        kneelInMs: 0,
-        bowDelayMs: 420,
-        bowCycles: 2,
-        bowCycleMs: 1550,
-        bowDownRatio: 0.34,
-        bowHoldRatio: 0.20,
-        bowUpRatio: 0.34
-      });
-      avatar.bowAmount = walking ? 0 : queueRitualPose.bowAmount * 0.68;
+      avatar.bowAmount = 0;
     }
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
     const swing = Math.sin(gaitPhase + avatar.phase);
@@ -2124,8 +2111,8 @@ async function boot() {
     applyHumanBow(avatar, bowPose.bowAmount * (role === 0 ? 0.62 : 1), kneelBlend);
   }
 
-  // A separate side waiting lane makes the visitor flow legible without
-  // placing queue markers on the sacred red processional carpet.
+  // A continuous side procession lane keeps every waiting visitor in one
+  // FIFO line; the red processional carpet remains clear.
   box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);
   for (const x of [-3.96, -3.0]) {
     box(0.028, 0.045, 7.05, mats.gold, x, -0.075, 11.4);
@@ -2192,7 +2179,8 @@ async function boot() {
   const queueActors = new Map();
   const queueActorPool = [];
   const departingDevotees = [];
-  const MAX_VISIBLE_QUEUE_ACTORS = 5;
+  // Match the 2D queue capacity: render the full line, not five-person waves.
+  const MAX_VISIBLE_QUEUE_ACTORS = 40;
 
   // Expose a read-only runtime snapshot for the visual audit and browser
   // troubleshooting. It confirms that both local Ao Dai variants are active
@@ -2288,7 +2276,8 @@ async function boot() {
         actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
-        actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);
+        // Start each visitor at their own spaced place in the same line.
+        actor.group.position.set(-3.62, 0.05, 15.3 + index * 1.38);
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
         actor.moveCurve = null;
