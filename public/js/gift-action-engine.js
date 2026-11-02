@@ -321,7 +321,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     }, event?.type === 'drawFortune' ? 18000 : 7600);
   }
 
-  function beginEffect(action, giftEvent = null, { hasTarget = false } = {}) {
+  function beginEffect(action, giftEvent = null, { hasTarget = false, targetEjected = false } = {}) {
     // Fade only the superseded gift's sound group; background music and TTS
     // remain on their independent playback paths.
     if (effectToken > 0) {
@@ -338,6 +338,7 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     const token = ++effectToken;
     window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: {
       action, effectId: token, hasTarget: Boolean(hasTarget),
+      targetEjected: Boolean(targetEjected),
       effectDurationMs: EFFECT_DURATION[action] || 3500,
       handoffDelayMs: 650,
       reactionProfile: resolveGiftReactionProfile(giftEvent || {})
@@ -348,6 +349,12 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     // no replacement character animation of its own.
     characterAnimation?.cancel();
     characterAnimation = null;
+    // A stronger follow-up gift may supersede a chase mid-animation. Keep an
+    // already-ejected visitor hidden rather than snapping them back to the altar.
+    if (targetEjected && !['rocket', 'donut'].includes(action)) {
+      const sprite = document.getElementById('centralSpriteStack');
+      if (sprite) sprite.style.visibility = 'hidden';
+    }
     showActionLabel(action);
     if (action === 'rocket') playRocket(token, hasTarget);
     else if (action === 'dragon') playDragon(token);
@@ -361,7 +368,8 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
       const result = machine.finishEffect();
       if (result.nextEffect) {
         beginEffect(result.nextEffect.action, result.nextEffect.event, {
-          hasTarget: Boolean(result.ejectedDevotee)
+          hasTarget: Boolean(result.ejectedDevotee),
+          targetEjected: Boolean(result.ejectedDevotee)
         });
         return;
       }
@@ -397,8 +405,9 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         if (interruptedEvent && !result.superseded) {
           window.dispatchEvent(new CustomEvent('temple:character-interrupted', { detail: { event: interruptedEvent, action } }));
         }
-        const hasTarget = Boolean(interruptedEvent || result.ejectedDevotee);
-        beginEffect(action, event, { hasTarget });
+        const targetEjected = Boolean(result.ejectedDevotee);
+        const hasTarget = Boolean(interruptedEvent || targetEjected);
+        beginEffect(action, event, { hasTarget, targetEjected });
         return { allowWalker: false, interruptsRitual: true, action, ejectedDevotee: hasTarget, state: machine.snapshot() };
       }
       if (result.queuedEffect) {
