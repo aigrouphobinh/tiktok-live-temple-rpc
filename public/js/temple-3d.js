@@ -2812,7 +2812,7 @@ async function boot() {
     if (identity && devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity) {
       // The same viewer sent another action while their avatar is already active.
       Object.assign(devoteeState.event, event);
-      updateMainDevoteeName(devoteeState.event.user);
+      updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar);
       renderedDevoteeEvents.add(event);
       return;
     }
