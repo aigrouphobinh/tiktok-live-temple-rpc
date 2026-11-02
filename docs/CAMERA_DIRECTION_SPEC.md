@@ -14,8 +14,8 @@ https://github.com/zane-tv/tiktok-live-temple-rpc/blob/main/docs/demo/demo-obs-9
 
 ## Incense interaction camera behavior
 - Keep the elevated temple overview as the permanent camera identity.
-- When an incense ritual begins, choose **one** subtle, pre-approved angle variation at random (a small pan/tilt/orbit or framing offset within the same elevated viewpoint).
-- Choose once at ritual start; lock that preset for the whole active ritual. Do not reroll every frame, every animation tick, every incoming viewer, or every gift.
+- When an incense ritual begins, choose a randomized starting point in a fixed five-shot sequence (left/right three-quarter, elevated center, left/right side) within the same elevated temple viewpoint.
+- Run all five presets once across the active 9.5-second altar ritual, advancing by ritual progress rather than randomizing on render frames, incoming visitors or gifts. Each preset is locked for its shot segment; transitions ease smoothly.
 - Variations are composition-safe: keep the altar and incense area visible, keep the active devotee in the established central action area, and keep the 9:16 stage boundaries fixed.
 - After the ritual ends or is interrupted, ease back to the master elevated overview. Do not hard-cut.
 - If multiple devotees are active/queued, camera remains on the same master view/preset. Character activity can animate within the scene, but camera must not chase/switch between them.
@@ -52,3 +52,10 @@ These are variations of one camera, not separate camera shots. Exact amplitudes 
 - `temple:character-interrupted` returns to the master overview but retains the chosen preset; resuming the interrupted devotee reuses that same preset.
 - `temple:character-complete` returns to master and clears the preset, allowing a fresh random choice for the next completed incense ritual.
 - Fixed top/bottom HUD, grand-ceremony banner and fortune modal remain outside the scene rig.
+
+
+## Five-shot ritual sequence — 2026-11-02
+- A single Three.js camera advances through all five named presets during each 9.5-second altar ritual; the starting preset is randomized per visitor and the remaining four follow in order.
+- Each shot has its own camera position, look target, procession framing, altar-close offset and FOV. The 720ms interpolation remains continuous; no hard cuts or extra cameras are introduced.
+- Altar close-ups are framed farther back than the previous offsets (11.4–12.6 world units in depth) and use a wider 39–42° FOV to keep the devotee and altar comfortable in the 9:16 frame.
+- `camera.userData.shotPreset` and `camera.userData.shotSequenceIndex` expose the active preset for diagnostics and visual regression checks.

@@ -6,6 +6,7 @@ import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
 import { formatDevoteePrayerLabel } from './devotee-labels.js';
+import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualCloseShot, getTempleRitualShotIndex } from './temple-camera-presets.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -71,20 +72,18 @@ async function boot() {
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
   const cameraHomeFov = 42;
   const cameraRitualFov = 38.5;
-  const cameraAltarCloseFov = 31;
   const cameraShotBlendMs = 720;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
-  // Rotate through varied but restrained cinematic angles per visitor.
-  // The main hall remains the home shot; these are only ritual-session views.
-  const cameraRitualPresets = [
-    { name: 'left-three-quarter', position: new THREE.Vector3(-2.15, 11.2, 27.2), targetOffsetX: -0.82, closeSide: -1 },
-    { name: 'right-three-quarter', position: new THREE.Vector3(2.15, 11.2, 27.2), targetOffsetX: 0.82, closeSide: 1 },
-    { name: 'center-elevated', position: new THREE.Vector3(0.1, 12.6, 29.4), targetOffsetX: 0.05, closeSide: 0 },
-    { name: 'left-side', position: new THREE.Vector3(-3.35, 10.4, 25.5), targetOffsetX: -1.18, closeSide: -1 },
-    { name: 'right-side', position: new THREE.Vector3(3.35, 10.4, 25.5), targetOffsetX: 1.18, closeSide: 1 }
-  ];
+  // One shared camera runs a five-shot sequence during every altar ritual.
+  // Each preset has its own procession and slightly wider/farther altar framing.
+  const cameraRitualPresets = TEMPLE_CAMERA_RITUAL_PRESETS.map(({ position, ...preset }) => ({
+    ...preset,
+    position: new THREE.Vector3(...position)
+  }));
   let cameraPresetCursor = -1;
+  let cameraSequenceStartIndex = 0;
+  let activeCameraPresetIndex = 0;
   let cameraTargetPosition = cameraHomePosition.clone();
   let cameraTargetLookAt = cameraHomeTarget.clone();
   let cameraTargetFov = cameraHomeFov;
@@ -92,18 +91,20 @@ async function boot() {
   let cameraRitualActive = false;
   let activeCameraShot = 'home';
   function beginRitualCamera() {
-    // Pick a different angle for every visitor, not once for the whole queue.
-    // Cycling avoids repeating the same view on consecutive worshippers.
+    // Randomize the first angle per visitor, then show all five in sequence
+    // during the 9.5-second bow. Consecutive visitors start from a new angle.
     let nextIndex = Math.floor(Math.random() * cameraRitualPresets.length);
     if (cameraRitualPresets.length > 1 && nextIndex === cameraPresetCursor) {
       nextIndex = (nextIndex + 1 + Math.floor(Math.random() * (cameraRitualPresets.length - 1))) % cameraRitualPresets.length;
     }
     cameraPresetCursor = nextIndex;
+    cameraSequenceStartIndex = nextIndex;
+    activeCameraPresetIndex = nextIndex;
     activeCameraPreset = cameraRitualPresets[nextIndex];
     cameraRitualActive = true;
     activeCameraShot = 'procession';
     cameraTargetPosition.copy(activeCameraPreset.position);
-    cameraTargetFov = cameraRitualFov;
+    cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
   }
   function restoreMainCamera() {
     cameraRitualActive = false;
@@ -111,29 +112,31 @@ async function boot() {
     cameraTargetPosition.copy(cameraHomePosition);
     cameraTargetLookAt.copy(cameraHomeTarget);
     cameraTargetFov = cameraHomeFov;
+    camera.userData.shotPreset = 'home';
+    camera.userData.shotSequenceIndex = -1;
   }
-  function updateRitualCamera(dt) {
+  function updateRitualCamera(dt, now = performance.now()) {
     const blend = 1 - Math.exp(-Math.min(50, dt) / cameraShotBlendMs);
     if (cameraRitualActive && devoteeState?.active && mainDevotee?.visible) {
       const person = mainDevotee.position;
       if (devoteeState.phase === 'ritual') {
-        // One medium close-up begins only after the visitor reaches the altar.
-        // It holds for the full bow sequence, then eases back to the procession
-        // view when another visitor starts or the altar is released.
-        const side = activeCameraPreset.closeSide;
-        // Use a raised, wider close shot from the aisle. The former low
-        // camera sat behind altar geometry and cropped the visitor/nameplate.
-        cameraTargetPosition.set(
-          person.x + side * 1.45,
-          side === 0 ? 7.1 : 6.2,
-          person.z + (side === 0 ? 10.2 : 9.4)
+        // Advance through all five distinct altar angles over the three-bow
+        // sequence. A 720ms exponential blend keeps each transition cinematic.
+        activeCameraPresetIndex = getTempleRitualShotIndex(
+          cameraSequenceStartIndex,
+          now - devoteeState.phaseStartedAt,
+          devoteeState.phaseDuration,
+          cameraRitualPresets.length
         );
-        cameraTargetLookAt.set(person.x + side * 0.08, 1.5, person.z - 0.35);
-        cameraTargetFov = side === 0 ? 38 : 36;
+        activeCameraPreset = cameraRitualPresets[activeCameraPresetIndex];
+        const closeShot = getTempleRitualCloseShot(activeCameraPreset, person);
+        cameraTargetPosition.set(closeShot.position[0], closeShot.position[1], closeShot.position[2]);
+        cameraTargetLookAt.set(closeShot.lookAt[0], closeShot.lookAt[1], closeShot.lookAt[2]);
+        cameraTargetFov = closeShot.fov;
         activeCameraShot = 'altar-close';
       } else {
         // Keep the full hall visible while the person enters, walks in the
-        // aisle, or is affected by a gift. Do not follow with a rapid pan.
+        // aisle, or is affected by a gift. Never chase a side-lane visitor.
         const cameraFollowX = person.x * 0.72;
         cameraTargetPosition.set(
           cameraFollowX + activeCameraPreset.position.x,
@@ -142,10 +145,10 @@ async function boot() {
         );
         cameraTargetLookAt.set(
           cameraFollowX + activeCameraPreset.targetOffsetX,
-          1.25,
-          person.z
+          activeCameraPreset.targetOffsetY,
+          person.z + activeCameraPreset.targetOffsetZ
         );
-        cameraTargetFov = cameraRitualFov;
+        cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
         activeCameraShot = 'procession';
       }
     } else if (!cameraRitualActive) {
@@ -158,8 +161,9 @@ async function boot() {
     if (Math.abs(camera.fov - cameraTargetFov) > 0.015) camera.updateProjectionMatrix();
     camera.lookAt(lookTarget);
     camera.userData.shotName = activeCameraShot;
+    camera.userData.shotPreset = cameraRitualActive ? activeCameraPreset.name : 'home';
+    camera.userData.shotSequenceIndex = cameraRitualActive ? activeCameraPresetIndex : -1;
   }
-
   const mats = {
     wood: new THREE.MeshStandardMaterial({ color: 0x48200e, roughness: 0.55, metalness: 0.18 }),
     woodLight: new THREE.MeshStandardMaterial({ color: 0x79401b, roughness: 0.48, metalness: 0.25 }),
@@ -3999,7 +4003,7 @@ async function boot() {
     }
     const dt = Math.min(50, now - (lastFrame || now));
     lastFrame = now; elapsed += dt;
-    updateRitualCamera(dt);
+    updateRitualCamera(dt, now);
     halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
     springDecorTrees.forEach((tree) => {
