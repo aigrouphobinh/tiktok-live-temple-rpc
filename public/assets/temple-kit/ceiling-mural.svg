@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="520" viewBox="0 0 1600 520">
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#284d66"/><stop offset=".48" stop-color="#66849a"/><stop offset="1" stop-color="#d9b77b"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#fff0b4" stop-opacity=".95"/><stop offset=".5" stop-color="#d99b48" stop-opacity=".45"/><stop offset="1" stop-color="#8b5427" stop-opacity="0"/></radialGradient>
+ <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff0b0"/><stop offset=".5" stop-color="#c78b36"/><stop offset="1" stop-color="#704018"/></linearGradient>
+ <pattern id="clouds" width="240" height="112" patternUnits="userSpaceOnUse"><path d="M-20 82 Q20 38 58 75 Q90 20 128 69 Q160 36 190 75 Q215 54 260 80" fill="none" stroke="#f3dba8" stroke-width="5" opacity=".45"/><path d="M-10 100 Q45 63 84 94 Q130 50 166 94 Q205 68 250 102" fill="none" stroke="#284a60" stroke-width="3" opacity=".45"/></pattern>
+ <g id="petal"><path d="M0 0 C-28 -25 -35 -73 0 -105 C35 -73 28 -25 0 0Z" fill="#f3d99b" stroke="#a46e2b" stroke-width="4"/><path d="M0 -9 Q0 -55 0 -94" fill="none" stroke="#c18a3b" stroke-width="3"/></g>
+ <g id="flower"><circle r="90" fill="url(#glow)"/><circle r="72" fill="none" stroke="url(#gold)" stroke-width="9"/><circle r="59" fill="none" stroke="#f2d99f" stroke-width="3"/>
+  <g><use href="#petal" transform="rotate(0)"/><use href="#petal" transform="rotate(30)"/><use href="#petal" transform="rotate(60)"/><use href="#petal" transform="rotate(90)"/><use href="#petal" transform="rotate(120)"/><use href="#petal" transform="rotate(150)"/><use href="#petal" transform="rotate(180)"/><use href="#petal" transform="rotate(210)"/><use href="#petal" transform="rotate(240)"/><use href="#petal" transform="rotate(270)"/><use href="#petal" transform="rotate(300)"/><use href="#petal" transform="rotate(330)"/></g>
+  <circle r="30" fill="#b77d34" stroke="#fff0bf" stroke-width="5"/><circle r="13" fill="#f9e6ae"/></g>
+ <g id="apsara" fill="#e7c98e" stroke="#754b30" stroke-width="3"><circle cx="0" cy="-30" r="15"/><path d="M-20 -12 Q0 -28 20 -12 L34 35 Q0 52 -34 35Z"/><path d="M-15 -5 Q-65 -48 -86 -20 Q-52 8 -25 15 M15 -5 Q65 -48 86 -20 Q52 8 25 15" fill="none" stroke-width="9"/><path d="M-20 25 Q-60 48 -74 83 M20 25 Q60 48 74 83" fill="none" stroke="#f5e3b3" stroke-width="6"/></g>
+</defs>
+<rect width="1600" height="520" fill="#4b3027"/><rect x="18" y="18" width="1564" height="484" rx="22" fill="url(#sky)" stroke="url(#gold)" stroke-width="22"/><rect x="42" y="42" width="1516" height="436" rx="15" fill="url(#clouds)"/>
+<ellipse cx="800" cy="250" rx="430" ry="210" fill="url(#glow)"/>
+<path d="M90 95 Q250 25 410 95 T730 95 T1050 95 T1370 95 T1510 95" fill="none" stroke="#f5dfa9" stroke-width="10" opacity=".55"/>
+<path d="M70 425 Q230 355 390 425 T710 425 T1030 425 T1350 425 T1530 425" fill="none" stroke="#f5dfa9" stroke-width="10" opacity=".55"/>
+<g transform="translate(800 255) scale(1.42)"><use href="#flower"/></g>
+<g transform="translate(350 255) scale(.72)"><use href="#flower"/></g><g transform="translate(1250 255) scale(.72)"><use href="#flower"/></g>
+<g transform="translate(190 175) scale(.85)"><use href="#apsara"/></g><g transform="translate(1410 175) scale(-.85 .85)"><use href="#apsara"/></g>
+<g transform="translate(180 370) scale(.55)"><use href="#apsara"/></g><g transform="translate(1420 370) scale(-.55 .55)"><use href="#apsara"/></g>
+<g fill="none" stroke="#f4dfad" stroke-width="5" opacity=".7"><path d="M75 68 Q800 130 1525 68 M75 452 Q800 390 1525 452"/><path d="M110 52 L110 468 M1490 52 L1490 468"/></g>
+<g fill="#f7e2b4" opacity=".7"><circle cx="100" cy="260" r="8"/><circle cx="1500" cy="260" r="8"/><circle cx="800" cy="65" r="8"/><circle cx="800" cy="455" r="8"/></g>
+</svg>
