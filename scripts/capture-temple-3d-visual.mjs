@@ -19,12 +19,22 @@ function logAuditPhase(profile, phase, details = {}) {
   console.log(`[Temple 3D audit] ${new Date().toISOString()} profile=${profile} phase=${phase} ${JSON.stringify(details)}`);
 }
 
-async function waitForRendererSample(samples, targetCount, timeoutMs = 15000) {
+async function waitForReliableRendererSample(samples, minimumCount, timeoutMs = 60000) {
   const startedAt = Date.now();
-  while (samples.length < targetCount && Date.now() - startedAt < timeoutMs) {
+  const isReliable = (sample) => sample
+    && sample.sampleQuality === 'reliable'
+    && Number(sample.frameSamples) >= 30
+    && Number(sample.sampleWindowMs) >= 4000;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const freshReliableSample = samples
+      .slice(minimumCount)
+      .reverse()
+      .find(isReliable);
+    if (freshReliableSample) return freshReliableSample;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  return samples.length >= targetCount ? samples[samples.length - 1] : null;
+  return null;
 }
 
 await mkdir(artifactDir, { recursive: true });
@@ -204,9 +214,9 @@ try {
       logAuditPhase(scenario.id, 'model-settled', { source: await page.evaluate(() => window.__TEMPLE_BUDDHA_MODEL_SOURCE__) });
       const samplesBeforeIdle = rendererStatsSamples.length;
       logAuditPhase(scenario.id, 'idle-sample-wait-start', { samples: samplesBeforeIdle });
-      const idleStats = await waitForRendererSample(
+      const idleStats = await waitForReliableRendererSample(
         rendererStatsSamples,
-        samplesBeforeIdle + 1
+        samplesBeforeIdle
       );
       logAuditPhase(scenario.id, 'idle-sample-result', { captured: Boolean(idleStats), samples: rendererStatsSamples.length });
       const samplesBeforeGiftBurst = rendererStatsSamples.length;
@@ -236,9 +246,9 @@ try {
         const timer = window.setInterval(dispatch, 600);
         window.__TEMPLE_AUDIT_STOP_GIFTS__ = () => window.clearInterval(timer);
       });
-      const stressStats = await waitForRendererSample(
+      const stressStats = await waitForReliableRendererSample(
         rendererStatsSamples,
-        samplesBeforeGiftBurst + 1
+        samplesBeforeGiftBurst
       );
       logAuditPhase(scenario.id, 'gift-burst-result', { captured: Boolean(stressStats), samples: rendererStatsSamples.length });
       await page.evaluate(() => {
@@ -328,8 +338,14 @@ try {
           && Math.abs((scene.canvas.width / viewport.width) - scenario.expectedPixelRatio) < 0.002
           && Math.abs((scene.canvas.height / viewport.height) - scenario.expectedPixelRatio) < 0.002,
         rendererStatsCaptured: Boolean(idleStats),
+        idleSampleQualityReliable: idleStats?.sampleQuality === 'reliable'
+          && Number(idleStats?.frameSamples) >= 30
+          && Number(idleStats?.sampleWindowMs) >= 4000,
         rendererPixelRatioMatches: idleStats?.pixelRatio === scenario.expectedPixelRatio,
         giftBurstStatsCaptured: Boolean(stressStats),
+        giftBurstSampleQualityReliable: stressStats?.sampleQuality === 'reliable'
+          && Number(stressStats?.frameSamples) >= 30
+          && Number(stressStats?.sampleWindowMs) >= 4000,
         giftBurstHadActiveEffects: Number(stressStats?.activeEffects) > 0,
         giftBurstDrawCallsIncreased: Number.isFinite(idleStats?.drawCalls)
           && Number.isFinite(stressStats?.drawCalls)
