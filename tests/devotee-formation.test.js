@@ -10,7 +10,13 @@ import {
   createQueueWorshipLedger,
   MAX_CONCURRENT_WORSHIPPERS,
   MAX_QUEUED_WORSHIPPERS,
-  MAX_VISIBLE_QUEUE_ACTORS
+  MAX_VISIBLE_QUEUE_ACTORS,
+  WAITING_SEAT_COLUMNS,
+  WAITING_SEAT_ROWS,
+  WAITING_SEAT_COUNT,
+  WAITING_SEAT_FRONT_Z,
+  WAITING_SEAT_ROW_SPACING,
+  getQueueActorFormationSlots
 } from '../public/js/devotee-formation.js';
 
 describe('stable horizontal devotee formation', () => {
@@ -57,55 +63,73 @@ describe('stable horizontal devotee formation', () => {
   });
 
 
-  it('supports five simultaneous worshippers while the next visitor meditates', () => {
+  it('keeps 40 permanent places and fills the 6x6 waiting grid from altar-center outward', () => {
     const visibleQueue = Array.from({ length: 5 }, (_, slot) =>
       getQueueActorFormationPosition(slot)
     );
     expect(MAX_CONCURRENT_WORSHIPPERS).toBe(5);
     expect(MAX_QUEUED_WORSHIPPERS).toBe(4);
+    expect(MAX_VISIBLE_QUEUE_ACTORS).toBe(40);
+    expect(WAITING_SEAT_COLUMNS).toBe(6);
+    expect(WAITING_SEAT_ROWS).toBe(6);
+    expect(WAITING_SEAT_COUNT).toBe(36);
+
+    // Four nearest ritual positions remain grouped in front of the altar.
     expect(visibleQueue.slice(0, 4).map((position) => position.role)).toEqual([
       'worship', 'worship', 'worship', 'worship'
     ]);
-    expect(visibleQueue[4]).toMatchObject({
-      role: 'waiting',
-      column: 0,
-      row: 0,
-      x: -5.8,
-      y: 0.05,
-      z: 11.8
-    });
-    expect(getQueueActorFormationPosition(5)).toMatchObject({
-      role: 'waiting',
-      column: 1,
-      row: 0,
-      x: -3.9,
-      z: 11.8
-    });
-    const firstSeatInSecondRow = getQueueActorFormationPosition(8);
+    expect(visibleQueue.map(({ x }) => x)).toEqual([-3.15, -1.05, 1.05, 3.15, -0.84]);
+
+    const firstWaitingRow = Array.from({ length: WAITING_SEAT_COLUMNS }, (_, column) =>
+      getQueueActorFormationPosition(column + MAX_QUEUED_WORSHIPPERS)
+    );
+    // First fill the two inner places, then progress outward on both sides.
+    expect(firstWaitingRow.map(({ x }) => x)).toEqual([
+      -0.84, 0.84, -2.52, 2.52, -4.2, 4.2
+    ]);
+    expect(firstWaitingRow.every(({ row, z }) => row === 0 && z === WAITING_SEAT_FRONT_Z)).toBe(true);
+
+    const firstSeatInSecondRow = getQueueActorFormationPosition(10);
     expect(firstSeatInSecondRow).toMatchObject({
-      slot: 8,
+      slot: 10,
       role: 'waiting',
       column: 0,
       row: 1,
-      x: -5.8,
+      x: -0.84,
       y: 0.05
     });
-    expect(firstSeatInSecondRow.z).toBeCloseTo(10.45, 6);
+    expect(firstSeatInSecondRow.z).toBeCloseTo(
+      WAITING_SEAT_FRONT_Z + WAITING_SEAT_ROW_SPACING,
+      6
+    );
+
     const lastSeat = getQueueActorFormationPosition(39);
     expect(lastSeat).toMatchObject({
+      slot: 39,
       role: 'waiting',
-      column: 3,
-      row: 8,
-      x: 5.8
+      column: 5,
+      row: 5,
+      x: 4.2
     });
-    expect(lastSeat.z).toBeCloseTo(1, 6);
-    const congregationSeats = Array.from({ length: 36 }, (_, index) =>
+    expect(lastSeat.z).toBeCloseTo(
+      WAITING_SEAT_FRONT_Z + (WAITING_SEAT_ROWS - 1) * WAITING_SEAT_ROW_SPACING,
+      6
+    );
+
+    const congregationSeats = Array.from({ length: WAITING_SEAT_COUNT }, (_, index) =>
       getQueueActorFormationPosition(index + MAX_QUEUED_WORSHIPPERS)
     );
-    expect(new Set(congregationSeats.map(({ x, z }) => `${x}:${z}`)).size).toBe(36);
-    expect(congregationSeats.map(({ column }) => column)).toContain(0);
-    expect(congregationSeats.map(({ column }) => column)).toContain(3);
-    expect(MAX_VISIBLE_QUEUE_ACTORS).toBe(40);
+    expect(new Set(congregationSeats.map(({ x, z }) => `${x}:${z}`)).size).toBe(WAITING_SEAT_COUNT);
+    // There is no broad central aisle through the seated congregation.
+    const physicalColumns = [...new Set(congregationSeats.map(({ x }) => x))].sort((a, b) => a - b);
+    expect(physicalColumns).toEqual([-4.2, -2.52, -0.84, 0.84, 2.52, 4.2]);
+    expect(Math.max(...physicalColumns.slice(1).map((x, index) => x - physicalColumns[index])))
+      .toBeCloseTo(1.68, 6);
+
+    const allPermanentPlaces = getQueueActorFormationSlots();
+    expect(allPermanentPlaces).toHaveLength(40);
+    expect(allPermanentPlaces.filter(({ role }) => role === 'worship')).toHaveLength(4);
+    expect(allPermanentPlaces.filter(({ role }) => role === 'waiting')).toHaveLength(36);
     expect(getQueueActorFormationPosition(40)).toBeNull();
     expect(getQueueActorFormationPosition(-1)).toBeNull();
   });
@@ -123,10 +147,10 @@ describe('stable horizontal devotee formation', () => {
     expect(waitingEntry).toMatchObject({
       slot: 4,
       role: 'waiting',
-      x: -5.8,
+      x: -0.84,
       y: 0.05
     });
-    expect(waitingEntry.z).toBeCloseTo(12.85, 6);
+    expect(waitingEntry.z).toBeCloseTo(WAITING_SEAT_FRONT_Z + 1.05, 6);
   });
 
   it('locks completed side-lane worship until the original FIFO visit completes', () => {
