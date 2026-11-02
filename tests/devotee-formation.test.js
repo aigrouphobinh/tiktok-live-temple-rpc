@@ -6,6 +6,7 @@ import {
   getHorizontalFormationPosition,
   getCrowdNameTagLayout,
   getQueueActorFormationPosition,
+  createQueueWorshipLedger,
   MAX_CONCURRENT_WORSHIPPERS,
   MAX_QUEUED_WORSHIPPERS,
   MAX_VISIBLE_QUEUE_ACTORS
@@ -106,6 +107,21 @@ describe('stable horizontal devotee formation', () => {
     expect(MAX_VISIBLE_QUEUE_ACTORS).toBe(40);
     expect(getQueueActorFormationPosition(40)).toBeNull();
     expect(getQueueActorFormationPosition(-1)).toBeNull();
+  });
+
+  it('locks completed side-lane worship until the original FIFO visit completes', () => {
+    const ledger = createQueueWorshipLedger();
+    expect(ledger.size).toBe(0);
+    expect(ledger.mark('viewer:alice')).toBe(true);
+    // A replacement event object for the same viewer remains blocked.
+    expect(ledger.has('viewer:alice')).toBe(true);
+    expect(ledger.mark('viewer:alice')).toBe(true);
+    expect(ledger.size).toBe(1);
+    // Only the FIFO completion event releases the next genuine visit.
+    expect(ledger.complete('viewer:alice')).toBe(true);
+    expect(ledger.has('viewer:alice')).toBe(false);
+    expect(ledger.complete('viewer:alice')).toBe(false);
+    expect(ledger.mark('')).toBe(false);
   });
 
   it('returns no slot when the formation is full', () => {
