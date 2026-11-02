@@ -78,7 +78,7 @@ describe('Three.js lifecycle recovery', () => {
   it('renders queued visitors as bounded, reusable 3D actors on a separate side lane', () => {
     expect(source).toContain('const queueActors = new Map();');
     expect(source).toContain('const queueActorPool = [];');
-    expect(source).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 5;');
+    expect(source).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
     expect(source).toContain('function createQueueActor(event, appearance = getDevoteeAppearance(event))');
     expect(source).toContain('function refreshQueueActors(now = performance.now())');
     expect(source).toContain('function releaseQueueActor(event)');
@@ -92,12 +92,12 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('actor.group.position.lerp(actor.target');
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('avatar.prayerPose = true;');
-    expect(source).toContain('const queueKneelTarget = walking ? 0 : 1;');
-    expect(source).toContain('const queueRitualPose = getRitualPoseState({');
-    expect(source).toContain('bowCycles: 2,');
+    expect(source).toContain('Keep the waiting line upright like the 2D procession');
+    expect(source).toContain('avatar.bowAmount = 0;');
+    expect(source).toContain('avatar.kneeling = false;');
     expect(source).toContain('applyHumanBow(avatar, avatar.bowAmount, avatar.kneelBlend);');
     expect(source).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
-    expect(source).toContain('actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);');
+    expect(source).toContain('actor.group.position.set(-3.62, 0.05, 15.3 + index * 1.38);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);');
