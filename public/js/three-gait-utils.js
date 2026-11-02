@@ -109,13 +109,18 @@ export function getHumanUpperPose({ kneelBlend = 0, bowAmount = 0, prayerBlend =
   const bow = clamp01(bowAmount);
   const prayer = clamp01(prayerBlend);
   return {
-    torsoLean: -(kneel * 0.2 + bow * 0.72),
-    headCounter: kneel * 0.06 + bow * 0.16,
-    armReach: -(kneel * 0.7 + bow * 0.12),
-    // Keep the forearms gathered at the chest throughout kneeling and bowing.
-    armOpen: prayer * 0.54 + bow * 0.035,
-    handRoll: prayer * 0.04,
-    wristPitch: prayer * 0.08
+    // Positive local-X pitches the chest and forehead toward the altar (+Z
+    // in the avatar's local frame). A full bow is nearly horizontal.
+    torsoLean: kneel * 0.16 + bow * 1.22,
+    headCounter: kneel * 0.04 + bow * 0.22,
+    // The sleeves extend forward from the shoulder pivots; lower the forearms
+    // from the prayer position until the palms approach the floor on deep bows.
+    armReach: -(kneel * 0.62 + bow * 1.02),
+    // Hands stay joined while kneeling, then separate slightly to brace the
+    // prostration, matching the forehead -> palms -> rise sequence in 2D.
+    armOpen: prayer * 0.50 * (1 - bow * 0.90) + bow * 0.08,
+    handRoll: prayer * 0.04 * (1 - bow * 0.85),
+    wristPitch: prayer * 0.08 + bow * 0.18
   };
 }
 
