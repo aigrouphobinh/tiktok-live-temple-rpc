@@ -639,8 +639,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('geometry.computeVertexNormals();');
     expect(scene).toContain('new THREE.InstancedMesh(lotusPetalGeometry, mats.redBright, redCount)');
     expect(scene).toContain('new THREE.InstancedMesh(lotusPetalGeometry, mats.goldBright, goldCount)');
-    expect(scene).toContain('createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1)');
-    expect(scene).toContain('createLotusPetalRing(12, 1.12, 0.1, 0.78, 0.06)');
+    expect(scene).toContain('createLotusPetalRing(20, 1.62, 0.02, 1.22, 0.1)');
+    expect(scene).toContain('createLotusPetalRing(16, 1.22, 0.1, 0.96, 0.06)');
+    expect(scene).not.toContain('createLotusPetalRing(16, 1.46, 0.02, 1.0, 0.1)');
     expect(scene).toContain('petals.instanceMatrix.setUsage(THREE.StaticDrawUsage)');
   });
 
