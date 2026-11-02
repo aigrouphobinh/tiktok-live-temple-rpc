@@ -11,6 +11,18 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('releaseWorldResources();');
   });
 
+  it('routes Rocket and Donut into 3D target removal and waits for the gift handoff', () => {
+    expect(source).toContain("import { resolveGiftAction } from './gift-action-rules.js';");
+    expect(source).toContain('function ejectActiveDevotee(action');
+    expect(source).toContain("setDevoteePhase('rocketEject', now, devoteeState.ejectionMotionDuration)");
+    expect(source).toContain("setDevoteePhase('donutChase', now, devoteeState.ejectionMotionDuration)");
+    expect(source).toContain("!['rocket', 'donut'].includes(targetedGiftAction)");
+    expect(source).toContain('giftImpactPosition = impact;');
+    expect(source).toContain('devoteeState.awaitingGiftHandoff = true;');
+    expect(source).toContain("window.addEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);");
+    expect(source).toContain('finishGiftEjectionHandoff();');
+  });
+
   it('removes both gift event listeners when the scene is disposed', () => {
     const cleanupStart = source.indexOf('function releaseWorldResources()');
     const cleanupEnd = source.indexOf('function onVisibilityChange()', cleanupStart);
@@ -20,6 +32,8 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain("window.addEventListener('temple:gift-reaction', onTempleGiftReaction);");
     expect(cleanup).toContain("window.removeEventListener('temple:gift-action', onTempleGiftAction);");
     expect(cleanup).toContain("window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);");
+    expect(cleanup).toContain("window.removeEventListener('temple:character-start', onTempleCharacterStartForThreeD);");
+    expect(cleanup).toContain("window.removeEventListener('temple:gift-effects-complete', onTempleGiftEffectsComplete);");
   });
 
   it('stops the animation loop and releases scene resources after WebGL context loss', () => {
