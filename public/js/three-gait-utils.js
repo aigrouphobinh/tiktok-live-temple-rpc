@@ -207,6 +207,12 @@ export function getRitualPoseState({
  * Low-amplitude whole-body counter-motion for a natural walking cycle.
  * Values are normalized from gait phase and scaled by blend (0..1).
  */
+export function getScheduledGiftReactionBlend(now, startedAt, until, durationMs = 1800) {
+  if (![now, startedAt, until, durationMs].every(Number.isFinite)
+    || durationMs <= 0 || until <= startedAt || now < startedAt) return 0;
+  return getGiftReactionBlend(until - now, Math.min(durationMs, until - startedAt));
+}
+
 export function getWalkBodyPose(phase, blend = 1) {
   const amount = Number.isFinite(blend) ? Math.min(1, Math.max(0, blend)) : 0;
   const safePhase = Number.isFinite(phase) ? phase : 0;
