@@ -18,11 +18,14 @@ The runtime checks this file first when the Buddha preview is enabled. If it is
 missing or invalid, it falls back to the bundled models below and finally keeps
 the procedural custom statue. The filename is case-sensitive.
 
-After adding the file, commit and deploy the repository, then open:
+After adding the file, commit and deploy the repository, then open the 3D scene:
 
 ```text
-?3d=1&buddha=1
+?3d=1
 ```
+
+The selected bundled Buddha GLB is loaded by default in 3D mode. Use
+`?3d=1&buddha=0` only to force the procedural statue for troubleshooting.
 
 The file must be a self-contained binary glTF (GLB), with textures embedded.
 If it still does not appear, open DevTools → Network and check whether
