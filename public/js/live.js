@@ -441,7 +441,7 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
       );
     }
 
-    // Wide horizontal TẤM LÒNG THÀNH board: show the three leading supporters.
+    // Upper-right vertical TẤM LÒNG THÀNH rail: keep the three leading supporters aligned.
     const lbList = document.getElementById('leaderboardList');
     if (lbList) {
       lbList.innerHTML = lb
