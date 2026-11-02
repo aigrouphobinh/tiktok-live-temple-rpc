@@ -69,6 +69,7 @@ try {
 
   for (const scenario of scenarios) {
     const errors = [];
+    const modelWarnings = [];
     const failedRequests = [];
     const httpErrors = [];
     let page;
@@ -93,6 +94,8 @@ try {
       webgl: null,
       rendererStats: null,
       consoleErrors: errors,
+      modelWarnings,
+      buddhaModelDiagnostic: null,
       failedRequests,
       httpErrors,
       checks: {}
@@ -116,6 +119,9 @@ try {
       });
 
       page.on('console', async (message) => {
+        if (message.type() === 'warning' && message.text().includes('[Temple3D] Buddha')) {
+          modelWarnings.push(message.text());
+        }
         if (message.type() === 'error') {
           const text = message.text();
           // Missing optional browser icons are reported as generic 404 console
@@ -269,6 +275,7 @@ try {
         return {
           readyFlag: window.__TEMPLE_3D_READY__ === true,
           buddhaModelSource: window.__TEMPLE_BUDDHA_MODEL_SOURCE__ ?? null,
+          buddhaModelDiagnostic: window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ ?? null,
           userAgent: navigator.userAgent,
           devicePixelRatio: window.devicePixelRatio,
           browserHints: {
@@ -301,6 +308,8 @@ try {
       });
 
       profileReport.buddhaModelSource = scene.buddhaModelSource;
+      profileReport.buddhaModelDiagnostic = scene.buddhaModelDiagnostic;
+      profileReport.modelWarnings = modelWarnings;
       profileReport.httpErrors = httpErrors;
       profileReport.browserHints = scene.browserHints;
       profileReport.userAgent = scene.userAgent;
@@ -343,13 +352,14 @@ try {
           && idleStats.drawCalls <= 1200
           && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
-        buddhaStatueSourceResolved: [
-          'custom-procedural',
-          'procedural',
-          'user-custom',
+        buddhaStatueSourceLoaded: [
           'kenny-hsieh',
           'mia-cc0-gilt-bronze'
         ].includes(scene.buddhaModelSource),
+        buddhaModelDiagnosticCompleted: scene.buddhaModelDiagnostic?.state === 'loaded'
+          && scene.buddhaModelDiagnostic?.source === scene.buddhaModelSource
+          && Array.isArray(scene.buddhaModelDiagnostic?.attempts)
+          && scene.buddhaModelDiagnostic.attempts.some((attempt) => attempt.ok),
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
@@ -363,9 +373,8 @@ try {
               '/favicon.ico',
               '/favicon.png',
               '/apple-touch-icon.png',
-              // The selected Kenny Hsieh GLB is user-supplied; its absence is
-              // expected until the official download is added to this path.
-              '/assets/models/buddha-selected.glb'
+              // Browser shell icons are optional; Buddha GLBs are required for
+              // this audit and must never be silently treated as missing.
             ].includes(pathname);
         })
       };
