@@ -39,8 +39,8 @@ describe('3D temple camera shot sequence', () => {
     expect(update).toContain('person.z + (side === 0 ? 10.2 : 9.4)');
     expect(update).toContain('cameraTargetLookAt.set(person.x + side * 0.08, 1.5, person.z - 0.35);');
     expect(update).toContain("activeCameraShot = 'altar-close';");
-    expect(update).toContain('cameraTargetFov = cameraAltarCloseFov;');
-    expect(scene).toContain('const cameraAltarCloseFov = 31;');
+    expect(update).toContain('cameraTargetFov = side === 0 ? 38 : 36;');
+    expect(scene).toContain('const cameraRitualFov = 38.5;');
   });
 
   it('eases the camera position, focal length and look target instead of cutting', () => {
