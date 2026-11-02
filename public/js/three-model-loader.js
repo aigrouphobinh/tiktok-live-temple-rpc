@@ -32,6 +32,7 @@ export async function loadGLTFAsset(url, {
   let sourceBounds;
   let sourceSize;
   let scale;
+  let triangleCount = 0;
   try {
     root.updateMatrixWorld(true);
     sourceBounds = new THREE.Box3().setFromObject(root);
@@ -54,7 +55,6 @@ export async function loadGLTFAsset(url, {
     );
     root.updateMatrixWorld(true);
 
-    let triangleCount = 0;
     root.traverse((node) => {
       if (!node.isMesh) return;
       const position = node.geometry?.getAttribute?.('position');
