@@ -2235,7 +2235,7 @@ async function boot() {
         new THREE.Vector3(0, 0.05, -3.55)
       ], false, 'centripetal');
     } else {
-      setDevoteePhase('enter', now, 1500);
+      setDevoteePhase('enter', now, 3600);
     }
   }
   function enqueueDevotee(event) {
