@@ -33,8 +33,8 @@ describe('Vietnamese Ao Dai devotee appearance selection', () => {
     expect(source).toContain('const leftLeg = new THREE.Group()');
     // Every geometry helper call must receive the active Three.js namespace;
     // omitting it turns the geometry cache's WeakMap key into a number.
-    expect(source.match(/cylinderGeometry\\((?!THREE\\b)/g) || []).toHaveLength(0);
-    expect(source.match(/sphereGeometry\\((?!THREE\\b)/g) || []).toHaveLength(0);
+    expect(source.match(/cylinderGeometry\((?!THREE\b)/g) || []).toHaveLength(0);
+    expect(source.match(/sphereGeometry\((?!THREE\b)/g) || []).toHaveLength(0);
     expect(source).toContain("normalizedGender === 'female'");
     expect(source).toContain("normalizedGender === 'male'");
   });
