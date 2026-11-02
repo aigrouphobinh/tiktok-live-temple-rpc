@@ -1074,18 +1074,20 @@ describe('ritual prayer hand alignment', () => {
 });
 
 
-describe('3D devotee procession queue', () => {
-  it('renders one continuous FIFO line instead of five-person waves', () => {
+describe('3D multi-devotee incense offering', () => {
+  it('moves all visible devotees into horizontal altar rows instead of a single-file waiting lane', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
     expect(scene).toContain('devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS)');
-    expect(scene).toContain('actor.group.position.set(-3.62, 0.05, 15.3 + index * 1.38)');
+    expect(scene).toContain('const altarColumns = 8;');
+    expect(scene).toContain('const altarX = (column - (altarColumns - 1) / 2) * 1.12;');
+    expect(scene).toContain('const altarZ = -1.55 + row * 1.28;');
   });
 
-  it('keeps waiting visitors standing until they advance to the altar', () => {
+  it('kneels and performs three bows after each visitor reaches an offering position', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('Keep the waiting line upright like the 2D procession');
-    expect(scene).toContain('avatar.kneeling = false;');
-    expect(scene).toContain('avatar.bowAmount = 0;');
+    expect(scene).toContain('const offeringPose = getRitualPoseState({');
+    expect(scene).toContain('bowCycles: 3,');
+    expect(scene).toContain('applyHumanBow(actor.avatar, moving ? 0 : offeringPose.bowAmount, actor.avatar.kneelBlend);');
   });
 });
