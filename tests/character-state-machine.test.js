@@ -26,11 +26,11 @@ describe('CharacterStateMachine', () => {
     expect(machine.snapshot().state).toBe('BOWING');
   });
 
-  it('interrupts the active devotee and puts that same devotee at the front of the queue', () => {
+  it('preserves the active devotee at the front of the queue for a Dragon reaction', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
     machine.request(devotee('B'));
-    const result = machine.interrupt('rocket', { giftName: 'Rocket' });
+    const result = machine.interrupt('dragon', { giftName: 'Dragon' });
     expect(result.interrupted).toBe(true);
     expect(machine.snapshot()).toMatchObject({
       state: 'INTERRUPTED',
@@ -40,6 +40,40 @@ describe('CharacterStateMachine', () => {
     });
     machine.finishEffect();
     expect(machine.finishCooldown().event.user).toBe('A');
+  });
+
+  it.each(['rocket', 'donut'])('ejects the active devotee from the queue for %s', (action) => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.request(devotee('B'));
+    expect(machine.interrupt(action, { giftName: action }).interrupted).toBe(true);
+    expect(machine.snapshot()).toMatchObject({ active: null, queueLength: 1, effect: action });
+    machine.finishEffect();
+    expect(machine.finishCooldown().event.user).toBe('B');
+  });
+
+  it('ejects a previously retained devotee when Rocket supersedes a soft gift', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.request(devotee('B'));
+    machine.interrupt('rose', { giftName: 'Rose' });
+    expect(machine.snapshot().queueLength).toBe(2);
+    expect(machine.interrupt('rocket', { giftName: 'Rocket' }).superseded).toBe(true);
+    expect(machine.snapshot().queueLength).toBe(1);
+    machine.finishEffect();
+    expect(machine.finishCooldown().event.user).toBe('B');
+  });
+
+  it('ejects a retained devotee when a queued Donut effect becomes active', () => {
+    const machine = new CharacterStateMachine();
+    machine.request(devotee('A'));
+    machine.request(devotee('B'));
+    machine.interrupt('dragon', { giftName: 'Dragon' });
+    expect(machine.interrupt('donut', { giftName: 'Donut' }).queuedEffect).toBe(true);
+    expect(machine.finishEffect().nextEffect.action).toBe('donut');
+    expect(machine.snapshot().queueLength).toBe(1);
+    machine.finishEffect();
+    expect(machine.finishCooldown().event.user).toBe('B');
   });
 
   it('starts a world gift effect when the altar is idle and no devotee is active', () => {
@@ -65,7 +99,7 @@ describe('CharacterStateMachine', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
     machine.request(devotee('B'));
-    machine.interrupt('rocket', { giftName: 'Rocket' });
+    machine.interrupt('rose', { giftName: 'Rose' });
     expect(machine.finishEffect()).toMatchObject({ cooldown: true });
     expect(machine.snapshot().state).toBe('COOLDOWN');
 
@@ -114,7 +148,7 @@ describe('CharacterStateMachine', () => {
     expect(result.queuedEffect).toBe(true);
     expect(machine.finishEffect().nextEffect.action).toBe('donut');
     expect(machine.finishEffect().cooldown).toBe(true);
-    expect(machine.finishCooldown().event.user).toBe('A');
+    expect(machine.finishCooldown()).toMatchObject({ started: false });
   });
 
   it('rejects new devotees when the bounded queue is full', () => {
@@ -125,7 +159,7 @@ describe('CharacterStateMachine', () => {
     expect(machine.snapshot().queueLength).toBe(1);
   });
 
-  it('recovers the interrupted devotee after a chain of effect supersessions', () => {
+  it('does not revive a devotee ejected by Donut after a chain of effect supersessions', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
     machine.request(devotee('B'));
@@ -136,11 +170,11 @@ describe('CharacterStateMachine', () => {
       state: 'INTERRUPTED',
       active: null,
       effect: 'rocket',
-      queueLength: 2
+      queueLength: 1
     });
     machine.finishEffect();
-    expect(machine.finishCooldown().event.user).toBe('A');
-    expect(machine.snapshot().active.user).toBe('A');
+    expect(machine.finishCooldown().event.user).toBe('B');
+    expect(machine.snapshot().active.user).toBe('B');
   });
 
   it('bounds the queued gift effects and reports overflow without losing the active effect', () => {
@@ -185,12 +219,12 @@ describe('CharacterStateMachine', () => {
     machine.request(devotee('A'));
     machine.request(devotee('B'));
     machine.request(devotee('C'));
-    machine.interrupt('rocket', { giftName: 'Rocket' });
+    machine.interrupt('dragon', { giftName: 'Dragon' });
 
     expect(machine.snapshot()).toMatchObject({
       active: null,
       queueLength: 2,
-      effect: 'rocket'
+      effect: 'dragon'
     });
     machine.finishEffect();
     expect(machine.finishCooldown().event.user).toBe('A');
