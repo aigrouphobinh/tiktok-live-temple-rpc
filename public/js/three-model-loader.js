@@ -311,14 +311,15 @@ export async function loadGLTFAsset(url, {
 
     scale = targetHeight / sourceSize.y;
     root.scale.setScalar(scale);
+    root.rotation.y = 0.2;
     root.updateMatrixWorld(true);
 
     const normalizedBounds = new THREE.Box3().setFromObject(root);
     const center = normalizedBounds.getCenter(new THREE.Vector3());
     root.position.set(
       centerXZ ? -center.x : 0,
-      -normalizedBounds.min.y,
-      centerXZ ? -center.z : 0
+      -normalizedBounds.min.y - 1,
+      centerXZ ? -center.z - 0.5 : 0,
     );
     root.updateMatrixWorld(true);
 
