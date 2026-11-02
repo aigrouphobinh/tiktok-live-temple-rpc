@@ -2213,7 +2213,7 @@ async function boot() {
     world.add(group);
     return {
       group, avatar, nameTag, event, appearance,
-      target: new THREE.Vector3(-5.0, 0.05, 8.0),
+      target: new THREE.Vector3(-3.48, 0.05, 8.35),
       moveTarget: null,
       moveCurve: null,
       moveStartedAt: 0,
@@ -2271,7 +2271,7 @@ async function boot() {
         actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
-        actor.group.position.set(-5.0 - index * 0.08, 0.05, 15.3 + index * 0.35);
+        actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
         actor.moveCurve = null;
@@ -2282,7 +2282,7 @@ async function boot() {
       }
       setQueueActorTarget(
         actor,
-        new THREE.Vector3(-5.0, 0.05, 8.0 + index * 1.45),
+        new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38),
         index,
         now
       );
@@ -2851,6 +2851,45 @@ async function boot() {
     }
   }
 
+  function giftExplosionBurst(position, vfx, color = 0xffa52e) {
+    const center = position.clone();
+    const flashMaterial = new THREE.MeshBasicMaterial({
+      color: 0xfff1bd, transparent: true, opacity: 0.96,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const flash = new THREE.Mesh(new THREE.SphereGeometry(0.46, 18, 14), flashMaterial);
+    flash.position.copy(center);
+    addEffect(flash, (obj, dt, p) => {
+      obj.scale.setScalar(1 + p * (5.4 + vfx.scale * 1.8));
+      obj.material.opacity = 0.96 * (1 - p) * (1 - p);
+    }, 620);
+
+    const smokeCount = Math.min(14, 5 + vfx.shockwaves);
+    for (let i = 0; i < smokeCount; i++) {
+      const material = new THREE.MeshBasicMaterial({
+        color: i % 2 ? 0x6e5140 : 0x9a7657,
+        transparent: true, opacity: 0.34, depthWrite: false
+      });
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(0.22 + Math.random() * 0.16, 9, 7), material);
+      puff.position.copy(center);
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 2.8,
+        0.8 + Math.random() * 2.5,
+        (Math.random() - 0.5) * 2.8
+      );
+      addEffect(puff, (obj, dt, p) => {
+        obj.position.addScaledVector(velocity, dt * 0.001);
+        obj.scale.setScalar(1 + p * 2.6);
+        obj.material.opacity = 0.34 * (1 - p);
+      }, 1450);
+    }
+    for (let wave = 0; wave < vfx.shockwaves; wave++) {
+      makeRing(center.x, center.y + wave * 0.07, center.z, wave % 2 ? 0xffe18a : color);
+    }
+    giftSparkBurst(center.x, center.y + 0.12, center.z,
+      Math.min(88, Math.max(22, vfx.particles + 16)), color);
+  }
+
   // Set only while a targeted gift effect is built; null means the altar is empty.
   let giftImpactPosition = null;
 
@@ -2882,10 +2921,7 @@ async function boot() {
         if (p >= 0.98 && !obj.userData.detonated) {
           obj.userData.detonated = true;
           world.remove(obj);
-          for (let wave = 0; wave < vfx.shockwaves; wave++) {
-            makeRing(impact.x, impact.y + wave * 0.09, impact.z, wave % 2 ? 0xffe18a : 0xffa52e);
-          }
-          giftSparkBurst(impact.x, impact.y + 0.12, impact.z, Math.min(60, Math.max(14, vfx.particles + 8)), 0xffa52e);
+          giftExplosionBurst(impact, vfx, 0xffa52e);
         }
       }, Math.round(1250 * durationScale));
       return;
