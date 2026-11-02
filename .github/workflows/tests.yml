@@ -27,7 +27,7 @@ jobs:
         run: node scripts/smoke-server.mjs
       - name: Check browser entrypoints and JavaScript syntax
         run: >-
-          grep -Fq '<script type="module" src="/js/live.js"></script>' public/index.html &&
+          grep -Fq 'src="/js/live.js?v=' public/index.html &&
           grep -Fq '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />' public/index.html &&
           test -f public/favicon.svg &&
           ! grep -R -Fq '/assets/bg_chant.m4a' public/js &&
@@ -131,7 +131,7 @@ jobs:
           grep -Fq 'avatar.giftReactionUntil = avatar.giftReactionStartedAt + resolved.durationMs' public/js/temple-3d.js &&
           grep -Fq 'congregationGiftGlow * 4.5' public/js/temple-3d.js &&
           grep -Fq 'function applyGiftThankYouGesture(avatar, time)' public/js/temple-3d.js && grep -Fq 'avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift' public/js/temple-3d.js && grep -Fq 'avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift' public/js/temple-3d.js &&
-          grep -Fq 'if (avatar.gltfActions?.bow) return;' public/js/temple-3d.js &&
+          grep -Fq 'if (!avatar.gltfActions?.bow) {' public/js/temple-3d.js &&
           grep -Fq "three/addons/utils/SkeletonUtils.js" public/js/temple-3d.js &&
           grep -Fq 'upperBody.position.y = 0.48;' public/js/ao-dai-avatar.js &&
           grep -Fq 'avatar.upperBody.rotation.x = upperPose.torsoLean' public/js/temple-3d.js &&
