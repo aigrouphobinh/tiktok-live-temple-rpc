@@ -465,7 +465,39 @@ function loadState() {
   return JSON.parse(JSON.stringify(DEFAULT_STATE));
 }
 
+function archivePreviousSession() {
+  if (!fs.existsSync(STATE_FILE)) return null;
+  const archiveDir = path.join(DATA_DIR, 'session-archive');
+  fs.mkdirSync(archiveDir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const archiveFile = path.join(archiveDir, `merit-state-${stamp}.json`);
+  try {
+    fs.copyFileSync(STATE_FILE, archiveFile, fs.constants.COPYFILE_EXCL);
+    console.log(`[State] Đã bảo lưu dữ liệu phiên trước: ${archiveFile}`);
+    return archiveFile;
+  } catch (error) {
+    console.error('[State] Không thể bảo lưu dữ liệu phiên trước; giữ nguyên file gốc:', error.message);
+    throw error;
+  }
+}
+
+function resetSessionCounters() {
+  state.totalIncense = 0;
+  state.totalMerit = 0;
+  state.woodenFishHits = 0;
+  state.bellRings = 0;
+  state.lanternCount = 0;
+  state.fortuneCount = 0;
+  state.activeIncenseSticks = 0;
+  state.offerings = { lotus: 0, fruit: 0, lamp: 0, dragon: 0 };
+  state.devotees = {};
+  state.recentEvents = [];
+}
+
 let state = loadState();
+// Preserve the last saved session before starting a clean LIVE counting session.
+archivePreviousSession();
+resetSessionCounters();
 
 let saveTimer = null;
 function saveState() {
@@ -488,6 +520,9 @@ function saveState() {
     });
   }, 1200);
 }
+
+// Persist the clean session immediately so the next process never reloads old counters.
+saveState();
 
 function getLeaderboard(limit = 6) {
   return Object.values(state.devotees)
