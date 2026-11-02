@@ -4,7 +4,7 @@ import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
-import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
+import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2653,6 +2653,7 @@ async function boot() {
   }
   // The 2D state machine owns ordering; this scene only renders that same FIFO.
   const renderedDevoteeEvents = new WeakSet();
+  const completedQueueWorship = createQueueWorshipLedger();
   const queueActors = new Map();
   const queueActorPool = [];
   const departingDevotees = [];
