@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
 const avatarSource = readFileSync(new URL('../public/js/ao-dai-avatar.js', import.meta.url), 'utf8');
+const formationSource = readFileSync(new URL('../public/js/devotee-formation.js', import.meta.url), 'utf8');
 const modelLoaderSource = readFileSync(new URL('../public/js/three-model-loader.js', import.meta.url), 'utf8');
 
 describe('Three.js lifecycle recovery', () => {
@@ -188,6 +189,14 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('departingDevotees.push({');
     expect(source).toContain('if (offeringPose.bowPhase === \'complete\' && offeringPose.kneelBlend >= 0.9)');
     expect(source).toContain('actor.avatar.queueWorshipCompleted = true;');
+    expect(source).toContain('const completedQueueWorship = createQueueWorshipLedger();');
+    expect(source).toContain('completedQueueWorship.mark(getDevoteeIdentityKey(event));');
+    expect(source).toContain('if (completedQueueWorship.has(identity))');
+    expect(source).toContain('completedQueueWorship.complete(getDevoteeIdentityKey(completedEvent));');
+    expect(source).toContain('finishGiftEjectionHandoff(now, null, { startNext: false });');
+    expect(formationSource).toContain('export function createQueueWorshipLedger()');
+    expect(formationSource).toContain('completedIdentities.add(identity)');
+    expect(formationSource).toContain('completedIdentities.delete(identity)');
   });
 
   it('animates the previous visitor walking out while the next visitor enters', () => {
