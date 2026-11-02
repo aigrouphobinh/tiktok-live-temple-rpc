@@ -3975,6 +3975,24 @@ async function boot() {
       tree.rotation.z = Math.sin(elapsed * 0.00032 + tree.userData.phase) * 0.008;
     });
     const abbotBreath = Math.sin(elapsed * 0.00115) * 0.012;
+    const abbotFocusTargets = [];
+    if (devoteeState.active && mainDevotee.visible && mainHuman.kneelBlend > 0.04) {
+      abbotFocusTargets.push({
+        x: mainDevotee.position.x,
+        z: mainDevotee.position.z,
+        weight: Math.max(0.35, mainHuman.kneelBlend) * (0.7 + (mainHuman.bowAmount || 0)),
+        user: devoteeState.event?.user || 'Thí chủ chính'
+      });
+    }
+    for (const actor of queueActors.values()) {
+      if (!actor.avatar.queuedWorshipLane || actor.moveCurve || actor.avatar.kneelBlend < 0.04) continue;
+      abbotFocusTargets.push({
+        x: actor.group.position.x,
+        z: actor.group.position.z,
+        weight: Math.max(0.35, actor.avatar.kneelBlend) * (0.7 + (actor.avatar.bowAmount || 0)),
+        user: actor.event?.user || 'Phật tử'
+      });
+    }
     const congregationBow = Math.max(
       mainHuman.bowAmount || 0,
       ...[...queueActors.values()]
@@ -3983,12 +4001,36 @@ async function boot() {
       0
     );
     const abbotBowAmount = THREE.MathUtils.clamp(congregationBow, 0, 1);
+    const focusWeight = abbotFocusTargets.reduce((sum, target) => sum + target.weight, 0);
+    const abbotFocusX = focusWeight > 0
+      ? abbotFocusTargets.reduce((sum, target) => sum + target.x * target.weight, 0) / focusWeight
+      : 0;
+    const abbotFocusZ = focusWeight > 0
+      ? abbotFocusTargets.reduce((sum, target) => sum + target.z * target.weight, 0) / focusWeight
+      : -1.35;
+    const targetAbbotYaw = Math.atan2(
+      abbotFocusX - templeAbbot.position.x,
+      abbotFocusZ - templeAbbot.position.z
+    );
+    const abbotYawDelta = Math.atan2(
+      Math.sin(targetAbbotYaw - templeAbbot.rotation.y),
+      Math.cos(targetAbbotYaw - templeAbbot.rotation.y)
+    );
+    const abbotTurnBlend = 1 - Math.exp(-Math.min(50, dt) / 520);
+    templeAbbot.rotation.y += abbotYawDelta * abbotTurnBlend;
     templeAbbot.userData.breathingTorso.scale.y = 0.9 + abbotBreath;
     templeAbbot.userData.breathingTorso.rotation.x = 0.025 + abbotBowAmount * 0.16 + abbotBreath;
     templeAbbot.userData.headPivot.rotation.x = 0.015 + abbotBowAmount * 0.22;
     templeAbbot.userData.pose = abbotBowAmount > 0.08 ? 'standing-bow' : 'standing-prayer';
     window.__TEMPLE_ABBOT_DIAGNOSTIC__.pose = templeAbbot.userData.pose;
     window.__TEMPLE_ABBOT_DIAGNOSTIC__.bowAmount = Number(abbotBowAmount.toFixed(3));
+    window.__TEMPLE_ABBOT_DIAGNOSTIC__.focusUser = abbotFocusTargets
+      .sort((a, b) => b.weight - a.weight)[0]?.user || null;
+    window.__TEMPLE_ABBOT_DIAGNOSTIC__.focus = {
+      x: Number(abbotFocusX.toFixed(2)),
+      z: Number(abbotFocusZ.toFixed(2)),
+      yaw: Number(templeAbbot.rotation.y.toFixed(3))
+    };
     let queueFormationChanged = false;
     for (const actor of [...queueActors.values()]) {
       let moving = false;
