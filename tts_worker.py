@@ -24,14 +24,18 @@ os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "3")
 
 import numpy as np
 from zerotts import ZeroTTS, normalize_vi_text
-from zerotts.chunking import normalize_punctuation
+from zerotts.chunking import clean_segment_punctuation, chunk_text, normalize_punctuation
 
-CACHE_DIR = Path(__file__).resolve().parent / "data" / "tts-cache"
+CACHE_DIR = Path(os.environ.get(
+    "ZEROTTS_CACHE_DIR",
+    str(Path(__file__).resolve().parent / "data" / "tts-cache")
+))
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+MAX_TTS_INPUT_CHARS = max(160, min(4000, int(os.environ.get("ZEROTTS_MAX_TEXT_CHARS", "1200"))))
 
 LOCAL_MODEL_CANDIDATES = [
     os.environ.get("ZEROTTS_MODEL_PATH", ""),
-    "/Users/zens/Work/UIT/Projects/f1-metrics-explainer/models/zerotts",
+    str(Path(__file__).resolve().parent / "models" / "zerotts"),
 ]
 
 # Chỉ giữ lại chữ cái tiếng Việt (Latin + dấu tiếng Việt), chữ số và dấu câu cơ bản
@@ -56,7 +60,7 @@ def emit(payload: dict) -> None:
     sys.stdout.flush()
 
 
-def clean_and_normalize_text(raw_text: str) -> str:
+def clean_and_normalize_text(raw_text: str) -> tuple[str, bool]:
     if not raw_text:
         return ""
     # 1. Chuẩn hóa NFKC (biến chữ kiểu toán học 𝒯𝒽𝒾ê𝓃 𝒯â𝓂 -> Thiên Tâm) rồi NFC
@@ -73,11 +77,13 @@ def clean_and_normalize_text(raw_text: str) -> str:
     # Phải có ít nhất 2 chữ cái hợp lệ mới đọc
     letters = re.findall(r"[a-zA-ZÀ-ỹĂăĐđĨĩŨũƠơƯư]", text)
     if len(letters) < 2:
-        return ""
+        return "", False
 
-    # Giới hạn độ dài an toàn cho 1 câu đọc TTS (tối đa 160 ký tự)
-    if len(text) > 160:
-        text = text[:160].rsplit(" ", 1)[0]
+    # Bound abusive input, but do not silently cut normal sentences at 160 chars.
+    # Long text is split into model-sized utterances in synthesize_in_segments().
+    truncated = len(text) > MAX_TTS_INPUT_CHARS
+    if truncated:
+        text = text[:MAX_TTS_INPUT_CHARS].rsplit(" ", 1)[0]
 
     normalized = normalize_vi_text(text)
     normalized = normalize_punctuation(normalized).strip()
@@ -85,7 +91,35 @@ def clean_and_normalize_text(raw_text: str) -> str:
     normalized = MULTI_SPACE_RE.sub(" ", normalized).strip()
     if normalized and normalized[-1] not in ".!?":
         normalized += "."
-    return normalized
+    return normalized, truncated
+
+
+def synthesize_in_segments(tts: ZeroTTS, text: str, voice: str) -> tuple[np.ndarray, int]:
+    """Synthesize long text in model-sized utterances and join with short pauses."""
+    segments = [
+        clean_segment_punctuation(segment).strip()
+        for segment in chunk_text(normalize_punctuation(text), max_chunk_sec=15)
+    ]
+    segments = [segment for segment in segments if segment]
+    if not segments:
+        return np.zeros((1, 0), dtype=np.float32), 0
+
+    audio_parts = []
+    pause = np.zeros(max(1, int(tts.sample_rate * 0.075)), dtype=np.float32)
+    for index, segment in enumerate(segments):
+        segment_audio = tts.synthesize(segment, voice=voice, eoa_extra_frames=2)
+        if segment_audio is None:
+            continue
+        flattened = np.asarray(segment_audio, dtype=np.float32).reshape(-1)
+        if flattened.size == 0:
+            continue
+        audio_parts.append(flattened)
+        if index < len(segments) - 1:
+            audio_parts.append(pause)
+
+    if not audio_parts:
+        return np.zeros((1, 0), dtype=np.float32), len(segments)
+    return np.concatenate(audio_parts).reshape(1, -1), len(segments)
 
 
 def polish_waveform(wav: np.ndarray, sample_rate: int) -> np.ndarray:
@@ -152,12 +186,12 @@ def main() -> None:
             if voice not in voices:
                 voice = "maichi"
 
-            norm_text = clean_and_normalize_text(text)
+            norm_text, truncated = clean_and_normalize_text(text)
             if not norm_text:
                 emit({"type": "result", "id": req_id, "ok": False, "error": "Filtered empty/spam text"})
                 continue
 
-            cache_key = hashlib.sha1(f"v3::{voice}::{norm_text}".encode("utf-8")).hexdigest()[:20]
+            cache_key = hashlib.sha1(f"v4::{voice}::{norm_text}".encode("utf-8")).hexdigest()[:20]
             out_name = f"{voice}_{cache_key}.wav"
             out_path = CACHE_DIR / out_name
 
@@ -175,7 +209,7 @@ def main() -> None:
                 continue
 
             t_synth = time.time()
-            raw_wav = tts.synthesize(norm_text, voice=voice, eoa_extra_frames=2)
+            raw_wav, segment_count = synthesize_in_segments(tts, norm_text, voice)
             if raw_wav is None or raw_wav.size == 0:
                 emit({"type": "result", "id": req_id, "ok": False, "error": "No audio generated"})
                 continue
@@ -195,6 +229,8 @@ def main() -> None:
                 "url": f"/tts-cache/{out_name}",
                 "synthSec": synth_sec,
                 "durationSec": duration_sec,
+                "segmentCount": segment_count,
+                "truncated": truncated,
             })
         except Exception as exc:
             emit({

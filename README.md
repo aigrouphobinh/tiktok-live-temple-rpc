@@ -57,6 +57,15 @@ bun install
 # Tạo môi trường Python .venv và cài đặt ZeroTTS
 uv venv .venv
 uv pip install --python .venv/bin/python zerotts pillow
+
+# (Recommended) Download the ~900 MB model once to a local folder.
+# This avoids repeated Hugging Face downloads and keeps inference local.
+python scripts/prepare-zerotts-model.py
+
+# Windows PowerShell:
+# $env:ZEROTTS_MODEL_PATH = (Join-Path $PWD 'models/zerotts')
+# Linux/macOS:
+# export ZEROTTS_MODEL_PATH="$PWD/models/zerotts"
 ```
 
 ### 3. Khởi chạy Server

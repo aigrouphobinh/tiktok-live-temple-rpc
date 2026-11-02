@@ -613,13 +613,11 @@ class TempleAudioEngine {
       url: options.url || null,
       onStart,
       onEnd,
-      fetchPromise: null
     };
 
-    if (!item.url) {
-      item.fetchPromise = this.fetchZeroTtsAudio(item.text, item.voice);
-    }
-
+    // Synthesize only when this entry reaches playback. The Python worker is
+    // intentionally single-inference, so prefetching the whole browser queue
+    // creates bursts and makes requests expire before they can be spoken.
     this.ttsQueue.push(item);
     this.processTtsQueue();
   }
@@ -648,11 +646,10 @@ class TempleAudioEngine {
 
     try {
       let audioUrl = item.url;
-      if (!audioUrl && item.fetchPromise) {
-        const res = await item.fetchPromise;
-        if (res && res.ok && res.url) {
-          audioUrl = res.url;
-        }
+      if (!audioUrl) {
+        const result = await this.fetchZeroTtsAudio(item.text, item.voice);
+        if (result?.ok && result.url) audioUrl = result.url;
+        else console.warn('[ZeroTTS] Synthesis rejected:', result?.code || 'UNKNOWN', result?.error || 'No audio URL');
       }
 
       if (audioUrl) {

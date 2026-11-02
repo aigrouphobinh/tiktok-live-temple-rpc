@@ -10,6 +10,7 @@ const { normalizeGiftPayload, getGiftComboDelta, clearGiftComboTracker } = requi
 const { classifyTempleComment } = require('./lib/temple-comment-parser.cjs');
 const { normalizeTempleSettings } = require('./lib/temple-settings.cjs');
 const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
+const { BoundedSerialQueue } = require('./lib/bounded-serial-queue.cjs');
 
 const PORT = process.env.PORT || 3000;
 // Bind to loopback by default. Set HOST=0.0.0.0 only for an intentionally
@@ -137,9 +138,20 @@ class ZeroTTSManager {
     this.model = 'zeroweight-ai/ZeroTTS';
     this.pending = new Map();
     this.inflight = new Map();
+    this.requestQueue = new BoundedSerialQueue({
+      maxPending: Number.parseInt(process.env.ZEROTTS_MAX_QUEUE || '24', 10)
+    });
+    this.activeRequestId = null;
     this.reqCounter = 0;
     this.buffer = '';
-    if (process.env.DISABLE_ZEROTTS_WORKER === '1') {
+    this.restartTimer = null;
+    this.restartAttempts = 0;
+    const timeoutValue = Number(process.env.ZEROTTS_REQUEST_TIMEOUT_MS);
+    this.requestTimeoutMs = Number.isFinite(timeoutValue)
+      ? Math.max(15000, Math.min(180000, Math.round(timeoutValue)))
+      : 90000;
+    this.disabled = process.env.DISABLE_ZEROTTS_WORKER === '1';
+    if (this.disabled) {
       this.status = 'disabled';
       return;
     }
@@ -160,17 +172,38 @@ class ZeroTTSManager {
   settlePendingWorkerRequests(error) {
     for (const [, item] of this.pending) {
       clearTimeout(item.timer);
-      item.resolve({ ok: false, error });
+      item.resolve({ ok: false, error, code: 'TTS_WORKER_UNAVAILABLE' });
     }
     this.pending.clear();
-    this.inflight.clear();
+    for (const job of this.requestQueue.clear()) {
+      job.resolve({ ok: false, error, code: 'TTS_WORKER_UNAVAILABLE' });
+    }
+    this.activeRequestId = null;
+  }
+
+  scheduleWorkerRestart() {
+    if (this.disabled || this.restartTimer) return;
+    const delayMs = Math.min(60000, 1000 * (2 ** Math.min(this.restartAttempts, 6)));
+    this.restartAttempts += 1;
+    this.status = 'restarting';
+    console.warn(`[ZeroTTS] Sẽ thử khởi động lại worker sau ${delayMs}ms (lần ${this.restartAttempts}).`);
+    this.restartTimer = setTimeout(() => {
+      this.restartTimer = null;
+      this.startWorker();
+    }, delayMs);
+    this.restartTimer.unref?.();
+    broadcastNotification('tts.status', this.getStatus());
   }
 
   startWorker() {
+    if (this.disabled || this.proc) return;
+    if (this.restartTimer) {
+      clearTimeout(this.restartTimer);
+      this.restartTimer = null;
+    }
     const pyBin = this.resolvePythonBin();
     const scriptPath = path.join(__dirname, 'tts_worker.py');
     console.log(`[ZeroTTS] Khởi chạy worker với ${pyBin} (Giọng mặc định: Mai Chi)...`);
-
     this.status = 'loading';
     const worker = spawn(pyBin, [scriptPath], {
       cwd: __dirname,
@@ -178,7 +211,6 @@ class ZeroTTSManager {
     });
     this.proc = worker;
 
-    // Missing Python or a broken venv must degrade TTS, not crash the RPC server.
     worker.on('error', (error) => {
       if (this.proc !== worker) return;
       console.warn('[ZeroTTS] Không khởi chạy được Python worker:', error.message);
@@ -188,21 +220,21 @@ class ZeroTTSManager {
       this.buffer = '';
       this.settlePendingWorkerRequests(error.message || 'ZeroTTS worker could not start');
       broadcastNotification('tts.status', this.getStatus());
+      this.scheduleWorkerRestart();
     });
 
     worker.stdout.on('data', (chunk) => {
       this.buffer += chunk.toString('utf8');
-      let lines = this.buffer.split('\n');
+      const lines = this.buffer.split('\n');
       this.buffer = lines.pop() || '';
       for (const line of lines) {
-        if (!line.trim()) continue;
-        this.handleWorkerLine(line.trim());
+        if (line.trim()) this.handleWorkerLine(line.trim());
       }
     });
 
     worker.stderr.on('data', (chunk) => {
-      const msg = chunk.toString('utf8').trim();
-      if (msg) console.log(`[ZeroTTS stderr] ${msg}`);
+      const message = chunk.toString('utf8').trim();
+      if (message) console.log(`[ZeroTTS stderr] ${message}`);
     });
 
     worker.on('exit', (code) => {
@@ -212,87 +244,157 @@ class ZeroTTSManager {
       this.ready = false;
       this.status = code === 0 ? 'stopped' : 'error';
       this.buffer = '';
-      this.settlePendingWorkerRequests('ZeroTTS worker exited');
+      this.settlePendingWorkerRequests('ZeroTTS worker exited; pending requests were cleared');
       broadcastNotification('tts.status', this.getStatus());
+      this.scheduleWorkerRestart();
     });
   }
 
   handleWorkerLine(line) {
     try {
-      const msg = JSON.parse(line);
-      if (msg.type === 'status') {
-        this.status = msg.status;
-        this.model = msg.model || this.model;
+      const message = JSON.parse(line);
+      if (message.type === 'status') {
+        this.status = message.status;
+        this.model = message.model || this.model;
         broadcastNotification('tts.status', this.getStatus());
-      } else if (msg.type === 'ready') {
+      } else if (message.type === 'ready') {
         this.ready = true;
         this.status = 'ready';
-        this.voice = msg.voice || 'maichi';
-        this.voices = msg.voices || ['maichi'];
-        this.model = msg.model || this.model;
-        console.log(`[ZeroTTS] Sẵn sàng sau ${msg.loadSec}s! Giọng: ${this.voice} (${this.voices.join(', ')})`);
+        this.voice = message.voice || 'maichi';
+        this.voices = message.voices || ['maichi'];
+        this.model = message.model || this.model;
+        this.restartAttempts = 0;
+        console.log(`[ZeroTTS] Sẵn sàng sau ${message.loadSec}s! Giọng: ${this.voice} (${this.voices.join(', ')})`);
         broadcastNotification('tts.status', this.getStatus());
-      } else if (msg.type === 'result' && msg.id != null) {
-        const entry = this.pending.get(msg.id);
-        if (entry) {
-          clearTimeout(entry.timer);
-          this.pending.delete(msg.id);
-          entry.resolve(msg);
-        }
-      } else if (msg.type === 'error') {
-        console.error('[ZeroTTS Error]', msg.error);
-        if (msg.id != null) {
-          const entry = this.pending.get(msg.id);
-          if (entry) {
-            clearTimeout(entry.timer);
-            this.pending.delete(msg.id);
-            entry.resolve({ ok: false, error: msg.error || 'ZeroTTS synthesis failed' });
-          }
+        this.processNextRequest();
+      } else if (message.type === 'result' && message.id != null) {
+        this.completeWorkerRequest(message.id, message);
+      } else if (message.type === 'error') {
+        console.error('[ZeroTTS Error]', message.error);
+        if (message.id != null) {
+          this.completeWorkerRequest(message.id, {
+            ok: false, error: message.error || 'ZeroTTS synthesis failed', code: 'TTS_SYNTHESIS_ERROR'
+          });
         } else {
           this.status = 'error';
           this.ready = false;
           broadcastNotification('tts.status', this.getStatus());
+          this.proc?.kill();
         }
       }
-    } catch (err) {
-      console.log('[ZeroTTS stdout]', line);
+    } catch (error) {
+      console.warn('[ZeroTTS stdout] Không đọc được worker message:', error.message);
     }
+  }
+
+  completeWorkerRequest(id, result) {
+    const pending = this.pending.get(id);
+    if (pending) {
+      clearTimeout(pending.timer);
+      this.pending.delete(id);
+      pending.resolve(result);
+    }
+    // Keep the single Python inference slot occupied until the worker itself
+    // answers, even if the HTTP caller has already timed out.
+    if (this.activeRequestId === id) {
+      this.activeRequestId = null;
+      this.processNextRequest();
+    }
+    broadcastNotification('tts.status', this.getStatus());
+  }
+
+  failActiveRequest(id, error) {
+    if (this.activeRequestId !== id) return;
+    const pending = this.pending.get(id);
+    if (pending) {
+      clearTimeout(pending.timer);
+      this.pending.delete(id);
+      pending.resolve({
+        ok: false, error: error.message || String(error), code: 'TTS_WORKER_WRITE_ERROR'
+      });
+    }
+    const worker = this.proc;
+    this.ready = false;
+    this.status = 'restarting';
+    this.settlePendingWorkerRequests('ZeroTTS worker pipe failed; queued speech was cleared');
+    if (worker && !worker.killed) worker.kill();
+  }
+
+  processNextRequest() {
+    if (!this.ready || !this.proc || this.activeRequestId != null) return;
+    const job = this.requestQueue.dequeue();
+    if (!job) return;
+    const id = ++this.reqCounter;
+    this.activeRequestId = id;
+    const timer = setTimeout(() => {
+      const pending = this.pending.get(id);
+      if (!pending) return;
+      this.pending.delete(id);
+      pending.resolve({
+        ok: false,
+        error: 'ZeroTTS synthesis timeout; worker will restart before the next request',
+        code: 'TTS_SYNTHESIS_TIMEOUT'
+      });
+      const worker = this.proc;
+      this.ready = false;
+      this.status = 'restarting';
+      this.settlePendingWorkerRequests('ZeroTTS worker timed out; queued speech was cleared');
+      if (worker && !worker.killed) worker.kill();
+    }, this.requestTimeoutMs);
+    this.pending.set(id, { resolve: job.resolve, timer });
+
+    const payload = JSON.stringify({ id, text: job.text, voice: job.voice }) + '\n';
+    try {
+      this.proc.stdin.write(payload, (error) => {
+        if (error) this.failActiveRequest(id, error);
+      });
+    } catch (error) {
+      this.failActiveRequest(id, error);
+    }
+    broadcastNotification('tts.status', this.getStatus());
   }
 
   getStatus() {
     return {
       ready: this.ready,
       status: this.status,
-      engine: 'ZeroTTS (zeroweight-ai/ZeroTTS)',
+      engine: 'ZeroTTS (zeroweight-ai/ZeroTTS, local worker)',
       voice: state.settings.ttsVoice || this.voice || 'maichi',
       voices: this.voices,
-      model: this.model
+      model: this.model,
+      queueDepth: this.requestQueue.size,
+      queueLimit: this.requestQueue.maxPending,
+      activeRequest: this.activeRequestId != null,
+      restartAttempts: this.restartAttempts
     };
   }
 
   synthesize(text, voiceOverride) {
     const cleanText = String(text || '').trim();
-    if (!cleanText) return Promise.resolve({ ok: false, error: 'Empty text' });
-    const voice = (voiceOverride || state.settings.ttsVoice || 'maichi').toLowerCase();
+    if (!cleanText) return Promise.resolve({ ok: false, error: 'Empty text', code: 'TTS_EMPTY_TEXT' });
+    const voice = String(voiceOverride || state.settings.ttsVoice || 'maichi').toLowerCase();
     const dedupKey = `${voice}::${cleanText}`;
-
-    if (this.inflight.has(dedupKey)) {
-      return this.inflight.get(dedupKey);
-    }
+    if (this.inflight.has(dedupKey)) return this.inflight.get(dedupKey);
 
     const promise = new Promise((resolve) => {
       if (!this.proc || !this.ready) {
-        return resolve({ ok: false, error: `ZeroTTS đang ở trạng thái: ${this.status}` });
+        resolve({
+          ok: false, error: `ZeroTTS đang ở trạng thái: ${this.status}`, code: 'TTS_WORKER_NOT_READY'
+        });
+        return;
       }
-      const id = ++this.reqCounter;
-      const timer = setTimeout(() => {
-        this.pending.delete(id);
-        resolve({ ok: false, error: 'ZeroTTS synthesis timeout' });
-      }, 30000);
-
-      this.pending.set(id, { resolve, timer });
-      const payload = JSON.stringify({ id, text: cleanText, voice }) + '\n';
-      this.proc.stdin.write(payload);
+      const accepted = this.requestQueue.enqueue({ text: cleanText, voice, resolve });
+      if (!accepted) {
+        resolve({
+          ok: false,
+          error: 'Hàng đợi ZeroTTS đang đầy. Yêu cầu đọc mới được từ chối để bảo vệ LIVE.',
+          code: 'TTS_QUEUE_FULL',
+          queueLimit: this.requestQueue.maxPending
+        });
+        return;
+      }
+      broadcastNotification('tts.status', this.getStatus());
+      this.processNextRequest();
     }).finally(() => {
       this.inflight.delete(dedupKey);
     });
