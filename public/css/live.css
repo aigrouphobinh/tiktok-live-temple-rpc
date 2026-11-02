@@ -3415,3 +3415,6 @@ body.obs-mode .stage-wrapper {
     font-size: 11px;
   }
 }
+
+/* The old bottom HUD shell is no longer needed in 3D mobile mode. */
+.stage-9x16.temple-3d-mode .bottom-hud-bar { display: none !important; }
