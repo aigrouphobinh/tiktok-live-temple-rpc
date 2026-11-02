@@ -223,7 +223,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(scene).toContain('devoteeState.curve.getPointAt(eased)');
     expect(scene).toContain('leaving.curve.getLength(), 1.2');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
-    expect(scene).toContain("setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);");
+    expect(scene).toContain("setDevoteePhase('ritual', now, 6500);");
     expect(scene).toContain("window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
     expect(scene).toContain('mainHuman.kneelBlend = 0;');
   });
@@ -309,7 +309,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-    expect(html).toContain('/css/live.css?v=3d-ritual-console-20261101-7');
+    expect(html).toContain('/css/live.css?v=double-supporter-avatars-20261102-1');
   });
 
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
@@ -400,7 +400,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('keeps the procedural statue only as a last-resort fallback when bundled GLBs fail', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("get('models') === '1'");
+    expect(scene).toContain("const modelsRequested = modelParams.get('models') === '1';");
     expect(scene).toContain('if (disposed) {');
     expect(scene).toContain('statue.add(asset.root)');
     expect(scene).toContain("diagnostics.state = 'fallback';");
@@ -484,7 +484,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(scene).toContain('const exact = name === aliases[aliasIndex];');
     expect(scene).toContain('const score = (exact ? 20000 : 10000) - aliasIndex * 100 + aliases[aliasIndex].length;');
     expect(scene).toContain("if (score > (boneScores[slot] || 0))");
-    expect(scene).toContain("'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})");
+    expect(scene).toContain("'rig:', Object.fromEntries(Object.entries(allHumanAvatars.find((avatar) => avatar.gltfRoot)?.gltfRig || {})");
   });
 
   it('diagnoses ordered GLB leg chains and measures world-space segment lengths', () => {
@@ -494,14 +494,15 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     expect(scene).toContain('model.updateWorldMatrix(true, true);');
     expect(scene).toContain('upperLength: Number(upperPosition.distanceTo(lowerPosition).toFixed(4))');
     expect(scene).toContain('lowerLength: Number(lowerPosition.distanceTo(footPosition).toFixed(4))');
-    expect(scene).toContain('left: allHumanAvatars[0]?.gltfRig?.leftLegChain');
-    expect(scene).toContain('right: allHumanAvatars[0]?.gltfRig?.rightLegChain');
+    expect(scene).toContain('left: allHumanAvatars.find((avatar) => avatar.gltfRoot)?.gltfRig?.leftLegChain');
+    expect(scene).toContain('right: allHumanAvatars.find((avatar) => avatar.gltfRoot)?.gltfRig?.rightLegChain');
     expect(scene).toContain('do not enable world-space IK until the');
   });
 
   it('reports available GLB animation names, duration, tracks and targets', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("'available clips:', animations.map((clip) => ({");
+    expect(scene).toContain("'available clips:', Object.fromEntries(['male', 'female'].map((gender) => [
+          (devoteeModelAssets[gender].animations || []).map((clip) => ({");
     expect(scene).toContain("name: clip.name || '(unnamed)'");
     expect(scene).toContain('duration: Number.isFinite(clip.duration)');
     expect(scene).toContain('tracks: clip.tracks.length');
@@ -570,7 +571,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('keeps the previous imported girl GLB from overriding the Ao Dai crowd', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("console.info('[Temple3D] Legacy humanoid GLB override is disabled;");
+    expect(scene).toContain("const devoteeModelsRequested = new URLSearchParams(location.search).get('devoteeModels') === '1';");
+    expect(scene).toContain('if (devoteeModelsRequested && devoteeModelAssets) void upgradeDevoteesFromGLB();');
     expect(scene).not.toContain('void upgradeDevoteesFromGLB()');
     expect(scene).toContain('createAoDaiAvatarVariants(THREE, { height, appearance })');
   });
@@ -827,7 +829,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const ritualPose = getRitualPoseState({');
     expect(scene).toContain('elapsedAfterArrival: ritualElapsed,');
-    expect(scene).toContain("remainingMs: devoteeState.phase === 'ritual' ? Number.MAX_SAFE_INTEGER : 0");
+    expect(scene).toContain('remainingMs: devoteeState.phase === \'ritual\'\n          ? Math.max(0, devoteeState.phaseDuration - ritualElapsed)\n          : 0,');
     expect(scene).toContain("bowCycles: 3,");
     expect(scene).toContain("bowCycleMs: 1500,");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
@@ -845,7 +847,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('retains hidden procedural fallbacks without disposing shared cached geometry', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('for (const child of avatar.root.children) child.visible = false;');
+    expect(scene).toContain('for (const variant of Object.values(avatar.variants || {})) {');
+    expect(scene).toContain('if (variant?.group) variant.group.visible = false;');
     expect(scene).toContain('for (const child of statue.children) child.visible = false;');
     expect(scene).not.toContain('disposeThreeObjectTree(child)');
     expect(scene).not.toContain('node.geometry.dispose()');
