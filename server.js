@@ -7,6 +7,7 @@ const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
 const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
+const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -1088,6 +1089,20 @@ function configureAutoSim(enabled) {
 // ============================================================================
 async function handleRpcCall(method, params = {}) {
   switch (method) {
+    case 'temple.testEffect': {
+      const payload = buildEffectTestPayload(params.effect, {
+        withTarget: params.withTarget !== false
+      });
+      broadcastNotification('temple.test-effect', payload);
+      return {
+        ok: true,
+        effect: payload.effect,
+        label: payload.label,
+        withTarget: payload.withTarget,
+        eventCount: payload.events.length,
+        connectedScreens: [...wss.clients].filter((client) => client.readyState === 1).length
+      };
+    }
     case 'temple.getState':
       return getPublicState();
     case 'temple.burnIncense':
