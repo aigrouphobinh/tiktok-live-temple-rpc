@@ -8,7 +8,7 @@ export const DEFAULT_DEVOTEE_PRAYER_MAX_LENGTH = 28;
  */
 export function formatDevoteePrayerLabel(value, maxLength = DEFAULT_DEVOTEE_PRAYER_MAX_LENGTH) {
   const normalized = typeof value === 'string'
-    ? value.normalize('NFC').replace(/\\s+/gu, ' ').trim()
+    ? value.normalize('NFC').replace(/\s+/gu, ' ').trim()
     : '';
   const prayer = normalized || DEFAULT_DEVOTEE_PRAYER_LABEL;
   const limit = Number.isInteger(maxLength) && maxLength >= 4
