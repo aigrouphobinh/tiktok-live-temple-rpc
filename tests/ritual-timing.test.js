@@ -8,10 +8,11 @@ describe('Ritual visit timing', () => {
   it('allows a natural entrance, approach and three bows before releasing the altar', () => {
     expect(scene).toContain("setDevoteePhase('enter', now, 3600);");
     expect(scene).toContain("setDevoteePhase('queue', now, 350);");
-    expect(scene).toContain("setDevoteePhase('approach', now, 4200);");
+    expect(scene).toContain("setDevoteePhase('approach', now, 6500);");
+    expect(scene).toContain('devoteeState.phaseDuration = 6500;');
     expect(scene).toContain('bowCycles: 3,');
     expect(scene).toContain('bowCycleMs: 1050,');
-    expect(engine).toContain("event?.type === 'drawFortune' ? 18000 : 12500");
+    expect(engine).toContain("event?.type === 'drawFortune' ? 18000 : 15000");
   });
 
   it('keeps the first visitor on the same side entrance as the visible queue', () => {
