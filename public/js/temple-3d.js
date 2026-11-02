@@ -2392,7 +2392,7 @@ async function boot() {
   function createDevoteeNameTag() {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
-    canvas.height = 160;
+    canvas.height = 192;
     const context = canvas.getContext('2d');
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -2401,44 +2401,104 @@ async function boot() {
       map: texture, transparent: true, depthTest: false, depthWrite: false
     });
     const sprite = new THREE.Sprite(material);
-    sprite.position.set(0, 2.08, 0);
-    sprite.scale.set(3.45, 0.54, 1);
+    sprite.position.set(0, 2.18, 0);
+    sprite.scale.set(3.45, 0.65, 1);
     sprite.renderOrder = 30;
+    let avatarImage = null;
+    let avatarUrl = '';
+    let profileName = 'Thí Chủ Hữu Duyên';
+    let imageRequest = 0;
 
-    function setName(value) {
-      const name = String(value || 'Thí Chủ Hữu Duyên').trim() || 'Thí Chủ Hữu Duyên';
+    function drawProfile() {
+      const name = profileName;
       context.clearRect(0, 0, canvas.width, canvas.height);
-      const padX = 30, boxY = 18, boxH = 116, radius = 34;
+      const padX = 20, boxY = 15, boxH = 162, radius = 38;
       context.beginPath();
       context.roundRect(padX, boxY, canvas.width - padX * 2, boxH, radius);
-      context.fillStyle = 'rgba(24, 12, 5, 0.88)';
+      context.fillStyle = 'rgba(24, 12, 5, 0.92)';
       context.fill();
       context.lineWidth = 5;
       context.strokeStyle = 'rgba(255, 218, 139, 0.96)';
       context.stroke();
+
+      // TikTok profile photo in a gold circular frame, left of the full username.
+      const cx = 112, cy = 96, radiusAvatar = 60;
+      context.save();
+      context.beginPath();
+      context.arc(cx, cy, radiusAvatar, 0, Math.PI * 2);
+      context.fillStyle = '#8d4b1f';
+      context.fill();
+      context.clip();
+      if (avatarImage) {
+        const size = radiusAvatar * 2;
+        const ratio = Math.max(size / avatarImage.width, size / avatarImage.height);
+        const sw = size / ratio, sh = size / ratio;
+        context.drawImage(avatarImage, (avatarImage.width - sw) / 2, (avatarImage.height - sh) / 2, sw, sh, cx - radiusAvatar, cy - radiusAvatar, size, size);
+      } else {
+        context.fillStyle = '#f5d79b';
+        context.font = '700 68px Arial, sans-serif';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText((name[0] || 'T').toUpperCase(), cx, cy + 2);
+      }
+      context.restore();
+      context.beginPath();
+      context.arc(cx, cy, radiusAvatar + 5, 0, Math.PI * 2);
+      context.lineWidth = 9;
+      context.strokeStyle = '#f5ce78';
+      context.stroke();
+
       let fontSize = 62;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       do {
         context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-        if (context.measureText(name).width <= canvas.width - 120) break;
+        if (context.measureText(name).width <= 770) break;
         fontSize -= 2;
-      } while (fontSize > 28);
+      } while (fontSize > 25);
       context.fillStyle = '#fff0c2';
       context.shadowColor = 'rgba(255, 190, 74, 0.55)';
       context.shadowBlur = 12;
-      context.fillText(name, canvas.width / 2, canvas.height / 2, canvas.width - 120);
+      context.fillText(name, 600, 98, 770);
+      context.shadowBlur = 0;
       texture.needsUpdate = true;
     }
 
-    setName('Thí Chủ Hữu Duyên');
-    sprite.userData.setName = setName;
+    function setProfile(nameValue, urlValue) {
+      profileName = String(nameValue || 'Thí Chủ Hữu Duyên').trim() || 'Thí Chủ Hữu Duyên';
+      const nextUrl = typeof urlValue === 'string' && /^https:\/\//i.test(urlValue) ? urlValue : '';
+      if (nextUrl !== avatarUrl) {
+        avatarUrl = nextUrl;
+        avatarImage = null;
+        const request = ++imageRequest;
+        if (nextUrl) {
+          const image = new Image();
+          image.crossOrigin = 'anonymous';
+          image.onload = () => {
+            if (request !== imageRequest) return;
+            avatarImage = image;
+            drawProfile();
+          };
+          image.onerror = () => {
+            if (request !== imageRequest) return;
+            avatarImage = null;
+            drawProfile();
+          };
+          image.src = nextUrl;
+        }
+      }
+      drawProfile();
+    }
+
+    setProfile('Thí Chủ Hữu Duyên', '');
+    sprite.userData.setName = (name) => setProfile(name, avatarUrl);
+    sprite.userData.setProfile = setProfile;
     return sprite;
   }
   const devoteeNameTag = createDevoteeNameTag();
   mainHuman.root.add(devoteeNameTag);
-  function updateMainDevoteeName(user) {
-    devoteeNameTag.userData.setName(user || 'Thí Chủ Hữu Duyên');
+  function updateMainDevoteeName(user, avatarUrl) {
+    devoteeNameTag.userData.setProfile(user || 'Thí Chủ Hữu Duyên', avatarUrl || '');
   }
   const devoteeQueue = [];
   // Normalize viewer identity so repeated comments/gifts from one TikTok user
@@ -2500,7 +2560,7 @@ async function boot() {
     nameTag.position.set(0, 1.82, 0);
     nameTag.scale.set(1.94, 0.30, 1);
     avatar.root.add(nameTag);
-    nameTag.userData.setName(event.user || 'Thí Chủ');
+    nameTag.userData.setProfile(event.user || 'Thí Chủ', event.avatar || '');
     group.visible = true;
     world.add(group);
     return {
@@ -2714,7 +2774,7 @@ async function boot() {
     const queueStart = queuedActor?.position || null;
     refreshQueueActors();
     devoteeState.active = true;
-    updateMainDevoteeName(devoteeState.event.user);
+    updateMainDevoteeName(devoteeState.event.user, devoteeState.event.avatar);
     mainDevotee.visible = true;
     mainDevotee.position.copy(queueStart || new THREE.Vector3(-4.55, 0.05, 15.3));
     mainDevotee.rotation.set(0, 0, 0);
@@ -2766,7 +2826,7 @@ async function boot() {
       const queuedActor = queueActors.get(existingQueuedEvent);
       if (queuedActor) {
         queuedActor.event = existingQueuedEvent;
-        queuedActor.nameTag.userData.setName(existingQueuedEvent.user || 'Thí Chủ');
+        queuedActor.nameTag.userData.setProfile(existingQueuedEvent.user || 'Thí Chủ', existingQueuedEvent.avatar || '');
       }
       renderedDevoteeEvents.add(event);
       return;
