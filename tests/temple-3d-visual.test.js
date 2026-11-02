@@ -218,6 +218,9 @@ describe('3D sanctuary visual treatment', () => {
   it('frames the processional carpet with low curbs and brass inlay', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('box(0.22, 0.16, 27.2, mats.stone, side * 3.08, 0.025, 3)');
+    expect(scene).toContain('Fine woven edge stitches replace the bright transverse bars that looked');
+    expect(scene).toContain('for (const z of [-7.2, 13.2])');
+    expect(scene).not.toContain('for (let z = -9; z < 16; z += 2.2)');
     expect(scene).toContain('box(0.035, 0.025, 27.0, mats.goldBright, side * 3.19, 0.115, 3)');
     expect(scene).toContain('for (const z of [16.8, 17.45])');
   });
