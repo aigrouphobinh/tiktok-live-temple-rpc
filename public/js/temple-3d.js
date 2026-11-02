@@ -2350,9 +2350,12 @@ async function boot() {
     };
     if (stationKindByAction[event.type]) triggerRitualStation(stationKindByAction[event.type]);
     ritualUntil = performance.now() + 7800;
-    if (event.type === 'burnIncense') {
+    // Mirror the 2D central-worshipper lifecycle for every visitor action that
+    // presents a named devotee, not only incense. The name stays attached to
+    // this active avatar until its ritual completes.
+    const hasNamedDevotee = ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune'].includes(event.type);
+    if (hasNamedDevotee) {
       updateMainDevoteeName(event.user);
-      incenseEffect(); makeRing(0, 1.2, -5.6);
       mainDevotee.visible = true;
       mainDevotee.position.z = 7.5;
       mainDevotee.scale.setScalar(1);
@@ -2365,6 +2368,9 @@ async function boot() {
       devoteeState.active = true;
       devoteeState.startedAt = performance.now();
       devoteeState.arrivedAt = 0;
+    }
+    if (event.type === 'burnIncense') {
+      incenseEffect(); makeRing(0, 1.2, -5.6);
     }
     else if (event.type === 'ringBell') { makeRing(-3.75, 1.85, -1.2, 0xffe18a); }
     else if (event.type === 'strikeWoodenFish') { makeRing(3.75, 0.9, -1.2); }
