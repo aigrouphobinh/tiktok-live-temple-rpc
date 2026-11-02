@@ -318,7 +318,7 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('cache-busts the live stylesheet so the 3D HUD redesign reaches browsers', () => {
     const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-    expect(html).toContain('/css/live.css?v=double-supporter-avatars-20261102-1');
+    expect(html).toContain('/css/live.css?v=ritual-side-gifts-20261102-1');
   });
 
   it('replaces the compact legacy cards with a sculpted 3D broadcast console', () => {
