@@ -444,7 +444,7 @@ describe('getWalkBodyPose', () => {
 
   it('clamps blend and handles invalid phase safely', () => {
     expect(getWalkBodyPose(Number.NaN, 2)).toEqual({
-      bodyBob: 0.03, lateralSway: 0.018, torsoLean: -0, torsoTwist: 0
+      bodyBob: 0.03, lateralSway: 0.018, torsoLean: 0, torsoTwist: 0
     });
     expect(getWalkBodyPose(1, -2)).toEqual({
       bodyBob: 0, lateralSway: 0, torsoLean: -0, torsoTwist: 0
