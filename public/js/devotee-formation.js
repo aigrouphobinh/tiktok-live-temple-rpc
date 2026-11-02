@@ -65,6 +65,7 @@ export function getCrowdNameTagLayout(slot, options = {}) {
 
 export const MAX_CONCURRENT_WORSHIPPERS = 5;
 export const MAX_QUEUED_WORSHIPPERS = MAX_CONCURRENT_WORSHIPPERS - 1;
+export const MAX_VISIBLE_QUEUE_ACTORS = DEFAULT_FORMATION_CAPACITY;
 
 const QUEUED_WORSHIP_POSITIONS = Object.freeze([
   Object.freeze({ x: -3.15, y: 0.05, z: -1.35 }),
@@ -73,18 +74,31 @@ const QUEUED_WORSHIP_POSITIONS = Object.freeze([
   Object.freeze({ x: 3.15, y: 0.05, z: -1.35 })
 ]);
 
+// Four columns flank the processional carpet: two on the left, two on the
+// right. Each row moves toward the altar while keeping the central aisle clear.
+const WAITING_SEAT_X = Object.freeze([-5.2, -4.0, 4.0, 5.2]);
+const WAITING_SEAT_BASE_Z = 13.8;
+const WAITING_SEAT_ROW_SPACING = 1.62;
+
 /**
- * First four queued visitors receive prayer positions beside the main altar
- * worshipper. Later visitors remain in a seated single-file meditation line.
+ * The active visitor and first four queued visitors share five prayer places.
+ * Everyone else sits on a round lotus cushion in a four-column congregation grid.
  */
 export function getQueueActorFormationPosition(slot) {
-  if (!Number.isInteger(slot) || slot < 0) return null;
+  if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_VISIBLE_QUEUE_ACTORS) return null;
   if (slot < MAX_QUEUED_WORSHIPPERS) {
     return { slot, role: 'worship', ...QUEUED_WORSHIP_POSITIONS[slot] };
   }
-  const waiting = getHorizontalFormationPosition(
-    slot - MAX_QUEUED_WORSHIPPERS,
-    { columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 8.2, rowSpacing: 1.28 }
-  );
-  return { ...waiting, slot, role: 'waiting' };
+  const waitingSlot = slot - MAX_QUEUED_WORSHIPPERS;
+  const column = waitingSlot % WAITING_SEAT_X.length;
+  const row = Math.floor(waitingSlot / WAITING_SEAT_X.length);
+  return {
+    slot,
+    role: 'waiting',
+    column,
+    row,
+    x: WAITING_SEAT_X[column],
+    y: 0.05,
+    z: WAITING_SEAT_BASE_Z - row * WAITING_SEAT_ROW_SPACING
+  };
 }
