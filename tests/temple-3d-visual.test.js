@@ -1080,7 +1080,8 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
     expect(scene).toContain('devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS)');
     expect(scene).toContain('const altarColumns = 8;');
-    expect(scene).toContain('const altarX = (column - (altarColumns - 1) / 2) * 1.12;');
+    expect(scene).toContain('const altarSide = Math.ceil((column + 1) / 2);');
+    expect(scene).toContain('const altarX = (column % 2 === 0 ? -1 : 1) * (altarSide - 0.5) * 1.12;');
     expect(scene).toContain('const altarZ = -1.55 + row * 1.28;');
   });
 
