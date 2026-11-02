@@ -4,7 +4,10 @@ import {
   DEFAULT_FORMATION_COLUMNS,
   getAvailableFormationSlot,
   getHorizontalFormationPosition,
-  getCrowdNameTagLayout
+  getCrowdNameTagLayout,
+  getQueueActorFormationPosition,
+  MAX_CONCURRENT_WORSHIPPERS,
+  MAX_QUEUED_WORSHIPPERS
 } from '../public/js/devotee-formation.js';
 
 describe('stable horizontal devotee formation', () => {
@@ -48,6 +51,25 @@ describe('stable horizontal devotee formation', () => {
         expect(horizontalOverlap && verticalOverlap).toBe(false);
       }
     }
+  });
+
+
+  it('supports five simultaneous worshippers while the next visitor meditates', () => {
+    const visibleQueue = Array.from({ length: 5 }, (_, slot) =>
+      getQueueActorFormationPosition(slot)
+    );
+    expect(MAX_CONCURRENT_WORSHIPPERS).toBe(5);
+    expect(MAX_QUEUED_WORSHIPPERS).toBe(4);
+    expect(visibleQueue.slice(0, 4).map((position) => position.role)).toEqual([
+      'worship', 'worship', 'worship', 'worship'
+    ]);
+    expect(visibleQueue[4]).toMatchObject({
+      role: 'waiting',
+      x: 0,
+      y: 0.05,
+      z: 8.2
+    });
+    expect(getQueueActorFormationPosition(-1)).toBeNull();
   });
 
   it('returns no slot when the formation is full', () => {
