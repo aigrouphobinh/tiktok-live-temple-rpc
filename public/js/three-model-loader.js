@@ -131,6 +131,82 @@ function estimateGroundPlane(root, minY, height) {
   };
 }
 
+/**
+ * Estimate residual left/right lean from the model's horizontal silhouette.
+ * Ground-plane fitting alone can miss a tilted upper body when the scan base
+ * is uneven. Symmetric height bands provide a second, independent roll check.
+ */
+function estimateCenterlineRoll(root, minY, height) {
+  if (!Number.isFinite(height) || height <= 1e-5) return null;
+  let totalVertices = 0;
+  root.traverse((node) => {
+    if (node.isMesh && node.geometry?.getAttribute?.('position')) {
+      totalVertices += node.geometry.getAttribute('position').count;
+    }
+  });
+  if (totalVertices < 96) return null;
+
+  const stride = Math.max(1, Math.ceil(totalVertices / 100000));
+  const bands = Array.from({ length: 8 }, () => ({ x: [], y: [] }));
+  const elements = new THREE.Matrix4();
+  root.traverse((node) => {
+    if (!node.isMesh || !node.geometry?.getAttribute?.('position')) return;
+    const position = node.geometry.getAttribute('position');
+    elements.copy(node.matrixWorld);
+    const e = elements.elements;
+    for (let index = 0; index < position.count; index += stride) {
+      const x = position.getX(index);
+      const y = position.getY(index);
+      const z = position.getZ(index);
+      const worldX = e[0] * x + e[4] * y + e[8] * z + e[12];
+      const worldY = e[1] * x + e[5] * y + e[9] * z + e[13];
+      const worldZ = e[2] * x + e[6] * y + e[10] * z + e[14];
+      const t = (worldY - minY) / height;
+      if (t < 0.12 || t > 0.92) continue;
+      const bandIndex = Math.min(7, Math.floor((t - 0.12) / 0.1));
+      // The near/far Z band prevents an unusually deep robe fold from biasing
+      // the horizontal silhouette center at one height.
+      if (!Number.isFinite(worldX + worldZ)) continue;
+      bands[bandIndex].x.push(worldX);
+      bands[bandIndex].y.push(worldY);
+    }
+  });
+
+  const quantile = (values, ratio) => {
+    if (!values.length) return NaN;
+    values.sort((a, b) => a - b);
+    return values[Math.min(values.length - 1, Math.floor((values.length - 1) * ratio))];
+  };
+  const centers = [];
+  for (const band of bands) {
+    if (band.x.length < 8) continue;
+    const left = quantile(band.x, 0.1);
+    const right = quantile(band.x, 0.9);
+    const y = band.y.reduce((sum, value) => sum + value, 0) / band.y.length;
+    centers.push({ x: (left + right) * 0.5, y, count: band.x.length });
+  }
+  if (centers.length < 5) return null;
+
+  const meanY = centers.reduce((sum, point) => sum + point.y, 0) / centers.length;
+  const meanX = centers.reduce((sum, point) => sum + point.x, 0) / centers.length;
+  let covariance = 0;
+  let variance = 0;
+  for (const point of centers) {
+    covariance += (point.y - meanY) * (point.x - meanX);
+    variance += (point.y - meanY) ** 2;
+  }
+  if (variance < 1e-8) return null;
+  const slope = covariance / variance;
+  const angleRadians = Math.atan(slope);
+  const angleDegrees = THREE.MathUtils.radToDeg(angleRadians);
+  return {
+    slope,
+    angleDegrees: Number(angleDegrees.toFixed(3)),
+    bandsUsed: centers.length,
+    centers: centers.map(({ x, y }) => [Number(x.toFixed(4)), Number(y.toFixed(4))])
+  };
+}
+
 export async function loadGLTFAsset(url, {
   targetHeight = 1.7,
   centerXZ = true,
@@ -205,6 +281,33 @@ export async function loadGLTFAsset(url, {
       // corrected bounds so the feet remain on the altar and the height stays fixed.
       sourceBounds = new THREE.Box3().setFromObject(root);
       sourceSize = sourceBounds.getSize(new THREE.Vector3());
+
+      const centerline = estimateCenterlineRoll(root, sourceBounds.min.y, sourceSize.y);
+      if (centerline) {
+        groundAlignment.centerline = centerline;
+        // A small roll correction is safe for a seated statue; beyond 12° the
+        // silhouette is likely asymmetric or the source model needs inspection.
+        if (Math.abs(centerline.angleDegrees) >= 0.35 && Math.abs(centerline.angleDegrees) <= 12) {
+          const correction = new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 0, 1),
+            THREE.MathUtils.degToRad(centerline.angleDegrees)
+          );
+          root.quaternion.premultiply(correction);
+          root.updateMatrixWorld(true);
+          groundAlignment.centerlineRollApplied = centerline.angleDegrees;
+          sourceBounds = new THREE.Box3().setFromObject(root);
+          sourceSize = sourceBounds.getSize(new THREE.Vector3());
+        } else {
+          groundAlignment.centerlineRollApplied = 0;
+          if (Math.abs(centerline.angleDegrees) > 12) {
+            groundAlignment.centerlineStatus = 'review-required';
+          } else {
+            groundAlignment.centerlineStatus = 'already-upright';
+          }
+        }
+      } else {
+        groundAlignment.centerlineStatus = 'not-enough-symmetrical-bands';
+      }
     }
 
     scale = targetHeight / sourceSize.y;
