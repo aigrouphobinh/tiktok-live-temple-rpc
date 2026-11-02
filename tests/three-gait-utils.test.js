@@ -61,7 +61,7 @@ describe('getFootPlantingPose', () => {
 describe('getHumanUpperPose', () => {
   it('keeps the upper body neutral when the avatar is standing', () => {
     expect(getHumanUpperPose()).toEqual({
-      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0, handRoll: 0, wristPitch: 0
+      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
     });
   });
 
@@ -78,7 +78,7 @@ describe('getHumanUpperPose', () => {
       torsoLean: -0.2, headCounter: 0.06, armReach: -0.7, armOpen: 0.54, handRoll: 0.04, wristPitch: 0.08
     });
     expect(getHumanUpperPose({ kneelBlend: NaN, bowAmount: Infinity })).toEqual({
-      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0
+      torsoLean: -0, headCounter: 0, armReach: -0, armOpen: 0, handRoll: 0, wristPitch: 0
     });
   });
 });
