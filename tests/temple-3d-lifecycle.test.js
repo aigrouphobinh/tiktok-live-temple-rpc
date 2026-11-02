@@ -101,7 +101,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('Compact the line after every promotion');
     expect(source).toContain('getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS');
-    expect(source).toContain('getHorizontalFormationPosition(slot, {');
+    expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
     expect(source).toContain('const queueFormation = getQueueActorFormationPosition(slot);');
     expect(source).toContain('const entryPosition = getQueueActorEntryPosition(index);');
     expect(source).toContain('actor.avatar.offeringIncense = false;');
