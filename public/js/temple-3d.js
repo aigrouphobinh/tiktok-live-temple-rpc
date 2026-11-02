@@ -2279,8 +2279,9 @@ async function boot() {
         // Visitors gather in horizontal entry rows before moving toward the altar.
         const entryColumn = index % 8;
         const entryRow = Math.floor(index / 8);
+        const entrySide = Math.ceil((entryColumn + 1) / 2);
         actor.group.position.set(
-          (entryColumn - 3.5) * 1.12,
+          (entryColumn % 2 === 0 ? -1 : 1) * (entrySide - 0.5) * 1.12,
           0.05,
           15.3 + entryRow * 1.28
         );
@@ -2298,7 +2299,8 @@ async function boot() {
       const altarColumns = 8;
       const column = index % altarColumns;
       const row = Math.floor(index / altarColumns);
-      const altarX = (column - (altarColumns - 1) / 2) * 1.12;
+      const altarSide = Math.ceil((column + 1) / 2);
+      const altarX = (column % 2 === 0 ? -1 : 1) * (altarSide - 0.5) * 1.12;
       const altarZ = -1.55 + row * 1.28;
       actor.avatar.queueWaiting = false;
       actor.avatar.offeringIncense = true;
