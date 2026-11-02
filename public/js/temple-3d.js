@@ -2692,6 +2692,10 @@ async function boot() {
   const completedQueueWorship = createQueueWorshipLedger();
   const queueActors = new Map();
   const queueActorPool = [];
+  // Real TikTok room members occupy the 36 waiting seats; the remaining four
+  // positions stay reserved for the active/queued worship lane.
+  const liveViewerRoster = new Map();
+  const liveViewerActors = new Map();
   const departingDevotees = [];
   // The main devotee plus four adjacent queue positions can worship together;
   // the remaining real viewers are rendered in the seated congregation grid.
@@ -2719,6 +2723,8 @@ async function boot() {
       maleRigCount,
       femaleRigCount,
       visibleQueueActors: [...queueActors.values()].filter((actor) => actor.group.visible).length,
+      seatedLiveViewerCount: liveViewerActors.size,
+      pendingLiveViewerCount: Math.max(0, liveViewerRoster.size - liveViewerActors.size),
       backgroundNpcCount: 0,
       legacyGirlGlbEnabled: false
     };
@@ -2841,6 +2847,154 @@ async function boot() {
       moveStartedAt: 0,
       moveDurationMs: 0
     };
+  }
+
+  function getAvailableLiveViewerSeat() {
+    const occupied = [...liveViewerActors.values()].map((actor) => actor.slot - MAX_QUEUED_WORSHIPPERS);
+    const seatIndex = getAvailableFormationSlot(
+      occupied,
+      MAX_VISIBLE_QUEUE_ACTORS - MAX_QUEUED_WORSHIPPERS
+    );
+    return seatIndex < 0 ? -1 : MAX_QUEUED_WORSHIPPERS + seatIndex;
+  }
+
+  function syncLiveViewerSeats(now = performance.now()) {
+    for (const [identity, viewer] of liveViewerRoster) {
+      if (liveViewerActors.has(identity)) continue;
+      const slot = getAvailableLiveViewerSeat();
+      if (slot < 0) break;
+      const formation = getQueueActorFormationPosition(slot);
+      const entry = getQueueActorEntryPosition(slot);
+      if (!formation || !entry || formation.role !== 'waiting') continue;
+      const appearance = getDevoteeAppearance(viewer);
+      let actor = queueActorPool.pop();
+      if (actor) {
+        setHumanAppearance(actor.avatar, appearance);
+        actor.avatar.queueWaiting = true;
+        actor.avatar.queuedWorshipLane = false;
+        actor.avatar.queueWorshipCompleted = false;
+        actor.avatar.prayerPose = true;
+        actor.avatar.kneelBlend = 0;
+        actor.avatar.kneeling = false;
+        actor.avatar.bowAmount = 0;
+        actor.avatar.offeringIncense = false;
+        actor.event = viewer;
+        actor.appearance = appearance;
+        actor.group.visible = true;
+        actor.nameTag.userData.setProfile(viewer.user || 'Thí Chủ', viewer.avatar || '');
+        actor.prayerTag.userData.setWish(viewer.wish || viewer.prayer || viewer.comment || '');
+      } else {
+        actor = createQueueActor(viewer, appearance);
+      }
+      actor.slot = slot;
+      actor.avatar.queueWaiting = true;
+      actor.avatar.queuedWorshipLane = false;
+      actor.avatar.queueWorshipCompleted = false;
+      actor.avatar.prayerPose = true;
+      actor.group.scale.setScalar(0.86);
+      actor.seat.visible = false;
+      actor.sutraBook.visible = true;
+      actor.group.position.set(entry.x, entry.y, entry.z);
+      actor.group.rotation.set(0, 0, 0);
+      actor.moveTarget = null;
+      actor.moveCurve = null;
+      actor.moveStartedAt = 0;
+      actor.moveDurationMs = 0;
+      actor.offeringStartedAt = 0;
+      liveViewerActors.set(identity, actor);
+      setQueueActorTarget(
+        actor,
+        new THREE.Vector3(formation.x, formation.y, formation.z),
+        slot,
+        now
+      );
+    }
+  }
+
+  function onTempleViewerEnter(event) {
+    const viewer = event?.detail;
+    const identity = getDevoteeIdentityKey(viewer);
+    if (!viewer || !identity) return;
+    liveViewerRoster.delete(identity);
+    liveViewerRoster.set(identity, {
+      ...viewer,
+      wish: viewer.wish || 'Vừa vào Chánh Điện, thành tâm hướng Phật'
+    });
+    while (liveViewerRoster.size > 300) {
+      const oldestIdentity = liveViewerRoster.keys().next().value;
+      liveViewerRoster.delete(oldestIdentity);
+      const oldActor = liveViewerActors.get(oldestIdentity);
+      if (oldActor) {
+        liveViewerActors.delete(oldestIdentity);
+        oldActor.group.visible = false;
+        oldActor.event = null;
+        oldActor.moveCurve = null;
+        oldActor.moveTarget = null;
+        queueActorPool.push(oldActor);
+      }
+    }
+    const seated = liveViewerActors.get(identity);
+    if (seated) {
+      seated.event = liveViewerRoster.get(identity);
+      seated.nameTag.userData.setProfile(viewer.user || 'Thí Chủ', viewer.avatar || '');
+      seated.prayerTag.userData.setWish(liveViewerRoster.get(identity).wish);
+    }
+    syncLiveViewerSeats();
+  }
+
+  function releaseLiveViewerActor(event) {
+    const identity = getDevoteeIdentityKey(event);
+    if (!identity) return false;
+    liveViewerRoster.delete(identity);
+    const actor = liveViewerActors.get(identity);
+    if (!actor) {
+      syncLiveViewerSeats();
+      return false;
+    }
+    liveViewerActors.delete(identity);
+    actor.group.visible = false;
+    actor.event = null;
+    actor.moveCurve = null;
+    actor.moveTarget = null;
+    actor.moveStartedAt = 0;
+    actor.moveDurationMs = 0;
+    queueActorPool.push(actor);
+    syncLiveViewerSeats();
+    return true;
+  }
+
+  function updateLiveViewerActors(now) {
+    for (const actor of liveViewerActors.values()) {
+      if (actor.moveCurve) {
+        const progress = Math.min(1, Math.max(
+          0,
+          (now - actor.moveStartedAt) / Math.max(1, actor.moveDurationMs)
+        ));
+        const eased = progress * progress * (3 - 2 * progress);
+        const point = actor.moveCurve.getPointAt(eased);
+        const tangent = actor.moveCurve.getTangentAt(eased);
+        actor.group.position.copy(point);
+        actor.group.rotation.y = Math.atan2(tangent.x, tangent.z) - Math.PI;
+        animateHuman(actor.avatar, now, progress < 1, getDistanceBasedGaitPhase(
+          eased, actor.moveCurve.getLength(), 1.2, actor.avatar.phase
+        ));
+        if (progress >= 1) {
+          actor.group.position.copy(actor.target);
+          actor.group.rotation.set(0, 0, 0);
+          actor.moveCurve = null;
+          actor.moveStartedAt = 0;
+          actor.moveDurationMs = 0;
+          actor.avatar.queueWaiting = true;
+        }
+      } else {
+        actor.avatar.offeringElapsedMs = 0;
+        actor.avatar.bowing = false;
+        actor.avatar.bowAmount = 0;
+        actor.avatar.ritualBowPhase = 'meditating';
+        animateHuman(actor.avatar, now, false);
+        applyHumanBow(actor.avatar, 0, actor.avatar.kneelBlend);
+      }
+    }
   }
 
   function setQueueActorTarget(actor, target, slot, now) {
@@ -3062,6 +3216,8 @@ async function boot() {
       alreadyWorshippedInQueue: Boolean(devoteeState.alreadyWorshippedInQueue),
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
+      seatedLiveViewerCount: liveViewerActors.size,
+      pendingLiveViewerCount: Math.max(0, liveViewerRoster.size - liveViewerActors.size),
       seatedWaitingActors: queue.filter((actor) => actor.queueWaiting).length,
       completedSideWorshipPendingFifo: completedQueueWorship.size,
       visibleSeatingCapacity: MAX_VISIBLE_QUEUE_ACTORS,
@@ -3965,6 +4121,9 @@ async function boot() {
     // this active avatar until its ritual completes.
     const hasNamedDevotee = ['burnIncense', 'sendPrayer', 'offerGift', 'grandCeremony', 'ringBell', 'drawFortune'].includes(event.type);
     const targetedGiftAction = ['offerGift', 'grandCeremony'].includes(event.type) ? resolveGiftAction(event) : null;
+    // Promote the same seated viewer into the ritual FIFO instead of cloning a
+    // second avatar when their first comment/gift arrives.
+    if (hasNamedDevotee) releaseLiveViewerActor(event);
     // Rocket/Donut act on the devotee already at the altar; the gift sender is
     // not incorrectly cloned into a second, ordinary queue visit.
     if (hasNamedDevotee && !targetedGiftAction) enqueueDevotee(event);
@@ -3980,6 +4139,7 @@ async function boot() {
     start();
   }
   function onTempleRitual(event) { handleRitual(event.detail); }
+  window.addEventListener('temple:viewer-enter', onTempleViewerEnter);
   // A gift can arrive while the altar is empty; listen to the effect lifecycle,
   // not the character-interruption signal, so every started gift renders once.
   function applyGiftReactionProfile(profile) {
@@ -4118,6 +4278,7 @@ async function boot() {
       z: Number(abbotFocusZ.toFixed(2)),
       yaw: Number(templeAbbot.rotation.y.toFixed(3))
     };
+    updateLiveViewerActors(now);
     let queueFormationChanged = false;
     for (const actor of [...queueActors.values()]) {
       let moving = false;
@@ -4429,6 +4590,7 @@ async function boot() {
     if (resourcesDisposed) return;
     resourcesDisposed = true;
     window.removeEventListener('temple:ritual', onTempleRitual);
+    window.removeEventListener('temple:viewer-enter', onTempleViewerEnter);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
     window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);
     window.removeEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);
