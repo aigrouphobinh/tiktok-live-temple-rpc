@@ -2722,7 +2722,7 @@ async function boot() {
       const slot = index;
       if (actor.slot !== slot) {
         actor.slot = slot;
-        const nameTagLayout = getCrowdNameTagLayout(slot);
+        const nameTagLayout = getCrowdNameTagLayout(slot, { columns: 1, width: 1.72, height: 0.28, staggerY: 0 });
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
       }
