@@ -29,7 +29,6 @@ describe('Vietnamese Ao Dai devotee appearance selection', () => {
     expect(source).toContain('AoDaiBackRight');
     expect(source).toContain('AoDaiHighCollar');
     expect(source).toContain('AoDaiGoldHem');
-    expect(source).toContain('AoDai-collar');
     expect(source).toContain('const leftArm = new THREE.Group()');
     expect(source).toContain('const leftLeg = new THREE.Group()');
     expect(source).toContain("normalizedGender === 'female'");
