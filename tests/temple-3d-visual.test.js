@@ -1079,10 +1079,17 @@ describe('3D multi-devotee incense offering', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
     expect(scene).toContain('devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS)');
-    expect(scene).toContain('const altarColumns = 8;');
-    expect(scene).toContain('const altarSide = Math.ceil((column + 1) / 2);');
-    expect(scene).toContain('const altarX = (column % 2 === 0 ? -1 : 1) * (altarSide - 0.5) * 1.12;');
-    expect(scene).toContain('const altarZ = -1.55 + row * 1.28;');
+    expect(scene).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition } from './devotee-formation.js';");
+    expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
+    expect(scene).toContain('const altarPosition = getHorizontalFormationPosition(slot, {');
+    expect(scene).toContain('getAvailableQueueActorSlot');
+  });
+
+  it('keeps horizontal crowd slots stable when the featured visitor leaves the row', () => {
+    expect(scene).toContain('function getAvailableQueueActorSlot()');
+    expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
+    expect(scene).toContain('actor.slot = -1;');
+    expect(scene).toContain('Slot ownership is stable: promoting one visitor never makes the');
   });
 
   it('kneels and performs three bows after each visitor reaches an offering position', () => {

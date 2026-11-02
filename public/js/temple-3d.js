@@ -4,6 +4,7 @@ import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
+import { getAvailableFormationSlot, getHorizontalFormationPosition } from './devotee-formation.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2111,12 +2112,6 @@ async function boot() {
     applyHumanBow(avatar, bowPose.bowAmount * (role === 0 ? 0.62 : 1), kneelBlend);
   }
 
-  // A continuous side procession lane keeps every waiting visitor in one
-  // FIFO line; the red processional carpet remains clear.
-  box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);
-  for (const x of [-3.96, -3.0]) {
-    box(0.028, 0.045, 7.05, mats.gold, x, -0.075, 11.4);
-  }
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
   const mainHuman=makeHumanAvatar(1.72);mainDevotee.add(mainHuman.root);
@@ -2182,6 +2177,13 @@ async function boot() {
   // Match the 2D queue capacity: render the full line, not five-person waves.
   const MAX_VISIBLE_QUEUE_ACTORS = 40;
 
+  function getAvailableQueueActorSlot() {
+    return getAvailableFormationSlot(
+      [...queueActors.values()].map((actor) => actor.slot),
+      MAX_VISIBLE_QUEUE_ACTORS
+    );
+  }
+
   // Expose a read-only runtime snapshot for the visual audit and browser
   // troubleshooting. It confirms that both local Ao Dai variants are active
   // and that the former imported Girl GLB is not replacing the crowd.
@@ -2217,7 +2219,7 @@ async function boot() {
     group.visible = true;
     world.add(group);
     return {
-      group, avatar, nameTag, event, appearance,
+      group, avatar, nameTag, event, appearance, slot: -1,
       target: new THREE.Vector3(-3.48, 0.05, 8.35),
       moveTarget: null,
       moveCurve: null,
@@ -2226,7 +2228,7 @@ async function boot() {
     };
   }
 
-  function setQueueActorTarget(actor, target, index, now) {
+  function setQueueActorTarget(actor, target, slot, now) {
     if (actor.moveTarget && actor.moveTarget.distanceToSquared(target) < 0.001) return;
     actor.target.copy(target);
     actor.moveTarget = target.clone();
@@ -2241,7 +2243,7 @@ async function boot() {
       return;
     }
     const middle = start.clone().lerp(target, 0.5);
-    middle.x += (index % 2 === 0 ? 1 : -1) * 0.045;
+    middle.x += (slot % 2 === 0 ? 1 : -1) * 0.045;
     actor.moveCurve = new THREE.CatmullRomCurve3(
       [start, middle, target.clone()],
       false,
@@ -2264,10 +2266,13 @@ async function boot() {
     visibleEvents.forEach((event, index) => {
       let actor = queueActors.get(event);
       if (!actor) {
+        const slot = getAvailableQueueActorSlot();
+        if (slot < 0) return;
         const appearance = getDevoteeAppearance(event);
         actor = queueActorPool.pop();
         if (actor) setHumanAppearance(actor.avatar, appearance);
         else actor = createQueueActor(event, appearance);
+        actor.slot = slot;
         actor.avatar.queueWaiting = true;
         actor.avatar.prayerPose = true;
         actor.avatar.kneelBlend = 0;
@@ -2276,15 +2281,11 @@ async function boot() {
         actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
-        // Visitors gather in horizontal entry rows before moving toward the altar.
-        const entryColumn = index % 8;
-        const entryRow = Math.floor(index / 8);
-        const entrySide = Math.ceil((entryColumn + 1) / 2);
-        actor.group.position.set(
-          (entryColumn % 2 === 0 ? -1 : 1) * (entrySide - 0.5) * 1.12,
-          0.05,
-          15.3 + entryRow * 1.28
-        );
+        // Visitors enter in rows and keep their assigned place as others leave.
+        const entryPosition = getHorizontalFormationPosition(slot, {
+          y: 0.05, baseZ: 15.3, rowSpacing: 1.28
+        });
+        actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
         actor.moveCurve = null;
@@ -2294,20 +2295,18 @@ async function boot() {
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      // Visitors do not wait in a single-file FIFO before the altar.
-      // They walk into shared horizontal worship rows and offer incense together.
-      const altarColumns = 8;
-      const column = index % altarColumns;
-      const row = Math.floor(index / altarColumns);
-      const altarSide = Math.ceil((column + 1) / 2);
-      const altarX = (column % 2 === 0 ? -1 : 1) * (altarSide - 0.5) * 1.12;
-      const altarZ = -1.55 + row * 1.28;
+      // Slot ownership is stable: promoting one visitor never makes the
+      // remaining congregation shuffle into newly numbered places.
+      const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;
+      const altarPosition = getHorizontalFormationPosition(slot, {
+        y: 0.05, baseZ: -1.55, rowSpacing: 1.28
+      });
       actor.avatar.queueWaiting = false;
       actor.avatar.offeringIncense = true;
       setQueueActorTarget(
         actor,
-        new THREE.Vector3(altarX, 0.05, altarZ),
-        index,
+        new THREE.Vector3(altarPosition.x, altarPosition.y, altarPosition.z),
+        slot,
         now
       );
     });
@@ -2327,6 +2326,7 @@ async function boot() {
     actor.moveCurve = null;
     actor.moveStartedAt = 0;
     actor.moveDurationMs = 0;
+    actor.slot = -1;
     queueActorPool.push(actor);
     return result;
   }
@@ -2353,6 +2353,7 @@ async function boot() {
       .sort((a, b) => a.group.position.z - b.group.position.z)
       .map((actor) => ({
         user: actor.event?.user || '',
+        slot: actor.slot,
         gender: actor.avatar.gender,
         kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
         moving: Boolean(actor.moveCurve),
