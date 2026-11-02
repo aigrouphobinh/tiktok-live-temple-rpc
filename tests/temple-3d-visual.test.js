@@ -1079,7 +1079,7 @@ describe('3D multi-devotee incense offering', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
     expect(scene).toContain('devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS)');
-    expect(scene).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition } from './devotee-formation.js';");
+    expect(scene).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout } from './devotee-formation.js';");
     expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
     expect(scene).toContain('const altarPosition = getHorizontalFormationPosition(slot, {');
     expect(scene).toContain('getAvailableQueueActorSlot');

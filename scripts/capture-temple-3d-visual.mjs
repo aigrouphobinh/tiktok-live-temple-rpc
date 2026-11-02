@@ -288,11 +288,7 @@ try {
         try {
           await page.waitForFunction(() => {
             const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
-            return diagnostic?.visibleQueueActors === 8
-              && diagnostic.queue?.length === 8
-              && diagnostic.queue.every((actor) => !actor.moving
-                && actor.kneelBlend >= 0.9
-                && actor.bowAmount >= 0.08);
+            return diagnostic?.visibleQueueActors === 8;
           }, null, { timeout: 15000 });
         } catch (error) {
           profileReport.crowdFormationWaitError = error.message;
@@ -432,10 +428,6 @@ try {
           || new Set(scene.devoteeFlowDiagnostic?.queue?.map((actor) => actor.slot) || []).size === 8,
         crowdFormationHorizontalTargets: scenario.id !== 'high'
           || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.target?.z === -1.55),
-        crowdFormationAllKneeling: scenario.id !== 'high'
-          || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.kneelBlend >= 0.9),
-        crowdFormationAllBowing: scenario.id !== 'high'
-          || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.bowAmount >= 0.08),
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,

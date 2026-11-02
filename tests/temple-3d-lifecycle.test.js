@@ -98,7 +98,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('Slot ownership is stable: promoting one visitor never makes the');
-    expect(source).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition } from './devotee-formation.js';");
+    expect(source).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout } from './devotee-formation.js';");
     expect(source).toContain('getHorizontalFormationPosition(slot, {');
     expect(source).toContain('const altarPosition = getHorizontalFormationPosition(slot, {');
     expect(source).toContain('actor.avatar.offeringIncense = true;');

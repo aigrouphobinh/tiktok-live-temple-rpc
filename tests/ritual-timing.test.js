@@ -23,7 +23,7 @@ describe('Ritual visit timing', () => {
   it('keeps the first visitor on the side entrance and subsequent visitors in horizontal altar rows', () => {
     expect(scene).toContain('mainDevotee.position.copy(queueStart || new THREE.Vector3(-4.55, 0.05, 15.3));');
     expect(scene).toContain("enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]]");
-    expect(scene).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition } from './devotee-formation.js';");
+    expect(scene).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout } from './devotee-formation.js';");
     expect(scene).toContain('const altarPosition = getHorizontalFormationPosition(slot, {');
     expect(scene).toContain('actor.slot = slot;');
   });
