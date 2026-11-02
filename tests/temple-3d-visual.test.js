@@ -363,7 +363,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('const statue = new THREE.Group()');
   });
 
-  it('tries Kenny first, then the CC0 scan, and exposes a Buddha-only preview flag', () => {
+  it('tries Kenny first, then the CC0 scan, and loads the Buddha by default in 3D', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     const start = scene.indexOf('async function upgradeBuddhaFromGLB()');
     const end = scene.indexOf('function addEffect', start);
@@ -385,7 +385,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(fallbackPreflightIndex).toBeLessThan(fallbackIndex);
     expect(scene).toContain("method: 'HEAD'");
     expect(loader).toContain('skipping its load request');
-    expect(scene).toContain("modelParams.get('buddha') === '1'");
+    expect(scene).toContain("modelParams.get('buddha') !== '0'");
     expect(scene).toContain('modelsRequested || buddhaModelRequested');
     expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading'");
     expect(loader).toContain("assetSource = 'mia-cc0-gilt-bronze'");
