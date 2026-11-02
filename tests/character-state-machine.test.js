@@ -36,7 +36,7 @@ describe('CharacterStateMachine', () => {
       state: 'INTERRUPTED',
       active: null,
       queueLength: 2,
-      effect: 'rocket'
+      effect: 'dragon'
     });
     machine.finishEffect();
     expect(machine.finishCooldown().event.user).toBe('A');
@@ -46,7 +46,7 @@ describe('CharacterStateMachine', () => {
     const machine = new CharacterStateMachine();
     machine.request(devotee('A'));
     machine.request(devotee('B'));
-    expect(machine.interrupt(action, { giftName: action }).interrupted).toBe(true);
+    expect(machine.interrupt(action, { giftName: action })).toMatchObject({ interrupted: true, ejectedDevotee: true });
     expect(machine.snapshot()).toMatchObject({ active: null, queueLength: 1, effect: action });
     machine.finishEffect();
     expect(machine.finishCooldown().event.user).toBe('B');
@@ -58,7 +58,7 @@ describe('CharacterStateMachine', () => {
     machine.request(devotee('B'));
     machine.interrupt('rose', { giftName: 'Rose' });
     expect(machine.snapshot().queueLength).toBe(2);
-    expect(machine.interrupt('rocket', { giftName: 'Rocket' }).superseded).toBe(true);
+    expect(machine.interrupt('rocket', { giftName: 'Rocket' })).toMatchObject({ superseded: true, ejectedDevotee: true });
     expect(machine.snapshot().queueLength).toBe(1);
     machine.finishEffect();
     expect(machine.finishCooldown().event.user).toBe('B');
@@ -70,7 +70,7 @@ describe('CharacterStateMachine', () => {
     machine.request(devotee('B'));
     machine.interrupt('dragon', { giftName: 'Dragon' });
     expect(machine.interrupt('donut', { giftName: 'Donut' }).queuedEffect).toBe(true);
-    expect(machine.finishEffect().nextEffect.action).toBe('donut');
+    expect(machine.finishEffect()).toMatchObject({ nextEffect: { action: 'donut' }, ejectedDevotee: true });
     expect(machine.snapshot().queueLength).toBe(1);
     machine.finishEffect();
     expect(machine.finishCooldown().event.user).toBe('B');
