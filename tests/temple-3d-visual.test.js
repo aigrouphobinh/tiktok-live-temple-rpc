@@ -786,7 +786,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('routes procedural avatars through the shared idle, walk and kneel foot-pose controller', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend }");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose }");
     expect(scene).toContain("const footMode = walking ? 'walk' : avatar.kneeling ? 'kneel' : 'idle';");
     expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });");
     expect(scene).toContain("getHumanFootPose({ mode: footMode, phase: gaitPhase + avatar.phase + Math.PI, blend: footMode === 'kneel' ? avatar.kneelBlend : 1 });");
