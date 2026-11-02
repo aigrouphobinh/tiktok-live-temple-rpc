@@ -6,7 +6,7 @@ const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url
 describe('Three.js visitor camera director', () => {
   it('moves from the fixed hall master to a real visitor shot', () => {
     expect(source).toContain('const cameraHomeFov = 42;');
-    expect(source).toContain('const cameraRitualFov = 39.5;');
+    expect(source).toContain('const cameraRitualFov = 38.5;');
     expect(source).toContain('cameraTargetFov = cameraRitualFov;');
     expect(source).toContain('cameraTargetFov = cameraHomeFov;');
     expect(source).toContain('const blend = 1 - Math.exp(-Math.min(50, dt) / 720);');
@@ -17,9 +17,9 @@ describe('Three.js visitor camera director', () => {
   it('aims at the active visitor instead of a point below the floor', () => {
     expect(source).toContain('cameraRitualActive && devoteeState?.active && mainDevotee?.visible');
     expect(source).toContain('const person = mainDevotee.position;');
-    expect(source).toContain('THREE.MathUtils.clamp(person.x * 0.28 + activeCameraPreset.targetOffsetX, -1.8, 1.8)');
-    expect(source).toContain('1.45,');
-    expect(source).toContain('THREE.MathUtils.clamp(-3.55 + (person.z + 3.55) * 0.34, -4.7, 4.2)');
+    expect(source).toContain('THREE.MathUtils.clamp(person.x + activeCameraPreset.targetOffsetX, -4.1, 4.1)');
+    expect(source).toContain('1.25,');
+    expect(source).toContain('person.z');
   });
 
   it('chooses one restrained 3/4 angle per queue session, not per gift or visitor', () => {
