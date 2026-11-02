@@ -2569,13 +2569,11 @@ async function boot() {
   let ritualUntil = 0;
   const clock = new THREE.Clock();
 
-  // Optional, local-only GLB replacement. The procedural Buddha remains the
-  // default and stays visible until the selected, rights-cleared file loads.
+  // Load the repository's selected Buddha GLB by default in every 3D session.
+  // Set ?buddha=0 only when a procedural-only preview is explicitly needed.
   const modelParams = new URLSearchParams(location.search);
   const modelsRequested = modelParams.get('models') === '1';
-  // Allow the Buddha asset to be previewed independently of optional devotee rigs.
-  const buddhaModelRequested = modelParams.get('buddha') === '1';
-  // The procedural custom sculpture is the default production Buddha; GLB is opt-in.
+  const buddhaModelRequested = modelParams.get('buddha') !== '0';
   if (!buddhaModelRequested && !modelsRequested) {
     window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'custom-procedural';
   }
