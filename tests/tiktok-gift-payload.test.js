@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { normalizeGiftPayload, getGiftComboDelta } = require('../lib/tiktok-gift-payload.cjs');
+const { normalizeGiftPayload, getGiftComboDelta, MAX_GIFT_REPEAT_COUNT } = require('../lib/tiktok-gift-payload.cjs');
 
 describe('TikTok gift payload normalization', () => {
   it('reads the documented giftDetails.giftName shape without inventing an ID', () => {
@@ -122,6 +122,46 @@ describe('TikTok gift payload normalization', () => {
     expect(tracker.get(base.groupId)).toBe(3);
     expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: true })).toBe(0);
     expect(tracker.has(base.groupId)).toBe(false);
+  });
+
+  it('does not credit duplicated repeatEnd frames after clearing the active streak', () => {
+    const tracker = new Map();
+    const base = { groupId: 'viewer|5655', streakable: true };
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: false }, 500, 1000)).toBe(3);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: true }, 500, 1100)).toBe(0);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 3, repeatEnd: true }, 500, 1200)).toBe(0);
+    expect(tracker.has(base.groupId)).toBe(false);
+  });
+
+  it('deduplicates the first frame when it is already marked as final', () => {
+    const tracker = new Map();
+    const payload = { groupId: 'viewer|5655', streakable: true, repeatCount: 1, repeatEnd: true };
+    expect(getGiftComboDelta(tracker, payload, 500, 1000)).toBe(1);
+    expect(getGiftComboDelta(tracker, payload, 500, 1100)).toBe(0);
+  });
+
+  it('allows a reused group ID to begin a fresh combo when its count resets', () => {
+    const tracker = new Map();
+    const base = { groupId: 'viewer|5655', streakable: true };
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 4, repeatEnd: true }, 500, 1000)).toBe(4);
+    expect(getGiftComboDelta(tracker, { ...base, repeatCount: 1, repeatEnd: false }, 500, 1100)).toBe(1);
+  });
+
+  it('expires a final-frame tombstone after the deduplication window', () => {
+    const tracker = new Map();
+    const payload = { groupId: 'viewer|5655', streakable: true, repeatCount: 1, repeatEnd: true };
+    expect(getGiftComboDelta(tracker, payload, 500, 1000)).toBe(1);
+    expect(getGiftComboDelta(tracker, payload, 500, 7000)).toBe(1);
+  });
+
+  it('caps untrusted cumulative counts before they can inflate rewards', () => {
+    const payload = normalizeGiftPayload({
+      giftId: 77,
+      gift: { id: 77, name: 'Rose', diamondCount: 1, type: 1 },
+      repeatCount: Number.MAX_SAFE_INTEGER
+    }, 'viewer');
+    expect(payload.repeatCount).toBe(MAX_GIFT_REPEAT_COUNT);
+    expect(getGiftComboDelta(new Map(), { ...payload, repeatEnd: false })).toBe(MAX_GIFT_REPEAT_COUNT);
   });
 
   it('does not retain state for non-streakable gifts', () => {
