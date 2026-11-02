@@ -135,6 +135,23 @@ export function getRitualPoseState({
   };
 }
 
+/**
+ * Low-amplitude whole-body counter-motion for a natural walking cycle.
+ * Values are normalized from gait phase and scaled by blend (0..1).
+ */
+export function getWalkBodyPose(phase, blend = 1) {
+  const amount = Number.isFinite(blend) ? Math.min(1, Math.max(0, blend)) : 0;
+  const safePhase = Number.isFinite(phase) ? phase : 0;
+  const step = Math.sin(safePhase);
+  const doubleStep = Math.sin(safePhase * 2);
+  return {
+    bodyBob: (0.012 + Math.max(0, Math.cos(safePhase * 2)) * 0.018) * amount,
+    lateralSway: Math.sin(safePhase + Math.PI / 2) * 0.018 * amount,
+    torsoLean: -step * 0.035 * amount,
+    torsoTwist: doubleStep * 0.018 * amount
+  };
+}
+
 export function getFootPlantingStep(phase) {
   return getFootPlantingPose(phase).step;
 }
