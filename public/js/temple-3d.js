@@ -16,7 +16,16 @@ const canvas = document.getElementById('temple3dCanvas');
 if (enabled && stage && canvas) {
   stage.classList.add('temple-3d-mode');
   boot().catch((error) => {
-    console.warn('[Temple3D] World unavailable; restoring 2D scene:', error);
+    const failure = {
+      name: error?.name || 'Error',
+      message: error?.message || String(error),
+      stack: error?.stack || null,
+      failedAt: new Date().toISOString()
+    };
+    // Keep the actual boot failure visible to the browser audit and support
+    // diagnostics. A warning alone was silently discarded by the visual audit.
+    window.__TEMPLE_3D_BOOT_ERROR__ = failure;
+    console.error('[Temple3D] World boot failed; restoring 2D scene:', failure);
     stage.classList.remove('temple-3d-mode');
     canvas.hidden = true;
     window.__TEMPLE_3D_READY__ = false;
