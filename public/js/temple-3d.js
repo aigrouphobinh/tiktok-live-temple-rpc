@@ -2652,7 +2652,7 @@ async function boot() {
         // New arrivals walk into a visible two-column waiting line behind
         // the active worshipper instead of appearing beside the altar.
         const entryPosition = getHorizontalFormationPosition(slot, {
-          columns: 2, spacing: 1.0, y: 0.05, baseZ: 15.3, rowSpacing: 1.4
+          columns: 5, centered: true, spacing: 1.42, y: 0.05, baseZ: 14.2, rowSpacing: 1.05
         });
         actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
@@ -2674,7 +2674,9 @@ async function boot() {
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
       }
       const queuePosition = getHorizontalFormationPosition(slot, {
-        columns: 2, spacing: 1.0, y: 0.05, baseZ: 10.5, rowSpacing: 1.4
+        // Five evenly spaced columns, raised in the portrait frame and packed
+        // more tightly in depth so the waiting line does not sink behind the altar.
+        columns: 5, centered: true, spacing: 1.42, y: 0.05, baseZ: 7.65, rowSpacing: 1.05
       });
       actor.avatar.queueWaiting = true;
       actor.avatar.offeringIncense = false;
