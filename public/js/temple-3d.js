@@ -3021,28 +3021,39 @@ async function boot() {
       : null;
     if (phase === 'ritual') devoteeState.arrivedAt = now;
   }
-  function startNextDevotee(now = performance.now()) {
+  function startNextDevotee(now = performance.now(), requestedEvent = null) {
     if (devoteeState.awaitingGiftHandoff || devoteeState.active || !devoteeQueue.length) {
       if (!devoteeState.active && !devoteeState.awaitingGiftHandoff && !devoteeQueue.length) restoreMainCamera();
-      return;
+      return false;
     }
-    // The four side-lane visitors are already performing their own full
-    // three-bow visit. Promote only a seated visitor to the main altar.
-    // A worshipper must never be pulled out of their lane to repeat the ritual.
-    const nextIndex = devoteeQueue.findIndex((event) => {
-      const actor = queueActors.get(event);
-      return !actor || (
-        actor.avatar.queueWaiting
-        && !actor.avatar.queuedWorshipLane
-        && !actor.avatar.queueWorshipCompleted
-      );
-    });
-    if (nextIndex < 0) {
-      restoreMainCamera();
-      return;
+    // Match the character-state-machine event exactly. A side-lane visitor is
+    // already receiving their complete three-bow cycle and must never be
+    // pulled into a second altar visit. Only an unstarted seated visitor may
+    // be promoted when that exact event becomes active in the FIFO machine.
+    const candidateIndex = requestedEvent
+      ? devoteeQueue.indexOf(requestedEvent)
+      : devoteeQueue.findIndex((event) => {
+          const actor = queueActors.get(event);
+          return !actor || (
+            actor.avatar.queueWaiting
+            && !actor.avatar.queuedWorshipLane
+            && !actor.avatar.queueWorshipCompleted
+          );
+        });
+    if (candidateIndex < 0) {
+      if (!devoteeState.active) restoreMainCamera();
+      return false;
     }
+    const candidate = devoteeQueue[candidateIndex];
+    const candidateActor = queueActors.get(candidate);
+    const canPromote = !candidateActor || (
+      candidateActor.avatar.queueWaiting
+      && !candidateActor.avatar.queuedWorshipLane
+      && !candidateActor.avatar.queueWorshipCompleted
+    );
+    if (!canPromote) return false;
     beginRitualCamera();
-    devoteeState.event = devoteeQueue.splice(nextIndex, 1)[0];
+    devoteeState.event = devoteeQueue.splice(candidateIndex, 1)[0];
     const queuedActor = releaseQueueActor(devoteeState.event);
     // Promote the exact queued visitor appearance to the altar. Gender and
     // colourway therefore remain stable across the queue-to-main handoff.
@@ -3089,7 +3100,7 @@ async function boot() {
       setDevoteePhase('enter', now, 1700);
     }
   }
-  function enqueueDevotee(event) {
+  function enqueueDevotee(event, { promoteEvent = false } = {}) {
     if (!event || typeof event !== 'object' || renderedDevoteeEvents.has(event)) return;
     const identity = getDevoteeIdentityKey(event);
     if (identity && devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity) {
@@ -3133,7 +3144,7 @@ async function boot() {
     // Do not instantiate a waiting duplicate for the first visitor; only
     // visitors behind an active one or a gift handoff need visible queue slots.
     if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();
-    startNextDevotee();
+    startNextDevotee(performance.now(), promoteEvent ? event : null);
   }
 
   function finishGiftEjectionHandoff(now = performance.now(), nextEvent = null) {
@@ -3178,9 +3189,9 @@ async function boot() {
     // dispatched. In that case start the visual now; the WeakSet prevents the
     // later ritual notification from inserting the same visitor twice.
     if (!devoteeState.active && !devoteeQueue.includes(startedEvent)) {
-      enqueueDevotee(startedEvent);
+      enqueueDevotee(startedEvent, { promoteEvent: true });
     } else if (!devoteeState.active) {
-      startNextDevotee(now);
+      startNextDevotee(now, startedEvent);
     }
   }
 
@@ -3262,7 +3273,10 @@ async function boot() {
     devoteeState.ejectionStart = null;
     devoteeState.ejectionAction = null;
     devoteeState.ejectionMotionDuration = 0;
-    startNextDevotee(now);
+    // Do not pre-emptively take a side-lane worshipper. The next
+    // character-start event from the FIFO state machine decides whether the
+    // next visual visitor is still seated and eligible for the main altar.
+    restoreMainCamera();
     return true;
   }
 
