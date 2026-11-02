@@ -2886,8 +2886,13 @@ async function boot() {
     for (let wave = 0; wave < vfx.shockwaves; wave++) {
       makeRing(center.x, center.y + wave * 0.07, center.z, wave % 2 ? 0xffe18a : color);
     }
-    giftSparkBurst(center.x, center.y + 0.12, center.z,
-      Math.min(88, Math.max(22, vfx.particles + 16)), color);
+    // Keep the complete flash/smoke/ring/spark sequence inside the shared
+    // transient-effect budget so high-tier blasts do not evict their own flash.
+    const sparkCount = Math.max(8, Math.min(
+      vfx.particles + 16,
+      MAX_EFFECTS - 1 - smokeCount - vfx.shockwaves
+    ));
+    giftSparkBurst(center.x, center.y + 0.12, center.z, sparkCount, color);
   }
 
   // Set only while a targeted gift effect is built; null means the altar is empty.
