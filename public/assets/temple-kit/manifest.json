@@ -1,0 +1,23 @@
+{
+  "name": "linh-ung-sanctuary-3d-asset-kit",
+  "version": 1,
+  "source": "AI-generated asset sheet derived from the user's sanctuary screenshot",
+  "target": "Three.js 9:16 sanctuary scene",
+  "assets": [
+    {"file":"buddha-statue.png","kind":"transparent-reference","role":"buddha-statue"},
+    {"file":"abbot-monk.png","kind":"transparent-reference","role":"resident-abbot"},
+    {"file":"altar-and-sanctuary-backdrop.jpg","kind":"texture-reference","role":"altar-backdrop"},
+    {"file":"ceiling-painted-panel.jpg","kind":"texture-reference","role":"painted-ceiling"},
+    {"file":"ceiling-lotus-mandala.jpg","kind":"texture-reference","role":"ceiling-ornament"},
+    {"file":"hanging-lantern.png","kind":"transparent-reference","role":"lantern"},
+    {"file":"carved-temple-column.png","kind":"transparent-reference","role":"pillar"},
+    {"file":"red-lotus-carpet.png","kind":"transparent-reference","role":"processional-carpet"},
+    {"file":"flowering-trees.png","kind":"transparent-reference","role":"flowering-tree-pair"},
+    {"file":"altar-offerings.png","kind":"transparent-reference","role":"altar-offerings"},
+    {"file":"ritual-instruments.png","kind":"transparent-reference","role":"ritual-instruments"},
+    {"file":"side-decorations.jpg","kind":"texture-reference","role":"side-decorations"},
+    {"file":"courtyard-floor.jpg","kind":"texture-reference","role":"courtyard-floor"},
+    {"file":"altar-front-platform.jpg","kind":"texture-reference","role":"altar-front"},
+    {"file":"golden-light-rays.jpg","kind":"texture-reference","role":"lighting-reference"}
+  ]
+}
