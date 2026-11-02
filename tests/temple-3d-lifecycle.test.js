@@ -172,7 +172,21 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('bowCycles: 3,');
     expect(source).toContain('bowCycleMs: 1500,');
     expect(source).toContain("setDevoteePhase('ritual', now, 6500);");
-    expect(source).toContain("devoteeState.phase === 'ritual'\n        ? 0");
+    expect(source).toContain("const ritualElapsed = devoteeState.phase === 'ritual' ? phaseElapsed : 0;");
+    expect(source).toContain("const ritualPose = devoteeState.alreadyWorshippedInQueue");
+    expect(source).toContain("bowPhase: 'already-completed-in-queue'");
+  });
+
+  it('does not promote a visitor who already worshipped in a side lane and sends them out once', () => {
+    expect(source).toContain('const nextIndex = devoteeQueue.findIndex((event) => {');
+    expect(source).toContain('actor.avatar.queueWaiting');
+    expect(source).toContain('!actor.avatar.queuedWorshipLane');
+    expect(source).toContain('!actor.avatar.queueWorshipCompleted');
+    expect(source).toContain('function departCompletedQueueWorship(actor, now = performance.now())');
+    expect(source).toContain('devoteeQueue.splice(queueIndex, 1)');
+    expect(source).toContain('departingDevotees.push({');
+    expect(source).toContain('if (offeringPose.bowPhase === \'complete\' && offeringPose.kneelBlend >= 0.9)');
+    expect(source).toContain('actor.avatar.queueWorshipCompleted = true;');
   });
 
   it('animates the previous visitor walking out while the next visitor enters', () => {
