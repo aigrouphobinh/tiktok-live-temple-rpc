@@ -1,11 +1,10 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
-import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS } from './devotee-formation.js';
-import { getQueueActorFormationSlots, WAITING_SEAT_COLUMNS, WAITING_SEAT_ROWS } from './devotee-formation.js';
+import { getAvailableFormationSlot, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS, getQueueActorFormationSlots, WAITING_SEAT_COLUMNS, WAITING_SEAT_ROWS } from './devotee-formation.js';
 import { formatDevoteePrayerLabel } from './devotee-labels.js';
 import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualCloseShot, getTempleRitualShotIndex } from './temple-camera-presets.js';
 
@@ -58,6 +57,8 @@ async function boot() {
   });
   renderer.setPixelRatio(renderProfile.pixelRatio);
   renderer.setSize(1080, 1920, false);
+  // Cache the device limit once; reuse it for image and procedural textures.
+  const maxTextureAnisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   renderer.setClearColor(0x160904, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -223,6 +224,7 @@ async function boot() {
     texture.magFilter = THREE.LinearFilter;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.generateMipmaps = true;
+    texture.anisotropy = maxTextureAnisotropy;
     texture.needsUpdate = true;
     return texture;
   };
@@ -259,6 +261,7 @@ async function boot() {
   stoneGrain.magFilter = THREE.LinearFilter;
   stoneGrain.minFilter = THREE.LinearMipmapLinearFilter;
   stoneGrain.generateMipmaps = true;
+  stoneGrain.anisotropy = maxTextureAnisotropy;
   stoneGrain.needsUpdate = true;
   for (const material of [mats.statueStone, mats.statueShadow, mats.statueLight]) {
     material.bumpMap = stoneGrain;
@@ -310,7 +313,7 @@ async function boot() {
   function addSanctuaryImagePlane(name, url, width, height, position, rotation = [0, 0, 0], options = {}) {
     const texture = imageTextureLoader.load(url, () => {
       texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      texture.anisotropy = maxTextureAnisotropy;
       texture.needsUpdate = true;
       imageTextureStatus[name] = 'loaded';
     }, undefined, (error) => {
@@ -1726,7 +1729,7 @@ async function boot() {
     context.fillText(label, 128, 485, 190);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    texture.anisotropy = maxTextureAnisotropy;
     const material = new THREE.MeshStandardMaterial({
       map: texture, roughness: 0.58, metalness: 0.08,
       emissive: 0x5a1008, emissiveIntensity: 0.18,
