@@ -104,13 +104,15 @@ async function boot() {
         // view when another visitor starts or the altar is released.
         const side = activeCameraPreset.targetOffsetX < -0.1 ? -1
           : activeCameraPreset.targetOffsetX > 0.1 ? 1 : 0.55;
+        // Use a raised, wider close shot from the aisle. The former low
+        // camera sat behind altar geometry and cropped the visitor/nameplate.
         cameraTargetPosition.set(
-          person.x + side * 1.55,
-          3.9,
-          person.z + 6.2
+          person.x + side * 1.25,
+          6.4,
+          person.z + 9.2
         );
-        cameraTargetLookAt.set(person.x + side * 0.08, 1.22, person.z - 0.42);
-        cameraTargetFov = cameraAltarCloseFov;
+        cameraTargetLookAt.set(person.x + side * 0.06, 1.45, person.z - 0.35);
+        cameraTargetFov = 36;
         activeCameraShot = 'altar-close';
       } else {
         // Keep the full hall visible while the person enters, walks in the
@@ -2402,7 +2404,9 @@ async function boot() {
     });
     const sprite = new THREE.Sprite(material);
     sprite.position.set(0, 2.18, 0);
-    sprite.scale.set(3.45, 0.65, 1);
+    // Keep the profile plate compact above the character; long TikTok IDs
+    // are shortened visually instead of stretching across the scene.
+    sprite.scale.set(2.55, 0.48, 1);
     sprite.renderOrder = 30;
     let avatarImage = null;
     let avatarUrl = '';
@@ -2448,18 +2452,26 @@ async function boot() {
       context.strokeStyle = '#f5ce78';
       context.stroke();
 
-      let fontSize = 62;
-      context.textAlign = 'center';
+      // Fixed text column prevents long usernames from stretching the tag.
+      // Keep the complete username in profileName; only the rendered label is
+      // ellipsized to fit the compact 3D nameplate.
+      const maxNameWidth = 560;
+      let fontSize = 58;
+      let displayName = name;
+      context.textAlign = 'left';
       context.textBaseline = 'middle';
-      do {
-        context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-        if (context.measureText(name).width <= 770) break;
+      context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
+      while (displayName.length > 8 && context.measureText(displayName).width > maxNameWidth) {
+        displayName = displayName.slice(0, -2).trimEnd() + '…';
+      }
+      while (fontSize > 42 && context.measureText(displayName).width > maxNameWidth) {
         fontSize -= 2;
-      } while (fontSize > 25);
+        context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
+      }
       context.fillStyle = '#fff0c2';
       context.shadowColor = 'rgba(255, 190, 74, 0.55)';
       context.shadowBlur = 12;
-      context.fillText(name, 600, 98, 770);
+      context.fillText(displayName, 205, 98, maxNameWidth);
       context.shadowBlur = 0;
       texture.needsUpdate = true;
     }
