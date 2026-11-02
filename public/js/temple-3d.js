@@ -1752,8 +1752,15 @@ async function boot() {
       if (rig?.head) {
         rig.head.rotation.x = rig.headRest.x + amount * 0.16;
       }
-      if (rig?.leftArm) rig.leftArm.rotation.z = rig.leftArmRest.z + amount * 0.22;
-      if (rig?.rightArm) rig.rightArm.rotation.z = rig.rightArmRest.z - amount * 0.22;
+      const prayer = Math.min(1, Math.max(0, kneelBlend));
+      if (rig?.leftArm) {
+        rig.leftArm.rotation.x = rig.leftArmRest.x - prayer * 0.48 - amount * 0.12;
+        rig.leftArm.rotation.z = rig.leftArmRest.z + prayer * 0.54 + amount * 0.035;
+      }
+      if (rig?.rightArm) {
+        rig.rightArm.rotation.x = rig.rightArmRest.x - prayer * 0.48 - amount * 0.12;
+        rig.rightArm.rotation.z = rig.rightArmRest.z - prayer * 0.54 - amount * 0.035;
+      }
       return;
     }
     const upperPose = getHumanUpperPose({ kneelBlend, bowAmount: amount });
@@ -1763,8 +1770,10 @@ async function boot() {
     avatar.rightArm.rotation.x = upperPose.armReach;
     avatar.leftArm.rotation.z = upperPose.armOpen;
     avatar.rightArm.rotation.z = -upperPose.armOpen;
-    avatar.leftHand.rotation.z = -upperPose.armOpen * 0.18;
-    avatar.rightHand.rotation.z = upperPose.armOpen * 0.18;
+    avatar.leftHand.rotation.z = -upperPose.handRoll;
+    avatar.rightHand.rotation.z = upperPose.handRoll;
+    avatar.leftHand.rotation.x = upperPose.wristPitch;
+    avatar.rightHand.rotation.x = upperPose.wristPitch;
   }
 
   async function upgradeDevoteesFromGLB() {
