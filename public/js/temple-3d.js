@@ -1,5 +1,5 @@
 import { disposeThreeObjectTree, disposeThreeSceneResources } from './three-resource-utils.js';
-import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';
+import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';
 import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction } from './gift-action-rules.js';
@@ -1920,13 +1920,22 @@ async function boot() {
 
   function getAvatarGiftReactionBlend(avatar, time) {
     const duration = Math.max(1, avatar.giftReactionProfile?.durationMs || 1800);
-    return getGiftReactionBlend(avatar.giftReactionUntil - time, duration);
+    return getScheduledGiftReactionBlend(
+      time,
+      avatar.giftReactionStartedAt,
+      avatar.giftReactionUntil,
+      duration
+    );
   }
 
   function applyGiftThankYouGesture(avatar, time) {
     if (avatar.gltfRoot) return;
     const blend = getAvatarGiftReactionBlend(avatar, time);
-    const upperPose = getHumanUpperPose({ kneelBlend: avatar.kneelBlend, bowAmount: avatar.bowAmount });
+    // Standing prayer avatars must keep palms together; this base pose is
+    // now composed with the gift acknowledgement instead of being written
+    // over it by a second animation function later in the frame.
+    const prayerBlend = Math.max(avatar.kneelBlend || 0, avatar.prayerPose ? 1 : 0);
+    const upperPose = getHumanUpperPose({ kneelBlend: prayerBlend, bowAmount: avatar.bowAmount });
     // Sweep both forearms inward and upward so the palms meet at chest height.
     // Recompute from the ritual base pose every frame to avoid rotation drift.
     const profile = avatar.giftReactionProfile || { intensity: 0.55, bowAmount: 0.08 };
@@ -1998,6 +2007,10 @@ async function boot() {
     avatar.root.rotation.z = walkBody.torsoLean;
     avatar.torso.scale.y = 1 + breath * 0.012;
     avatar.torso.position.y = 0.40 + breath * 0.0025 + walkBody.bodyBob;
+    if (avatar.tunicShell) {
+      avatar.tunicShell.scale.y = 1 + breath * 0.006;
+      avatar.tunicShell.position.y = 0.105 + breath * 0.0015 + walkBody.bodyBob * 0.18;
+    }
     avatar.torso.rotation.y = giftReaction * 0.035 + walkBody.torsoTwist;
     avatar.head.rotation.y = Math.sin(time*0.0011+avatar.phase)*0.035 + giftReaction * 0.2;
     avatar.head.rotation.x = Math.sin(time*0.00082+avatar.phase*0.7)*0.012 - giftReaction * 0.045;
@@ -2415,7 +2428,7 @@ async function boot() {
     };
     const clone = { ...mainHuman };
     for (const key of [
-      'root', 'upperBody', 'torso', 'head', 'smile',
+      'root', 'upperBody', 'torso', 'tunicShell', 'head', 'smile',
       'leftArm', 'rightArm', 'leftHand', 'rightHand',
       'leftLeg', 'rightLeg', 'leftKnee', 'rightKnee', 'leftFoot', 'rightFoot'
     ]) {
@@ -3000,7 +3013,6 @@ async function boot() {
     devoteeAvatars.forEach((avatar) => {
       updateCongregationWorshipPose(avatar, now);
       animateHuman(avatar, now, false);
-      if (avatar.prayerPose) applyStandingPrayerPose(avatar);
     });
     for (const actor of queueActors.values()) {
       let moving = false;
