@@ -2741,6 +2741,12 @@ async function boot() {
     nameTag.scale.set(1.94, 0.30, 1);
     avatar.root.add(nameTag);
     nameTag.userData.setProfile(event.user || 'Thí Chủ', event.avatar || '');
+    // The congregation is background seating, not the shadow-casting focal subject.
+    group.traverse((node) => {
+      if (!node.isMesh) return;
+      node.castShadow = false;
+      node.receiveShadow = false;
+    });
     group.visible = true;
     world.add(group);
     return {
@@ -2812,9 +2818,12 @@ async function boot() {
         // Visitors enter in rows and keep their assigned place as others leave.
         // New arrivals walk into a visible two-column waiting line behind
         // the active worshipper instead of appearing beside the altar.
-        const entryPosition = getHorizontalFormationPosition(slot, {
-          columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 14.2, rowSpacing: 1.28
-        });
+        const arrivalFormation = getQueueActorFormationPosition(index);
+        const entryPosition = arrivalFormation?.role === 'waiting'
+          ? { x: arrivalFormation.x, y: 0.05, z: arrivalFormation.z + 1.05 }
+          : getHorizontalFormationPosition(slot, {
+              columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 14.2, rowSpacing: 1.28
+            });
         actor.group.position.set(entryPosition.x, entryPosition.y, entryPosition.z);
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
@@ -2841,6 +2850,7 @@ async function boot() {
       actor.avatar.queuedWorshipLane = isWorshipLane;
       actor.seat.visible = !isWorshipLane;
       actor.sutraBook.visible = !isWorshipLane;
+      actor.group.scale.setScalar(isWorshipLane ? 1 : 0.86);
       actor.avatar.offeringIncense = false;
       actor.avatar.prayerPose = !isWorshipLane;
       setQueueActorTarget(actor, queuePosition, slot, now);
@@ -3147,8 +3157,11 @@ async function boot() {
     if (!mainHuman.gltfRoot) {
       const leaving = mainDevotee.clone(true);
       const leavingAvatar = cloneHumanAvatarForExit(leaving);
-      const nameTag = leaving.getObjectByProperty('isSprite', true);
-      nameTag?.removeFromParent();
+      const floatingTags = [];
+      leaving.traverse((node) => {
+        if (node.isSprite) floatingTags.push(node);
+      });
+      floatingTags.forEach((tag) => tag.removeFromParent());
       const exitCurve = new THREE.CatmullRomCurve3([
         start,
         start.clone().add(new THREE.Vector3(0.9, 0, 1.3)),
