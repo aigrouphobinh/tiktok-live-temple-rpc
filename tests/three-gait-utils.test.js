@@ -119,8 +119,8 @@ describe('getRitualPoseState', () => {
     expect(poseAt(500).bowAmount).toBe(1);
     expect(poseAt(500).bowPhase).toBe('holding');
     expect(poseAt(650).bowPhase).toBe('rising');
-    expect(poseAt(850).bowAmount).toBeCloseTo(0, 8);
-    expect(poseAt(850).bowPhase).toBe('resting');
+    expect(poseAt(900).bowAmount).toBeCloseTo(0, 8);
+    expect(poseAt(900).bowPhase).toBe('resting');
     expect(poseAt(1200).bowCycle).toBe(2);
     expect(poseAt(1500).bowAmount).toBe(1);
     expect(poseAt(1500).bowPhase).toBe('holding');
@@ -158,7 +158,7 @@ describe('getRitualPoseState', () => {
 
   it('clamps invalid timeline values to safe neutral outputs', () => {
     expect(getRitualPoseState({ travel: NaN, elapsedAfterArrival: Infinity, remainingMs: NaN })).toEqual({
-      walking: true, kneelBlend: 0, bowAmount: 0
+      walking: true, kneelBlend: 0, bowAmount: 0, bowPhase: 'approach', bowCycle: 0
     });
   });
 });
