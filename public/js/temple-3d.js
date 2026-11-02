@@ -2091,7 +2091,7 @@ async function boot() {
   async function upgradeDevoteesFromGLB() {
     try {
       const [{ loadGLTFAsset }, { clone }, { findBestAnimationClip }] = await Promise.all([
-        import('./three-model-loader.js'),
+        import('./three-model-loader.js?v=centerline-upright-20261102-1'),
         import('three/addons/utils/SkeletonUtils.js'),
         import('./three-animation-utils.js')
       ]);
