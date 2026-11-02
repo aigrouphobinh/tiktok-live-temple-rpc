@@ -51,9 +51,11 @@ export function getCrowdNameTagLayout(slot, options = {}) {
     : DEFAULT_FORMATION_COLUMNS;
   const half = Math.floor(columns / 2);
   const column = slot % columns;
-  const screenIndex = column % 2 === 0
+  // A single-file queue uses one centered nameplate lane; the legacy
+  // alternating calculation is only valid when at least two columns exist.
+  const screenIndex = columns === 1 ? 0 : (column % 2 === 0
     ? half - 1 - column / 2
-    : half + (column - 1) / 2;
+    : half + (column - 1) / 2);
   const baseY = Number.isFinite(options.baseY) ? options.baseY : 1.82;
   const staggerY = Number.isFinite(options.staggerY) && options.staggerY > 0 ? options.staggerY : 0.36;
   const width = Number.isFinite(options.width) && options.width > 0 ? options.width : 1.94;
