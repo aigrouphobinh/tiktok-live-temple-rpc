@@ -32,6 +32,10 @@ describe('3D sanctuary visual treatment', () => {
   expect(scene).toContain('root.userData.headPivot = headPivot;');
   expect(scene).toContain('templeAbbot.userData.headPivot.rotation.x = 0.015 + abbotBowAmount * 0.22;');
   expect(scene).toContain("position: root.position.toArray(), height: 2.61, facing: 'devotees', bowAmount: 0");
+  expect(scene).toContain('const abbotFocusTargets = [];');
+  expect(scene).toContain('const targetAbbotYaw = Math.atan2(');
+  expect(scene).toContain('templeAbbot.rotation.y += abbotYawDelta * abbotTurnBlend;');
+  expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__.focusUser = abbotFocusTargets');
   expect(scene).toContain('const templeAbbot = makeTempleAbbot();');
   expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
   expect(scene).toContain('window.__TEMPLE_ABBOT_DIAGNOSTIC__');
@@ -1172,6 +1176,12 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('actor.avatar.queueWorshipCompleted = true;');
     expect(scene).toContain("bowPhase: 'already-completed-in-queue'");
     expect(scene).toContain('if (queueFormationChanged) refreshQueueActors(now);');
+    expect(scene).toContain('const completedQueueWorship = createQueueWorshipLedger();');
+    expect(scene).toContain('completedQueueWorship.mark(getDevoteeIdentityKey(event));');
+    expect(scene).toContain('if (completedQueueWorship.has(identity))');
+    expect(scene).toContain('completedQueueWorship.complete(getDevoteeIdentityKey(completedEvent));');
+    expect(scene).toContain('finishGiftEjectionHandoff(now, null, { startNext: false });');
+    expect(scene).toContain('completedSideWorshipPendingFifo: completedQueueWorship.size,');
   });
 
   it('kneels and performs three bows after each visitor reaches an offering position', () => {
