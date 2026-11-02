@@ -161,9 +161,9 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('mainHuman.kneeling = ritualPose.kneelBlend > 0.035;');
     expect(scene).toContain('avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
-    expect(scene).toContain('animateHuman(mainHuman, now, ritualPose.walking, walkPhase);');
+    expect(scene).toContain('animateHuman(mainHuman, now, walking, walkPhase);');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
-    expect(scene).toContain('devoteeState.arrivedAt = now;');
+    expect(scene).toContain('setDevoteePhase('ritual', now, 4800);');
     expect(scene).toContain('mainHuman.kneelBlend = 0;');
   });
 
@@ -276,8 +276,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("makeRitualStation(3.75, -1.2, 'woodfish')");
     expect(scene).toContain("makeRitualStation(3.75, -5.4, 'fortune')");
     expect(scene).toContain('const ritualStations = [];');
-    expect(scene).toContain('camera.position.set(0, 11.75, 28.5);');
-    expect(scene).toContain('camera.lookAt(0, -1.5, -5.5);');
+    expect(scene).toContain('camera.position.copy(cameraHomePosition);');
+    expect(scene).toContain('camera.lookAt(cameraHomeTarget);');
   });
 
   it('makes modeled ritual stations directly clickable through raycasting', async () => {
@@ -483,8 +483,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.gltfWalkBlend = 0;');
     expect(scene).toContain('function animateHuman(avatar, time, walking = false, walkPhase = null)');
     expect(scene).toContain('const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;');
-    expect(scene).toContain('const eased = travel * travel * (3 - 2 * travel);');
-    expect(scene).toContain('const walkPhase = (eased * 11.2 / 2.2) * Math.PI * 2;');
+    expect(scene).toContain('const eased = progress * progress * (3 - 2 * progress);');
+    expect(scene).toContain('const walkPhase = phaseElapsed * 0.0085;');
   });
 
   it('returns a manually posed GLB bow to rest when the bow state ends', () => {
@@ -768,8 +768,8 @@ describe('3D sanctuary visual treatment', () => {
   it('eases the devotee bow pose smoothly into and out of the ritual', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const ritualPose = getRitualPoseState({');
-    expect(scene).toContain('elapsedAfterArrival: devoteeState.arrivedAt ? now - devoteeState.arrivedAt : 0,');
-    expect(scene).toContain('remainingMs: ritualUntil - now');
+    expect(scene).toContain('elapsedAfterArrival: ritualElapsed,');
+    expect(scene).toContain('remainingMs: devoteeState.phase === 'ritual' ? Math.max(0, devoteeState.phaseDuration - phaseElapsed) : 0');
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
   });
