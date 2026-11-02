@@ -2237,6 +2237,7 @@ async function boot() {
       actor.moveCurve = null;
       actor.moveStartedAt = 0;
       actor.moveDurationMs = 0;
+      actor.offeringStartedAt = now;
       return;
     }
     const middle = start.clone().lerp(target, 0.5);
@@ -2247,8 +2248,7 @@ async function boot() {
       'centripetal'
     );
     actor.moveStartedAt = now;
-    // A real walking pace, with a small minimum so a 1.45m queue advance
-    // remains visible instead of snapping forward between frames.
+    // A natural walking pace keeps each visitor's entrance readable.
     actor.moveDurationMs = Math.max(950, actor.moveCurve.getLength() / 1.45 * 1000);
   }
 
@@ -2276,13 +2276,20 @@ async function boot() {
         actor.appearance = appearance;
         actor.event = event;
         actor.group.visible = true;
-        // Start each visitor at their own spaced place in the same line.
-        actor.group.position.set(-3.62, 0.05, 15.3 + index * 1.38);
+        // Visitors gather in horizontal entry rows before moving toward the altar.
+        const entryColumn = index % 8;
+        const entryRow = Math.floor(index / 8);
+        actor.group.position.set(
+          (entryColumn - 3.5) * 1.12,
+          0.05,
+          15.3 + entryRow * 1.28
+        );
         actor.group.rotation.set(0, 0, 0);
         actor.moveTarget = null;
         actor.moveCurve = null;
         actor.moveStartedAt = 0;
         actor.moveDurationMs = 0;
+        actor.offeringStartedAt = 0;
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
