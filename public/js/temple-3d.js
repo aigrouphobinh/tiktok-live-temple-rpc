@@ -50,6 +50,8 @@ async function boot() {
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
   const cameraHomeFov = 42;
   const cameraRitualFov = 38.5;
+  const cameraAltarCloseFov = 31;
+  const cameraShotBlendMs = 720;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
   // One restrained 3/4 visitor shot is selected for an entire queue session.
@@ -65,30 +67,52 @@ async function boot() {
   let cameraTargetFov = cameraHomeFov;
   let activeCameraPreset = cameraRitualPresets[0];
   let cameraRitualActive = false;
+  let activeCameraShot = 'home';
   function beginRitualCamera() {
     if (cameraRitualActive) return;
     cameraRitualActive = true;
     activeCameraPreset = cameraRitualPresets[Math.floor(Math.random() * cameraRitualPresets.length)];
+    activeCameraShot = 'procession';
     cameraTargetPosition.copy(activeCameraPreset.position);
     cameraTargetFov = cameraRitualFov;
   }
   function restoreMainCamera() {
     cameraRitualActive = false;
+    activeCameraShot = 'home';
     cameraTargetPosition.copy(cameraHomePosition);
     cameraTargetLookAt.copy(cameraHomeTarget);
     cameraTargetFov = cameraHomeFov;
   }
   function updateRitualCamera(dt) {
-    const blend = 1 - Math.exp(-Math.min(50, dt) / 720);
+    const blend = 1 - Math.exp(-Math.min(50, dt) / cameraShotBlendMs);
     if (cameraRitualActive && devoteeState?.active && mainDevotee?.visible) {
       const person = mainDevotee.position;
-      // Track only a small part of the visitor's movement. The shot remains a
-      // stable temple view, but its focus no longer points below the floor.
-      cameraTargetLookAt.set(
-        THREE.MathUtils.clamp(person.x + activeCameraPreset.targetOffsetX, -4.1, 4.1),
-        1.25,
-        person.z
-      );
+      if (devoteeState.phase === 'ritual') {
+        // One medium close-up begins only after the visitor reaches the altar.
+        // It holds for the full bow sequence, then eases back to the procession
+        // view when another visitor starts or the altar is released.
+        const side = activeCameraPreset.targetOffsetX < -0.1 ? -1
+          : activeCameraPreset.targetOffsetX > 0.1 ? 1 : 0.55;
+        cameraTargetPosition.set(
+          person.x + side * 1.55,
+          3.9,
+          person.z + 6.2
+        );
+        cameraTargetLookAt.set(person.x + side * 0.08, 1.22, person.z - 0.42);
+        cameraTargetFov = cameraAltarCloseFov;
+        activeCameraShot = 'altar-close';
+      } else {
+        // Keep the full hall visible while the person enters, walks in the
+        // aisle, or is affected by a gift. Do not follow with a rapid pan.
+        cameraTargetPosition.copy(activeCameraPreset.position);
+        cameraTargetLookAt.set(
+          THREE.MathUtils.clamp(person.x + activeCameraPreset.targetOffsetX, -4.1, 4.1),
+          1.25,
+          person.z
+        );
+        cameraTargetFov = cameraRitualFov;
+        activeCameraShot = 'procession';
+      }
     } else if (!cameraRitualActive) {
       cameraTargetLookAt.copy(cameraHomeTarget);
     }
@@ -98,6 +122,7 @@ async function boot() {
     camera.fov += (cameraTargetFov - camera.fov) * blend;
     if (Math.abs(camera.fov - cameraTargetFov) > 0.015) camera.updateProjectionMatrix();
     camera.lookAt(lookTarget);
+    camera.userData.shotName = activeCameraShot;
   }
 
   const mats = {
