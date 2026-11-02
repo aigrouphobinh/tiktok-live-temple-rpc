@@ -930,6 +930,15 @@ const commentCooldownMap = new Map();
 // not fill with duplicate copies of the same account.
 const viewerEntryCooldownMap = new Map();
 const VIEWER_ENTRY_COOLDOWN_MS = 30000;
+let viewerStateBroadcastTimer = null;
+
+function scheduleViewerStateBroadcast() {
+  if (viewerStateBroadcastTimer) return;
+  viewerStateBroadcastTimer = setTimeout(() => {
+    viewerStateBroadcastTimer = null;
+    broadcastNotification('temple.state', getPublicState());
+  }, 650);
+}
 
 function parseViewerComment(commentText, user, uniqueId, avatar) {
   const raw = String(commentText || '').trim();
@@ -1112,7 +1121,9 @@ async function connectTikTokLive(usernameOrUrl) {
       viewer: { user, uniqueId, avatar, joinedAt: now },
       viewerCount: Number(state.tiktok.viewerCount || 0)
     });
-    broadcastNotification('temple.state', getPublicState());
+    // Batch state refreshes during large initial MEMBER bursts; the 3D arrival
+    // event above remains immediate so each real viewer can walk to a seat.
+    scheduleViewerStateBroadcast();
   });
 
   connection.on(WebcastEvent.CHAT, (data) => {
