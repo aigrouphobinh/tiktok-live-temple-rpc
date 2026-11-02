@@ -389,7 +389,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("modelParams.get('buddha') !== '0'");
     expect(scene).toContain('modelsRequested || buddhaModelRequested');
     expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading'");
-    expect(loader).toContain("assetSource = 'mia-cc0-gilt-bronze'");
+    expect(loader).toContain("{ url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }");
     expect(loader).toContain("assetSource === 'mia-cc0-gilt-bronze'");
     expect(scene).toContain('function applyGiltFinish(root)');
     expect(scene).toContain('material.color.setHex(0xc99a3c)');
