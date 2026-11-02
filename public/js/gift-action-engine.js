@@ -336,7 +336,12 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
     clearTimeout(cooldownTimer);
     clearDelayedEffectTimers();
     const token = ++effectToken;
-    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: { action, effectId: token, hasTarget: Boolean(hasTarget), reactionProfile: resolveGiftReactionProfile(giftEvent || {}) } }));
+    window.dispatchEvent(new CustomEvent('temple:gift-action', { detail: {
+      action, effectId: token, hasTarget: Boolean(hasTarget),
+      effectDurationMs: EFFECT_DURATION[action] || 3500,
+      handoffDelayMs: 650,
+      reactionProfile: resolveGiftReactionProfile(giftEvent || {})
+    } }));
     clearActiveEffects();
     // Every new gift action owns the central character animation. Cancel the
     // previous action's motion even when the incoming action (e.g. Rose) has
@@ -366,6 +371,10 @@ import { GiftEffectRegistry } from './gift-effect-registry.js';
         if (next.started) {
           window.dispatchEvent(new CustomEvent('temple:character-start', { detail: next.event }));
           startCharacterTimer(next.event);
+        } else {
+          window.dispatchEvent(new CustomEvent('temple:gift-effects-complete', {
+            detail: { effectId: token, action }
+          }));
         }
       }, 650);
     }, EFFECT_DURATION[action] || 3500);
