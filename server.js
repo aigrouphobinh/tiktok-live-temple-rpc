@@ -6,7 +6,9 @@ const { spawn } = require('child_process');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
-const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
+const { normalizeGiftPayload, getGiftComboDelta, clearGiftComboTracker } = require('./lib/tiktok-gift-payload.cjs');
+const { classifyTempleComment } = require('./lib/temple-comment-parser.cjs');
+const { normalizeTempleSettings } = require('./lib/temple-settings.cjs');
 const { buildEffectTestPayload } = require('./lib/effect-test-presets.cjs');
 
 const PORT = process.env.PORT || 3000;
@@ -192,8 +194,18 @@ class ZeroTTSManager {
         }
       } else if (msg.type === 'error') {
         console.error('[ZeroTTS Error]', msg.error);
-        this.status = 'error';
-        broadcastNotification('tts.status', this.getStatus());
+        if (msg.id != null) {
+          const entry = this.pending.get(msg.id);
+          if (entry) {
+            clearTimeout(entry.timer);
+            this.pending.delete(msg.id);
+            entry.resolve({ ok: false, error: msg.error || 'ZeroTTS synthesis failed' });
+          }
+        } else {
+          this.status = 'error';
+          this.ready = false;
+          broadcastNotification('tts.status', this.getStatus());
+        }
       }
     } catch (err) {
       console.log('[ZeroTTS stdout]', line);
@@ -268,6 +280,9 @@ const DEFAULT_STATE = {
     ttsVoice: 'maichi',
     bgMusicEnabled: true,
     sfxEnabled: true,
+    musicVolume: 0.65,
+    ttsVolume: 0.95,
+    sfxVolume: 0.8,
     smokeDensity: 1.0,
     autoSim: false,
     autoSimIntervalMs: 9500
@@ -583,7 +598,8 @@ const Rituals = {
     const user = sanitizeUserName(params.user);
     const uniqueId = params.uniqueId || '';
     const avatar = params.avatar || '';
-    const coins = Math.max(1, Number(params.coins) || 10);
+    const rawCoins = Number(params.coins);
+    const coins = Number.isFinite(rawCoins) ? Math.min(1000000, Math.max(1, rawCoins)) : 10;
     const giftType = ['lotus', 'fruit', 'lamp', 'dragon'].includes(params.giftType)
       ? params.giftType
       : (coins >= 100 ? 'dragon' : coins >= 20 ? 'fruit' : coins >= 5 ? 'lamp' : 'lotus');
@@ -618,8 +634,8 @@ const Rituals = {
       giftId: params.giftId == null ? '' : String(params.giftId).slice(0, 80),
       giftName,
       giftGroupId: params.giftGroupId ? String(params.giftGroupId).slice(0, 180) : '',
-      giftComboDelta: Math.max(1, Number(params.giftComboDelta) || 1),
-      giftRepeatCount: Math.max(1, Number(params.giftRepeatCount) || 1),
+      giftComboDelta: Math.min(100000, Math.max(1, Math.floor(Number(params.giftComboDelta) || 1))),
+      giftRepeatCount: Math.min(100000, Math.max(1, Math.floor(Number(params.giftRepeatCount) || 1))),
       giftRepeatEnd: Boolean(params.giftRepeatEnd),
       giftStreakable: Boolean(params.giftStreakable),
       coins,
@@ -676,12 +692,13 @@ const Rituals = {
   },
 
   updateSettings(params = {}) {
-    state.settings = {
-      ...state.settings,
-      ...params
-    };
-    if (typeof params.autoSim === 'boolean') {
-      configureAutoSim(params.autoSim);
+    const previousAutoSim = state.settings.autoSim;
+    const previousInterval = state.settings.autoSimIntervalMs;
+    state.settings = normalizeTempleSettings(state.settings, params);
+    if (typeof params.autoSim === 'boolean' && params.autoSim !== previousAutoSim) {
+      configureAutoSim(state.settings.autoSim);
+    } else if (state.settings.autoSim && state.settings.autoSimIntervalMs !== previousInterval) {
+      restartAutoSimInterval();
     }
     saveState();
     broadcastNotification('temple.state', getPublicState());
@@ -739,66 +756,20 @@ function parseViewerComment(commentText, user, uniqueId, avatar) {
   }
 
   const cleanUser = sanitizeUserName(user);
-  const lower = cleanWish.toLowerCase();
-
-  // 1. Xin xăm / Gieo quẻ
-  if (
-    lower.includes('xin xăm') ||
-    lower.includes('xin xam') ||
-    lower.includes('gieo quẻ') ||
-    lower.includes('gieo que') ||
-    lower.includes('rút quẻ') ||
-    lower.includes('rut que') ||
-    lower.includes('quẻ') ||
-    lower.includes('que')
-  ) {
-    return Rituals.drawFortune({ user: cleanUser, uniqueId, avatar, topic: cleanWish });
+  switch (classifyTempleComment(cleanWish)) {
+    case 'fortune':
+      return Rituals.drawFortune({ user: cleanUser, uniqueId, avatar, topic: cleanWish });
+    case 'bell':
+      return Rituals.ringBell({ user: cleanUser, uniqueId, avatar, count: 1, wish: cleanWish, readTts: true });
+    case 'woodenFish':
+      return Rituals.strikeWoodenFish({ user: cleanUser, uniqueId, avatar, count: 3 });
+    case 'incense':
+      return Rituals.burnIncense({ user: cleanUser, uniqueId, avatar, count: 3, wish: cleanWish });
+    case 'prayer':
+      return Rituals.sendPrayer({ user: cleanUser, uniqueId, avatar, wish: cleanWish });
+    default:
+      return Rituals.burnIncense({ user: cleanUser, uniqueId, avatar, count: 1, wish: cleanWish });
   }
-
-  // 2. Thỉnh chuông
-  if (lower.includes('chuông') || lower.includes('chuong') || lower.includes('thỉnh chuông')) {
-    return Rituals.ringBell({ user: cleanUser, uniqueId, avatar, count: 1, wish: cleanWish, readTts: true });
-  }
-
-  // 3. Gõ mõ
-  if (lower.includes('gõ mõ') || lower.includes('go mo') || lower.includes('tụng kinh')) {
-    return Rituals.strikeWoodenFish({ user: cleanUser, uniqueId, avatar, count: 3 });
-  }
-
-  // 4. Thắp hương / Bái Phật
-  if (
-    lower.includes('thắp hương') ||
-    lower.includes('thap huong') ||
-    lower.includes('dâng hương') ||
-    lower.includes('dang huong') ||
-    lower.includes('bái phật') ||
-    lower.includes('bai phat') ||
-    lower.includes('lạy phật') ||
-    lower.includes('lay phat')
-  ) {
-    return Rituals.burnIncense({ user: cleanUser, uniqueId, avatar, count: 3, wish: cleanWish });
-  }
-
-  // 5. Cầu nguyện / Thả đèn hoa đăng
-  if (
-    lower.includes('cầu') ||
-    lower.includes('cau ') ||
-    lower.includes('nguyện') ||
-    lower.includes('nguyen') ||
-    lower.includes('nam mô') ||
-    lower.includes('nam mo') ||
-    lower.includes('mô phật') ||
-    lower.includes('mo phat') ||
-    lower.includes('a di đà') ||
-    lower.includes('a di da') ||
-    lower.includes('bình an') ||
-    lower.includes('tài lộc') ||
-    lower.includes('chúc')
-  ) {
-    return Rituals.sendPrayer({ user: cleanUser, uniqueId, avatar, wish: cleanWish });
-  }
-
-  return Rituals.burnIncense({ user: cleanUser, uniqueId, avatar, count: 1, wish: cleanWish });
 }
 
 const giftComboTracker = new Map();
@@ -856,7 +827,7 @@ async function connectTikTokLive(usernameOrUrl) {
   }
   // A reconnect starts a new streak session; never carry cumulative counts
   // across rooms/connections even if TikTok reuses a group ID.
-  giftComboTracker.clear();
+  clearGiftComboTracker(giftComboTracker);
 
   state.tiktok = {
     connected: false,
@@ -889,7 +860,7 @@ async function connectTikTokLive(usernameOrUrl) {
 
   connection.on(ControlEvent.DISCONNECTED, () => {
     if (!isCurrentConnection()) return;
-    giftComboTracker.clear();
+    clearGiftComboTracker(giftComboTracker);
     state.tiktok.connected = false;
     state.tiktok.connecting = false;
     console.log(`[TikTok Live] Đã ngắt kết nối @${cleanUser}`);
@@ -1018,7 +989,7 @@ async function connectTikTokLive(usernameOrUrl) {
   } catch (err) {
     const message = err?.message || 'Không thể kết nối phòng Live (kiểm tra tài khoản đang phát Live chưa)';
     if (isCurrentConnection()) {
-      giftComboTracker.clear();
+      clearGiftComboTracker(giftComboTracker);
       state.tiktok.connected = false;
       state.tiktok.connecting = false;
       state.tiktok.lastError = message;
@@ -1035,7 +1006,7 @@ function disconnectTikTokLive() {
     } catch (_) {}
     tiktokConn = null;
   }
-  giftComboTracker.clear();
+  clearGiftComboTracker(giftComboTracker);
   state.tiktok.connected = false;
   state.tiktok.connecting = false;
   state.tiktok.viewerCount = 0;
@@ -1080,8 +1051,15 @@ function configureAutoSim(enabled) {
   }
   if (state.settings.autoSim) {
     runSingleSimulationStep();
-    autoSimTimer = setInterval(runSingleSimulationStep, state.settings.autoSimIntervalMs || 9500);
+    restartAutoSimInterval();
   }
+}
+
+function restartAutoSimInterval() {
+  if (!state.settings.autoSim) return;
+  if (autoSimTimer) clearInterval(autoSimTimer);
+  const intervalMs = Math.max(5000, Math.min(60000, Number(state.settings.autoSimIntervalMs) || 9500));
+  autoSimTimer = setInterval(runSingleSimulationStep, intervalMs);
 }
 
 // ============================================================================
