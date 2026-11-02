@@ -105,6 +105,8 @@ describe('Three.js opt-in GPU diagnostics', () => {
     expect(visualAuditSource).not.toContain("[Temple3D] GPU frame stats");
     expect(visualAuditSource).toContain('buddhaStatueSourceLoaded:');
     expect(visualAuditSource).toContain('buddhaModelDiagnosticCompleted:');
+    expect(visualAuditSource).toContain('aoDaiRigsActive:');
+    expect(visualAuditSource).toContain('__TEMPLE_AODAI_DIAGNOSTIC__');
     expect(visualAuditSource).toContain("'mia-cc0-gilt-bronze'");
     expect(visualAuditSource).not.toContain('buddhaModelLoaded:');
     expect(source).toContain("sampleQuality: percentilesReliable ? 'reliable' : 'insufficient'");
