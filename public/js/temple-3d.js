@@ -1932,6 +1932,59 @@ async function boot() {
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
   const mainHuman=makeHumanAvatar(1.72);mainDevotee.add(mainHuman.root);
+  // Full TikTok username tag follows the active devotee's head in 3D mode,
+  // matching the untruncated name shown above the 2D central worshipper.
+  function createDevoteeNameTag() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 160;
+    const context = canvas.getContext('2d');
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    const material = new THREE.SpriteMaterial({
+      map: texture, transparent: true, depthTest: false, depthWrite: false
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.set(0, 2.08, 0);
+    sprite.scale.set(3.45, 0.54, 1);
+    sprite.renderOrder = 30;
+
+    function setName(value) {
+      const name = String(value || 'Thí Chủ Hữu Duyên').trim() || 'Thí Chủ Hữu Duyên';
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      const padX = 30, boxY = 18, boxH = 116, radius = 34;
+      context.beginPath();
+      context.roundRect(padX, boxY, canvas.width - padX * 2, boxH, radius);
+      context.fillStyle = 'rgba(24, 12, 5, 0.88)';
+      context.fill();
+      context.lineWidth = 5;
+      context.strokeStyle = 'rgba(255, 218, 139, 0.96)';
+      context.stroke();
+      let fontSize = 62;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      do {
+        context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
+        if (context.measureText(name).width <= canvas.width - 120) break;
+        fontSize -= 2;
+      } while (fontSize > 28);
+      context.fillStyle = '#fff0c2';
+      context.shadowColor = 'rgba(255, 190, 74, 0.55)';
+      context.shadowBlur = 12;
+      context.fillText(name, canvas.width / 2, canvas.height / 2, canvas.width - 120);
+      texture.needsUpdate = true;
+    }
+
+    setName('Thí Chủ Hữu Duyên');
+    sprite.userData.setName = setName;
+    return sprite;
+  }
+  const devoteeNameTag = createDevoteeNameTag();
+  mainHuman.root.add(devoteeNameTag);
+  function updateMainDevoteeName(user) {
+    devoteeNameTag.userData.setName(user || 'Thí Chủ Hữu Duyên');
+  }
   const devoteeState={active:false,startedAt:0,duration:2600,arrivedAt:0};
 
   // Prayer flags, side screens and lotus planters give the hall a lived-in scale.
@@ -2298,6 +2351,7 @@ async function boot() {
     if (stationKindByAction[event.type]) triggerRitualStation(stationKindByAction[event.type]);
     ritualUntil = performance.now() + 7800;
     if (event.type === 'burnIncense') {
+      updateMainDevoteeName(event.user);
       incenseEffect(); makeRing(0, 1.2, -5.6);
       mainDevotee.visible = true;
       mainDevotee.position.z = 7.5;
