@@ -96,6 +96,7 @@ try {
       consoleErrors: errors,
       modelWarnings,
       buddhaModelDiagnostic: null,
+      aoDaiDiagnostic: null,
       failedRequests,
       httpErrors,
       checks: {}
@@ -276,6 +277,9 @@ try {
           readyFlag: window.__TEMPLE_3D_READY__ === true,
           buddhaModelSource: window.__TEMPLE_BUDDHA_MODEL_SOURCE__ ?? null,
           buddhaModelDiagnostic: window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ ?? null,
+          aoDaiDiagnostic: typeof window.__TEMPLE_AODAI_DIAGNOSTIC__ === 'function'
+            ? window.__TEMPLE_AODAI_DIAGNOSTIC__()
+            : null,
           userAgent: navigator.userAgent,
           devicePixelRatio: window.devicePixelRatio,
           browserHints: {
@@ -309,6 +313,7 @@ try {
 
       profileReport.buddhaModelSource = scene.buddhaModelSource;
       profileReport.buddhaModelDiagnostic = scene.buddhaModelDiagnostic;
+      profileReport.aoDaiDiagnostic = scene.aoDaiDiagnostic;
       profileReport.modelWarnings = modelWarnings;
       profileReport.httpErrors = httpErrors;
       profileReport.browserHints = scene.browserHints;
@@ -360,6 +365,10 @@ try {
           && scene.buddhaModelDiagnostic?.source === scene.buddhaModelSource
           && Array.isArray(scene.buddhaModelDiagnostic?.attempts)
           && scene.buddhaModelDiagnostic.attempts.some((attempt) => attempt.ok),
+        aoDaiRigsActive: scene.aoDaiDiagnostic?.source === 'ao-dai-local'
+          && Number(scene.aoDaiDiagnostic?.maleCount) > 0
+          && Number(scene.aoDaiDiagnostic?.femaleCount) > 0
+          && scene.aoDaiDiagnostic?.legacyGirlGlbEnabled === false,
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
