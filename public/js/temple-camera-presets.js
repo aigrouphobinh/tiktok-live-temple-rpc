@@ -2,10 +2,10 @@
 // Altar close-ups sit farther back and use a wider FOV than the previous framing.
 export const TEMPLE_CAMERA_RITUAL_PRESETS = Object.freeze([
   Object.freeze({ name: 'left-three-quarter', position: Object.freeze([-3.0, 11.15, 27.2]), targetOffsetX: -1.12, targetOffsetY: 1.22, targetOffsetZ: 0, processionFov: 39, closePositionOffset: Object.freeze([-1.6, 6.6, 10.3]), closeLookAtOffset: Object.freeze([-0.3, 1.55, -0.6]), closeFov: 38.5 }),
-  Object.freeze({ name: 'right-three-quarter', position: Object.freeze([3.0, 11.15, 27.2]), targetOffsetX: 1.12, targetOffsetY: 1.22, targetOffsetZ: 0, processionFov: 39, closePositionOffset: Object.freeze([1.6, 6.6, 10.3]), closeLookAtOffset: Object.freeze([0.3, 1.55, -0.6]), closeFov: 40 }),
+  Object.freeze({ name: 'right-three-quarter', position: Object.freeze([3.0, 11.15, 27.2]), targetOffsetX: 1.12, targetOffsetY: 1.22, targetOffsetZ: 0, processionFov: 39, closePositionOffset: Object.freeze([1.6, 6.6, 10.3]), closeLookAtOffset: Object.freeze([0.3, 1.55, -0.6]), closeFov: 38.5 }),
   Object.freeze({ name: 'center-elevated', position: Object.freeze([0.15, 13.05, 30.2]), targetOffsetX: 0.05, targetOffsetY: 1.82, targetOffsetZ: 0.35, processionFov: 40.5, closePositionOffset: Object.freeze([0.15, 7.5, 11.0]), closeLookAtOffset: Object.freeze([0.05, 1.6, -0.55]), closeFov: 40 }),
-  Object.freeze({ name: 'left-side', position: Object.freeze([-4.2, 10.45, 25.35]), targetOffsetX: -1.62, targetOffsetY: 1.1, targetOffsetZ: -0.15, processionFov: 38.5, closePositionOffset: Object.freeze([-2.1, 6.4, 10.2]), closeLookAtOffset: Object.freeze([-0.45, 1.5, -0.5]), closeFov: 38.5 }),
-  Object.freeze({ name: 'right-side', position: Object.freeze([4.2, 10.45, 25.35]), targetOffsetX: 1.62, targetOffsetY: 1.1, targetOffsetZ: -0.15, processionFov: 38.5, closePositionOffset: Object.freeze([2.1, 6.4, 10.2]), closeLookAtOffset: Object.freeze([0.45, 1.5, -0.5]), closeFov: 39 })
+  Object.freeze({ name: 'left-side', position: Object.freeze([-4.2, 10.45, 25.35]), targetOffsetX: -1.62, targetOffsetY: 1.1, targetOffsetZ: -0.15, processionFov: 38.5, closePositionOffset: Object.freeze([-3.25, 6.3, 10.1]), closeLookAtOffset: Object.freeze([-0.85, 1.5, -0.5]), closeFov: 40 }),
+  Object.freeze({ name: 'right-side', position: Object.freeze([4.2, 10.45, 25.35]), targetOffsetX: 1.62, targetOffsetY: 1.1, targetOffsetZ: -0.15, processionFov: 38.5, closePositionOffset: Object.freeze([3.25, 6.3, 10.1]), closeLookAtOffset: Object.freeze([0.85, 1.5, -0.5]), closeFov: 40 })
 ]);
 
 export function getTempleRitualShotIndex(startIndex, elapsedMs, durationMs, shotCount = TEMPLE_CAMERA_RITUAL_PRESETS.length) {

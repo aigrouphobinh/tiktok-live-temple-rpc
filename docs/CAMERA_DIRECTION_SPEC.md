@@ -57,5 +57,5 @@ These are variations of one camera, not separate camera shots. Exact amplitudes 
 ## Five-shot ritual sequence — 2026-11-02
 - A single Three.js camera advances through all five named presets during each 9.5-second altar ritual; the starting preset is randomized per visitor and the remaining four follow in order.
 - Each shot has its own camera position, look target, procession framing, altar-close offset and FOV. The 720ms interpolation remains continuous; no hard cuts or extra cameras are introduced.
-- Altar close-ups are framed farther back than the previous offsets (10.2–11.0 world units in depth) and use a wider 38.5–40° FOV to keep the devotee and altar comfortable in the 9:16 frame.
+- Altar close-ups are framed farther back than the previous offsets (10.1–11.0 world units in depth) and use a wider 38.5–40° FOV to keep the devotee and altar comfortable in the 9:16 frame.
 - `camera.userData.shotPreset` and `camera.userData.shotSequenceIndex` expose the active preset for diagnostics and visual regression checks.

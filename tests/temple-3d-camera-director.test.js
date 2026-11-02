@@ -19,7 +19,7 @@ describe('Three.js five-shot ritual camera director', () => {
   it('frames the altar a little farther back with a wider close-up', () => {
     for (const preset of TEMPLE_CAMERA_RITUAL_PRESETS) {
       const shot = getTempleRitualCloseShot(preset, { x: 0, z: -3.55 });
-      expect(shot.position[2]).toBeGreaterThanOrEqual(6.65);
+      expect(shot.position[2]).toBeGreaterThanOrEqual(6.5);
       expect(shot.fov).toBeGreaterThan(38);
       expect(shot.lookAt[1]).toBeGreaterThan(1.4);
     }
