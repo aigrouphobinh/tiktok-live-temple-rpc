@@ -509,8 +509,8 @@ it('adds a non-interactive cinematic vignette only in 3D mode', () => {
 
   it('reports available GLB animation names, duration, tracks and targets', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("'available clips:', Object.fromEntries(['male', 'female'].map((gender) => [
-          (devoteeModelAssets[gender].animations || []).map((clip) => ({");
+    expect(scene).toContain("'available clips:', Object.fromEntries(['male', 'female'].map((gender) => [");
+    expect(scene).toContain('(devoteeModelAssets[gender].animations || []).map((clip) => ({');
     expect(scene).toContain("name: clip.name || '(unnamed)'");
     expect(scene).toContain('duration: Number.isFinite(clip.duration)');
     expect(scene).toContain('tracks: clip.tracks.length');
