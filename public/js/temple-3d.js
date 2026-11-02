@@ -2528,26 +2528,21 @@ async function boot() {
       context.strokeStyle = '#f5ce78';
       context.stroke();
 
-      // Fixed text column prevents long usernames from stretching the tag.
-      // Keep the complete username in profileName; only the rendered label is
-      // ellipsized to fit the compact 3D nameplate.
-      const maxNameWidth = 560;
+      // Preserve the full TikTok username. Reduce the font progressively
+      // instead of replacing the tail with an ellipsis on long account IDs.
+      const maxNameWidth = 780;
       let fontSize = 58;
-      let displayName = name;
       context.textAlign = 'left';
       context.textBaseline = 'middle';
       context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-      while (displayName.length > 8 && context.measureText(displayName).width > maxNameWidth) {
-        displayName = displayName.slice(0, -2).trimEnd() + '…';
-      }
-      while (fontSize > 42 && context.measureText(displayName).width > maxNameWidth) {
+      while (fontSize > 20 && context.measureText(name).width > maxNameWidth) {
         fontSize -= 2;
         context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
       }
       context.fillStyle = '#fff0c2';
       context.shadowColor = 'rgba(255, 190, 74, 0.55)';
       context.shadowBlur = 12;
-      context.fillText(displayName, 205, 98, maxNameWidth);
+      context.fillText(name, 205, 98, maxNameWidth);
       context.shadowBlur = 0;
       texture.needsUpdate = true;
     }
