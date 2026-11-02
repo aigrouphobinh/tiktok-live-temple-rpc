@@ -2013,6 +2013,7 @@ async function boot() {
     };
     setHumanAppearance(avatar, appearance);
     allHumanAvatars.push(avatar);
+    if (devoteeModelAssets) void upgradeDevoteesFromGLB();
     return avatar;
   }
 
@@ -2097,32 +2098,41 @@ async function boot() {
     avatar.rightHand.rotation.x = upperPose.wristPitch;
   }
 
+  let devoteeModelAssets = null;
+  let devoteeModelLoadPromise = null;
+
   async function upgradeDevoteesFromGLB() {
     try {
       const [{ loadGLTFAsset }, { clone }, { findBestAnimationClip }] = await Promise.all([
-        import('./three-model-loader.js?v=centerline-upright-20261102-1'),
+        import('./three-model-loader.js?v=quaternius-glTF-20261102-1'),
         import('three/addons/utils/SkeletonUtils.js'),
         import('./three-animation-utils.js')
       ]);
-      const asset = await loadGLTFAsset('/assets/models/devotee-selected.glb', {
-        targetHeight: 1.72,
-        centerXZ: true
-      });
-      if (disposed) { asset.dispose(); return; }
-      // SkeletonUtils.clone shares immutable geometry/material/texture resources
-      // with the source GLB. Keep that source attached but hidden so the single
-      // scene-level disposer owns both source and avatar clones without leaks.
-      asset.root.visible = false;
-      world.add(asset.root);
-      const animations = asset.animations || [];
-      const gltfActions = findBestAnimationClip(animations);
-      const replacements = allHumanAvatars.map(() => clone(asset.root));
-      for (const [avatarIndex, avatar] of allHumanAvatars.entries()) {
+      // Keep one hidden source per gender; clone safely for each live devotee.
+      if (!devoteeModelLoadPromise) {
+        devoteeModelLoadPromise = Promise.all([
+          loadGLTFAsset('/assets/models/glTF/Casual_Male.gltf', { targetHeight: 1.72, centerXZ: true }),
+          loadGLTFAsset('/assets/models/glTF/Casual_Female.gltf', { targetHeight: 1.72, centerXZ: true })
+        ]).then(([male, female]) => {
+          if (disposed) { male.dispose(); female.dispose(); return null; }
+          male.root.visible = false;
+          female.root.visible = false;
+          world.add(male.root, female.root);
+          return { male, female };
+        }).catch((error) => { devoteeModelLoadPromise = null; throw error; });
+      }
+      devoteeModelAssets = await devoteeModelLoadPromise;
+      if (!devoteeModelAssets || disposed) return;
+      const pendingAvatars = allHumanAvatars.filter((avatar) => !avatar.gltfRoot);
+      for (const avatar of pendingAvatars) {
+        const asset = avatar.gender === 'female' ? devoteeModelAssets.female : devoteeModelAssets.male;
+        const animations = asset.animations || [];
+        const gltfActions = findBestAnimationClip(animations);
         // Keep procedural fallback nodes attached but hidden: their primitive
         // geometry/materials may be shared with the sanctuary's cached meshes.
         // Scene teardown owns and releases these resources exactly once.
         for (const child of avatar.root.children) child.visible = false;
-        const model = replacements[avatarIndex];
+        const model = clone(asset.root);
         avatar.root.add(model);
         avatar.gltfRoot = model;
         avatar.gltfActions = gltfActions;
@@ -2219,20 +2229,22 @@ async function boot() {
         avatar.gltfRig.leftLegChain = inspectLegChain(bones.leftLeg, bones.leftKnee, bones.leftFoot);
         avatar.gltfRig.rightLegChain = inspectLegChain(bones.rightLeg, bones.rightKnee, bones.rightFoot);
       }
-      console.info(`[Temple3D] Selected devotee GLB applied to ${allHumanAvatars.length} characters; mapped clips:`,
-        Object.entries(gltfActions).filter(([, clip]) => clip).map(([name, clip]) => `${name}=${clip.name}`),
-        'available clips:', animations.map((clip) => ({
-          name: clip.name || '(unnamed)',
-          duration: Number.isFinite(clip.duration) ? Number(clip.duration.toFixed(2)) : null,
-          tracks: clip.tracks.length,
-          targets: [...new Set(clip.tracks.map((track) => track.name.split('.')[0]))].slice(0, 12)
-        })),
-        'rig:', Object.fromEntries(Object.entries(allHumanAvatars[0]?.gltfRig || {})
+      }
+      console.info(`[Temple3D] Quaternius glTF applied to ${pendingAvatars.length} new characters.`,
+        'available clips:', Object.fromEntries(['male', 'female'].map((gender) => [gender,
+          (devoteeModelAssets[gender].animations || []).map((clip) => ({
+            name: clip.name || '(unnamed)',
+            duration: Number.isFinite(clip.duration) ? Number(clip.duration.toFixed(2)) : null,
+            tracks: clip.tracks.length,
+            targets: [...new Set(clip.tracks.map((track) => track.name.split('.')[0]))].slice(0, 12)
+          }))
+        ])),
+        'rig:', Object.fromEntries(Object.entries(allHumanAvatars.find((avatar) => avatar.gltfRoot)?.gltfRig || {})
           .filter(([key, value]) => !key.endsWith('Rest') && value?.isBone)
           .map(([key, value]) => [key, value.name])),
         'leg chains:', {
-          left: allHumanAvatars[0]?.gltfRig?.leftLegChain || { valid: false },
-          right: allHumanAvatars[0]?.gltfRig?.rightLegChain || { valid: false }
+          left: allHumanAvatars.find((avatar) => avatar.gltfRoot)?.gltfRig?.leftLegChain || { valid: false },
+          right: allHumanAvatars.find((avatar) => avatar.gltfRoot)?.gltfRig?.rightLegChain || { valid: false }
         });
     } catch (error) {
       console.warn('[Temple3D] Optional devotee GLB unavailable; keeping procedural characters:', error);
@@ -3983,8 +3995,8 @@ async function boot() {
     window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';
     void upgradeBuddhaFromGLB();
   }
-  if (modelsRequested) {
-    console.info('[Temple3D] Legacy humanoid GLB override is disabled; male/female Ao Dai rigs stay active.');
-  }
+  // Use the vendored male/female glTF models in normal sessions; keep the
+  // procedural Ao Dai avatars visible as a fallback until each clone is ready.
+  void upgradeDevoteesFromGLB();
   console.info('[Temple3D] Full sanctuary world ready (?3d=1), with male/female Ao Dai devotees and stone Buddha.');
 }
