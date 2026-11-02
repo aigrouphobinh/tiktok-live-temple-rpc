@@ -147,7 +147,7 @@ export function getWalkBodyPose(phase, blend = 1) {
   return {
     bodyBob: (0.012 + Math.max(0, Math.cos(safePhase * 2)) * 0.018) * amount,
     lateralSway: Math.sin(safePhase + Math.PI / 2) * 0.018 * amount,
-    torsoLean: -step * 0.035 * amount,
+    torsoLean: amount === 0 || step === 0 ? 0 : -step * 0.035 * amount,
     torsoTwist: doubleStep * 0.018 * amount
   };
 }
