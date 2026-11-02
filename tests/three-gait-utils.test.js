@@ -101,6 +101,26 @@ describe('getRitualPoseState', () => {
     expect(halfway.bowAmount).toBeLessThan(1);
   });
 
+  it('performs three distinct prostration bows instead of holding one static bow', () => {
+    const poseAt = (elapsedAfterArrival) => getRitualPoseState({
+      travel: 1,
+      elapsedAfterArrival,
+      remainingMs: 10000,
+      kneelInMs: 0,
+      bowDelayMs: 100,
+      bowCycles: 3,
+      bowCycleMs: 1000
+    });
+    expect(poseAt(200).bowAmount).toBeGreaterThan(0);
+    expect(poseAt(500).bowAmount).toBeGreaterThan(0.95);
+    expect(poseAt(1000).bowAmount).toBeCloseTo(0, 8);
+    expect(poseAt(1500).bowAmount).toBeGreaterThan(0.95);
+    expect(poseAt(2000).bowAmount).toBeCloseTo(0, 8);
+    expect(poseAt(2500).bowAmount).toBeGreaterThan(0.95);
+    expect(poseAt(3200).bowAmount).toBeCloseTo(0, 8);
+    expect(poseAt(5000).kneelBlend).toBeCloseTo(1, 8);
+  });
+
   it('fades the kneel and bow out together at the end of the ritual', () => {
     const pose = getRitualPoseState({ travel: 1, elapsedAfterArrival: 2500, remainingMs: 325 });
     expect(pose.kneelBlend).toBeGreaterThan(0);
