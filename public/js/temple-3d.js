@@ -85,9 +85,9 @@ async function boot() {
       // Track only a small part of the visitor's movement. The shot remains a
       // stable temple view, but its focus no longer points below the floor.
       cameraTargetLookAt.set(
-        THREE.MathUtils.clamp(person.x * 0.2 + activeCameraPreset.targetOffsetX, -1.35, 1.35),
+        THREE.MathUtils.clamp(person.x * 0.28 + activeCameraPreset.targetOffsetX, -1.8, 1.8),
         1.45,
-        THREE.MathUtils.clamp(-3.55 + (person.z + 3.55) * 0.075, -4.65, -2.2)
+        THREE.MathUtils.clamp(-3.55 + (person.z + 3.55) * 0.34, -4.7, 4.2)
       );
     } else if (!cameraRitualActive) {
       cameraTargetLookAt.copy(cameraHomeTarget);
