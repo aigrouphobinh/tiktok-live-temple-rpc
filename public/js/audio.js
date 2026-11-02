@@ -88,7 +88,7 @@ class TempleAudioEngine {
       this.sfxGain.connect(this.sfxOutput);
     }
     this.sfxGain.gain.setTargetAtTime(this.sfxEnabled ? this.sfxVolume : 0, this.ctx.currentTime, 0.025);
-    this.unlocked = true;
+    this.unlocked = this.ctx.state === 'running';
     if (this.bgMusicEnabled) {
       this.startZenAmbience();
     }
