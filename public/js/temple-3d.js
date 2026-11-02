@@ -3077,6 +3077,9 @@ async function boot() {
         bowInMs: 900,
         bowCycles: 3,
         bowCycleMs: 1050,
+        bowDownRatio: 0.30,
+        bowHoldRatio: 0.20,
+        bowUpRatio: 0.30,
         exitFadeMs: 450
       });
       mainHuman.kneelBlend = ritualPose.kneelBlend;
