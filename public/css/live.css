@@ -3235,3 +3235,22 @@ body.obs-mode .stage-wrapper {
   .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-name { font-size: 10px; }
   .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-merit { font-size: 13px; }
 }
+
+
+/* Tấm Lòng Thành: double-size supporter avatars (2x), preserving card layout. */
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-item {
+  grid-template-rows: 112px minmax(16px, auto) auto;
+}
+.stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar {
+  width: 110px;
+  height: 110px;
+}
+@media (max-width: 480px) {
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-item {
+    grid-template-rows: 94px minmax(14px, auto) auto;
+  }
+  .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar {
+    width: 92px;
+    height: 92px;
+  }
+}
