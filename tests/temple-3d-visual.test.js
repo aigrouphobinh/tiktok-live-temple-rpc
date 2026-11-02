@@ -1107,11 +1107,11 @@ describe('ritual prayer hand alignment', () => {
 describe('3D multi-devotee incense offering', () => {
   it('moves all visible devotees into horizontal altar rows instead of a single-file waiting lane', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
+    expect(scene).toContain('MAX_VISIBLE_QUEUE_ACTORS }');
     expect(scene).toContain('devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS)');
-    expect(scene).toContain("import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout } from './devotee-formation.js';");
-    expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
-    expect(scene).toContain('const altarPosition = getHorizontalFormationPosition(slot, {');
+    expect(scene).toContain('getQueueActorFormationPosition, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS');
+    expect(scene).toContain('const slot = index;');
+    expect(scene).toContain('const queueFormation = getQueueActorFormationPosition(slot);');
     expect(scene).toContain('getAvailableQueueActorSlot');
     expect(scene).toContain('target: {\n          x: Number(actor.target.x.toFixed(2)),\n          z: Number(actor.target.z.toFixed(2))');
   });
@@ -1119,9 +1119,9 @@ describe('3D multi-devotee incense offering', () => {
   it('keeps horizontal crowd slots stable when the featured visitor leaves the row', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('function getAvailableQueueActorSlot()');
-    expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
+    expect(scene).toContain('const slot = index;');
     expect(scene).toContain('actor.slot = -1;');
-    expect(scene).toContain('Slot ownership is stable: promoting one visitor never makes the');
+    expect(scene).toContain('Compact the line after every promotion');
   });
 
   it('exposes actual and assigned positions for crowd formation verification', () => {
