@@ -48,35 +48,55 @@ async function boot() {
   const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 140);
   const cameraHomePosition = new THREE.Vector3(0, 11.75, 28.5);
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
+  const cameraHomeFov = 42;
+  const cameraRitualFov = 39.5;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
-  // Real Three.js camera direction: subtle framing variants, interpolated every frame.
-  // One preset is held for the entire active queue, never changed per viewer or gift.
+  // One restrained 3/4 visitor shot is selected for an entire queue session.
+  // Unlike the old ±0.7-unit presets, this actually changes focal length,
+  // camera distance and aim height so the person at the altar is visible.
   const cameraRitualPresets = [
-    { position: new THREE.Vector3(-0.72, 11.92, 28.25), target: new THREE.Vector3(-0.28, -1.48, -5.55) },
-    { position: new THREE.Vector3(0.72, 11.92, 28.25), target: new THREE.Vector3(0.28, -1.48, -5.55) },
-    { position: new THREE.Vector3(0.12, 12.02, 28.18), target: new THREE.Vector3(0.08, -1.38, -5.65) }
+    { position: new THREE.Vector3(-1.05, 10.7, 26.4), targetOffsetX: -0.48 },
+    { position: new THREE.Vector3(1.05, 10.7, 26.4), targetOffsetX: 0.48 },
+    { position: new THREE.Vector3(0.15, 10.55, 26.2), targetOffsetX: 0.05 }
   ];
   let cameraTargetPosition = cameraHomePosition.clone();
   let cameraTargetLookAt = cameraHomeTarget.clone();
+  let cameraTargetFov = cameraHomeFov;
+  let activeCameraPreset = cameraRitualPresets[0];
   let cameraRitualActive = false;
   function beginRitualCamera() {
     if (cameraRitualActive) return;
     cameraRitualActive = true;
-    const preset = cameraRitualPresets[Math.floor(Math.random() * cameraRitualPresets.length)];
-    cameraTargetPosition.copy(preset.position);
-    cameraTargetLookAt.copy(preset.target);
+    activeCameraPreset = cameraRitualPresets[Math.floor(Math.random() * cameraRitualPresets.length)];
+    cameraTargetPosition.copy(activeCameraPreset.position);
+    cameraTargetFov = cameraRitualFov;
   }
   function restoreMainCamera() {
     cameraRitualActive = false;
     cameraTargetPosition.copy(cameraHomePosition);
     cameraTargetLookAt.copy(cameraHomeTarget);
+    cameraTargetFov = cameraHomeFov;
   }
   function updateRitualCamera(dt) {
-    const blend = 1 - Math.exp(-Math.min(50, dt) / 1050);
+    const blend = 1 - Math.exp(-Math.min(50, dt) / 720);
+    if (cameraRitualActive && devoteeState?.active && mainDevotee?.visible) {
+      const person = mainDevotee.position;
+      // Track only a small part of the visitor's movement. The shot remains a
+      // stable temple view, but its focus no longer points below the floor.
+      cameraTargetLookAt.set(
+        THREE.MathUtils.clamp(person.x * 0.2 + activeCameraPreset.targetOffsetX, -1.35, 1.35),
+        1.45,
+        THREE.MathUtils.clamp(-3.55 + (person.z + 3.55) * 0.075, -4.65, -2.2)
+      );
+    } else if (!cameraRitualActive) {
+      cameraTargetLookAt.copy(cameraHomeTarget);
+    }
     camera.position.lerp(cameraTargetPosition, blend);
     const lookTarget = camera.userData.lookTarget || (camera.userData.lookTarget = cameraHomeTarget.clone());
     lookTarget.lerp(cameraTargetLookAt, blend);
+    camera.fov += (cameraTargetFov - camera.fov) * blend;
+    if (Math.abs(camera.fov - cameraTargetFov) > 0.015) camera.updateProjectionMatrix();
     camera.lookAt(lookTarget);
   }
 
