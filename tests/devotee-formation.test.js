@@ -3,7 +3,8 @@ import {
   DEFAULT_FORMATION_CAPACITY,
   DEFAULT_FORMATION_COLUMNS,
   getAvailableFormationSlot,
-  getHorizontalFormationPosition
+  getHorizontalFormationPosition,
+  getCrowdNameTagLayout
 } from '../public/js/devotee-formation.js';
 
 describe('stable horizontal devotee formation', () => {
@@ -28,6 +29,25 @@ describe('stable horizontal devotee formation', () => {
     const occupied = new Set([0, 1, 3, 4, 7]);
     expect(getAvailableFormationSlot(occupied)).toBe(2);
     expect([...occupied]).toEqual([0, 1, 3, 4, 7]);
+  });
+
+  it('staggered username tags never collide across the eight-person row', () => {
+    const tags = Array.from({ length: DEFAULT_FORMATION_COLUMNS }, (_, slot) => ({
+      slot,
+      position: getHorizontalFormationPosition(slot),
+      layout: getCrowdNameTagLayout(slot)
+    }));
+    for (let left = 0; left < tags.length; left++) {
+      for (let right = left + 1; right < tags.length; right++) {
+        const a = tags[left];
+        const b = tags[right];
+        const horizontalOverlap = Math.abs(a.position.x - b.position.x)
+          < (a.layout.width + b.layout.width) / 2;
+        const verticalOverlap = Math.abs(a.layout.y - b.layout.y)
+          < (a.layout.height + b.layout.height) / 2;
+        expect(horizontalOverlap && verticalOverlap).toBe(false);
+      }
+    }
   });
 
   it('returns no slot when the formation is full', () => {

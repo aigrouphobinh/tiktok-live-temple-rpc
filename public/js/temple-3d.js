@@ -4,7 +4,7 @@ import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
-import { getAvailableFormationSlot, getHorizontalFormationPosition } from './devotee-formation.js';
+import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout } from './devotee-formation.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2213,7 +2213,7 @@ async function boot() {
     group.add(avatar.root);
     const nameTag = createDevoteeNameTag();
     nameTag.position.set(0, 1.82, 0);
-    nameTag.scale.set(2.5, 0.39, 1);
+    nameTag.scale.set(1.94, 0.30, 1);
     avatar.root.add(nameTag);
     nameTag.userData.setName(event.user || 'Thí Chủ');
     group.visible = true;
@@ -2273,6 +2273,9 @@ async function boot() {
         if (actor) setHumanAppearance(actor.avatar, appearance);
         else actor = createQueueActor(event, appearance);
         actor.slot = slot;
+        const nameTagLayout = getCrowdNameTagLayout(slot);
+        actor.nameTag.position.set(0, nameTagLayout.y, 0);
+        actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
         actor.avatar.queueWaiting = true;
         actor.avatar.prayerPose = true;
         actor.avatar.kneelBlend = 0;
@@ -2356,6 +2359,7 @@ async function boot() {
         slot: actor.slot,
         gender: actor.avatar.gender,
         kneelBlend: Number((actor.avatar.kneelBlend || 0).toFixed(3)),
+        bowAmount: Number((actor.avatar.bowAmount || 0).toFixed(3)),
         moving: Boolean(actor.moveCurve),
         position: {
           x: Number(actor.group.position.x.toFixed(2)),
