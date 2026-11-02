@@ -2850,12 +2850,12 @@ async function boot() {
   }
 
   function getAvailableLiveViewerSeat() {
-    const occupied = [...liveViewerActors.values()].map((actor) => actor.slot - MAX_QUEUED_WORSHIPPERS);
+    const occupied = [...liveViewerActors.values()].map((actor) => actor.slot - (MAX_CONCURRENT_WORSHIPPERS - 1));
     const seatIndex = getAvailableFormationSlot(
       occupied,
-      MAX_VISIBLE_QUEUE_ACTORS - MAX_QUEUED_WORSHIPPERS
+      MAX_VISIBLE_QUEUE_ACTORS - (MAX_CONCURRENT_WORSHIPPERS - 1)
     );
-    return seatIndex < 0 ? -1 : MAX_QUEUED_WORSHIPPERS + seatIndex;
+    return seatIndex < 0 ? -1 : (MAX_CONCURRENT_WORSHIPPERS - 1) + seatIndex;
   }
 
   function syncLiveViewerSeats(now = performance.now()) {
