@@ -36,7 +36,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('devoteeState.pausedAt = 0;');
     expect(source).toContain("setDevoteePhase('rocketEject', now, devoteeState.ejectionMotionDuration)");
     expect(source).toContain("setDevoteePhase('donutChase', now, devoteeState.ejectionMotionDuration)");
-    expect(source).toContain("!['rocket', 'donut'].includes(targetedGiftAction)");
+    expect(source).toContain('if (hasNamedDevotee && !targetedGiftAction) enqueueDevotee(event);');
     expect(source).toContain('const hasTarget = event.detail?.hasTarget === true;');
     expect(source).toContain('const impact = hasTarget &&');
     expect(source).toContain('giftImpactPosition = impact;');
