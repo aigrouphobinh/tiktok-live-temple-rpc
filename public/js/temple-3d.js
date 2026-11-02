@@ -1977,7 +1977,20 @@ async function boot() {
         * (1 - Math.exp(-poseDelta / 0.34));
       avatar.kneeling = avatar.kneelBlend > 0.08;
       avatar.prayerPose = true;
-      avatar.bowAmount = walking ? 0 : 0.025 + Math.max(0, Math.sin(time * 0.00072 + avatar.phase)) * 0.035;
+      const queueRitualElapsed = ((time + avatar.phase * 1150) % 8200 + 8200) % 8200;
+      const queueRitualPose = getRitualPoseState({
+        travel: 1,
+        elapsedAfterArrival: queueRitualElapsed,
+        remainingMs: Number.MAX_SAFE_INTEGER,
+        kneelInMs: 0,
+        bowDelayMs: 420,
+        bowCycles: 2,
+        bowCycleMs: 1550,
+        bowDownRatio: 0.34,
+        bowHoldRatio: 0.20,
+        bowUpRatio: 0.34
+      });
+      avatar.bowAmount = walking ? 0 : queueRitualPose.bowAmount * 0.68;
     }
     const gaitPhase = Number.isFinite(walkPhase) ? walkPhase : time * 0.009;
     const swing = Math.sin(gaitPhase + avatar.phase);
@@ -2056,6 +2069,9 @@ async function boot() {
     for (const { mesh, side } of avatar.eyebrows) mesh.rotation.z = -side * 0.12 + giftReaction * side * 0.035;
     avatar.root.position.y = (walking ? walkBody.bodyBob * 0.45 : Math.sin(time*0.0015+avatar.phase)*0.012)
       - avatar.kneelBlend * 0.1 - Math.max(0, avatar.bowAmount || 0) * 0.14;
+    if (avatar.queueWaiting && !walking) {
+      applyHumanBow(avatar, avatar.bowAmount, avatar.kneelBlend);
+    }
     applyGiftThankYouGesture(avatar, time);
   }
   function makeDevotee(x,z,scale=1) {
