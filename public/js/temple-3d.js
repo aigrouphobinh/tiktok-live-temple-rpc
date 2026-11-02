@@ -1960,7 +1960,9 @@ async function boot() {
     const gender = appearance?.gender === 'female' ? 'female' : 'male';
     const rig = avatar.variants[gender];
     for (const [variantGender, variant] of Object.entries(avatar.variants)) {
-      variant.group.visible = variantGender === gender;
+      // Recycled queue actors may already have an imported GLTF body. Never
+      // reactivate the procedural Ao Dai fallback when changing their outfit.
+      variant.group.visible = !avatar.gltfRoot && variantGender === gender;
     }
     avatar.gender = gender;
     avatar.appearance = {
@@ -2063,23 +2065,43 @@ async function boot() {
     avatar.bowing = amount > 0.035;
     avatar.bowAmount = amount;
     if (avatar.gltfRoot) {
-      if (avatar.gltfActions?.bow) return;
       const rig = avatar.gltfRig;
-      if (rig?.spine) {
-        rig.spine.rotation.x = rig.spineRest.x - amount * 0.46;
-      }
-      if (rig?.neck) {
-        rig.neck.rotation.x = rig.neckRest.x - amount * 0.12;
-      }
-      if (rig?.head) {
-        rig.head.rotation.x = rig.headRest.x + amount * 0.16;
-      }
       const prayer = Math.min(1, Math.max(0, kneelBlend));
-      if (rig?.leftArm) {
+      // Quaternius clips provide locomotion, but a generic bow clip does not
+      // reliably lower the pelvis or fold the legs into a kneeling posture.
+      // Compose a controlled, reversible kneel pose on the mapped leg chain.
+      if (rig?.leftLeg && rig.leftLegRest) {
+        rig.leftLeg.rotation.x = rig.leftLegRest.x - prayer * 0.28;
+      }
+      if (rig?.rightLeg && rig.rightLegRest) {
+        rig.rightLeg.rotation.x = rig.rightLegRest.x - prayer * 0.28;
+      }
+      if (rig?.leftKnee && rig.leftKneeRest) {
+        rig.leftKnee.rotation.x = rig.leftKneeRest.x + prayer * 1.18;
+      }
+      if (rig?.rightKnee && rig.rightKneeRest) {
+        rig.rightKnee.rotation.x = rig.rightKneeRest.x + prayer * 1.18;
+      }
+      if (rig?.leftFoot && rig.leftFootRest) {
+        rig.leftFoot.rotation.x = rig.leftFootRest.x - prayer * 0.72;
+      }
+      if (rig?.rightFoot && rig.rightFootRest) {
+        rig.rightFoot.rotation.x = rig.rightFootRest.x - prayer * 0.72;
+      }
+      avatar.gltfRoot.position.y = (avatar.gltfBasePositionY ?? 1) - prayer * 0.20;
+
+      // If a real bow/prostration clip exists, let it drive the torso and head;
+      // otherwise use the mapped spine joints for a predictable three-bow arc.
+      if (!avatar.gltfActions?.bow) {
+        if (rig?.spine && rig.spineRest) rig.spine.rotation.x = rig.spineRest.x - amount * 0.46;
+        if (rig?.neck && rig.neckRest) rig.neck.rotation.x = rig.neckRest.x - amount * 0.12;
+        if (rig?.head && rig.headRest) rig.head.rotation.x = rig.headRest.x + amount * 0.16;
+      }
+      if (rig?.leftArm && rig.leftArmRest) {
         rig.leftArm.rotation.x = rig.leftArmRest.x - prayer * 0.48 - amount * 0.12;
         rig.leftArm.rotation.z = rig.leftArmRest.z + prayer * 0.54 + amount * 0.035;
       }
-      if (rig?.rightArm) {
+      if (rig?.rightArm && rig.rightArmRest) {
         rig.rightArm.rotation.x = rig.rightArmRest.x - prayer * 0.48 - amount * 0.12;
         rig.rightArm.rotation.z = rig.rightArmRest.z - prayer * 0.54 - amount * 0.035;
       }
@@ -2154,6 +2176,7 @@ async function boot() {
           if (variant?.group) variant.group.visible = false;
         }
         avatar.gltfRoot = model;
+        avatar.gltfBasePositionY = model.position.y;
         avatar.gltfActions = gltfActions;
         avatar.gltfMixer = animations.length ? new THREE.AnimationMixer(model) : null;
         avatar.gltfActionName = null;
