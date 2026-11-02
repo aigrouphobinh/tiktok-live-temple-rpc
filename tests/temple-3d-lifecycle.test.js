@@ -31,6 +31,14 @@ describe('Three.js lifecycle recovery', () => {
     expect(handler).not.toContain("!['rocket', 'donut'].includes(targetedGiftAction)");
   });
 
+  it('renders Rocket as a layered tier-scaled blast with flash, smoke, shockwaves and sparks', () => {
+    expect(source).toContain('function giftExplosionBurst(position, vfx, color = 0xffa52e)');
+    expect(source).toContain('blending: THREE.AdditiveBlending');
+    expect(source).toContain('const smokeCount = Math.min(14, 5 + vfx.shockwaves);');
+    expect(source).toContain('giftSparkBurst(center.x, center.y + 0.12, center.z,');
+    expect(source).toContain('giftExplosionBurst(impact, vfx, 0xffa52e);');
+  });
+
   it('routes Rocket and Donut into 3D target removal and waits for the gift handoff', () => {
     expect(source).toContain("import { resolveGiftAction } from './gift-action-rules.js';");
     expect(source).toContain('function ejectActiveDevotee(action');
@@ -75,6 +83,9 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('actor.group.position.lerp(actor.target');
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('avatar.prayerPose = true;');
+    expect(source).toContain('const queueKneelTarget = walking ? 0 : 1;');
+    expect(source).toContain('new THREE.Vector3(-3.48, 0.05, 8.35 + index * 1.38)');
+    expect(source).toContain('actor.group.position.set(-3.62 - index * 0.025, 0.05, 15.3 + index * 0.35);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -3.48, -0.105, 11.4);');
