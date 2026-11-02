@@ -4086,7 +4086,7 @@ async function boot() {
           elapsedAfterArrival: offeringElapsed,
           remainingMs: Number.MAX_SAFE_INTEGER,
           kneelInMs: 520,
-          bowDelayMs: 350,
+          bowDelayMs: 4800,
           bowInMs: 900,
           bowCycles: 3,
           bowCycleMs: 1500,
@@ -4191,7 +4191,7 @@ async function boot() {
           mainDevotee.rotation.y = 0;
           // Match the 2D three-bow sequence (~5.35s) with a short settle
           // buffer, then release the altar and let the visitor walk out.
-          setDevoteePhase('ritual', now, 6500);
+          setDevoteePhase('ritual', now, 9500);
         } else if (devoteeState.phase === 'ritual') {
           mainHuman.kneeling = false;
           mainHuman.kneelBlend = 0;
