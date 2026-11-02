@@ -4,7 +4,7 @@ import { getTempleRenderProfile } from './temple-render-quality.js';
 import { createTempleEnvironment } from './temple-environment.js';
 import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js';
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
-import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout } from './devotee-formation.js';
+import { getAvailableFormationSlot, getHorizontalFormationPosition, getCrowdNameTagLayout, getQueueActorFormationPosition, MAX_CONCURRENT_WORSHIPPERS, MAX_QUEUED_WORSHIPPERS } from './devotee-formation.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -2601,26 +2601,6 @@ async function boot() {
   // Keep one main worshipper at the altar plus four adjacent prayer positions.
   // The fifth visible queued visitor remains seated in meditation behind them.
   const MAX_VISIBLE_QUEUE_ACTORS = 5;
-  const MAX_CONCURRENT_WORSHIPPERS = 5;
-  const MAX_QUEUED_WORSHIPPERS = MAX_CONCURRENT_WORSHIPPERS - 1;
-  const QUEUED_WORSHIP_POSITIONS = [
-    { x: -3.15, y: 0.05, z: -1.35 },
-    { x: -1.05, y: 0.05, z: -1.65 },
-    { x: 1.05, y: 0.05, z: -1.65 },
-    { x: 3.15, y: 0.05, z: -1.35 }
-  ];
-
-  function getQueueActorPosition(slot) {
-    if (slot < MAX_QUEUED_WORSHIPPERS) {
-      const position = QUEUED_WORSHIP_POSITIONS[slot];
-      return new THREE.Vector3(position.x, position.y, position.z);
-    }
-    const waitingPosition = getHorizontalFormationPosition(
-      slot - MAX_QUEUED_WORSHIPPERS,
-      { columns: 1, centered: true, spacing: 0.72, y: 0.05, baseZ: 8.2, rowSpacing: 1.28 }
-    );
-    return new THREE.Vector3(waitingPosition.x, waitingPosition.y, waitingPosition.z);
-  }
 
   function getAvailableQueueActorSlot() {
     return getAvailableFormationSlot(
@@ -2759,8 +2739,9 @@ async function boot() {
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
         actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
       }
-      const isWorshipLane = slot < MAX_QUEUED_WORSHIPPERS;
-      const queuePosition = getQueueActorPosition(slot);
+      const queueFormation = getQueueActorFormationPosition(slot);
+      const isWorshipLane = queueFormation?.role === 'worship';
+      const queuePosition = new THREE.Vector3(queueFormation.x, queueFormation.y, queueFormation.z);
       actor.avatar.queueWaiting = !isWorshipLane;
       actor.avatar.queuedWorshipLane = isWorshipLane;
       actor.avatar.offeringIncense = false;
