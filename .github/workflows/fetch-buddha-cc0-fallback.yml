@@ -3,7 +3,7 @@ name: Fetch CC0 gilt-bronze Buddha fallback
 on:
   push:
     branches:
-      - feat/buddha-cc0-gilt-bronze-fallback
+      - assets/buddha-mia-cc0
     paths:
       - .github/workflows/fetch-buddha-cc0-fallback.yml
 
@@ -14,7 +14,7 @@ jobs:
   vendor-model:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out feature branch
+      - name: Check out integration branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
