@@ -1072,3 +1072,20 @@ describe('ritual prayer hand alignment', () => {
     expect(scene).toContain('avatar.rightHand.rotation.x = upperPose.wristPitch;');
   });
 });
+
+
+describe('3D devotee procession queue', () => {
+  it('renders one continuous FIFO line instead of five-person waves', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 40;');
+    expect(scene).toContain('devoteeQueue.slice(0, MAX_VISIBLE_QUEUE_ACTORS)');
+    expect(scene).toContain('actor.group.position.set(-3.62, 0.05, 15.3 + index * 1.38)');
+  });
+
+  it('keeps waiting visitors standing until they advance to the altar', () => {
+    const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+    expect(scene).toContain('Keep the waiting line upright like the 2D procession');
+    expect(scene).toContain('avatar.kneeling = false;');
+    expect(scene).toContain('avatar.bowAmount = 0;');
+  });
+});
