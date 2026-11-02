@@ -163,7 +163,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('avatar.root.position.y = (walking ? 0 : Math.sin(time*0.0015+avatar.phase)*0.012) - avatar.kneelBlend * 0.1;');
     expect(scene).toContain('animateHuman(mainHuman, now, walking, walkPhase);');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
-    expect(scene).toContain("setDevoteePhase('ritual', now, 4800);");
+    expect(scene).toContain("setDevoteePhase('ritual', now, Number.MAX_SAFE_INTEGER);");
+    expect(scene).toContain("window.addEventListener('temple:character-complete', onTempleCharacterCompleteForThreeD);");
     expect(scene).toContain('mainHuman.kneelBlend = 0;');
   });
 
@@ -769,7 +770,9 @@ describe('3D sanctuary visual treatment', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
     expect(scene).toContain('const ritualPose = getRitualPoseState({');
     expect(scene).toContain('elapsedAfterArrival: ritualElapsed,');
-    expect(scene).toContain("remainingMs: devoteeState.phase === 'ritual' ? Math.max(0, devoteeState.phaseDuration - phaseElapsed) : 0");
+    expect(scene).toContain("remainingMs: devoteeState.phase === 'ritual' ? Number.MAX_SAFE_INTEGER : 0");
+    expect(scene).toContain("bowCycles: 3,");
+    expect(scene).toContain("bowCycleMs: 1050,");
     expect(scene).toContain('mainHuman.kneelBlend = ritualPose.kneelBlend;');
     expect(scene).toContain('applyHumanBow(mainHuman, ritualPose.bowAmount, ritualPose.kneelBlend);');
   });
