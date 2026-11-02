@@ -74,7 +74,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('getDistanceBasedGaitPhase(\n          eased,\n          actor.moveCurve.getLength(),\n          1.2,\n          actor.avatar.phase\n        )');
     expect(source).not.toContain('actor.group.position.lerp(actor.target');
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
-    expect(source).toContain('actor.avatar.prayerPose');
+    expect(source).toContain('avatar.prayerPose = true;');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -5.0, -0.105, 11.4);');
