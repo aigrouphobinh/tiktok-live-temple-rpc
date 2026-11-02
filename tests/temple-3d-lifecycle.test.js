@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
+const avatarSource = readFileSync(new URL('../public/js/ao-dai-avatar.js', import.meta.url), 'utf8');
 
 describe('Three.js lifecycle recovery', () => {
   it('uses one idempotent cleanup path for context loss and page teardown', () => {
@@ -61,7 +62,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).toContain('const queueActors = new Map();');
     expect(source).toContain('const queueActorPool = [];');
     expect(source).toContain('const MAX_VISIBLE_QUEUE_ACTORS = 5;');
-    expect(source).toContain('function createQueueActor(event)');
+    expect(source).toContain('function createQueueActor(event, appearance = getDevoteeAppearance(event))');
     expect(source).toContain('function refreshQueueActors(now = performance.now())');
     expect(source).toContain('function releaseQueueActor(event)');
     expect(source).toContain('queueActors.get(event)');
@@ -75,7 +76,7 @@ describe('Three.js lifecycle recovery', () => {
     expect(source).not.toContain('now * 0.0085 + actor.avatar.phase');
     expect(source).toContain('actor.avatar.prayerPose');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
-    expect(source).toContain('mainHuman.wardrobeMaterials[key].color.copy(queuedActor.wardrobe[key].color);');
+    expect(source).toContain('queuedActor?.appearance || getDevoteeAppearance(devoteeState.event)');
     expect(source).toContain('box(0.92, 0.035, 7.1, mats.woodLight, -5.0, -0.105, 11.4);');
     expect(source).toContain('if (devoteeState.active || devoteeState.awaitingGiftHandoff) refreshQueueActors();');
     expect(source).toContain('actor.group.position.set(-5.0 - index * 0.08, 0.05, 15.3 + index * 0.35);');
@@ -88,11 +89,11 @@ describe('Three.js lifecycle recovery', () => {
   });
 
   it('keeps queue prayer hands working for both GLB and procedural character rigs', () => {
-    expect(source).toContain('function applyStandingPrayerPose(avatar)');
-    expect(source).toContain('if (avatar.gltfRoot && avatar.gltfRig)');
-    expect(source).toContain('rig.leftArm.rotation.z = rig.leftArmRest.z + 0.54;');
-    expect(source).toContain('avatar.leftArm.rotation.z = 0.54;');
-    expect(source).toContain('if (actor.avatar.prayerPose && !moving) applyStandingPrayerPose(actor.avatar);');
+    expect(source).toContain('function applyGiftThankYouGesture(avatar, time)');
+    expect(source).toContain('const prayerBlend = Math.max(avatar.kneelBlend || 0, avatar.prayerPose ? 1 : 0)');
+    expect(source).toContain('avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;');
+    expect(source).toContain('avatar.rightArm.rotation.z = -upperPose.armOpen - thankYouLift;');
+    expect(source).toContain('applyGiftThankYouGesture(avatar, time);');
   });
 
   it('stagger worship cycles across the eight background devotees', () => {
@@ -106,7 +107,9 @@ describe('Three.js lifecycle recovery', () => {
   });
 
   it('gives the congregation varied clothing, posture and subtle spacing', () => {
-    expect(source).toContain('const HUMAN_WARDROBE = [');
+    expect(avatarSource).toContain('const AO_DAI_PALETTES = Object.freeze([');
+    expect(avatarSource).toContain("gender: 'female'");
+    expect(avatarSource).toContain("gender: 'male'");
     expect(source).toContain('avatar.kneelBlend = posture.kneel;');
     expect(source).toContain('avatar.headingOffset = ((avatarIndex % 3) - 1) * 0.055;');
     expect(source).toContain('const stagger = row % 2 ? 0.16 : -0.1;');
