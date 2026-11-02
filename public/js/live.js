@@ -779,7 +779,12 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
         } else if (msg.method === 'temple.viewer-enter') {
           const viewer = msg.params?.viewer;
           if (viewer && (viewer.uniqueId || viewer.user)) {
-            window.dispatchEvent(new CustomEvent('temple:viewer-enter', { detail: viewer }));
+            if (window.__TEMPLE_3D_READY__) {
+              window.dispatchEvent(new CustomEvent('temple:viewer-enter', { detail: viewer }));
+            } else {
+              window.__TEMPLE_PENDING_VIEWER_ENTRIES__ ||= [];
+              window.__TEMPLE_PENDING_VIEWER_ENTRIES__.push(viewer);
+            }
           }
         } else if (msg.method === 'temple.event') {
           if (msg.params?.state) updateUIState(msg.params.state);
