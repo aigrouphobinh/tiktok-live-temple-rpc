@@ -104,9 +104,14 @@ async function boot() {
       } else {
         // Keep the full hall visible while the person enters, walks in the
         // aisle, or is affected by a gift. Do not follow with a rapid pan.
-        cameraTargetPosition.copy(activeCameraPreset.position);
+        const cameraFollowX = person.x * 0.72;
+        cameraTargetPosition.set(
+          cameraFollowX + activeCameraPreset.position.x,
+          activeCameraPreset.position.y,
+          activeCameraPreset.position.z
+        );
         cameraTargetLookAt.set(
-          THREE.MathUtils.clamp(person.x + activeCameraPreset.targetOffsetX, -4.1, 4.1),
+          cameraFollowX + activeCameraPreset.targetOffsetX,
           1.25,
           person.z
         );
@@ -2086,14 +2091,14 @@ async function boot() {
 
   // A separate side waiting lane makes the visitor flow legible without
   // placing queue markers on the sacred red processional carpet.
-  box(0.92, 0.035, 10.4, mats.woodLight, -5.18, -0.105, 10.15);
-  for (const x of [-5.66, -4.70]) {
-    box(0.028, 0.045, 10.35, mats.gold, x, -0.075, 10.15);
+  box(0.92, 0.035, 7.1, mats.woodLight, -3.65, -0.105, 11.4);
+  for (const x of [-4.13, -3.17]) {
+    box(0.028, 0.045, 7.05, mats.gold, x, -0.075, 11.4);
   }
   for (let slot = 0; slot < 5; slot++) {
-    const z = 6.85 + slot * 1.55;
-    cylinder(0.18, 0.18, 0.018, mats.gold, -5.18, -0.078, z, world, 24);
-    cylinder(0.12, 0.12, 0.02, mats.wood, -5.18, -0.064, z, world, 24);
+    const z = 8.0 + slot * 1.45;
+    cylinder(0.18, 0.18, 0.018, mats.gold, -3.65, -0.078, z, world, 24);
+    cylinder(0.12, 0.12, 0.02, mats.wood, -3.65, -0.064, z, world, 24);
   }
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
@@ -2172,7 +2177,7 @@ async function boot() {
     nameTag.userData.setName(event.user || 'Thí Chủ');
     group.visible = true;
     world.add(group);
-    return { group, avatar, nameTag, event, target: new THREE.Vector3(-5.18, 0.05, 13.05) };
+    return { group, avatar, nameTag, event, target: new THREE.Vector3(-3.65, 0.05, 8.0) };
   }
 
   function refreshQueueActors() {
@@ -2190,11 +2195,11 @@ async function boot() {
         actor = queueActorPool.pop() || createQueueActor(event);
         actor.event = event;
         actor.group.visible = true;
-        actor.group.position.set(-6.25 - index * 0.16, 0.05, 15.3 + index * 0.82);
+        actor.group.position.set(-4.55 - index * 0.08, 0.05, 15.3 + index * 0.35);
         actor.nameTag.userData.setName(event.user || 'Thí Chủ');
         queueActors.set(event, actor);
       }
-      actor.target.set(-5.18, 0.05, 6.85 + index * 1.55);
+      actor.target.set(-3.65, 0.05, 8.0 + index * 1.45);
     });
   }
 
@@ -2218,8 +2223,8 @@ async function boot() {
     awaitingGiftHandoff: false, pausedAt: 0
   };
   const devoteeRoutes = {
-    enter: [[-6.25, 0, 15.3], [-5.8, 0, 13.5], [-5.35, 0, 10.2], [-5.18, 0, 6.85]],
-    approach: [[-5.18, 0, 6.85], [-4.95, 0, 4.8], [-3.2, 0, 2.8], [-1.8, 0, -0.1], [0.0, 0, -3.55]],
+    enter: [[-4.55, 0, 15.3], [-4.2, 0, 13.8], [-3.85, 0, 10.8], [-3.65, 0, 8.0]],
+    approach: [[-3.65, 0, 8.0], [-3.55, 0, 5.3], [-2.7, 0, 3.1], [-1.6, 0, 0.15], [0.0, 0, -3.55]],
     exit: [[0.0, 0, -3.55], [1.8, 0, -0.5], [4.8, 0, 3.0], [5.7, 0, 8.5], [6.2, 0, 13.5]]
   };
   function setDevoteePhase(phase, now, duration) {
@@ -2253,7 +2258,7 @@ async function boot() {
     devoteeState.active = true;
     updateMainDevoteeName(devoteeState.event.user);
     mainDevotee.visible = true;
-    mainDevotee.position.copy(queueStart || new THREE.Vector3(-6.25, 0.05, 15.3));
+    mainDevotee.position.copy(queueStart || new THREE.Vector3(-4.55, 0.05, 15.3));
     mainDevotee.rotation.set(0, 0, 0);
     mainDevotee.scale.setScalar(1);
     devoteeState.ejectionStart = null;
@@ -2274,9 +2279,9 @@ async function boot() {
       devoteeState.curve = new THREE.CatmullRomCurve3([
         start,
         start.clone().add(new THREE.Vector3(0.05, 0, -1.9)),
-        new THREE.Vector3(-4.95, 0.05, 4.8),
-        new THREE.Vector3(-3.2, 0.05, 2.8),
-        new THREE.Vector3(-1.8, 0.05, -0.1),
+        new THREE.Vector3(-3.55, 0.05, 5.3),
+        new THREE.Vector3(-2.7, 0.05, 3.1),
+        new THREE.Vector3(-1.6, 0.05, 0.15),
         new THREE.Vector3(0, 0.05, -3.55)
       ], false, 'centripetal');
     } else {
@@ -2946,7 +2951,7 @@ async function boot() {
 
       if (progress >= 1) {
         if (devoteeState.phase === 'enter') {
-          mainDevotee.position.set(-5.18, 0.05, 6.85);
+          mainDevotee.position.set(-3.65, 0.05, 8.0);
           setDevoteePhase('queue', now, 350);
         } else if (devoteeState.phase === 'queue') {
           setDevoteePhase('approach', now, 4200);
