@@ -2938,16 +2938,22 @@ body.obs-mode .stage-wrapper {
   box-sizing: border-box;
   padding: 8px 9px;
   display: grid;
-  grid-template-columns: 24px 42px minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-  align-items: center;
-  column-gap: 7px;
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 58px auto auto;
+  align-content: center;
+  justify-items: center;
+  column-gap: 0;
   row-gap: 3px;
   border: 1px solid rgba(255, 220, 157, .45);
   border-radius: 12px;
   background: linear-gradient(145deg, rgba(255, 224, 165, .13), rgba(67, 23, 14, .38));
 }
 .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-rank {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 8px;
   grid-column: 1;
   grid-row: 1;
   width: 24px;
@@ -2958,10 +2964,11 @@ body.obs-mode .stage-wrapper {
   font-weight: 900;
 }
 .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
-  width: 42px;
-  height: 42px;
+  align-self: center;
+  width: 60px;
+  height: 60px;
 }
 .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar img {
   width: 100%;
@@ -2970,9 +2977,12 @@ body.obs-mode .stage-wrapper {
   border-radius: 50%;
 }
 .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-name {
-  grid-column: 3;
-  grid-row: 1;
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: center;
+  width: 100%;
   min-width: 0;
+  text-align: center;
   font-size: 15px;
   line-height: 1.2;
   font-weight: 900;
@@ -2980,8 +2990,8 @@ body.obs-mode .stage-wrapper {
   overflow-wrap: anywhere;
 }
 .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-merit {
-  grid-column: 1 / -1;
-  grid-row: 2;
+  grid-column: 1;
+  grid-row: 3;
   justify-self: center;
   font-size: 21px;
   line-height: 1.15;
@@ -3007,19 +3017,22 @@ body.obs-mode .stage-wrapper {
     gap: 6px;
   }
   .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-item {
-    grid-template-columns: 20px 34px minmax(0, 1fr);
-    padding: 6px 5px;
-    column-gap: 4px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 52px auto auto;
+    padding: 5px 4px;
+    row-gap: 2px;
     border-radius: 9px;
   }
   .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-rank {
-    width: 20px;
-    height: 20px;
-    font-size: 11px;
+    top: 5px;
+    left: 5px;
+    width: 19px;
+    height: 19px;
+    font-size: 10px;
   }
   .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-avatar {
-    width: 34px;
-    height: 34px;
+    width: 52px;
+    height: 52px;
   }
   .stage-9x16.temple-3d-mode .hud-right-leaderboard .leader-name {
     font-size: 12px;
