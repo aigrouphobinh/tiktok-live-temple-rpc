@@ -28,10 +28,8 @@ if (enabled && stage) {
   if (new URLSearchParams(location.search).get('3d') === '1') {
     rig.style.transition = 'none';
     rig.style.transform = 'none';
-    return;
-  }
-
-  const presets = [
+  } else {
+    const presets = [
     { x: -3, y: 2, scale: 1.012, tiltX: 0.07, tiltY: -0.08 },
     { x: 3, y: -2, scale: 1.012, tiltX: -0.06, tiltY: 0.08 },
     { x: 0, y: 3, scale: 1.01, tiltX: 0.08, tiltY: 0.02 }
@@ -117,5 +115,6 @@ if (enabled && stage) {
   // A module may finish booting before this listener is installed.
   if (window.__TEMPLE_3D_READY__ === true) {
     webglReady = true;
+  }
   }
 }
