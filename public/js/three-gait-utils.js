@@ -103,14 +103,19 @@ export function getHumanFootTransitionPose({ phase = 0, walkBlend = 0, kneelBlen
  * Procedural upper-body pose for a kneeling devotee.
  * Angles are additive local-X/Z offsets from the avatar's neutral pose.
  */
-export function getHumanUpperPose({ kneelBlend = 0, bowAmount = 0 } = {}) {
-  const kneel = Number.isFinite(kneelBlend) ? Math.min(1, Math.max(0, kneelBlend)) : 0;
-  const bow = Number.isFinite(bowAmount) ? Math.min(1, Math.max(0, bowAmount)) : 0;
+export function getHumanUpperPose({ kneelBlend = 0, bowAmount = 0, prayerBlend = kneelBlend } = {}) {
+  const clamp01 = (value) => Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
+  const kneel = clamp01(kneelBlend);
+  const bow = clamp01(bowAmount);
+  const prayer = clamp01(prayerBlend);
   return {
     torsoLean: -(kneel * 0.2 + bow * 0.72),
     headCounter: kneel * 0.06 + bow * 0.16,
     armReach: -(kneel * 0.7 + bow * 0.12),
-    armOpen: kneel * 0.08 + bow * 0.34
+    // Keep the forearms gathered at the chest throughout kneeling and bowing.
+    armOpen: prayer * 0.54 + bow * 0.035,
+    handRoll: prayer * 0.04,
+    wristPitch: prayer * 0.08
   };
 }
 
