@@ -2360,6 +2360,10 @@ async function boot() {
         position: {
           x: Number(actor.group.position.x.toFixed(2)),
           z: Number(actor.group.position.z.toFixed(2))
+        },
+        target: {
+          x: Number(actor.target.x.toFixed(2)),
+          z: Number(actor.target.z.toFixed(2))
         }
       }));
     return {

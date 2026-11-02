@@ -1083,6 +1083,7 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
     expect(scene).toContain('const altarPosition = getHorizontalFormationPosition(slot, {');
     expect(scene).toContain('getAvailableQueueActorSlot');
+    expect(scene).toContain('target: {\n          x: Number(actor.target.x.toFixed(2)),\n          z: Number(actor.target.z.toFixed(2))');
   });
 
   it('keeps horizontal crowd slots stable when the featured visitor leaves the row', () => {
@@ -1091,6 +1092,15 @@ describe('3D multi-devotee incense offering', () => {
     expect(scene).toContain('const slot = Number.isInteger(actor.slot) && actor.slot >= 0 ? actor.slot : index;');
     expect(scene).toContain('actor.slot = -1;');
     expect(scene).toContain('Slot ownership is stable: promoting one visitor never makes the');
+  });
+
+  it('exposes actual and assigned positions for crowd formation verification', () => {
+    const audit = readFileSync(new URL('../scripts/capture-temple-3d-visual.mjs', import.meta.url), 'utf8');
+    expect(audit).toContain("scenario.id === 'high'");
+    expect(audit).toContain("type: 'burnIncense'");
+    expect(audit).toContain('visibleQueueActors === 8');
+    expect(audit).toContain('crowdFormationHorizontalTargets');
+    expect(audit).toContain('temple-3d-crowd.png');
   });
 
   it('kneels and performs three bows after each visitor reaches an offering position', () => {

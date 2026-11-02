@@ -97,6 +97,7 @@ try {
       modelWarnings,
       buddhaModelDiagnostic: null,
       aoDaiDiagnostic: null,
+      crowdFormationDiagnostic: null,
       failedRequests,
       httpErrors,
       checks: {}
@@ -267,6 +268,40 @@ try {
         delete window.__TEMPLE_AUDIT_STOP_GIFTS__;
       });
 
+      // Exercise the actual 3D ritual event path with one featured visitor and
+      // eight concurrent queue actors. This is synthetic visual-audit input,
+      // not a server reward or TikTok event.
+      if (scenario.id === 'high') {
+        logAuditPhase(scenario.id, 'crowd-formation-start');
+        await page.evaluate(() => {
+          for (let index = 0; index < 9; index++) {
+            window.dispatchEvent(new CustomEvent('temple:ritual', {
+              detail: {
+                type: 'burnIncense',
+                user: `AuditDevotee${String(index + 1).padStart(2, '0')}`,
+                count: 3,
+                merit: 3
+              }
+            }));
+          }
+        });
+        try {
+          await page.waitForFunction(() => {
+            const diagnostic = window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.();
+            return diagnostic?.visibleQueueActors === 8;
+          }, null, { timeout: 15000 });
+        } catch (error) {
+          profileReport.crowdFormationWaitError = error.message;
+        }
+        profileReport.crowdFormationDiagnostic = await page.evaluate(() =>
+          window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__?.() || null
+        );
+        logAuditPhase(scenario.id, 'crowd-formation-result', {
+          visibleQueueActors: profileReport.crowdFormationDiagnostic?.visibleQueueActors || 0,
+          slots: profileReport.crowdFormationDiagnostic?.queue?.map((actor) => actor.slot) || []
+        });
+      }
+
       logAuditPhase(scenario.id, 'scene-inspection-start');
       const scene = await page.evaluate(async () => {
         const stage = document.getElementById('stage9x16');
@@ -290,6 +325,9 @@ try {
           buddhaModelDiagnostic: window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ ?? null,
           aoDaiDiagnostic: typeof window.__TEMPLE_AODAI_DIAGNOSTIC__ === 'function'
             ? window.__TEMPLE_AODAI_DIAGNOSTIC__()
+            : null,
+          devoteeFlowDiagnostic: typeof window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__ === 'function'
+            ? window.__TEMPLE_DEVOTEE_FLOW_DIAGNOSTIC__()
             : null,
           userAgent: navigator.userAgent,
           devicePixelRatio: window.devicePixelRatio,
@@ -325,6 +363,9 @@ try {
       profileReport.buddhaModelSource = scene.buddhaModelSource;
       profileReport.buddhaModelDiagnostic = scene.buddhaModelDiagnostic;
       profileReport.aoDaiDiagnostic = scene.aoDaiDiagnostic;
+      profileReport.crowdFormationDiagnostic = scenario.id === 'high'
+        ? scene.devoteeFlowDiagnostic
+        : null;
       profileReport.modelWarnings = modelWarnings;
       profileReport.httpErrors = httpErrors;
       profileReport.browserHints = scene.browserHints;
@@ -381,6 +422,12 @@ try {
           && Number(scene.aoDaiDiagnostic?.maleCount) > 0
           && Number(scene.aoDaiDiagnostic?.femaleCount) > 0
           && scene.aoDaiDiagnostic?.legacyGirlGlbEnabled === false,
+        crowdFormationActorsVisible: scenario.id !== 'high'
+          || scene.devoteeFlowDiagnostic?.visibleQueueActors === 8,
+        crowdFormationSlotsUnique: scenario.id !== 'high'
+          || new Set(scene.devoteeFlowDiagnostic?.queue?.map((actor) => actor.slot) || []).size === 8,
+        crowdFormationHorizontalTargets: scenario.id !== 'high'
+          || (scene.devoteeFlowDiagnostic?.queue || []).every((actor) => actor.target?.z === -1.55),
         canvasVisible: profileReport.sceneCanvasVisible,
         webgl2Available: scene.webgl?.version?.includes('WebGL 2') === true,
         contextHealthy: scene.webgl?.contextLost === false,
@@ -412,7 +459,16 @@ try {
           scale: 'css'
         });
         profileReport.screenshot = screenshotPath;
-        logAuditPhase(scenario.id, 'screenshot-complete', { path: screenshotPath });
+        if (scenario.id === 'high') {
+          await page.locator('#stage9x16').screenshot({
+            path: `${artifactDir}/temple-3d-crowd.png`,
+            animations: 'disabled',
+            timeout: 45000,
+            scale: 'css'
+          });
+          profileReport.crowdScreenshot = `${artifactDir}/temple-3d-crowd.png`;
+        }
+        logAuditPhase(scenario.id, 'screenshot-complete', { path: screenshotPath, crowd: profileReport.crowdScreenshot || null });
 
         if (scenario.id === 'high') {
           await page.screenshot({
