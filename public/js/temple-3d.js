@@ -290,16 +290,20 @@ async function boot() {
   for (const z of [16.8, 17.45]) {
     box(6.45, 0.07, 0.12, mats.gold, 0, 0.045, z);
   }
-  for (let z = -9; z < 16; z += 2.2) {
-    box(5.4, 0.035, 0.045, mats.goldBright, 0, 0.07, z);
+  // Fine woven edge stitches replace the bright transverse bars that looked
+  // like game checkpoints. The central carpet remains visually quiet for feet.
+  for (const side of [-1, 1]) {
+    for (let z = -8.4; z <= 15.2; z += 0.62) {
+      box(0.035, 0.012, 0.085, mats.gold, side * 2.62, 0.052, z);
+    }
   }
-  // Lotus medallions in the carpet.
-  for (let z = -7; z < 15; z += 4.4) {
-    const emblem = new THREE.Group(); emblem.position.set(0, 0.09, z); world.add(emblem);
-    cylinder(0.32, 0.32, 0.035, mats.gold, 0, 0, 0, emblem, 32);
+  // Two discreet lotus emblems anchor only the entrance and altar ends.
+  for (const z of [-7.2, 13.2]) {
+    const emblem = new THREE.Group(); emblem.position.set(0, 0.085, z); world.add(emblem);
+    cylinder(0.22, 0.22, 0.022, mats.gold, 0, 0, 0, emblem, 24);
     for (let p = 0; p < 8; p++) {
       const a = p * Math.PI / 4;
-      const petal = sphere(0.17, mats.goldBright, Math.cos(a) * 0.28, 0.035, Math.sin(a) * 0.28, 0.65, 0.22, 1, emblem);
+      const petal = sphere(0.105, mats.goldBright, Math.cos(a) * 0.18, 0.024, Math.sin(a) * 0.18, 0.58, 0.18, 1, emblem);
       petal.rotation.y = -a;
     }
   }
