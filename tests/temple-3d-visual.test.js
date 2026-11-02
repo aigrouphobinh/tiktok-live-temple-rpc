@@ -162,7 +162,7 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain('function applyGiftThankYouGesture(avatar, time)');
     expect(scene).toContain('const prayerBlend = Math.max(avatar.kneelBlend || 0, avatar.prayerPose ? 1 : 0)');
     expect(scene).toContain('applyGiftThankYouGesture(avatar, time);');
-    expect(scene).toContain('rig.leftArm.rotation.z = rig.leftArmRest.z + 0.54;');
+    expect(scene).toContain('avatar.leftArm.rotation.z = upperPose.armOpen + thankYouLift;');
     expect(aoDaiSource).toContain('leftArm,');
     expect(aoDaiSource).toContain('rightArm,');
     expect(aoDaiSource).toContain('leftHand,');
@@ -497,8 +497,8 @@ describe('3D sanctuary visual treatment', () => {
     expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose } from './three-gait-utils.js';");
     expect(scene).toContain('const leftStep = getFootPlantingStep(gaitPhase + avatar.phase);');
     expect(scene).toContain('const rightStep = getFootPlantingStep(gaitPhase + avatar.phase + Math.PI);');
-    expect(scene).toContain('const leftKnee = new THREE.Group(); leftKnee.position.y = -0.24; leftLeg.add(leftKnee);');
-    expect(scene).toContain('const rightKnee = new THREE.Group(); rightKnee.position.y = -0.24; rightLeg.add(rightKnee);');
+    expect(aoDaiSource).toContain('const leftKnee = new THREE.Group();');
+    expect(aoDaiSource).toContain('const rightKnee = new THREE.Group();');
     expect(scene).toContain('avatar.leftKnee.rotation.x = leftFootPose.kneeRotationX;');
     expect(scene).toContain('avatar.leftFoot.position.y = -0.24 + leftFootPose.footLift;');
     expect(scene.match(/avatar\.root\.position\.y = walking \? 0/g)).toHaveLength(1);
@@ -806,7 +806,7 @@ describe('3D sanctuary visual treatment', () => {
 
   it('routes procedural avatars through the shared idle, walk and kneel foot-pose controller', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose }");
+    expect(scene).toContain("import { getFootPlantingPose, getFootPlantingStep, getHumanFootPose, getHumanUpperPose, getRitualPoseState, getScheduledGiftReactionBlend, getWalkBodyPose, getDistanceBasedGaitPhase, getHumanFootTransitionPose }");
     expect(scene).toContain("const leftFootPose = getHumanFootTransitionPose({");
     expect(scene).toContain('walkBlend: avatar.walkBlend, kneelBlend: avatar.kneelBlend');
     expect(scene).toContain('avatar.walkBlend += (walkTarget - avatar.walkBlend) * (1 - Math.exp(-poseDelta / 0.18));');
