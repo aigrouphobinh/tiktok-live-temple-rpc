@@ -15,6 +15,7 @@ const AO_DAI_PALETTES = Object.freeze([
 ]);
 
 const geometryCaches = new WeakMap();
+const materialThreeOwners = new WeakMap();
 
 function getGeometry(THREE, key, create) {
   let cache = geometryCaches.get(THREE);
@@ -27,16 +28,20 @@ function getGeometry(THREE, key, create) {
 }
 
 function makeMaterial(THREE, color, extra = {}) {
-  return new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshStandardMaterial({
     color,
     roughness: 0.82,
     metalness: 0.02,
     ...extra
   });
+  materialThreeOwners.set(material, THREE);
+  return material;
 }
 
 function addMesh(parent, geometry, material, position = [0, 0, 0], scale = null) {
-  const mesh = new parent.constructor.prototype.constructor.Mesh(geometry, material);
+  const THREE = materialThreeOwners.get(material);
+  if (!THREE) throw new TypeError('Ao Dai material was not created by the provided Three.js runtime.');
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(position[0], position[1], position[2]);
   if (scale) mesh.scale.set(scale[0], scale[1], scale[2]);
   mesh.castShadow = true;
