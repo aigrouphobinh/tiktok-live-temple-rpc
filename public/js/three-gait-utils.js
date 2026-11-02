@@ -94,6 +94,8 @@ export function getRitualPoseState({
   kneelInMs = 320,
   bowDelayMs = 900,
   bowInMs = 650,
+  bowCycles = 1,
+  bowCycleMs = bowInMs,
   exitFadeMs = 650
 } = {}) {
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
@@ -108,10 +110,24 @@ export function getRitualPoseState({
   const kneelBlend = hasArrived
     ? smoothstep(elapsed / Math.max(1, kneelInMs)) * smoothstep(remaining / Math.max(1, exitFadeMs))
     : 0;
-  const bowAmount = hasArrived
-    ? smoothstep((elapsed - bowDelayMs) / Math.max(1, bowInMs))
-      * smoothstep(remaining / Math.max(1, exitFadeMs))
-    : 0;
+  let bowPulse = 0;
+  if (hasArrived && Number.isFinite(bowCycles) && bowCycles > 1
+    && Number.isFinite(bowCycleMs) && bowCycleMs > 0) {
+    const cycleElapsed = elapsed - bowDelayMs;
+    const totalCycleMs = Math.floor(bowCycles) * bowCycleMs;
+    if (cycleElapsed >= 0 && cycleElapsed < totalCycleMs) {
+      const cycleProgress = (cycleElapsed % bowCycleMs) / bowCycleMs;
+      const descent = smoothstep(cycleProgress / 0.32);
+      const recovery = 1 - smoothstep((cycleProgress - 0.48) / 0.32);
+      bowPulse = Math.min(descent, recovery);
+    }
+  } else if (hasArrived) {
+    // Preserve the legacy single-bow envelope for existing callers.
+    bowPulse = smoothstep((elapsed - bowDelayMs) / Math.max(1, bowInMs));
+  }
+  const bowAmount = bowPulse * (hasArrived
+    ? smoothstep(remaining / Math.max(1, exitFadeMs))
+    : 0);
   return {
     walking: progress < 0.92,
     kneelBlend,
