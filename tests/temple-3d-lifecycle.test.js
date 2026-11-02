@@ -33,6 +33,7 @@ describe('Three.js lifecycle recovery', () => {
   it('routes Rocket and Donut into 3D target removal and waits for the gift handoff', () => {
     expect(source).toContain("import { resolveGiftAction } from './gift-action-rules.js';");
     expect(source).toContain('function ejectActiveDevotee(action');
+    expect(source).toContain('devoteeState.pausedAt = 0;');
     expect(source).toContain("setDevoteePhase('rocketEject', now, devoteeState.ejectionMotionDuration)");
     expect(source).toContain("setDevoteePhase('donutChase', now, devoteeState.ejectionMotionDuration)");
     expect(source).toContain("!['rocket', 'donut'].includes(targetedGiftAction)");
