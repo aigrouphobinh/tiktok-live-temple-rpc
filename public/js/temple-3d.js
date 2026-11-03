@@ -6,7 +6,7 @@ import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 import { getAvailableFormationSlot, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS, getQueueActorFormationSlots, WAITING_SEAT_COLUMNS, WAITING_SEAT_ROWS } from './devotee-formation.js';
 import { formatDevoteePrayerLabel } from './devotee-labels.js';
-import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualShotIndex } from './temple-camera-presets.js';
+import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleCameraShotFrame } from './temple-camera-presets.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -77,103 +77,92 @@ async function boot() {
   const cameraShotBlendMs = 720;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
-  // One shared camera alternates between eight distinct temple compositions.
-  // Ritual mode uses the same scene tour instead of repeatedly zooming into the devotee.
-  const cameraRitualPresets = TEMPLE_CAMERA_RITUAL_PRESETS.map(({ position, ...preset }) => ({
-    ...preset,
-    position: new THREE.Vector3(...position)
-  }));
-  const cameraAmbientShotDurationMs = 7800;
-  const cameraAmbientAnchorZ = -3.55;
+  // Camera director: a shot is an independent action with its own path,
+  // subject, runtime and hand-off. Only one shot action owns the camera at a time.
+  const cameraShotDefinitions = TEMPLE_CAMERA_RITUAL_PRESETS;
   let cameraPresetCursor = -1;
-  let cameraSequenceStartIndex = 0;
-  let activeCameraPresetIndex = 0;
-  let cameraAmbientNextShotAt = 0;
+  let activeCameraPresetIndex = -1;
+  let activeCameraPreset = null;
+  let cameraActionStartedAt = 0;
+  let cameraActionEndsAt = 0;
   let cameraTargetPosition = cameraHomePosition.clone();
   let cameraTargetLookAt = cameraHomeTarget.clone();
   let cameraTargetFov = cameraHomeFov;
-  let activeCameraPreset = cameraRitualPresets[0];
   let cameraRitualActive = false;
-  let activeCameraShot = 'ambient';
+  let activeCameraShot = 'idle';
+  let activeCameraAction = 'idle';
+  let activeCameraSubject = 'temple';
+  let activeCameraProgress = 0;
+
   function getNextCameraPresetIndex() {
-    const count = cameraRitualPresets.length;
+    const count = cameraShotDefinitions.length;
     if (count <= 1) return 0;
-    // Start at a random angle once, then rotate through every remaining view
-    // in order. The shared cursor also prevents a repeated angle at handoff.
     return cameraPresetCursor < 0
       ? Math.floor(Math.random() * count)
       : (cameraPresetCursor + 1) % count;
   }
+
+  function beginCameraShot(index, now = performance.now(), mode = 'ambient') {
+    const count = cameraShotDefinitions.length;
+    const safeIndex = ((Math.trunc(index) % count) + count) % count;
+    activeCameraPresetIndex = safeIndex;
+    cameraPresetCursor = safeIndex;
+    activeCameraPreset = cameraShotDefinitions[safeIndex];
+    cameraActionStartedAt = now;
+    cameraActionEndsAt = now + activeCameraPreset.durationMs;
+    activeCameraAction = activeCameraPreset.action;
+    activeCameraSubject = activeCameraPreset.subject;
+    activeCameraProgress = 0;
+    activeCameraShot = mode + ':' + activeCameraPreset.name;
+  }
+
   function beginAmbientCameraShot(now = performance.now(), force = false) {
-    if (cameraRitualActive || (!force && now < cameraAmbientNextShotAt)) return;
-    const nextIndex = getNextCameraPresetIndex();
-    cameraPresetCursor = nextIndex;
-    activeCameraPresetIndex = nextIndex;
-    activeCameraPreset = cameraRitualPresets[nextIndex];
-    cameraTargetPosition.copy(activeCameraPreset.position);
-    cameraTargetLookAt.set(
-      activeCameraPreset.targetOffsetX,
-      activeCameraPreset.targetOffsetY,
-      cameraAmbientAnchorZ + activeCameraPreset.targetOffsetZ
-    );
-    cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
-    activeCameraShot = 'ambient-' + activeCameraPreset.name;
-    cameraAmbientNextShotAt = now + cameraAmbientShotDurationMs;
+    if (cameraRitualActive || (!force && now < cameraActionEndsAt)) return;
+    beginCameraShot(getNextCameraPresetIndex(), now, 'ambient');
   }
+
   function beginRitualCamera() {
-    // A worshipper interrupts the ambient tour. Pick a different starting
-    // angle, then visit all five close-ups during the three-bow sequence.
-    let nextIndex = Math.floor(Math.random() * cameraRitualPresets.length);
-    if (cameraRitualPresets.length > 1 && nextIndex === cameraPresetCursor) {
-      nextIndex = (nextIndex + 1 + Math.floor(Math.random() * (cameraRitualPresets.length - 1))) % cameraRitualPresets.length;
+    let nextIndex = Math.floor(Math.random() * cameraShotDefinitions.length);
+    if (cameraShotDefinitions.length > 1 && nextIndex === cameraPresetCursor) {
+      nextIndex = (nextIndex + 1) % cameraShotDefinitions.length;
     }
-    cameraPresetCursor = nextIndex;
-    cameraSequenceStartIndex = nextIndex;
-    activeCameraPresetIndex = nextIndex;
-    activeCameraPreset = cameraRitualPresets[nextIndex];
-    cameraAmbientNextShotAt = Number.POSITIVE_INFINITY;
     cameraRitualActive = true;
-    activeCameraShot = 'procession';
-    cameraTargetPosition.copy(activeCameraPreset.position);
-    cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
+    beginCameraShot(nextIndex, performance.now(), 'ritual');
   }
+
   function restoreMainCamera() {
     const wasRitualActive = cameraRitualActive;
     cameraRitualActive = false;
-    // Do not jump back to the old fixed home view. Resume the ambient tour
-    // immediately, continuing from the next angle after the final ritual shot.
-    if (wasRitualActive || cameraAmbientNextShotAt === 0) {
+    // Continue with a new independent ambient action, never snap to a fixed home angle.
+    if (wasRitualActive || cameraActionEndsAt === 0) {
       beginAmbientCameraShot(performance.now(), true);
     }
   }
+
   function updateRitualCamera(dt, now = performance.now()) {
     const blend = 1 - Math.exp(-Math.min(50, dt) / cameraShotBlendMs);
-    if (cameraRitualActive && devoteeState?.active && mainDevotee?.visible) {
-      if (devoteeState.phase === 'ritual') {
-        // Alternate through Buddha portrait, Buddha POV, abbot and wide-hall
-        // shots throughout the ritual. Do not force a close-up on every bow.
-        activeCameraPresetIndex = getTempleRitualShotIndex(
-          cameraSequenceStartIndex,
-          now - devoteeState.phaseStartedAt,
-          devoteeState.phaseDuration,
-          cameraRitualPresets.length
-        );
-        activeCameraPreset = cameraRitualPresets[activeCameraPresetIndex];
-        cameraPresetCursor = activeCameraPresetIndex;
-      }
-      cameraTargetPosition.copy(activeCameraPreset.position);
-      cameraTargetLookAt.set(
-        activeCameraPreset.targetOffsetX,
-        activeCameraPreset.targetOffsetY,
-        cameraAmbientAnchorZ + activeCameraPreset.targetOffsetZ
-      );
-      cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
-      activeCameraShot = (devoteeState.phase === 'ritual' ? 'ritual-' : 'procession-')
-        + activeCameraPreset.name;
-    } else if (!cameraRitualActive) {
-      // Keep touring the full set of eight visually different compositions while idle.
+    if (!cameraRitualActive) {
       beginAmbientCameraShot(now);
+    } else if (now >= cameraActionEndsAt) {
+      // Each action completes before the next shot takes control.
+      beginCameraShot(getNextCameraPresetIndex(), now, 'ritual');
     }
+
+    if (!activeCameraPreset) return;
+    const actionElapsed = Math.max(0, now - cameraActionStartedAt);
+    const subjectPosition = devoteeState?.active && mainDevotee?.visible
+      ? [mainDevotee.position.x, mainDevotee.position.y, mainDevotee.position.z]
+      : null;
+    const shotFrame = getTempleCameraShotFrame(activeCameraPreset, actionElapsed, {
+      subjectPosition
+    });
+    activeCameraProgress = shotFrame.progress;
+    activeCameraAction = shotFrame.action;
+    activeCameraSubject = shotFrame.subject;
+    cameraTargetPosition.set(...shotFrame.position);
+    cameraTargetLookAt.set(...shotFrame.lookAt);
+    cameraTargetFov = shotFrame.fov;
+
     camera.position.lerp(cameraTargetPosition, blend);
     const lookTarget = camera.userData.lookTarget || (camera.userData.lookTarget = cameraHomeTarget.clone());
     lookTarget.lerp(cameraTargetLookAt, blend);
@@ -182,6 +171,9 @@ async function boot() {
     camera.lookAt(lookTarget);
     camera.userData.shotName = activeCameraShot;
     camera.userData.shotPreset = activeCameraPreset.name;
+    camera.userData.shotAction = activeCameraAction;
+    camera.userData.shotSubject = activeCameraSubject;
+    camera.userData.shotProgress = activeCameraProgress;
     camera.userData.shotSequenceIndex = activeCameraPresetIndex;
   }
   // Runtime camera diagnostics let browser audits confirm the preset actually rendered.
@@ -189,8 +181,11 @@ async function boot() {
     active: cameraRitualActive,
     mode: cameraRitualActive ? 'ritual' : 'ambient',
     phase: devoteeState.phase,
-    shotName: camera.userData.shotName || 'ambient',
-    preset: camera.userData.shotPreset || 'ambient',
+    shotName: camera.userData.shotName || 'idle',
+    preset: camera.userData.shotPreset || 'idle',
+    action: camera.userData.shotAction || 'idle',
+    subject: camera.userData.shotSubject || 'temple',
+    actionProgress: Number((camera.userData.shotProgress || 0).toFixed(3)),
     sequenceIndex: Number.isInteger(camera.userData.shotSequenceIndex) ? camera.userData.shotSequenceIndex : -1,
     fov: Number(camera.fov.toFixed(2)),
     position: { x: Number(camera.position.x.toFixed(3)), y: Number(camera.position.y.toFixed(3)), z: Number(camera.position.z.toFixed(3)) },
@@ -4470,7 +4465,9 @@ async function boot() {
     const dt = Math.min(50, now - (lastFrame || now));
     lastFrame = now; elapsed += dt;
     updateRitualCamera(dt, now);
-    halo.rotation.z = Math.sin(elapsed * 0.00016) * 0.025;
+    const isBuddhaCameraAction = ['buddha-orbit', 'buddha-pov-pan'].includes(activeCameraPreset?.action);
+    halo.rotation.z = Math.sin(elapsed * (isBuddhaCameraAction ? 0.00034 : 0.00016))
+      * (isBuddhaCameraAction ? 0.045 : 0.025);
     lotusThrone.rotation.y = Math.sin(elapsed * 0.00022) * 0.025;
     springDecorTrees.forEach((tree) => {
       tree.rotation.z = Math.sin(elapsed * 0.00032 + tree.userData.phase) * 0.008;
@@ -4501,7 +4498,11 @@ async function boot() {
         .map((actor) => actor.avatar.bowAmount || 0),
       0
     );
-    const abbotBowAmount = THREE.MathUtils.clamp(congregationBow, 0, 1);
+    const isAbbotPortraitAction = activeCameraPreset?.action === 'abbot-bow-portrait';
+    const abbotShotBow = isAbbotPortraitAction
+      ? 0.22 + Math.sin(activeCameraProgress * Math.PI) * 0.2
+      : 0;
+    const abbotBowAmount = THREE.MathUtils.clamp(Math.max(congregationBow, abbotShotBow), 0, 1);
     const focusWeight = abbotFocusTargets.reduce((sum, target) => sum + target.weight, 0);
     const abbotFocusX = focusWeight > 0
       ? abbotFocusTargets.reduce((sum, target) => sum + target.x * target.weight, 0) / focusWeight
@@ -4509,10 +4510,12 @@ async function boot() {
     const abbotFocusZ = focusWeight > 0
       ? abbotFocusTargets.reduce((sum, target) => sum + target.z * target.weight, 0) / focusWeight
       : -1.35;
-    const targetAbbotYaw = Math.atan2(
-      abbotFocusX - templeAbbot.position.x,
-      abbotFocusZ - templeAbbot.position.z
-    );
+    const targetAbbotYaw = isAbbotPortraitAction
+      ? Math.atan2(camera.position.x - templeAbbot.position.x, camera.position.z - templeAbbot.position.z)
+      : Math.atan2(
+          abbotFocusX - templeAbbot.position.x,
+          abbotFocusZ - templeAbbot.position.z
+        );
     const abbotYawDelta = Math.atan2(
       Math.sin(targetAbbotYaw - templeAbbot.rotation.y),
       Math.cos(targetAbbotYaw - templeAbbot.rotation.y)
