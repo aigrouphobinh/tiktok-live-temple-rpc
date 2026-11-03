@@ -760,6 +760,128 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
   let rpcId = 1;
   let lastTikTokConnected = null;
 
+  // Periodic, gentle voice prompts invite real viewers to tap hearts and leave
+  // a prayer/comment. They never enter the audio queue while a ritual is speaking.
+  const ENGAGEMENT_VOICE_PROMPTS = Object.freeze([
+    'Quý vị hữu duyên đang xem, hoan hỷ chạm nhẹ vào màn hình gửi Chùa một trái tim nhé. Cô bác cũng có thể để lại lời chúc bình an cho gia đình trong phần bình luận.',
+    'Xin mời quý vị cùng thả tim để lan tỏa điều lành. Ai có lời cầu nguyện, xin để lại vài dòng bình luận, Chùa xin gửi lời chúc an lành đến mọi người.',
+    'Nếu đang có mặt nơi Chánh Điện, quý vị hãy cùng chạm tim và để lại một chữ Bình An trong phần bình luận nhé. Nam mô A Di Đà Phật.',
+    'Cô bác anh chị hoan hỷ nhấn tim để tiếp thêm sự ấm áp cho buổi lễ. Quý vị có thể viết lời nguyện lành hoặc câu Nam mô A Di Đà Phật ở bên dưới.',
+    'Mời quý vị hữu duyên cùng gửi những trái tim nhỏ và chia sẻ một lời chúc tốt đẹp trong bình luận. Kính chúc mọi nhà thân tâm thường an lạc.',
+    'Ai đang xem livestream, xin mời chạm nhẹ vào màn hình thả tim và để lại lời cầu chúc cho người thân. Chúng ta cùng lan tỏa sự tử tế và bình an.',
+    'Quý vị có thể cùng Chùa niệm một câu Nam mô A Di Đà Phật. Hoan hỷ thả tim và để lại lời bình an để mọi người cùng đọc nhé.',
+    'Xin cảm ơn quý vị đã ghé thăm Chùa. Mời mọi người thả tim và chia sẻ một điều thiện lành hoặc lời cầu nguyện trong phần bình luận.',
+    'Một trái tim nhỏ là lời chào thật đẹp. Quý vị hữu duyên hãy chạm tim và viết lời chúc bình an cho gia đình mình ở phần bình luận nhé.',
+    'Nam mô A Di Đà Phật. Xin mời đại chúng cùng thả tim, để lại lời niệm Phật hoặc lời cầu nguyện chân thành trong phần bình luận.'
+  ]);
+  const btnToggleEngagementVoice = document.getElementById('btnToggleEngagementVoice');
+  let engagementVoiceEnabled = (() => {
+    try { return localStorage.getItem('temple_engagement_voice_enabled') !== 'false'; }
+    catch (_) { return true; }
+  })();
+  let engagementVoiceTimer = null;
+  let engagementVoiceConnected = false;
+  let engagementViewerCount = 0;
+  let lastEngagementPromptIndex = -1;
+  let lastEngagementPrompt = '';
+
+  function syncEngagementVoiceButton() {
+    if (!btnToggleEngagementVoice) return;
+    btnToggleEngagementVoice.textContent = engagementVoiceEnabled
+      ? '💬 Voice Mời Thả Tim & Bình Luận: BẬT'
+      : '💬 Voice Mời Thả Tim & Bình Luận: TẮT';
+    btnToggleEngagementVoice.classList.toggle('active-toggle', engagementVoiceEnabled);
+  }
+
+  function clearEngagementVoiceTimer() {
+    if (engagementVoiceTimer) {
+      clearTimeout(engagementVoiceTimer);
+      engagementVoiceTimer = null;
+    }
+  }
+
+  function scheduleEngagementVoice(delayMs) {
+    clearEngagementVoiceTimer();
+    if (!engagementVoiceEnabled || !engagementVoiceConnected || !audio.ttsEnabled) return;
+    engagementVoiceTimer = setTimeout(playEngagementVoicePrompt, Math.max(1000, delayMs));
+  }
+
+  function pickEngagementVoicePrompt() {
+    if (ENGAGEMENT_VOICE_PROMPTS.length <= 1) return ENGAGEMENT_VOICE_PROMPTS[0];
+    let nextIndex = Math.floor(Math.random() * ENGAGEMENT_VOICE_PROMPTS.length);
+    if (nextIndex === lastEngagementPromptIndex) {
+      nextIndex = (nextIndex + 1 + Math.floor(Math.random() * (ENGAGEMENT_VOICE_PROMPTS.length - 1)))
+        % ENGAGEMENT_VOICE_PROMPTS.length;
+    }
+    lastEngagementPromptIndex = nextIndex;
+    return ENGAGEMENT_VOICE_PROMPTS[nextIndex];
+  }
+
+  function playEngagementVoicePrompt() {
+    engagementVoiceTimer = null;
+    if (!engagementVoiceEnabled || !engagementVoiceConnected || !audio.ttsEnabled) return;
+    if (engagementViewerCount <= 0) {
+      scheduleEngagementVoice(30000);
+      return;
+    }
+    // Do not queue a CTA behind ritual/TikTok gift narration. Retry after the
+    // current speech burst has drained so the viewer prompt never interrupts it.
+    if (audio.ttsPlaying || (Array.isArray(audio.ttsQueue) && audio.ttsQueue.length > 0)) {
+      scheduleEngagementVoice(20000);
+      return;
+    }
+
+    const prompt = pickEngagementVoicePrompt();
+    lastEngagementPrompt = prompt;
+    audio.enqueueTts(prompt, { voice: 'maichi' });
+    window.__TEMPLE_ENGAGEMENT_VOICE_DIAGNOSTIC__ = {
+      enabled: engagementVoiceEnabled,
+      connected: engagementVoiceConnected,
+      viewerCount: engagementViewerCount,
+      lastPrompt: prompt,
+      lastPromptAt: new Date().toISOString(),
+      queued: true
+    };
+    scheduleEngagementVoice(100000 + Math.floor(Math.random() * 50001));
+  }
+
+  function updateEngagementVoiceLiveState(connected, viewerCount) {
+    engagementViewerCount = Math.max(0, Number(viewerCount) || 0);
+    const nextConnected = Boolean(connected);
+    if (nextConnected !== engagementVoiceConnected) {
+      engagementVoiceConnected = nextConnected;
+      if (engagementVoiceConnected) {
+        scheduleEngagementVoice(45000 + Math.floor(Math.random() * 25001));
+      } else {
+        clearEngagementVoiceTimer();
+      }
+      return;
+    }
+    if (engagementVoiceConnected && engagementViewerCount > 0
+      && engagementVoiceEnabled && audio.ttsEnabled && !engagementVoiceTimer) {
+      scheduleEngagementVoice(25000);
+    }
+  }
+
+  syncEngagementVoiceButton();
+  btnToggleEngagementVoice?.addEventListener('click', () => {
+    engagementVoiceEnabled = !engagementVoiceEnabled;
+    try { localStorage.setItem('temple_engagement_voice_enabled', String(engagementVoiceEnabled)); } catch (_) {}
+    syncEngagementVoiceButton();
+    if (engagementVoiceEnabled) {
+      scheduleEngagementVoice(engagementVoiceConnected ? 20000 : 45000);
+    } else {
+      clearEngagementVoiceTimer();
+    }
+    window.__TEMPLE_ENGAGEMENT_VOICE_DIAGNOSTIC__ = {
+      enabled: engagementVoiceEnabled,
+      connected: engagementVoiceConnected,
+      viewerCount: engagementViewerCount,
+      lastPrompt: lastEngagementPrompt,
+      timerActive: Boolean(engagementVoiceTimer)
+    };
+  });
+
   function connectWebSocket() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     ws = new WebSocket(`${proto}//${window.location.host}/ws`);
@@ -769,6 +891,9 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
         const msg = JSON.parse(event.data);
         if (msg.method === 'temple.state') {
           const connected = msg.params?.tiktok?.connected;
+          if (typeof connected === 'boolean') {
+            updateEngagementVoiceLiveState(connected, msg.params?.tiktok?.viewerCount);
+          }
           if (typeof connected === 'boolean' && connected !== lastTikTokConnected) {
             window.TempleGiftActionEngine?.resetStreaks?.();
             lastTikTokConnected = connected;
@@ -791,6 +916,7 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
         } else if (msg.method === 'temple.viewerCount') {
           const liveText = document.getElementById('liveStatusText');
           const count = Math.max(0, Number(msg.params?.viewerCount || 0));
+          updateEngagementVoiceLiveState(engagementVoiceConnected, count);
           if (liveText?.textContent.startsWith('LIVE @')) {
             const username = liveText.textContent.slice(6).split(' • ')[0];
             liveText.textContent = `LIVE @${username} • ${count} mắt`;
@@ -989,6 +1115,11 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
     const btn = e.currentTarget;
     btn.textContent = `🎙️ Giọng Đọc: ${audio.ttsEnabled ? 'BẬT' : 'TẮT'}`;
     btn.classList.toggle('active-toggle', audio.ttsEnabled);
+    if (audio.ttsEnabled) {
+      scheduleEngagementVoice(engagementVoiceConnected ? 20000 : 45000);
+    } else {
+      clearEngagementVoiceTimer();
+    }
   });
 
   const btnToggleSfx = document.getElementById('btnToggleSfx');
