@@ -6,7 +6,7 @@ import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 import { getAvailableFormationSlot, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS, getQueueActorFormationSlots, WAITING_SEAT_COLUMNS, WAITING_SEAT_ROWS } from './devotee-formation.js';
 import { formatDevoteePrayerLabel } from './devotee-labels.js';
-import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualCloseShot, getTempleRitualShotIndex } from './temple-camera-presets.js';
+import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualShotIndex } from './temple-camera-presets.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -77,13 +77,13 @@ async function boot() {
   const cameraShotBlendMs = 720;
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
-  // One shared camera runs a five-shot sequence during every altar ritual.
-  // Each preset has its own procession and slightly wider/farther altar framing.
+  // One shared camera alternates between eight distinct temple compositions.
+  // Ritual mode uses the same scene tour instead of repeatedly zooming into the devotee.
   const cameraRitualPresets = TEMPLE_CAMERA_RITUAL_PRESETS.map(({ position, ...preset }) => ({
     ...preset,
     position: new THREE.Vector3(...position)
   }));
-  const cameraAmbientShotDurationMs = 8500;
+  const cameraAmbientShotDurationMs = 7800;
   const cameraAmbientAnchorZ = -3.55;
   let cameraPresetCursor = -1;
   let cameraSequenceStartIndex = 0;
@@ -149,10 +149,9 @@ async function boot() {
   function updateRitualCamera(dt, now = performance.now()) {
     const blend = 1 - Math.exp(-Math.min(50, dt) / cameraShotBlendMs);
     if (cameraRitualActive && devoteeState?.active && mainDevotee?.visible) {
-      const person = mainDevotee.position;
       if (devoteeState.phase === 'ritual') {
-        // Change altar angle during the full three-bow sequence; the same
-        // eased blend is used by the idle tour to avoid visible camera cuts.
+        // Alternate through Buddha portrait, Buddha POV, abbot and wide-hall
+        // shots throughout the ritual. Do not force a close-up on every bow.
         activeCameraPresetIndex = getTempleRitualShotIndex(
           cameraSequenceStartIndex,
           now - devoteeState.phaseStartedAt,
@@ -161,31 +160,18 @@ async function boot() {
         );
         activeCameraPreset = cameraRitualPresets[activeCameraPresetIndex];
         cameraPresetCursor = activeCameraPresetIndex;
-        const closeShot = getTempleRitualCloseShot(activeCameraPreset, person);
-        cameraTargetPosition.set(closeShot.position[0], closeShot.position[1], closeShot.position[2]);
-        cameraTargetLookAt.set(closeShot.lookAt[0], closeShot.lookAt[1], closeShot.lookAt[2]);
-        cameraTargetFov = closeShot.fov;
-        activeCameraShot = 'altar-close';
-      } else {
-        // Keep the full hall visible while the person enters, walks in the
-        // aisle, or is affected by a gift. Never chase a side-lane visitor.
-        const cameraFollowX = person.x * 0.72;
-        cameraTargetPosition.set(
-          cameraFollowX + activeCameraPreset.position.x,
-          activeCameraPreset.position.y,
-          activeCameraPreset.position.z
-        );
-        cameraTargetLookAt.set(
-          cameraFollowX + activeCameraPreset.targetOffsetX,
-          activeCameraPreset.targetOffsetY,
-          person.z + activeCameraPreset.targetOffsetZ
-        );
-        cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
-        activeCameraShot = 'procession';
       }
+      cameraTargetPosition.copy(activeCameraPreset.position);
+      cameraTargetLookAt.set(
+        activeCameraPreset.targetOffsetX,
+        activeCameraPreset.targetOffsetY,
+        cameraAmbientAnchorZ + activeCameraPreset.targetOffsetZ
+      );
+      cameraTargetFov = activeCameraPreset.processionFov ?? cameraRitualFov;
+      activeCameraShot = (devoteeState.phase === 'ritual' ? 'ritual-' : 'procession-')
+        + activeCameraPreset.name;
     } else if (!cameraRitualActive) {
-      // No altar worshipper? Keep the temple visually alive by touring all
-      // five established 9:16 angles instead of holding one static overview.
+      // Keep touring the full set of eight visually different compositions while idle.
       beginAmbientCameraShot(now);
     }
     camera.position.lerp(cameraTargetPosition, blend);
