@@ -74,7 +74,12 @@ async function boot() {
   const cameraHomeTarget = new THREE.Vector3(0, -1.5, -5.5);
   const cameraHomeFov = 42;
   const cameraRitualFov = 38.5;
-  const cameraShotBlendMs = 720;
+  // Exponential damping smooths per-frame motion; the longer handoff below
+  // prevents a new shot from jumping to a distant preset's first coordinate.
+  const cameraShotBlendMs = 920;
+  const cameraShotTransitionMs = 1900;
+  const cameraShotPosition = new THREE.Vector3();
+  const cameraShotLookAt = new THREE.Vector3();
   camera.position.copy(cameraHomePosition);
   camera.lookAt(cameraHomeTarget);
   // Camera director: a shot is an independent action with its own path,
@@ -94,6 +99,7 @@ async function boot() {
   let cameraTargetPosition = cameraHomePosition.clone();
   let cameraTargetLookAt = cameraHomeTarget.clone();
   let cameraTargetFov = cameraHomeFov;
+  let activeCameraTransition = null;
   let cameraRitualActive = false;
   let activeCameraShot = 'idle';
   let activeCameraAction = 'idle';
@@ -106,6 +112,14 @@ async function boot() {
   }
 
   function beginCameraShot(index, now = performance.now(), mode = 'ambient') {
+    const currentLookAt = camera.userData.lookTarget || cameraHomeTarget;
+    activeCameraTransition = {
+      startedAt: now,
+      durationMs: cameraShotTransitionMs,
+      startPosition: camera.position.clone(),
+      startLookAt: currentLookAt.clone(),
+      startFov: camera.fov
+    };
     const count = cameraShotDefinitions.length;
     const safeIndex = ((Math.trunc(index) % count) + count) % count;
     activeCameraPresetIndex = safeIndex;
@@ -159,9 +173,36 @@ async function boot() {
     activeCameraProgress = shotFrame.progress;
     activeCameraAction = shotFrame.action;
     activeCameraSubject = shotFrame.subject;
-    cameraTargetPosition.set(...shotFrame.position);
-    cameraTargetLookAt.set(...shotFrame.lookAt);
+    cameraShotPosition.set(...shotFrame.position);
+    cameraShotLookAt.set(...shotFrame.lookAt);
+    cameraTargetPosition.copy(cameraShotPosition);
+    cameraTargetLookAt.copy(cameraShotLookAt);
     cameraTargetFov = shotFrame.fov;
+
+    // Quintic smootherstep has zero velocity at both ends. Blend the new
+    // action's moving path from the exact rendered camera pose, so even large
+    // viewpoint changes do not snap at shot hand-off.
+    let shotTransitionProgress = 1;
+    if (activeCameraTransition) {
+      const elapsed = Math.max(0, now - activeCameraTransition.startedAt);
+      const linearProgress = Math.min(1, elapsed / activeCameraTransition.durationMs);
+      const easedProgress = linearProgress * linearProgress * linearProgress
+        * (linearProgress * (linearProgress * 6 - 15) + 10);
+      shotTransitionProgress = easedProgress;
+      cameraTargetPosition.lerpVectors(
+        activeCameraTransition.startPosition,
+        cameraShotPosition,
+        easedProgress
+      );
+      cameraTargetLookAt.lerpVectors(
+        activeCameraTransition.startLookAt,
+        cameraShotLookAt,
+        easedProgress
+      );
+      cameraTargetFov = activeCameraTransition.startFov
+        + (shotFrame.fov - activeCameraTransition.startFov) * easedProgress;
+      if (linearProgress >= 1) activeCameraTransition = null;
+    }
 
     camera.position.lerp(cameraTargetPosition, blend);
     const lookTarget = camera.userData.lookTarget || (camera.userData.lookTarget = cameraHomeTarget.clone());
@@ -174,6 +215,7 @@ async function boot() {
     camera.userData.shotAction = activeCameraAction;
     camera.userData.shotSubject = activeCameraSubject;
     camera.userData.shotProgress = activeCameraProgress;
+    camera.userData.shotTransitionProgress = Number(shotTransitionProgress.toFixed(3));
     camera.userData.shotSequenceIndex = activeCameraPresetIndex;
   }
   // Runtime camera diagnostics let browser audits confirm the preset actually rendered.
