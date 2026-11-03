@@ -6,7 +6,7 @@ import { resolveGiftAction, resolveGiftVfxProfile } from './gift-action-rules.js
 import { createAoDaiAvatarVariants, getAoDaiAppearance } from './ao-dai-avatar.js';
 import { getAvailableFormationSlot, getCrowdNameTagLayout, getQueueActorFormationPosition, getQueueActorEntryPosition, createQueueWorshipLedger, MAX_CONCURRENT_WORSHIPPERS, MAX_VISIBLE_QUEUE_ACTORS, getQueueActorFormationSlots, WAITING_SEAT_COLUMNS, WAITING_SEAT_ROWS } from './devotee-formation.js';
 import { formatDevoteePrayerLabel } from './devotee-labels.js';
-import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleCameraShotFrame } from './temple-camera-presets.js';
+import { TEMPLE_CAMERA_RITUAL_PRESETS, TEMPLE_CAMERA_SHOT_SEQUENCE, getTempleCameraShotFrame } from './temple-camera-presets.js';
 
 /**
  * Full 3D temple world. The 2D artwork remains the fallback, but is hidden
@@ -80,7 +80,13 @@ async function boot() {
   // Camera director: a shot is an independent action with its own path,
   // subject, runtime and hand-off. Only one shot action owns the camera at a time.
   const cameraShotDefinitions = TEMPLE_CAMERA_RITUAL_PRESETS;
-  let cameraPresetCursor = -1;
+  const cameraShotSequence = TEMPLE_CAMERA_SHOT_SEQUENCE.map((name) =>
+    cameraShotDefinitions.findIndex((shot) => shot.name === name)
+  );
+  if (cameraShotSequence.length === 0 || cameraShotSequence.some((index) => index < 0)) {
+    throw new Error('Temple camera shot sequence contains an unknown or missing shot');
+  }
+  let cameraShotSequenceCursor = -1;
   let activeCameraPresetIndex = -1;
   let activeCameraPreset = null;
   let cameraActionStartedAt = 0;
@@ -95,18 +101,14 @@ async function boot() {
   let activeCameraProgress = 0;
 
   function getNextCameraPresetIndex() {
-    const count = cameraShotDefinitions.length;
-    if (count <= 1) return 0;
-    return cameraPresetCursor < 0
-      ? Math.floor(Math.random() * count)
-      : (cameraPresetCursor + 1) % count;
+    cameraShotSequenceCursor = (cameraShotSequenceCursor + 1) % cameraShotSequence.length;
+    return cameraShotSequence[cameraShotSequenceCursor];
   }
 
   function beginCameraShot(index, now = performance.now(), mode = 'ambient') {
     const count = cameraShotDefinitions.length;
     const safeIndex = ((Math.trunc(index) % count) + count) % count;
     activeCameraPresetIndex = safeIndex;
-    cameraPresetCursor = safeIndex;
     activeCameraPreset = cameraShotDefinitions[safeIndex];
     cameraActionStartedAt = now;
     cameraActionEndsAt = now + activeCameraPreset.durationMs;
@@ -122,12 +124,10 @@ async function boot() {
   }
 
   function beginRitualCamera() {
-    let nextIndex = Math.floor(Math.random() * cameraShotDefinitions.length);
-    if (cameraShotDefinitions.length > 1 && nextIndex === cameraPresetCursor) {
-      nextIndex = (nextIndex + 1) % cameraShotDefinitions.length;
-    }
+    // Ritual and ambient coverage share the same weighted schedule. This
+    // prevents random close-up character shots from becoming the default view.
     cameraRitualActive = true;
-    beginCameraShot(nextIndex, performance.now(), 'ritual');
+    beginCameraShot(getNextCameraPresetIndex(), performance.now(), 'ritual');
   }
 
   function restoreMainCamera() {
