@@ -2598,36 +2598,54 @@ async function boot() {
       const size = avatarCanvas.width;
       const center = size / 2;
       const radius = 112;
+      const photoRadius = 98;
       avatarContext.clearRect(0, 0, size, size);
+
+      // A visible warm gold/brown medallion sits inside the circular frame.
+      // The portrait is inset slightly so this backing remains visible as an
+      // inner ring; everything outside the circle stays fully transparent.
       avatarContext.save();
       avatarContext.beginPath();
       avatarContext.arc(center, center, radius, 0, Math.PI * 2);
       avatarContext.clip();
+      const backing = avatarContext.createRadialGradient(
+        center - 34, center - 42, 12,
+        center, center, radius
+      );
+      backing.addColorStop(0, '#f8dfa0');
+      backing.addColorStop(0.55, '#bd8438');
+      backing.addColorStop(1, '#633719');
+      avatarContext.fillStyle = backing;
+      avatarContext.fillRect(0, 0, size, size);
+
+      avatarContext.beginPath();
+      avatarContext.arc(center, center, photoRadius, 0, Math.PI * 2);
+      avatarContext.clip();
       if (avatarImage) {
-        const ratio = Math.max(size / avatarImage.width, size / avatarImage.height);
-        const sw = size / ratio;
-        const sh = size / ratio;
+        const photoSize = photoRadius * 2;
+        const ratio = Math.max(photoSize / avatarImage.width, photoSize / avatarImage.height);
+        const sw = photoSize / ratio;
+        const sh = photoSize / ratio;
         avatarContext.drawImage(
           avatarImage,
           (avatarImage.width - sw) / 2,
           (avatarImage.height - sh) / 2,
           sw,
           sh,
-          0,
-          0,
-          size,
-          size
+          center - photoRadius,
+          center - photoRadius,
+          photoSize,
+          photoSize
         );
       } else {
-        // Fallback initial is drawn on transparency, not on a rectangular or
-        // rounded background, so only the glyph and gold outline remain visible.
-        avatarContext.fillStyle = '#ffe6ad';
-        avatarContext.font = '700 112px "Be Vietnam Pro", Arial, sans-serif';
+        avatarContext.fillStyle = '#fff0c2';
+        avatarContext.font = '700 108px "Be Vietnam Pro", Arial, sans-serif';
         avatarContext.textAlign = 'center';
         avatarContext.textBaseline = 'middle';
         avatarContext.fillText((profileName[0] || 'T').toLocaleUpperCase('vi-VN'), center, center + 3);
       }
       avatarContext.restore();
+
       avatarContext.beginPath();
       avatarContext.arc(center, center, radius, 0, Math.PI * 2);
       avatarContext.lineWidth = 12;
