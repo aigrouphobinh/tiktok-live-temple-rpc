@@ -2598,7 +2598,9 @@ async function boot() {
       const size = avatarCanvas.width;
       const center = size / 2;
       const radius = 112;
-      const photoRadius = 98;
+      // Leave a clearly visible medallion band inside the avatar, rather than
+      // the nearly hairline inset that was hard to notice at 9:16 output size.
+      const photoRadius = 88;
       avatarContext.clearRect(0, 0, size, size);
 
       // A visible warm gold/brown medallion sits inside the circular frame.
@@ -2645,6 +2647,14 @@ async function boot() {
         avatarContext.fillText((profileName[0] || 'T').toLocaleUpperCase('vi-VN'), center, center + 3);
       }
       avatarContext.restore();
+
+      // A thin ivory-gold separator makes the portrait sit visibly inside
+      // the warm circular backing instead of blending into the medallion.
+      avatarContext.beginPath();
+      avatarContext.arc(center, center, photoRadius + 2, 0, Math.PI * 2);
+      avatarContext.lineWidth = 4;
+      avatarContext.strokeStyle = 'rgba(255, 238, 190, 0.96)';
+      avatarContext.stroke();
 
       avatarContext.beginPath();
       avatarContext.arc(center, center, radius, 0, Math.PI * 2);
