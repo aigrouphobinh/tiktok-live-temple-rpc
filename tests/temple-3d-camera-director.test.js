@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleCameraShotFrame } from '../public/js/temple-camera-presets.js';
+import { TEMPLE_CAMERA_RITUAL_PRESETS, TEMPLE_CAMERA_SHOT_SEQUENCE, getTempleCameraShotFrame } from '../public/js/temple-camera-presets.js';
 
 const source = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
 const vectorIsFinite = (value) => Array.isArray(value) && value.length === 3 && value.every(Number.isFinite);
@@ -15,6 +15,22 @@ describe('Three.js independent camera shot-action director', () => {
       expect(shot.durationMs).toBeGreaterThan(0);
       expect(typeof shot.actionParams).toBe('object');
     }
+  });
+
+
+  it('prioritizes sanctuary coverage and keeps character close-ups occasional', () => {
+    expect(TEMPLE_CAMERA_SHOT_SEQUENCE[0]).toBe('hall-crane-reveal');
+    expect(new Set(TEMPLE_CAMERA_SHOT_SEQUENCE)).toEqual(
+      new Set(TEMPLE_CAMERA_RITUAL_PRESETS.map((shot) => shot.name))
+    );
+    const count = (name) => TEMPLE_CAMERA_SHOT_SEQUENCE.filter((shot) => shot === name).length;
+    expect(TEMPLE_CAMERA_SHOT_SEQUENCE).toHaveLength(16);
+    expect(count('hall-crane-reveal')).toBe(3);
+    expect(count('left-aisle-dolly')).toBe(3);
+    expect(count('buddha-pov-pan')).toBe(3);
+    expect(count('abbot-bow-portrait')).toBe(1);
+    expect(count('devotee-tracking')).toBe(1);
+    expect(count('abbot-bow-portrait') + count('devotee-tracking')).toBeLessThanOrEqual(2);
   });
 
   it('executes each action with valid camera coordinates and its own motion', () => {
@@ -106,6 +122,9 @@ describe('Three.js independent camera shot-action director', () => {
     expect(source).toContain('function beginCameraShot(index, now = performance.now(), mode = \'ambient\')');
     expect(source).toContain('cameraActionEndsAt = now + activeCameraPreset.durationMs;');
     expect(source).toContain('else if (now >= cameraActionEndsAt)');
+    expect(source).toContain('TEMPLE_CAMERA_SHOT_SEQUENCE.map');
+    expect(source).toContain('beginCameraShot(getNextCameraPresetIndex(), performance.now(), \'ritual\')');
+    expect(source).not.toContain('Math.random() * cameraShotDefinitions.length');
     expect(source).toContain('getTempleCameraShotFrame(activeCameraPreset, actionElapsed');
     expect(source).toContain('camera.userData.shotAction = activeCameraAction;');
     expect(source).toContain('camera.userData.shotSubject = activeCameraSubject;');
