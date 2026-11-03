@@ -998,6 +998,7 @@ function clearViewerPresence(reason = 'room-disconnected') {
     removeViewerPresence(identity, reason, 0);
   }
   viewerPresenceMap.clear();
+  viewerEntryCooldownMap.clear();
   lastRoomViewerCount = null;
 }
 
@@ -1150,6 +1151,7 @@ async function connectTikTokLive(usernameOrUrl) {
     clearViewerPresence('room-disconnected');
     state.tiktok.connected = false;
     state.tiktok.connecting = false;
+    state.tiktok.viewerCount = 0;
     console.log(`[TikTok Live] Đã ngắt kết nối @${cleanUser}`);
     broadcastNotification('temple.state', getPublicState());
   });
@@ -1330,6 +1332,7 @@ async function connectTikTokLive(usernameOrUrl) {
       clearViewerPresence('connection-failed');
       state.tiktok.connected = false;
       state.tiktok.connecting = false;
+      state.tiktok.viewerCount = 0;
       state.tiktok.lastError = message;
       broadcastNotification('temple.state', getPublicState());
     }
