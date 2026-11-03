@@ -20,19 +20,21 @@ describe('Three.js independent camera shot-action director', () => {
   it('executes each action with valid camera coordinates and its own motion', () => {
     for (const shot of TEMPLE_CAMERA_RITUAL_PRESETS) {
       const start = getTempleCameraShotFrame(shot, 0);
+      const quarter = getTempleCameraShotFrame(shot, shot.durationMs / 4);
       const middle = getTempleCameraShotFrame(shot, shot.durationMs / 2);
+      const threeQuarter = getTempleCameraShotFrame(shot, shot.durationMs * 3 / 4);
       const end = getTempleCameraShotFrame(shot, shot.durationMs);
-      for (const frame of [start, middle, end]) {
+      for (const frame of [start, quarter, middle, threeQuarter, end]) {
         expect(vectorIsFinite(frame.position)).toBe(true);
         expect(vectorIsFinite(frame.lookAt)).toBe(true);
         expect(Number.isFinite(frame.fov)).toBe(true);
         expect(frame.action).toBe(shot.action);
         expect(frame.subject).toBe(shot.subject);
       }
-      const cameraMoved = [middle, end].some((frame) =>
+      const cameraMoved = [quarter, middle, threeQuarter, end].some((frame) =>
         start.position.some((value, index) => Math.abs(value - frame.position[index]) > 0.05)
       );
-      const viewMoved = [middle, end].some((frame) =>
+      const viewMoved = [quarter, middle, threeQuarter, end].some((frame) =>
         start.lookAt.some((value, index) => Math.abs(value - frame.lookAt[index]) > 0.05)
       );
       expect(cameraMoved || viewMoved).toBe(true);
