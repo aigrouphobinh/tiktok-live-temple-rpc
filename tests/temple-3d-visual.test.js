@@ -6,20 +6,28 @@ const aoDaiSource = readFileSync(new URL('../public/js/ao-dai-avatar.js', import
 const css = readFileSync(new URL('../public/css/live.css', import.meta.url), 'utf8');
 
 describe('3D sanctuary visual treatment', () => {
-  it('loads the selected Buddha GLB first and keeps legacy custom models opt-in', () => {
+  it('always loads buddha-selected.glb, hides the rough procedural statue and treats CC0 as emergency fallback only', () => {
     const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
-    expect(scene).toContain("const buddhaModelRequested = modelParams.get('buddha') !== '0';");
     expect(scene).toContain("const selectedUrl = '/assets/models/buddha-selected.glb';");
     expect(scene).toContain("const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';");
-    expect(scene).toContain("modelParams.get('buddha') === 'custom'");
+    expect(scene).toContain("const candidates = [");
     expect(scene).toContain("{ url: selectedUrl, source: 'kenny-hsieh' }");
     expect(scene).toContain("{ url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }");
-    expect(scene).toContain('window.__TEMPLE_BUDDHA_MODEL_DIAGNOSTIC__ = diagnostics;');
-    expect(scene).toContain("diagnostics.state = 'loaded';");
+    expect(scene).not.toContain("modelParams.get('buddha') === 'custom'");
+    expect(scene).not.toContain("modelParams.get('buddha') !== '0'");
+    expect(scene).not.toContain("const customUrl = '/assets/models/buddha.glb';");
+    expect(scene).toContain("statue.visible = false;");
+    expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';");
+    expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'error';");
+    expect(scene).toContain("window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = assetSource;");
+    expect(scene).toContain('requiredAsset: selectedUrl');
+    expect(scene).toContain('onProgress: (event) => {');
+    expect(scene).toContain('void upgradeBuddhaFromGLB();');
+    expect(scene).not.toContain('if (modelsRequested || buddhaModelRequested)');
+    expect(scene).toContain('diagnostics.state = \'loaded\';');
     expect(scene).toContain('asset.root.visible = true;');
     expect(scene).toContain('alignGroundPlane: true');
     expect(scene).toContain('diagnostics.groundAlignment = asset.groundAlignment;');
-    expect(scene).not.toContain('if (await isLocalModelAvailable(customUrl))');
   });
 
   it('adds a standing resident abbot beside the altar without counting him as a viewer', () => {
