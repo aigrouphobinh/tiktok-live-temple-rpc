@@ -4510,12 +4510,10 @@ async function boot() {
     const abbotFocusZ = focusWeight > 0
       ? abbotFocusTargets.reduce((sum, target) => sum + target.z * target.weight, 0) / focusWeight
       : -1.35;
-    const targetAbbotYaw = isAbbotPortraitAction
-      ? Math.atan2(camera.position.x - templeAbbot.position.x, camera.position.z - templeAbbot.position.z)
-      : Math.atan2(
-          abbotFocusX - templeAbbot.position.x,
-          abbotFocusZ - templeAbbot.position.z
-        );
+    const targetAbbotYaw = Math.atan2(
+      (isAbbotPortraitAction ? camera.position.x : abbotFocusX) - templeAbbot.position.x,
+      (isAbbotPortraitAction ? camera.position.z : abbotFocusZ) - templeAbbot.position.z
+    );
     const abbotYawDelta = Math.atan2(
       Math.sin(targetAbbotYaw - templeAbbot.rotation.y),
       Math.cos(targetAbbotYaw - templeAbbot.rotation.y)
