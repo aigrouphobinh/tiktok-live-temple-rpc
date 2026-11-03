@@ -776,14 +776,16 @@ import { dispatchGiftSfx } from './gift-sfx-dispatcher.js';
           updateUIState(msg.params);
         } else if (msg.method === 'temple.gift-streak-end') {
           window.TempleGiftActionEngine?.clearStreak?.(msg.params?.groupId);
-        } else if (msg.method === 'temple.viewer-enter') {
+        } else if (msg.method === 'temple.viewer-enter' || msg.method === 'temple.viewer-leave') {
           const viewer = msg.params?.viewer;
           if (viewer && (viewer.uniqueId || viewer.user)) {
+            const eventType = msg.method === 'temple.viewer-enter' ? 'enter' : 'leave';
             if (window.__TEMPLE_3D_READY__) {
-              window.dispatchEvent(new CustomEvent('temple:viewer-enter', { detail: viewer }));
+              window.dispatchEvent(new CustomEvent(`temple:viewer-${eventType}`, { detail: viewer }));
             } else {
-              window.__TEMPLE_PENDING_VIEWER_ENTRIES__ ||= [];
-              window.__TEMPLE_PENDING_VIEWER_ENTRIES__.push(viewer);
+              // Keep join/leave ordering intact while the 3D scene is loading.
+              window.__TEMPLE_PENDING_VIEWER_EVENTS__ ||= [];
+              window.__TEMPLE_PENDING_VIEWER_EVENTS__.push({ type: eventType, viewer });
             }
           }
         } else if (msg.method === 'temple.viewerCount') {
