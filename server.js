@@ -938,6 +938,7 @@ const VIEWER_ENTRY_COOLDOWN_MS = 30000;
 // guarantee a per-account leave event. Keep the accounts we actually saw so
 // a falling room count can retire the oldest inactive-looking seat gracefully.
 const viewerPresenceMap = new Map();
+const MAX_TRACKED_VIEWER_PRESENCE = 300;
 let lastRoomViewerCount = null;
 let viewerStateBroadcastTimer = null;
 
@@ -1205,6 +1206,11 @@ async function connectTikTokLive(usernameOrUrl) {
       joinedAt: now,
       lastActivityAt: now
     });
+    if (viewerPresenceMap.size > MAX_TRACKED_VIEWER_PRESENCE) {
+      const oldestIdentity = [...viewerPresenceMap.entries()]
+        .sort((a, b) => a[1].joinedAt - b[1].joinedAt)[0]?.[0];
+      if (oldestIdentity) viewerPresenceMap.delete(oldestIdentity);
+    }
     // A room entry is presence, not a donation: create/update the profile with
     // zero merit and let the 3D client seat the visitor in the 36-place grid.
     recordDevotee(user, uniqueId, avatar, 0, 0, 0, 'Vừa vào Chánh Điện');
