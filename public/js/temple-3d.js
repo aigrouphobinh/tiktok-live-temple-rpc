@@ -2946,6 +2946,21 @@ async function boot() {
     }
   }
 
+  function cancelLiveViewerDeparture(actor) {
+    const departureIndex = departingDevotees.findIndex((item) => item.liveViewerActor === actor);
+    if (departureIndex < 0) return false;
+    departingDevotees.splice(departureIndex, 1);
+    actor.leaving = false;
+    actor.avatar.queueWaiting = true;
+    actor.avatar.prayerPose = true;
+    actor.avatar.kneeling = false;
+    actor.avatar.kneelBlend = 0;
+    actor.avatar.bowing = false;
+    actor.avatar.bowAmount = 0;
+    actor.group.visible = true;
+    return true;
+  }
+
   function onTempleViewerEnter(event) {
     const viewer = event?.detail;
     const identity = getDevoteeIdentityKey(viewer);
@@ -2964,7 +2979,7 @@ async function boot() {
       const oldestIdentity = liveViewerRoster.keys().next().value;
       liveViewerRoster.delete(oldestIdentity);
       const oldActor = liveViewerActors.get(oldestIdentity);
-      if (oldActor) {
+      if (oldActor && !oldActor.leaving) {
         liveViewerActors.delete(oldestIdentity);
         oldActor.group.visible = false;
         oldActor.event = null;
@@ -2975,11 +2990,82 @@ async function boot() {
     }
     const seated = liveViewerActors.get(identity);
     if (seated) {
+      const resumedDeparture = cancelLiveViewerDeparture(seated);
       seated.event = liveViewerRoster.get(identity);
       seated.nameTag.userData.setProfile(viewer.user || 'Thí Chủ', viewer.avatar || '');
       seated.prayerTag.userData.setWish(liveViewerRoster.get(identity).wish);
+      if (resumedDeparture) {
+        const formation = getQueueActorFormationPosition(seated.slot);
+        if (formation) {
+          setQueueActorTarget(
+            seated,
+            new THREE.Vector3(formation.x, formation.y, formation.z),
+            seated.slot,
+            performance.now()
+          );
+        }
+      }
     }
     syncLiveViewerSeats();
+  }
+
+  function onTempleViewerLeave(event) {
+    const viewer = event?.detail;
+    const identity = getDevoteeIdentityKey(viewer);
+    if (!viewer || !identity) return;
+    liveViewerRoster.delete(identity);
+
+    // A person who has already triggered a ritual is in the separate FIFO
+    // system; let that promised worship/exit animation finish normally.
+    if (
+      (devoteeState.active && getDevoteeIdentityKey(devoteeState.event) === identity)
+      || devoteeQueue.some((queued) => getDevoteeIdentityKey(queued) === identity)
+      || [...queueActors.values()].some((actor) => getDevoteeIdentityKey(actor.event) === identity)
+    ) return;
+
+    const actor = liveViewerActors.get(identity);
+    if (!actor || actor.leaving) return;
+    const now = performance.now();
+    const start = actor.group.position.clone();
+    const side = start.x < 0 ? -1 : 1;
+    const exitCurve = new THREE.CatmullRomCurve3([
+      start,
+      start.clone().add(new THREE.Vector3(side * 0.55, 0, 1.25)),
+      new THREE.Vector3(side * 4.8, 0.05, 3.0),
+      new THREE.Vector3(side * 5.7, 0.05, 8.5),
+      new THREE.Vector3(side * 6.2, 0.05, 13.5)
+    ], false, 'centripetal');
+
+    actor.leaving = true;
+    actor.avatar.queueWaiting = false;
+    actor.avatar.queuedWorshipLane = false;
+    actor.avatar.queueWorshipCompleted = false;
+    actor.avatar.prayerPose = false;
+    actor.avatar.kneeling = false;
+    actor.avatar.kneelBlend = 0;
+    actor.avatar.bowing = false;
+    actor.avatar.bowAmount = 0;
+    actor.avatar.ritualBowPhase = 'leaving-temple';
+    applyHumanBow(actor.avatar, 0);
+    actor.seat.visible = false;
+    actor.sutraBook.visible = false;
+    actor.moveTarget = null;
+    actor.moveCurve = null;
+    actor.moveStartedAt = 0;
+    actor.moveDurationMs = 0;
+
+    // Keep the seat reserved until the character reaches the door. The actor
+    // is returned to queueActorPool after the walk, not destroyed/recreated.
+    departingDevotees.push({
+      group: actor.group,
+      avatar: actor.avatar,
+      event: actor.event,
+      curve: exitCurve,
+      startedAt: now,
+      durationMs: Math.max(3600, exitCurve.getLength() / 1.45 * 1000),
+      liveViewerActor: actor,
+      liveViewerIdentity: identity
+    });
   }
 
   function releaseLiveViewerActor(event) {
@@ -3001,6 +3087,7 @@ async function boot() {
 
   function updateLiveViewerActors(now) {
     for (const actor of liveViewerActors.values()) {
+      if (actor.leaving) continue;
       if (actor.moveCurve) {
         const progress = Math.min(1, Math.max(
           0,
@@ -4222,7 +4309,16 @@ async function boot() {
   }
   window.addEventListener('temple:ritual', onTempleRitual);
   window.addEventListener('temple:viewer-enter', onTempleViewerEnter);
-  // Replay member arrivals buffered while the asynchronous 3D scene booted.
+  window.addEventListener('temple:viewer-leave', onTempleViewerLeave);
+  // Replay ordered member presence changes buffered while the asynchronous
+  // 3D scene booted, then consume the legacy arrivals queue if still present.
+  const pendingViewerEvents = Array.isArray(window.__TEMPLE_PENDING_VIEWER_EVENTS__)
+    ? window.__TEMPLE_PENDING_VIEWER_EVENTS__.splice(0)
+    : [];
+  pendingViewerEvents.forEach((item) => {
+    if (item?.type === 'leave') onTempleViewerLeave({ detail: item.viewer });
+    else if (item?.viewer) onTempleViewerEnter({ detail: item.viewer });
+  });
   const pendingViewerEntries = Array.isArray(window.__TEMPLE_PENDING_VIEWER_ENTRIES__)
     ? window.__TEMPLE_PENDING_VIEWER_ENTRIES__.splice(0)
     : [];
@@ -4523,8 +4619,31 @@ async function boot() {
       ));
       leaving.group.scale.setScalar(1 - eased * 0.12);
       if (progress >= 1) {
-        world.remove(leaving.group);
+        if (leaving.liveViewerActor) {
+          const actor = leaving.liveViewerActor;
+          if (liveViewerActors.get(leaving.liveViewerIdentity) === actor) {
+            liveViewerActors.delete(leaving.liveViewerIdentity);
+          }
+          actor.leaving = false;
+          actor.group.visible = false;
+          actor.group.rotation.set(0, 0, 0);
+          actor.group.scale.setScalar(0.86);
+          actor.event = null;
+          actor.slot = -1;
+          actor.moveTarget = null;
+          actor.moveCurve = null;
+          actor.moveStartedAt = 0;
+          actor.moveDurationMs = 0;
+          actor.avatar.queueWaiting = false;
+          actor.avatar.prayerPose = false;
+          actor.seat.visible = false;
+          actor.sutraBook.visible = true;
+          queueActorPool.push(actor);
+        } else {
+          world.remove(leaving.group);
+        }
         departingDevotees.splice(i, 1);
+        syncLiveViewerSeats(now);
       }
     }
     lanterns.forEach((light, i) => {
