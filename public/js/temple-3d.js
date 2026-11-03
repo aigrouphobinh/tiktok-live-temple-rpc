@@ -2539,87 +2539,138 @@ async function boot() {
   const mainDevotee=new THREE.Group();
   mainDevotee.visible=false;mainDevotee.position.set(0,0.05,7.5);world.add(mainDevotee);
   const mainHuman=makeHumanAvatar(1.72);mainDevotee.add(mainHuman.root);
-  // Full TikTok username tag follows the active devotee's head in 3D mode,
-  // matching the untruncated name shown above the 2D central worshipper.
+  // The avatar is a separate transparent circular sprite, outside the
+  // variable-width name plate. This keeps the portrait large and prevents the
+  // dark name-box background from appearing behind the avatar.
   function createDevoteeNameTag(options = {}) {
     const featured = options.featured === true;
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 192;
-    const context = canvas.getContext('2d');
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.minFilter = THREE.LinearFilter;
-    const material = new THREE.SpriteMaterial({
-      map: texture, transparent: true, depthTest: false, depthWrite: false
+    const plateCanvas = document.createElement('canvas');
+    plateCanvas.width = 520;
+    plateCanvas.height = 192;
+    const plateContext = plateCanvas.getContext('2d');
+    const plateTexture = new THREE.CanvasTexture(plateCanvas);
+    plateTexture.colorSpace = THREE.SRGBColorSpace;
+    plateTexture.minFilter = THREE.LinearFilter;
+    plateTexture.generateMipmaps = false;
+
+    const avatarCanvas = document.createElement('canvas');
+    avatarCanvas.width = 256;
+    avatarCanvas.height = 256;
+    const avatarContext = avatarCanvas.getContext('2d');
+    const avatarTexture = new THREE.CanvasTexture(avatarCanvas);
+    avatarTexture.colorSpace = THREE.SRGBColorSpace;
+    avatarTexture.minFilter = THREE.LinearFilter;
+    avatarTexture.generateMipmaps = false;
+
+    const plateMaterial = new THREE.SpriteMaterial({
+      map: plateTexture, transparent: true, depthTest: false, depthWrite: false
     });
-    const sprite = new THREE.Sprite(material);
-    sprite.position.set(0, 2.18, 0);
-    // Keep the profile plate compact above the character; long TikTok IDs
-    // are shortened visually instead of stretching across the scene.
-    sprite.scale.set(featured ? 2.9 : 2.55, featured ? 0.56 : 0.48, 1);
-    sprite.renderOrder = 30;
+    const avatarMaterial = new THREE.SpriteMaterial({
+      map: avatarTexture, transparent: true, depthTest: false, depthWrite: false
+    });
+    const tag = new THREE.Group();
+    tag.name = featured ? 'FeaturedDevoteeNameTag' : 'DevoteeNameTag';
+    tag.position.set(0, 2.18, 0);
+    const plateSprite = new THREE.Sprite(plateMaterial);
+    const avatarSprite = new THREE.Sprite(avatarMaterial);
+    plateSprite.renderOrder = 30;
+    avatarSprite.renderOrder = 31;
+    tag.add(plateSprite, avatarSprite);
+
     let avatarImage = null;
     let avatarUrl = '';
     let profileName = featured ? 'Bảo Ngọc' : 'Thí Chủ Hữu Duyên';
     let imageRequest = 0;
+    let tagHeight = featured ? 0.56 : 0.30;
+
+    function syncTagSize() {
+      const plateWidth = (plateCanvas.width / plateCanvas.height) * tagHeight;
+      const avatarDiameter = tagHeight * (featured ? 1.34 : 1.48);
+      // The portrait centre sits exactly on the plate's left edge. Half of
+      // the portrait therefore floats outside the box on a transparent canvas.
+      plateSprite.scale.set(plateWidth, tagHeight, 1);
+      plateSprite.position.set(avatarDiameter * 0.25, 0, 0);
+      avatarSprite.scale.set(avatarDiameter, avatarDiameter, 1);
+      avatarSprite.position.set(avatarDiameter * 0.25 - plateWidth / 2, 0, 0);
+    }
+
+    function drawAvatar() {
+      const size = avatarCanvas.width;
+      const center = size / 2;
+      const radius = 112;
+      avatarContext.clearRect(0, 0, size, size);
+      avatarContext.save();
+      avatarContext.beginPath();
+      avatarContext.arc(center, center, radius, 0, Math.PI * 2);
+      avatarContext.clip();
+      if (avatarImage) {
+        const ratio = Math.max(size / avatarImage.width, size / avatarImage.height);
+        const sw = size / ratio;
+        const sh = size / ratio;
+        avatarContext.drawImage(
+          avatarImage,
+          (avatarImage.width - sw) / 2,
+          (avatarImage.height - sh) / 2,
+          sw,
+          sh,
+          0,
+          0,
+          size,
+          size
+        );
+      } else {
+        // Fallback initial is drawn on transparency, not on a rectangular or
+        // rounded background, so only the glyph and gold outline remain visible.
+        avatarContext.fillStyle = '#ffe6ad';
+        avatarContext.font = '700 112px "Be Vietnam Pro", Arial, sans-serif';
+        avatarContext.textAlign = 'center';
+        avatarContext.textBaseline = 'middle';
+        avatarContext.fillText((profileName[0] || 'T').toLocaleUpperCase('vi-VN'), center, center + 3);
+      }
+      avatarContext.restore();
+      avatarContext.beginPath();
+      avatarContext.arc(center, center, radius, 0, Math.PI * 2);
+      avatarContext.lineWidth = 12;
+      avatarContext.strokeStyle = '#f5ce78';
+      avatarContext.shadowColor = 'rgba(255, 195, 91, 0.72)';
+      avatarContext.shadowBlur = 12;
+      avatarContext.stroke();
+      avatarContext.shadowBlur = 0;
+      avatarTexture.needsUpdate = true;
+    }
 
     function drawProfile() {
       const name = profileName;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      const padX = 20, boxY = 15, boxH = 162, radius = 38;
+      const fontSize = featured ? 58 : 50;
+      plateContext.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
+      const measuredNameWidth = Math.ceil(plateContext.measureText(name).width);
+      // Width follows the measured name. There is no fixed text cutoff and no
+      // shrinking/ellipsis for long usernames; padding stays visually constant.
+      const requiredWidth = Math.max(420, measuredNameWidth + 190);
+      if (plateCanvas.width !== requiredWidth) {
+        plateCanvas.width = requiredWidth;
+      }
+      const context = plateCanvas.getContext('2d');
+      context.clearRect(0, 0, plateCanvas.width, plateCanvas.height);
       context.beginPath();
-      context.roundRect(padX, boxY, canvas.width - padX * 2, boxH, radius);
+      context.roundRect(0, 15, plateCanvas.width, 162, 38);
       context.fillStyle = 'rgba(24, 12, 5, 0.92)';
       context.fill();
       context.lineWidth = featured ? 7 : 5;
       context.strokeStyle = featured ? 'rgba(255, 232, 160, 1)' : 'rgba(255, 218, 139, 0.96)';
       context.stroke();
 
-      // TikTok profile photo in a gold circular frame, left of the full username.
-      const cx = 112, cy = 96, radiusAvatar = 60;
-      context.save();
-      context.beginPath();
-      context.arc(cx, cy, radiusAvatar, 0, Math.PI * 2);
-      context.fillStyle = '#8d4b1f';
-      context.fill();
-      context.clip();
-      if (avatarImage) {
-        const size = radiusAvatar * 2;
-        const ratio = Math.max(size / avatarImage.width, size / avatarImage.height);
-        const sw = size / ratio, sh = size / ratio;
-        context.drawImage(avatarImage, (avatarImage.width - sw) / 2, (avatarImage.height - sh) / 2, sw, sh, cx - radiusAvatar, cy - radiusAvatar, size, size);
-      } else {
-        context.fillStyle = '#f5d79b';
-        context.font = '700 68px Arial, sans-serif';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText((name[0] || 'T').toUpperCase(), cx, cy + 2);
-      }
-      context.restore();
-      context.beginPath();
-      context.arc(cx, cy, radiusAvatar + 5, 0, Math.PI * 2);
-      context.lineWidth = 9;
-      context.strokeStyle = '#f5ce78';
-      context.stroke();
-
-      // Preserve the full TikTok username. Reduce the font progressively
-      // instead of replacing the tail with an ellipsis on long account IDs.
-      const maxNameWidth = 780;
-      let fontSize = 58;
+      context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
       context.textAlign = 'left';
       context.textBaseline = 'middle';
-      context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-      while (fontSize > 20 && context.measureText(name).width > maxNameWidth) {
-        fontSize -= 2;
-        context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-      }
       context.fillStyle = '#fff0c2';
       context.shadowColor = 'rgba(255, 190, 74, 0.55)';
-      context.shadowBlur = 12;
-      context.fillText(name, 205, 98, maxNameWidth);
+      context.shadowBlur = 10;
+      context.fillText(name, 145, 98);
       context.shadowBlur = 0;
-      texture.needsUpdate = true;
+      plateTexture.needsUpdate = true;
+      syncTagSize();
+      drawAvatar();
     }
 
     function setProfile(nameValue, urlValue) {
@@ -2635,12 +2686,12 @@ async function boot() {
           image.onload = () => {
             if (request !== imageRequest) return;
             avatarImage = image;
-            drawProfile();
+            drawAvatar();
           };
           image.onerror = () => {
             if (request !== imageRequest) return;
             avatarImage = null;
-            drawProfile();
+            drawAvatar();
           };
           image.src = nextUrl;
         }
@@ -2648,10 +2699,17 @@ async function boot() {
       drawProfile();
     }
 
-    setProfile(featured ? 'Bảo Ngọc' : 'Thí Chủ Hữu Duyên', '');
-    sprite.userData.setName = (name) => setProfile(name, avatarUrl);
-    sprite.userData.setProfile = setProfile;
-    return sprite;
+    tag.userData.setSize = (heightValue) => {
+      const height = Number(heightValue);
+      if (Number.isFinite(height) && height > 0) {
+        tagHeight = height;
+        syncTagSize();
+      }
+    };
+    tag.userData.setName = (name) => setProfile(name, avatarUrl);
+    tag.userData.setProfile = setProfile;
+    setProfile(profileName, '');
+    return tag;
   }
   function createDevoteeWishBubble(options = {}) {
     const compact = options.compact === true;
@@ -2862,7 +2920,7 @@ async function boot() {
     const sutraBook = createSutraBook(avatar);
     const nameTag = createDevoteeNameTag();
     nameTag.position.set(0, 1.82, 0);
-    nameTag.scale.set(1.94, 0.30, 1);
+    nameTag.userData.setSize(0.30);
     const prayerTag = createDevoteeWishBubble({ compact: true });
     avatar.root.add(nameTag, prayerTag);
     nameTag.userData.setProfile(event.user || 'Thí Chủ', event.avatar || '');
@@ -3168,7 +3226,7 @@ async function boot() {
         actor.slot = slot;
         const nameTagLayout = getCrowdNameTagLayout(slot, { columns: 1, width: 1.72, height: 0.28, staggerY: 0 });
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
-        actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
+        actor.nameTag.userData.setSize(nameTagLayout.height);
         actor.avatar.queueWaiting = true;
         actor.avatar.queueWorshipCompleted = false;
         actor.avatar.prayerPose = true;
@@ -3199,7 +3257,7 @@ async function boot() {
         actor.slot = slot;
         const nameTagLayout = getCrowdNameTagLayout(slot, { columns: 1, width: 1.72, height: 0.28, staggerY: 0 });
         actor.nameTag.position.set(0, nameTagLayout.y, 0);
-        actor.nameTag.scale.set(nameTagLayout.width, nameTagLayout.height, 1);
+        actor.nameTag.userData.setSize(nameTagLayout.height);
       }
       const queueFormation = getQueueActorFormationPosition(slot);
       const isWorshipLane = queueFormation?.role === 'worship';
