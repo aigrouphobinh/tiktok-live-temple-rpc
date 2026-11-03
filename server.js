@@ -934,7 +934,71 @@ const commentCooldownMap = new Map();
 // not fill with duplicate copies of the same account.
 const viewerEntryCooldownMap = new Map();
 const VIEWER_ENTRY_COOLDOWN_MS = 30000;
+// TikTok exposes MEMBER joins and aggregate ROOM_USER counts, but does not
+// guarantee a per-account leave event. Keep the accounts we actually saw so
+// a falling room count can retire the oldest inactive-looking seat gracefully.
+const viewerPresenceMap = new Map();
+let lastRoomViewerCount = null;
 let viewerStateBroadcastTimer = null;
+
+function getViewerPresenceIdentity(uniqueId, user) {
+  return String(uniqueId || user || '').trim().replace(/^@+/, '').toLowerCase();
+}
+
+function removeViewerPresence(identity, reason = 'viewer-count-decrease', viewerCount = state.tiktok.viewerCount) {
+  const viewer = viewerPresenceMap.get(identity);
+  if (!viewer) return false;
+  viewerPresenceMap.delete(identity);
+  broadcastNotification('temple.viewer-leave', {
+    viewer: {
+      user: viewer.user,
+      uniqueId: viewer.uniqueId,
+      avatar: viewer.avatar,
+      leftAt: Date.now()
+    },
+    reason,
+    viewerCount: Number(viewerCount || 0)
+  });
+  return true;
+}
+
+function reconcileViewerPresence(previousCount, nextCount) {
+  if (!Number.isFinite(previousCount) || !Number.isFinite(nextCount) || nextCount >= previousCount) return 0;
+  const dropCount = Math.min(previousCount - nextCount, viewerPresenceMap.size);
+  if (dropCount <= 0) return 0;
+
+  // The protocol tells us how many viewers left, not their identities. Retire
+  // the oldest known arrivals first; activity events refresh lastActivityAt.
+  const candidates = [...viewerPresenceMap.entries()]
+    .sort((a, b) => a[1].lastActivityAt - b[1].lastActivityAt);
+  let removed = 0;
+  for (const [identity] of candidates) {
+    if (removed >= dropCount) break;
+    if (removeViewerPresence(identity, 'viewer-count-decrease', nextCount)) removed += 1;
+  }
+  if (removed) {
+    console.log(`[TikTok Presence] Viewer count ${previousCount} -> ${nextCount}; retired ${removed} known seat(s).`);
+  }
+  return removed;
+}
+
+function touchViewerPresence(uniqueId, user, avatar) {
+  const identity = getViewerPresenceIdentity(uniqueId, user);
+  if (!identity) return;
+  const viewer = viewerPresenceMap.get(identity);
+  if (!viewer) return;
+  viewer.lastActivityAt = Date.now();
+  if (user) viewer.user = user;
+  if (avatar) viewer.avatar = avatar;
+}
+
+function clearViewerPresence(reason = 'room-disconnected') {
+  for (const identity of [...viewerPresenceMap.keys()]) {
+    removeViewerPresence(identity, reason, 0);
+  }
+  viewerPresenceMap.clear();
+  lastRoomViewerCount = null;
+}
 
 function scheduleViewerStateBroadcast() {
   if (viewerStateBroadcastTimer) return;
@@ -1042,6 +1106,7 @@ async function connectTikTokLive(usernameOrUrl) {
   }
   // A reconnect starts a fresh room-presence snapshot as well as a fresh
   // gift streak session, so initial MEMBER hydration can repopulate the seats.
+  clearViewerPresence('room-reconnect');
   clearGiftComboTracker(giftComboTracker);
   viewerEntryCooldownMap.clear();
 
@@ -1081,6 +1146,7 @@ async function connectTikTokLive(usernameOrUrl) {
   connection.on(ControlEvent.DISCONNECTED, () => {
     if (!isCurrentConnection()) return;
     clearGiftComboTracker(giftComboTracker);
+    clearViewerPresence('room-disconnected');
     state.tiktok.connected = false;
     state.tiktok.connecting = false;
     console.log(`[TikTok Live] Đã ngắt kết nối @${cleanUser}`);
@@ -1097,19 +1163,33 @@ async function connectTikTokLive(usernameOrUrl) {
 
   connection.on(WebcastEvent.ROOM_USER, (data) => {
     if (!isCurrentConnection()) return;
-    const viewerCount = Number(data?.total ?? data?.viewerCount ?? 0);
-    if (viewerCount > 0) {
-      state.tiktok.viewerCount = viewerCount;
-      broadcastNotification('temple.viewerCount', { viewerCount });
+    const rawViewerCount = data?.total ?? data?.viewerCount ?? data?.totalUser;
+    if (rawViewerCount == null) return;
+    const viewerCount = Number(rawViewerCount);
+    if (!Number.isFinite(viewerCount) || viewerCount < 0) return;
+
+    const previousCount = lastRoomViewerCount;
+    state.tiktok.viewerCount = Math.floor(viewerCount);
+    if (previousCount !== null) {
+      reconcileViewerPresence(previousCount, state.tiktok.viewerCount);
     }
+    lastRoomViewerCount = state.tiktok.viewerCount;
+    broadcastNotification('temple.viewerCount', { viewerCount: state.tiktok.viewerCount });
   });
 
   connection.on(WebcastEvent.MEMBER, (data) => {
     if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
-    const identity = String(uniqueId || user || '').trim().replace(/^@+/, '').toLowerCase();
+    const identity = getViewerPresenceIdentity(uniqueId, user);
     if (!identity) return;
     const now = Date.now();
+    const existingPresence = viewerPresenceMap.get(identity);
+    if (existingPresence) {
+      existingPresence.lastActivityAt = now;
+      existingPresence.user = user || existingPresence.user;
+      existingPresence.avatar = avatar || existingPresence.avatar;
+      return;
+    }
     const lastSeenAt = viewerEntryCooldownMap.get(identity) || 0;
     if (now - lastSeenAt < VIEWER_ENTRY_COOLDOWN_MS) return;
     viewerEntryCooldownMap.set(identity, now);
@@ -1118,6 +1198,13 @@ async function connectTikTokLive(usernameOrUrl) {
       viewerEntryCooldownMap.delete(oldestKey);
     }
 
+    viewerPresenceMap.set(identity, {
+      user,
+      uniqueId,
+      avatar,
+      joinedAt: now,
+      lastActivityAt: now
+    });
     // A room entry is presence, not a donation: create/update the profile with
     // zero merit and let the 3D client seat the visitor in the 36-place grid.
     recordDevotee(user, uniqueId, avatar, 0, 0, 0, 'Vừa vào Chánh Điện');
@@ -1133,6 +1220,7 @@ async function connectTikTokLive(usernameOrUrl) {
   connection.on(WebcastEvent.CHAT, (data) => {
     if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
+    touchViewerPresence(uniqueId, user, avatar);
     const commentText = data?.content || data?.comment || '';
     console.log(`[TikTok Chat] ${user}: ${commentText}`);
     parseViewerComment(commentText, user, uniqueId, avatar);
@@ -1141,6 +1229,7 @@ async function connectTikTokLive(usernameOrUrl) {
   connection.on(WebcastEvent.LIKE, (data) => {
     if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
+    touchViewerPresence(uniqueId, user, avatar);
     const likeCount = Math.min(15, Math.max(1, Number(data?.count ?? data?.likeCount ?? 1)));
     Rituals.strikeWoodenFish({ user, uniqueId, avatar, count: likeCount });
   });
@@ -1148,6 +1237,7 @@ async function connectTikTokLive(usernameOrUrl) {
   const handleSocialEvent = (data) => {
     if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
+    touchViewerPresence(uniqueId, user, avatar);
     Rituals.ringBell({
       user,
       uniqueId,
@@ -1171,6 +1261,7 @@ async function connectTikTokLive(usernameOrUrl) {
   connection.on(WebcastEvent.GIFT, (data) => {
     if (!isCurrentConnection()) return;
     const { user, uniqueId, avatar } = extractUserFromEvent(data);
+    touchViewerPresence(uniqueId, user, avatar);
     const giftPayload = normalizeGiftPayload(data, uniqueId);
     const {
       giftId, giftName: rawGiftName, diamondCount, repeatCount, repeatEnd, groupId
@@ -1230,6 +1321,7 @@ async function connectTikTokLive(usernameOrUrl) {
     const message = formatTikTokConnectionError(err) || 'Không thể kết nối phòng Live (kiểm tra tài khoản đang phát Live chưa)';
     if (isCurrentConnection()) {
       clearGiftComboTracker(giftComboTracker);
+      clearViewerPresence('connection-failed');
       state.tiktok.connected = false;
       state.tiktok.connecting = false;
       state.tiktok.lastError = message;
@@ -1247,6 +1339,7 @@ function disconnectTikTokLive() {
     tiktokConn = null;
   }
   clearGiftComboTracker(giftComboTracker);
+  clearViewerPresence('manual-disconnect');
   viewerEntryCooldownMap.clear();
   state.tiktok.connected = false;
   state.tiktok.connecting = false;
