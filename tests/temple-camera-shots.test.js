@@ -49,7 +49,13 @@ describe('3D temple shot action sequence', () => {
     expect(scene).toContain('lookTarget.lerp(cameraTargetLookAt, blend);');
     expect(scene).toContain('camera.fov += (cameraTargetFov - camera.fov) * blend;');
     expect(scene).toContain('camera.lookAt(lookTarget);');
-    expect(scene).toContain('const cameraShotBlendMs = 720;');
+    expect(scene).toContain('const cameraShotBlendMs = 920;');
+    expect(scene).toContain('const cameraShotTransitionMs = 1900;');
+    expect(scene).toContain('startPosition: camera.position.clone()');
+    expect(scene).toContain('startLookAt: currentLookAt.clone()');
+    expect(scene).toContain('cameraTargetPosition.lerpVectors(');
+    expect(scene).toContain('cameraTargetLookAt.lerpVectors(');
+    expect(scene).toContain('camera.userData.shotTransitionProgress');
   });
 
   it('keeps the old CSS transform director disabled in 3D mode', () => {
