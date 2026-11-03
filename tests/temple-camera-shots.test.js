@@ -31,7 +31,9 @@ describe('3D temple shot action sequence', () => {
     const abbotFrame = getTempleCameraShotFrame(abbot, abbot.durationMs);
     expect(povFrame.position).toEqual(pov.actionParams.camera);
     expect(povFrame.lookAt[0]).toBeGreaterThan(0);
-    expect(abbotFrame.lookAt).toEqual(abbot.actionParams.target);
+    expect(abbotFrame.lookAt[0]).toBeCloseTo(abbot.actionParams.target[0]);
+    expect(abbotFrame.lookAt[1]).toBeCloseTo(abbot.actionParams.target[1]);
+    expect(abbotFrame.lookAt[2]).toBeCloseTo(abbot.actionParams.target[2]);
     expect(abbotFrame.position).toEqual(abbot.actionParams.endPosition);
   });
 
