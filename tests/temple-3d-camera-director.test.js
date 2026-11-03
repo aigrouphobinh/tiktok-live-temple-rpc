@@ -85,12 +85,21 @@ describe('Three.js independent camera shot-action director', () => {
     const left = getTempleCameraShotFrame(byAction('left-aisle-dolly'), 7800);
     const right = getTempleCameraShotFrame(byAction('right-aisle-dolly'), 7800);
     const overview = getTempleCameraShotFrame(byAction('hall-overview-orbit'), 4600);
-    expect(crane.position[1]).toBeLessThan(18.5);
+    expect(crane.position[1]).toBeLessThan(8);
     expect(left.position[0]).toBeGreaterThan(-12.5);
     expect(right.position[0]).toBeLessThan(12.2);
-    expect(overview.position[1]).toBeGreaterThan(18);
+    expect(overview.position[1]).toBeLessThan(10.2);
+    expect(overview.fov).toBeLessThanOrEqual(46);
     expect(left.position[0]).toBeLessThan(0);
     expect(right.position[0]).toBeGreaterThan(0);
+
+    const craneShot = byAction('hall-crane-reveal');
+    for (const elapsed of [0, craneShot.durationMs / 2, craneShot.durationMs]) {
+      expect(getTempleCameraShotFrame(craneShot, elapsed).position[1]).toBeLessThanOrEqual(7.8);
+    }
+    for (const elapsed of [0, 2300, 4600, 6900, 9200]) {
+      expect(getTempleCameraShotFrame(byAction('hall-overview-orbit'), elapsed).position[1]).toBeLessThan(10.2);
+    }
   });
 
   it('runs exactly one shot action until its own duration ends, then hands off', () => {
