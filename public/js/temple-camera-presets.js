@@ -1,11 +1,71 @@
-// Five deliberately distinct views for one continuous 9:16 Three.js camera.
-// Altar close-ups sit farther back and use a wider FOV than the previous framing.
+// Distinct portrait-friendly views for the temple camera tour.
+// The camera deliberately alternates between the Buddha, the resident abbot,
+// the Buddha's outward point of view, and several full-hall compositions.
 export const TEMPLE_CAMERA_RITUAL_PRESETS = Object.freeze([
-  Object.freeze({ name: 'left-three-quarter', position: Object.freeze([-3.0, 11.15, 27.2]), targetOffsetX: -1.12, targetOffsetY: 1.22, targetOffsetZ: 0, processionFov: 39, closePositionOffset: Object.freeze([-1.6, 6.6, 10.3]), closeLookAtOffset: Object.freeze([-0.3, 1.55, -0.6]), closeFov: 38.5 }),
-  Object.freeze({ name: 'right-three-quarter', position: Object.freeze([3.0, 11.15, 27.2]), targetOffsetX: 1.12, targetOffsetY: 1.22, targetOffsetZ: 0, processionFov: 39, closePositionOffset: Object.freeze([1.6, 6.6, 10.3]), closeLookAtOffset: Object.freeze([0.3, 1.55, -0.6]), closeFov: 38.5 }),
-  Object.freeze({ name: 'center-elevated', position: Object.freeze([0.15, 13.05, 30.2]), targetOffsetX: 0.05, targetOffsetY: 1.82, targetOffsetZ: 0.35, processionFov: 40.5, closePositionOffset: Object.freeze([0.15, 7.5, 11.0]), closeLookAtOffset: Object.freeze([0.05, 1.6, -0.55]), closeFov: 40 }),
-  Object.freeze({ name: 'left-side', position: Object.freeze([-4.2, 10.45, 25.35]), targetOffsetX: -1.62, targetOffsetY: 1.1, targetOffsetZ: -0.15, processionFov: 38.5, closePositionOffset: Object.freeze([-3.25, 6.3, 10.1]), closeLookAtOffset: Object.freeze([-0.85, 1.5, -0.5]), closeFov: 40 }),
-  Object.freeze({ name: 'right-side', position: Object.freeze([4.2, 10.45, 25.35]), targetOffsetX: 1.62, targetOffsetY: 1.1, targetOffsetZ: -0.15, processionFov: 38.5, closePositionOffset: Object.freeze([3.25, 6.3, 10.1]), closeLookAtOffset: Object.freeze([0.85, 1.5, -0.5]), closeFov: 40 })
+  Object.freeze({
+    name: 'buddha-front-three-quarter',
+    position: Object.freeze([3.8, 8.0, 1.7]),
+    targetOffsetX: 0,
+    targetOffsetY: 5.0,
+    targetOffsetZ: -4.7,
+    processionFov: 44
+  }),
+  Object.freeze({
+    name: 'buddha-left-profile',
+    position: Object.freeze([-7.6, 7.0, -1.2]),
+    targetOffsetX: 0,
+    targetOffsetY: 4.9,
+    targetOffsetZ: -4.7,
+    processionFov: 48
+  }),
+  Object.freeze({
+    name: 'buddha-view-across-hall',
+    position: Object.freeze([0.2, 6.05, -6.5]),
+    targetOffsetX: 0,
+    targetOffsetY: 2.4,
+    targetOffsetZ: 12.55,
+    processionFov: 57
+  }),
+  Object.freeze({
+    name: 'resident-abbot-prayer',
+    position: Object.freeze([0.95, 3.55, -0.4]),
+    targetOffsetX: 2.85,
+    targetOffsetY: 1.45,
+    targetOffsetZ: -0.1,
+    processionFov: 49
+  }),
+  Object.freeze({
+    name: 'full-hall-center',
+    position: Object.freeze([0, 14, 38]),
+    targetOffsetX: 0,
+    targetOffsetY: 2,
+    targetOffsetZ: -0.45,
+    processionFov: 54
+  }),
+  Object.freeze({
+    name: 'left-aisle-panorama',
+    position: Object.freeze([-13, 8, 8]),
+    targetOffsetX: 0,
+    targetOffsetY: 2,
+    targetOffsetZ: -1.45,
+    processionFov: 58
+  }),
+  Object.freeze({
+    name: 'right-aisle-panorama',
+    position: Object.freeze([12, 9, 14]),
+    targetOffsetX: 0,
+    targetOffsetY: 2.2,
+    targetOffsetZ: -1.45,
+    processionFov: 58
+  }),
+  Object.freeze({
+    name: 'elevated-temple-overview',
+    position: Object.freeze([0, 18, 16]),
+    targetOffsetX: 0,
+    targetOffsetY: 1.8,
+    targetOffsetZ: -0.45,
+    processionFov: 60
+  })
 ]);
 
 export function getTempleRitualShotIndex(startIndex, elapsedMs, durationMs, shotCount = TEMPLE_CAMERA_RITUAL_PRESETS.length) {
@@ -19,13 +79,22 @@ export function getTempleRitualShotIndex(startIndex, elapsedMs, durationMs, shot
   return (start + step) % count;
 }
 
+// Kept as a backwards-compatible helper for older callers. The live camera
+// tour now uses scene-level compositions rather than repeated worshipper close-ups.
 export function getTempleRitualCloseShot(preset, person) {
   if (!preset || !person) throw new TypeError('A camera preset and person position are required');
-  const [offsetX, height, offsetZ] = preset.closePositionOffset;
-  const [lookX, lookY, lookZ] = preset.closeLookAtOffset;
+  if (preset.closePositionOffset && preset.closeLookAtOffset) {
+    const [offsetX, height, offsetZ] = preset.closePositionOffset;
+    const [lookX, lookY, lookZ] = preset.closeLookAtOffset;
+    return {
+      position: [Number(person.x) + offsetX, height, Number(person.z) + offsetZ],
+      lookAt: [Number(person.x) + lookX, lookY, Number(person.z) + lookZ],
+      fov: preset.closeFov
+    };
+  }
   return {
-    position: [Number(person.x) + offsetX, height, Number(person.z) + offsetZ],
-    lookAt: [Number(person.x) + lookX, lookY, Number(person.z) + lookZ],
-    fov: preset.closeFov
+    position: [...preset.position],
+    lookAt: [preset.targetOffsetX, preset.targetOffsetY, preset.targetOffsetZ],
+    fov: preset.processionFov ?? 42
   };
 }
