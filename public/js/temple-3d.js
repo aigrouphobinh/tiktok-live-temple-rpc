@@ -2758,7 +2758,8 @@ async function boot() {
       maleRigCount,
       femaleRigCount,
       visibleQueueActors: [...queueActors.values()].filter((actor) => actor.group.visible).length,
-      seatedLiveViewerCount: liveViewerActors.size,
+      seatedLiveViewerCount: [...liveViewerActors.values()].filter((actor) => !actor.leaving).length,
+      departingLiveViewerCount: [...liveViewerActors.values()].filter((actor) => actor.leaving).length,
       pendingLiveViewerCount: Math.max(0, liveViewerRoster.size - liveViewerActors.size),
       backgroundNpcCount: 0,
       legacyGirlGlbEnabled: false
@@ -3339,7 +3340,8 @@ async function boot() {
       alreadyWorshippedInQueue: Boolean(devoteeState.alreadyWorshippedInQueue),
       queueLength: devoteeQueue.length,
       visibleQueueActors: queue.length,
-      seatedLiveViewerCount: liveViewerActors.size,
+      seatedLiveViewerCount: [...liveViewerActors.values()].filter((actor) => !actor.leaving).length,
+      departingLiveViewerCount: [...liveViewerActors.values()].filter((actor) => actor.leaving).length,
       pendingLiveViewerCount: Math.max(0, liveViewerRoster.size - liveViewerActors.size),
       seatedWaitingActors: queue.filter((actor) => actor.queueWaiting).length,
       completedSideWorshipPendingFifo: completedQueueWorship.size,
@@ -4752,6 +4754,7 @@ async function boot() {
     resourcesDisposed = true;
     window.removeEventListener('temple:ritual', onTempleRitual);
     window.removeEventListener('temple:viewer-enter', onTempleViewerEnter);
+   window.removeEventListener('temple:viewer-leave', onTempleViewerLeave);
     window.removeEventListener('temple:gift-action', onTempleGiftAction);
     window.removeEventListener('temple:gift-reaction', onTempleGiftReaction);
     window.removeEventListener('temple:character-interrupted', onTempleCharacterInterruptedForThreeD);
