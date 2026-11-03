@@ -129,7 +129,17 @@ describe('Three.js independent camera shot-action director', () => {
     expect(source).toContain('camera.userData.shotAction = activeCameraAction;');
     expect(source).toContain('camera.userData.shotSubject = activeCameraSubject;');
     expect(source).toContain('camera.position.lerp(cameraTargetPosition, blend);');
-    expect(source).toContain('const cameraShotBlendMs = 720;');
+    expect(source).toContain('const cameraShotBlendMs = 920;');
+    expect(source).toContain('const cameraShotTransitionMs = 1900;');
+    expect(source).toContain('startPosition: camera.position.clone()');
+    expect(source).toContain('startLookAt: currentLookAt.clone()');
+    expect(source).toContain('startFov: camera.fov');
+    expect(source).toContain('activeCameraTransition.startPosition');
+    expect(source).toContain('activeCameraTransition.startLookAt');
+    expect(source).toContain('activeCameraTransition.startFov');
+    expect(source).toContain('cameraTargetPosition.lerpVectors(');
+    expect(source).toContain('cameraTargetLookAt.lerpVectors(');
+    expect(source).toContain('camera.userData.shotTransitionProgress');
     expect(source).not.toContain('getTempleRitualCloseShot(activeCameraPreset');
   });
 
@@ -137,6 +147,7 @@ describe('Three.js independent camera shot-action director', () => {
     expect(source).toContain('const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 140);');
     expect(source).toContain('lookTarget.lerp(cameraTargetLookAt, blend);');
     expect(source).toContain('camera.fov += (cameraTargetFov - camera.fov) * blend;');
+    expect(source).toContain('const easedProgress = linearProgress * linearProgress * linearProgress');
     expect(source).toContain('camera.lookAt(lookTarget);');
     expect(source).toContain('action: camera.userData.shotAction || \'idle\'');
     expect(source).toContain('subject: camera.userData.shotSubject || \'temple\'');
