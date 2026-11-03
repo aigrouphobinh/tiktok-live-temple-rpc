@@ -852,7 +852,11 @@ const Rituals = {
     const uniqueId = params.uniqueId || '';
     const avatar = params.avatar || '';
     const topic = sanitizeWishText(params.topic) || 'Gia đạo, Tài lộc và Bình an';
-    const fortune = FORTUNE_DECK[Math.floor(Math.random() * FORTUNE_DECK.length)];
+    const requestedFortuneNumber = Number(params.fortuneNumber);
+    const requestedFortune = Number.isInteger(requestedFortuneNumber)
+      ? FORTUNE_DECK.find((item) => item.number === requestedFortuneNumber)
+      : null;
+    const fortune = requestedFortune || FORTUNE_DECK[Math.floor(Math.random() * FORTUNE_DECK.length)];
     const merit = 10;
 
     state.fortuneCount += 1;
@@ -1255,28 +1259,215 @@ function disconnectTikTokLive() {
 // 6. AUTO-SIMULATION ENGINE (CHẾ ĐỘ TỰ ĐỘNG GIẢ LẬP ĐÔNG NGƯỜI XEM)
 // ============================================================================
 let autoSimTimer = null;
-const SIM_DEVOTEES = [
-  { user: 'Ngọc Anh Nguyễn', uniqueId: 'ngocanh.98', wish: 'Con thành tâm cầu cho bố mẹ luôn mạnh khỏe, bình an' },
-  { user: 'Trần Minh Quân', uniqueId: 'minhquan_bds', wish: 'Cầu tháng mới công việc thuận buồm xuôi gió, tài lộc hanh thông' },
-  { user: 'Diệu Thảo Tâm An', uniqueId: 'tam_an_99', wish: 'Nam Mô A Di Đà Phật, nguyện cầu thế giới hòa bình chúng sinh an lạc' },
-  { user: 'Lê Hoàng Nam', uniqueId: 'hoangnam.dev', wish: 'Cầu thi cử đỗ đạt điểm cao, sự nghiệp rộng mở' },
-  { user: 'Phạm Thanh Hà', uniqueId: 'thanhha.lotus', wish: 'Cầu gia đạo êm ấm, con cái ngoan ngoãn học giỏi' },
-  { user: 'Vũ Đức Thịnh', uniqueId: 'ducthinh88', wish: 'Con xin gieo một quẻ cầu tài lộc đầu năm' }
+
+// Bot identities and wishes are unique for the lifetime of this server process.
+// The old six-entry fixture caused the same names and messages to cycle forever.
+let autoSimSequence = 0;
+const autoSimSessionId = Date.now().toString(36);
+const usedAutoSimNames = new Set();
+const usedAutoSimWishes = new Set();
+let lastAutoSimAction = '';
+
+const BOT_GIVEN_NAMES = [
+  'An', 'Bảo', 'Bình', 'Châu', 'Duy', 'Giang', 'Hà', 'Hân', 'Khánh',
+  'Linh', 'Minh', 'Nam', 'Ngọc', 'Phúc', 'Quân', 'Thảo', 'Thiện', 'Trang',
+  'Trúc', 'Tuấn', 'Uyên', 'Việt', 'Yến', 'Đức'
+];
+const BOT_MIDDLE_NAMES = [
+  'Gia', 'Hoài', 'Hồng', 'Hữu', 'Khắc', 'Kim', 'Mạnh', 'Ngọc', 'Nhật',
+  'Quốc', 'Thanh', 'Thành', 'Thị', 'Trọng', 'Xuân', 'Đình', 'Đức'
+];
+const BOT_FAMILY_NAMES = [
+  'Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ',
+  'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý'
 ];
 
-function runSingleSimulationStep() {
-  const pick = SIM_DEVOTEES[Math.floor(Math.random() * SIM_DEVOTEES.length)];
+const BOT_WISH_OPENINGS = [
+  'Con thành tâm nguyện cầu',
+  'Con xin kính nguyện Tam Bảo gia hộ',
+  'Thành kính dâng lời cầu nguyện',
+  'Con cúi xin chư Phật từ bi chứng giám',
+  'Gia đình con thành tâm hướng Phật',
+  'Con xin gửi trọn lòng thành kính',
+  'Nguyện đem tâm thiện lành dâng lên Tam Bảo',
+  'Con thành kính cầu xin ánh sáng từ bi',
+  'Xin chư Phật soi đường dẫn lối',
+  'Con một lòng hướng về cửa Phật',
+  'Thành tâm kính lễ mười phương chư Phật',
+  'Con xin hồi hướng chút duyên lành',
+  'Với tất cả lòng thành, con xin cầu nguyện',
+  'Con kính dâng một niệm thiện lành',
+  'Nguyện xin ánh sáng từ bi luôn soi chiếu'
+];
+const BOT_WISH_SUBJECTS = [
+  'cho cha mẹ và người thân',
+  'cho gia đạo luôn thuận hòa',
+  'cho công việc và sự nghiệp',
+  'cho việc học hành, thi cử',
+  'cho người thân đang đau yếu',
+  'cho những người con yêu thương',
+  'cho mọi người hữu duyên',
+  'cho cuộc sống gia đình',
+  'cho hành trình phía trước',
+  'cho những dự định còn dang dở',
+  'cho người đang gặp khó khăn',
+  'cho những ai đang cần bình an',
+  'cho các em nhỏ trong gia đình',
+  'cho ông bà tổ tiên',
+  'cho tình duyên và nhân duyên tốt đẹp',
+  'cho cộng đồng luôn an vui',
+  'cho những người đang xa quê',
+  'cho hành trình học tập và trưởng thành'
+];
+const BOT_WISH_OUTCOMES = [
+  'luôn mạnh khỏe, thân tâm an lạc',
+  'đón nhận nhiều cơ hội tốt lành',
+  'mọi khó khăn sớm được hóa giải',
+  'tâm sáng, trí an, lòng luôn vững chãi',
+  'gặp quý nhân, công việc hanh thông',
+  'bình an qua mọi chặng đường',
+  'vạn sự cát tường như ý',
+  'có thêm nghị lực vượt qua thử thách',
+  'tích lũy phước lành và duyên thiện',
+  'gia đình êm ấm, tiếng cười sum vầy',
+  'trí tuệ khai mở, lòng từ bi tăng trưởng',
+  'buông bỏ muộn phiền, giữ tâm thanh thản',
+  'đường xa vững bước, việc lành viên mãn',
+  'mưa thuận gió hòa, cuộc sống đủ đầy',
+  'thân khỏe tâm an, mỗi ngày đều thiện lành',
+  'những điều tốt đẹp lần lượt thành tựu',
+  'nợ duyên lành được kết nối trọn vẹn',
+  'niềm vui nhỏ nở hoa trong từng ngày',
+  'điều chưa thuận được chuyển hóa nhẹ nhàng',
+  'ánh sáng từ bi soi sáng mọi nẻo đường'
+];
+const BOT_WISH_CLOSINGS = [
+  'Nam mô A Di Đà Phật',
+  'Nguyện điều lành lan tỏa đến muôn nơi',
+  'Xin hồi hướng công đức đến tất cả chúng sinh',
+  'Nguyện mỗi ngày đều có thêm một việc thiện',
+  'Kính mong Tam Bảo từ bi gia hộ',
+  'Nguyện giữ lòng thiện và sống đời tỉnh thức',
+  'Xin cho tâm luôn sáng và lòng luôn an',
+  'Nguyện bình an hiện hữu trong từng mái nhà',
+  'Con xin tri ân nhân duyên lành này',
+  'Nguyện mọi người đều được an vui',
+  'Cúi xin chứng giám tấm lòng thành kính',
+  'Mong hạt giống thiện lành được vun bồi'
+];
+const BOT_GIFT_NAMES = [
+  'Đài Hoa Sen Vàng', 'Bó Sen Tịnh Tâm', 'Ngọn Đèn Trí Tuệ',
+  'Mâm Lễ An Lành', 'Bình Hoa Cát Tường', 'Chuỗi Ngọc Tâm An',
+  'Bảo Liên Thanh Tịnh', 'Ánh Đăng Từ Bi', 'Lẵng Hoa Ưu Đàm',
+  'Sen Ngọc Bảo Châu', 'Đóa Sen Như Ý', 'Đèn Lưu Ly Cát Tường'
+];
+
+function pickAutoSimItem(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function createAutoSimIdentity(sequence) {
+  let user = '';
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const candidate = sanitizeUserName(
+      `${pickAutoSimItem(BOT_FAMILY_NAMES)} ${pickAutoSimItem(BOT_MIDDLE_NAMES)} ${pickAutoSimItem(BOT_GIVEN_NAMES)}`
+    );
+    if (candidate !== 'Thí Chủ Hữu Duyên' && !usedAutoSimNames.has(candidate)) {
+      user = candidate;
+      break;
+    }
+  }
+
+  // Once the natural-name combinations have been used, add a short sequence
+  // marker so even a long-running bot never reuses a displayed participant name.
+  if (!user) {
+    user = sanitizeUserName(
+      `${pickAutoSimItem(BOT_FAMILY_NAMES)} ${pickAutoSimItem(BOT_GIVEN_NAMES)} ${sequence.toString(36).toUpperCase()}`
+    );
+    let collision = 1;
+    while (usedAutoSimNames.has(user)) {
+      user = sanitizeUserName(
+        `${pickAutoSimItem(BOT_FAMILY_NAMES)} ${pickAutoSimItem(BOT_GIVEN_NAMES)} ${sequence.toString(36).toUpperCase()} ${collision}`
+      );
+      collision += 1;
+    }
+  }
+
+  usedAutoSimNames.add(user);
+  return {
+    user,
+    // A fresh identity per simulated arrival prevents recordDevotee from
+    // merging separate bot participants into the same leaderboard row.
+    uniqueId: `templebot_${autoSimSessionId}_${sequence.toString(36)}`
+  };
+}
+
+function createAutoSimWish(sequence) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const wish = sanitizeWishText(
+      `${pickAutoSimItem(BOT_WISH_OPENINGS)} ${pickAutoSimItem(BOT_WISH_SUBJECTS)}, ${pickAutoSimItem(BOT_WISH_OUTCOMES)}. ${pickAutoSimItem(BOT_WISH_CLOSINGS)}.`
+    );
+    if (wish && !usedAutoSimWishes.has(wish)) {
+      usedAutoSimWishes.add(wish);
+      return wish;
+    }
+  }
+
+  // The prefix keeps the fallback unique even after every phrase combination
+  // has appeared; sanitizeWishText preserves it within the 120-char limit.
+  const marker = sequence.toString(36).toUpperCase();
+  const wish = sanitizeWishText(
+    `Lời nguyện số ${marker}: ${pickAutoSimItem(BOT_WISH_SUBJECTS)}, ${pickAutoSimItem(BOT_WISH_OUTCOMES)}.`
+  );
+  usedAutoSimWishes.add(wish);
+  return wish;
+}
+
+function chooseAutoSimAction() {
   const roll = Math.random();
-  if (roll < 0.30) {
-    Rituals.burnIncense({ user: pick.user, uniqueId: pick.uniqueId, count: 3, wish: pick.wish });
-  } else if (roll < 0.55) {
-    Rituals.sendPrayer({ user: pick.user, uniqueId: pick.uniqueId, wish: pick.wish });
-  } else if (roll < 0.75) {
-    Rituals.drawFortune({ user: pick.user, uniqueId: pick.uniqueId, topic: pick.wish });
-  } else if (roll < 0.90) {
-    Rituals.offerGift({ user: pick.user, uniqueId: pick.uniqueId, giftType: 'lotus', coins: 15, giftName: 'Hoa Sen Vàng Tinh Khiết' });
+  let action = roll < 0.30
+    ? 'burnIncense'
+    : roll < 0.55
+      ? 'sendPrayer'
+      : roll < 0.75
+        ? 'drawFortune'
+        : roll < 0.90
+          ? 'offerGift'
+          : 'ringBell';
+
+  // Keep the stream from showing the same ritual type twice in a row.
+  if (action === lastAutoSimAction) {
+    const alternatives = ['burnIncense', 'sendPrayer', 'drawFortune', 'offerGift', 'ringBell']
+      .filter((item) => item !== lastAutoSimAction);
+    action = pickAutoSimItem(alternatives);
+  }
+  lastAutoSimAction = action;
+  return action;
+}
+
+function runSingleSimulationStep() {
+  autoSimSequence += 1;
+  const participant = createAutoSimIdentity(autoSimSequence);
+  const wish = createAutoSimWish(autoSimSequence);
+  const shared = { ...participant, wish };
+  const action = chooseAutoSimAction();
+
+  if (action === 'burnIncense') {
+    Rituals.burnIncense({ ...shared, count: 1 + Math.floor(Math.random() * 5) });
+  } else if (action === 'sendPrayer') {
+    Rituals.sendPrayer(shared);
+  } else if (action === 'drawFortune') {
+    const fortune = FORTUNE_DECK[(autoSimSequence - 1) % FORTUNE_DECK.length];
+    Rituals.drawFortune({ ...shared, topic: wish, fortuneNumber: fortune.number });
+  } else if (action === 'offerGift') {
+    Rituals.offerGift({
+      ...shared,
+      giftType: 'lotus',
+      coins: 10 + Math.floor(Math.random() * 31),
+      giftName: BOT_GIFT_NAMES[(autoSimSequence - 1) % BOT_GIFT_NAMES.length]
+    });
   } else {
-    Rituals.ringBell({ user: pick.user, uniqueId: pick.uniqueId, count: 1, wish: pick.wish, readTts: true });
+    Rituals.ringBell({ ...shared, count: 1 + Math.floor(Math.random() * 3), readTts: true });
   }
 }
 
