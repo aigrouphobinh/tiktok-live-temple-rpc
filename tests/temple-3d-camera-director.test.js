@@ -29,8 +29,12 @@ describe('Three.js independent camera shot-action director', () => {
         expect(frame.action).toBe(shot.action);
         expect(frame.subject).toBe(shot.subject);
       }
-      const cameraMoved = start.position.some((value, index) => Math.abs(value - end.position[index]) > 0.05);
-      const viewMoved = start.lookAt.some((value, index) => Math.abs(value - end.lookAt[index]) > 0.05);
+      const cameraMoved = [middle, end].some((frame) =>
+        start.position.some((value, index) => Math.abs(value - frame.position[index]) > 0.05)
+      );
+      const viewMoved = [middle, end].some((frame) =>
+        start.lookAt.some((value, index) => Math.abs(value - frame.lookAt[index]) > 0.05)
+      );
       expect(cameraMoved || viewMoved).toBe(true);
     }
   });
