@@ -2671,23 +2671,43 @@ async function boot() {
     function drawProfile() {
       const name = profileName;
       const fontSize = featured ? 58 : 50;
-      plateContext.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-      // Reserve a clear avatar-safe zone plus a consistent right margin.
-      // The old 145px text inset nearly touched the avatar's visible edge and
-      // caused the portrait to cover the first characters at portrait scale.
+      const fontSpec = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
+      // Keep generous room on both sides of the text. In particular, the
+      // right reserve protects the final glyph and its glow from the rounded
+      // plate border when the name is rendered through the 9:16 canvas texture.
       const nameLeftPadding = featured ? 205 : 195;
-      const nameRightPadding = 58;
-      // A small width safety factor protects names measured before the webfont
-      // has fully settled; drawProfile runs again after Be Vietnam Pro loads.
-      const measuredNameWidth = Math.ceil(plateContext.measureText(name).width * 1.06);
-      const requiredWidth = Math.max(
+      const nameRightPadding = featured ? 190 : 170;
+
+      plateContext.font = fontSpec;
+      const firstMeasure = Math.ceil(plateContext.measureText(name).width);
+      let requiredWidth = Math.max(
         520,
-        measuredNameWidth + nameLeftPadding + nameRightPadding
+        firstMeasure + nameLeftPadding + nameRightPadding
       );
       if (plateCanvas.width !== requiredWidth) {
         plateCanvas.width = requiredWidth;
       }
-      const context = plateCanvas.getContext('2d');
+
+      // Resizing a canvas resets all context state. Measure again on the
+      // actual post-resize context/font that will paint the final text, then
+      // grow the canvas if that measurement needs more room.
+      let context = plateCanvas.getContext('2d');
+      context.font = fontSpec;
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      const finalMeasuredWidth = Math.ceil(context.measureText(name).width);
+      requiredWidth = Math.max(
+        520,
+        finalMeasuredWidth + nameLeftPadding + nameRightPadding
+      );
+      if (plateCanvas.width !== requiredWidth) {
+        plateCanvas.width = requiredWidth;
+        context = plateCanvas.getContext('2d');
+        context.font = fontSpec;
+        context.textAlign = 'left';
+        context.textBaseline = 'middle';
+      }
+
       context.clearRect(0, 0, plateCanvas.width, plateCanvas.height);
       context.beginPath();
       context.roundRect(0, 15, plateCanvas.width, 162, 38);
@@ -2697,9 +2717,10 @@ async function boot() {
       context.strokeStyle = featured ? 'rgba(255, 232, 160, 1)' : 'rgba(255, 218, 139, 0.96)';
       context.stroke();
 
-      context.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
+      context.font = fontSpec;
       context.textAlign = 'left';
       context.textBaseline = 'middle';
+      context.direction = 'ltr';
       context.fillStyle = '#fff0c2';
       context.shadowColor = 'rgba(255, 190, 74, 0.55)';
       context.shadowBlur = 10;
