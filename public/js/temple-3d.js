@@ -2581,6 +2581,7 @@ async function boot() {
     let avatarUrl = '';
     let profileName = featured ? 'Bảo Ngọc' : 'Thí Chủ Hữu Duyên';
     let imageRequest = 0;
+    let profileRevision = 0;
     let tagHeight = featured ? 0.56 : 0.30;
 
     function syncTagSize() {
@@ -2671,10 +2672,18 @@ async function boot() {
       const name = profileName;
       const fontSize = featured ? 58 : 50;
       plateContext.font = `700 ${fontSize}px "Be Vietnam Pro", Arial, sans-serif`;
-      const measuredNameWidth = Math.ceil(plateContext.measureText(name).width);
-      // Width follows the measured name. There is no fixed text cutoff and no
-      // shrinking/ellipsis for long usernames; padding stays visually constant.
-      const requiredWidth = Math.max(420, measuredNameWidth + 190);
+      // Reserve a clear avatar-safe zone plus a consistent right margin.
+      // The old 145px text inset nearly touched the avatar's visible edge and
+      // caused the portrait to cover the first characters at portrait scale.
+      const nameLeftPadding = featured ? 205 : 195;
+      const nameRightPadding = 58;
+      // A small width safety factor protects names measured before the webfont
+      // has fully settled; drawProfile runs again after Be Vietnam Pro loads.
+      const measuredNameWidth = Math.ceil(plateContext.measureText(name).width * 1.06);
+      const requiredWidth = Math.max(
+        520,
+        measuredNameWidth + nameLeftPadding + nameRightPadding
+      );
       if (plateCanvas.width !== requiredWidth) {
         plateCanvas.width = requiredWidth;
       }
@@ -2694,7 +2703,7 @@ async function boot() {
       context.fillStyle = '#fff0c2';
       context.shadowColor = 'rgba(255, 190, 74, 0.55)';
       context.shadowBlur = 10;
-      context.fillText(name, 145, 98);
+      context.fillText(name, nameLeftPadding, 98);
       context.shadowBlur = 0;
       plateTexture.needsUpdate = true;
       syncTagSize();
@@ -2703,6 +2712,7 @@ async function boot() {
 
     function setProfile(nameValue, urlValue) {
       profileName = String(nameValue || 'Thí Chủ Hữu Duyên').trim() || 'Thí Chủ Hữu Duyên';
+      const revision = ++profileRevision;
       const nextUrl = typeof urlValue === 'string' && /^https:\/\//i.test(urlValue) ? urlValue : '';
       if (nextUrl !== avatarUrl) {
         avatarUrl = nextUrl;
@@ -2725,6 +2735,17 @@ async function boot() {
         }
       }
       drawProfile();
+
+      // Canvas text can be measured with Arial during the first frame if the
+      // webfont is still loading. Re-measure and resize once the requested font
+      // is ready, but never let an older async request overwrite a newer name.
+      if (document.fonts?.load) {
+        document.fonts.load(`700 ${featured ? 58 : 50}px "Be Vietnam Pro"`, profileName)
+          .then(() => {
+            if (revision === profileRevision) drawProfile();
+          })
+          .catch(() => {});
+      }
     }
 
     tag.userData.setSize = (heightValue) => {
