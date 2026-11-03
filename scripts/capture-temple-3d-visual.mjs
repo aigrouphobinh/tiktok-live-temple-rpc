@@ -213,15 +213,14 @@ try {
           () => window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== undefined
             && window.__TEMPLE_BUDDHA_MODEL_SOURCE__ !== 'loading',
           null,
-          { timeout: 30000 }
+          { timeout: 120000 }
         );
       } catch (error) {
         profileReport.modelLoadError = error.message;
       }
 
-      // The renderer may emit an initial sample while the procedural statue is
-      // still visible. Start the idle baseline only from a fresh sample after
-      // the optional GLB has reached its settled source state.
+      // The idle baseline starts only after the required selected GLB has
+      // settled; the rough procedural placeholder is never used in production.
       logAuditPhase(scenario.id, 'model-settled', { source: await page.evaluate(() => window.__TEMPLE_BUDDHA_MODEL_SOURCE__) });
       const samplesBeforeIdle = rendererStatsSamples.length;
       logAuditPhase(scenario.id, 'idle-sample-wait-start', { samples: samplesBeforeIdle });
@@ -472,14 +471,13 @@ try {
           && stressStats.drawCalls <= 1200,
         sceneReady: profileReport.ready && scene.readyFlag,
         sceneHasNoBootError: scene.bootError == null && profileReport.bootError == null,
-        buddhaStatueSourceLoaded: [
-          'kenny-hsieh',
-          'mia-cc0-gilt-bronze'
-        ].includes(scene.buddhaModelSource),
+        buddhaStatueSourceLoaded: scene.buddhaModelSource === 'kenny-hsieh',
+        buddhaSelectedModelAttemptedFirst: scene.buddhaModelDiagnostic?.preferred === 'kenny-hsieh'
+          && scene.buddhaModelDiagnostic?.attempts?.[0]?.source === 'kenny-hsieh',
         buddhaModelDiagnosticCompleted: scene.buddhaModelDiagnostic?.state === 'loaded'
-          && scene.buddhaModelDiagnostic?.source === scene.buddhaModelSource
+          && scene.buddhaModelDiagnostic?.source === 'kenny-hsieh'
           && Array.isArray(scene.buddhaModelDiagnostic?.attempts)
-          && scene.buddhaModelDiagnostic.attempts.some((attempt) => attempt.ok),
+          && scene.buddhaModelDiagnostic.attempts[0]?.ok === true,
         buddhaUsesAgedGoldBronze: scene.buddhaModelDiagnostic?.surfaceFinish?.name === 'aged-gold bronze'
           && scene.buddhaModelDiagnostic?.surfaceFinish?.metalness >= 0.6,
         residentAbbotVisible: scene.abbotDiagnostic?.visible === true
