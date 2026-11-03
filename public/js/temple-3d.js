@@ -3913,8 +3913,6 @@ async function boot() {
   // Load the repository's selected Buddha GLB by default in every 3D session.
   // Set ?buddha=0 only when a procedural-only preview is explicitly needed.
   const modelParams = new URLSearchParams(location.search);
-  const modelsRequested = modelParams.get('models') === '1';
-  const buddhaModelRequested = modelParams.get('buddha') !== '0';
   // Ao Dai male/female are the default live characters. Imported Quaternius
   // devotees are an explicit optional skin pack, never an automatic replacement.
 
@@ -3937,9 +3935,6 @@ async function boot() {
   }
   window.__TEMPLE_SET_BUDDHA_YAW__ = setBuddhaYaw;
   setBuddhaYaw(buddhaYawDegrees);
-  if (!buddhaModelRequested && !modelsRequested) {
-    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'custom-procedural';
-  }
   // Diagnostics are opt-in so normal live sessions pay no logging overhead.
   const statsEnabled = modelParams.get('stats') === '1';
   let lastStatsAt = 0;
@@ -3983,14 +3978,19 @@ async function boot() {
   }
 
   async function upgradeBuddhaFromGLB() {
+    // Never expose the rough hand-built placeholder in a live session. The
+    // selected scan is the required statue; CC0 is only an emergency asset fallback.
+    statue.visible = false;
+    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';
     let asset;
-    let assetSource = 'procedural';
+    let assetSource = null;
     const selectedUrl = '/assets/models/buddha-selected.glb';
     const fallbackUrl = '/assets/models/buddha-cc0-fallback.glb';
-    const customUrl = '/assets/models/buddha.glb';
     const diagnostics = {
       state: 'loading',
       preferred: 'kenny-hsieh',
+      requiredAsset: selectedUrl,
+      progress: { loadedBytes: 0, totalBytes: 0, percent: 0 },
       source: null,
       attempts: [],
       startedAt: new Date().toISOString()
@@ -4002,16 +4002,10 @@ async function boot() {
       // The selected Kenny Hsieh model is the default. The smaller CC0 scan is
       // the automatic fallback. A legacy/custom buddha.glb is opt-in only so
       // it can never silently replace the selected statue.
-      const candidates = modelParams.get('buddha') === 'custom'
-        ? [
-            { url: customUrl, source: 'user-custom' },
-            { url: selectedUrl, source: 'kenny-hsieh' },
-            { url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }
-          ]
-        : [
-            { url: selectedUrl, source: 'kenny-hsieh' },
-            { url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }
-          ];
+      const candidates = [
+        { url: selectedUrl, source: 'kenny-hsieh' },
+        { url: fallbackUrl, source: 'mia-cc0-gilt-bronze' }
+      ];
 
       for (const candidate of candidates) {
         try {
@@ -4021,7 +4015,19 @@ async function boot() {
           asset = await loadGLTFAsset(candidate.url, {
             targetHeight: 5.88,
             centerXZ: true,
-            alignGroundPlane: true
+            alignGroundPlane: true,
+            onProgress: (event) => {
+              if (candidate.source !== 'kenny-hsieh') return;
+              const loadedBytes = Number(event?.loaded) || 0;
+              const totalBytes = Number(event?.total) || 0;
+              diagnostics.progress = {
+                loadedBytes,
+                totalBytes,
+                percent: totalBytes > 0
+                  ? Math.min(100, Number((loadedBytes / totalBytes * 100).toFixed(1)))
+                  : null
+              };
+            }
           });
           assetSource = candidate.source;
           diagnostics.attempts.push({
@@ -4044,11 +4050,11 @@ async function boot() {
       }
 
       if (!asset) {
-        diagnostics.state = 'fallback';
-        diagnostics.source = 'procedural';
+        diagnostics.state = 'error';
+        diagnostics.source = null;
         diagnostics.finishedAt = new Date().toISOString();
-        window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
-        console.warn('[Temple3D] No bundled Buddha GLB could be loaded; procedural statue remains visible.', diagnostics);
+        window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'error';
+        console.error('[Temple3D] Required Buddha GLB could not be loaded; the custom procedural statue stays hidden.', diagnostics);
         return;
       }
 
@@ -4095,6 +4101,7 @@ async function boot() {
       buddhaYawPivot.rotation.y = THREE.MathUtils.degToRad(buddhaYawDegrees);
       buddhaYawPivot.add(asset.root);
       statue.add(buddhaYawPivot);
+      statue.visible = true;
       buddhaYawPivot.updateMatrixWorld(true);
       window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = assetSource;
       diagnostics.state = 'loaded';
@@ -4105,13 +4112,18 @@ async function boot() {
       diagnostics.surfaceFinish = { name: 'aged-gold bronze', color: '#c99a3c', metalness: 0.68, roughness: 0.42 };
     } catch (error) {
       diagnostics.state = 'error';
-      diagnostics.source = 'procedural';
+      diagnostics.source = null;
       diagnostics.error = error?.message || String(error);
       diagnostics.finishedAt = new Date().toISOString();
-      window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'procedural';
-      console.warn('[Temple3D] Buddha GLB loading failed; keeping procedural fallback:', error);
+      window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'error';
+      statue.visible = false;
+      console.error('[Temple3D] Required Buddha GLB loading failed; custom procedural statue remains hidden:', error);
     }
   }
+
+  // Start loading before the remaining scene setup completes so the 57 MB
+  // selected GLB downloads and decodes in parallel with the rest of boot().
+  void upgradeBuddhaFromGLB();
 
   function addEffect(object, update, duration = 1800) {
     if (effects.length >= MAX_EFFECTS) {
@@ -4932,14 +4944,10 @@ async function boot() {
   window.__TEMPLE_3D_READY__ = true;
   window.dispatchEvent(new Event('temple:3d-ready'));
   start();
-  if (modelsRequested || buddhaModelRequested) {
-    window.__TEMPLE_BUDDHA_MODEL_SOURCE__ = 'loading';
-    void upgradeBuddhaFromGLB();
-  }
   // Keep the two Ao Dai variants as the default characters. The optional
   // Quaternius GLTF skins are loaded only when explicitly requested with
   // ?devoteeModels=1, so they cannot silently replace the default cast.
   if (devoteeModelsRequested) void upgradeDevoteesFromGLB();
   window.__TEMPLE_DEVOTEE_MODEL_SOURCE__ = devoteeModelsRequested ? 'quaternius-gltf' : 'ao-dai-default';
-  console.info('[Temple3D] Full sanctuary world ready (?3d=1), with male/female Ao Dai devotees and stone Buddha.');
+  console.info('[Temple3D] Full sanctuary world ready (?3d=1); required Buddha GLB is loading independently.');
 }
