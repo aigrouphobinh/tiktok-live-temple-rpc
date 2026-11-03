@@ -183,12 +183,14 @@ export const TEMPLE_CAMERA_RITUAL_PRESETS = Object.freeze([
     action: 'hall-crane-reveal',
     durationMs: 9000,
     actionParams: Object.freeze({
-      startPosition: Object.freeze([0, 18.5, 40]),
-      endPosition: Object.freeze([-2.5, 13.6, 31]),
-      startLookAt: Object.freeze([0, 2.2, -4.5]),
-      endLookAt: Object.freeze([1.5, 2.8, -6.2]),
-      startFov: 61,
-      endFov: 55
+      // Keep the establishing move below the unfinished roofline. The
+      // shallow downward angle frames the altar, columns and finished fascia.
+      startPosition: Object.freeze([0, 7.8, 18.5]),
+      endPosition: Object.freeze([-0.8, 7.1, 16.5]),
+      startLookAt: Object.freeze([0, 3.25, -3.8]),
+      endLookAt: Object.freeze([0.8, 3.1, -5.0]),
+      startFov: 42,
+      endFov: 40.3
     })
   }),
   Object.freeze({
@@ -223,12 +225,14 @@ export const TEMPLE_CAMERA_RITUAL_PRESETS = Object.freeze([
     action: 'hall-overview-orbit',
     durationMs: 9200,
     actionParams: Object.freeze({
-      center: Object.freeze([0, 2.0, -3.5]),
-      radius: 27,
-      height: 18.5,
-      startAngle: -0.38,
-      sweep: 0.76,
-      fov: 60
+      // A restrained elevated arc: never climb above the completed columns
+      // or point the lens into the roofless/unbuilt upper environment.
+      center: Object.freeze([0, 3.3, -3.5]),
+      radius: 18.2,
+      height: 9.5,
+      startAngle: -0.28,
+      sweep: 0.56,
+      fov: 46
     })
   })
 ]);
