@@ -237,6 +237,28 @@ export const TEMPLE_CAMERA_RITUAL_PRESETS = Object.freeze([
   })
 ]);
 
+ 
+// Weighted recurring schedule: establishing/environment/statue shots dominate;
+// character-focused shots remain occasional supporting coverage.
+export const TEMPLE_CAMERA_SHOT_SEQUENCE = Object.freeze([
+  'hall-crane-reveal',
+  'left-aisle-dolly',
+  'buddha-pov-pan',
+  'hall-overview-orbit',
+  'right-aisle-dolly',
+  'buddha-orbit',
+  'left-aisle-dolly',
+  'hall-crane-reveal',
+  'devotee-tracking',
+  'buddha-pov-pan',
+  'right-aisle-dolly',
+  'hall-overview-orbit',
+  'left-aisle-dolly',
+  'abbot-bow-portrait',
+  'hall-crane-reveal',
+  'buddha-pov-pan'
+]);
+
 export function getTempleCameraShotFrame(shot, elapsedMs, context = {}) {
   if (!shot || typeof shot !== 'object') throw new TypeError('A camera shot definition is required');
   const action = SHOT_ACTIONS[shot.action];
