@@ -1,32 +1,45 @@
 import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleRitualShotIndex } from '../public/js/temple-camera-presets.js';
+import { TEMPLE_CAMERA_RITUAL_PRESETS, getTempleCameraShotFrame } from '../public/js/temple-camera-presets.js';
 
 const scene = readFileSync(new URL('../public/js/temple-3d.js', import.meta.url), 'utf8');
 const cssCamera = readFileSync(new URL('../public/js/camera-controller.js', import.meta.url), 'utf8');
 
-describe('3D temple camera shot sequence', () => {
-  it('cycles through all five presets during the 9.5-second altar ritual', () => {
-    expect(TEMPLE_CAMERA_RITUAL_PRESETS).toHaveLength(5);
-    for (let start = 0; start < 5; start++) {
-      const sequence = Array.from({ length: 5 }, (_, i) =>
-        getTempleRitualShotIndex(start, i * 1900 + 950, 9500, 5)
-      );
-      expect(new Set(sequence).size).toBe(5);
-      expect(sequence[0]).toBe(start);
-    }
-    expect(scene).toContain('cameraSequenceStartIndex = nextIndex;');
-    expect(scene).toContain('getTempleRitualShotIndex(');
-    expect(scene).toContain('activeCameraPreset = cameraRitualPresets[activeCameraPresetIndex];');
+describe('3D temple shot action sequence', () => {
+  it('uses eight separate named actions instead of a shared close-up sequence', () => {
+    expect(TEMPLE_CAMERA_RITUAL_PRESETS).toHaveLength(8);
+    expect(new Set(TEMPLE_CAMERA_RITUAL_PRESETS.map((shot) => shot.action)).size).toBe(8);
+    expect(TEMPLE_CAMERA_RITUAL_PRESETS.map((shot) => shot.action)).toEqual([
+      'buddha-orbit',
+      'buddha-pov-pan',
+      'abbot-bow-portrait',
+      'devotee-tracking',
+      'hall-crane-reveal',
+      'left-aisle-dolly',
+      'right-aisle-dolly',
+      'hall-overview-orbit'
+    ]);
+    expect(scene).toContain('const cameraShotDefinitions = TEMPLE_CAMERA_RITUAL_PRESETS;');
+    expect(scene).toContain('function beginCameraShot(index, now = performance.now(), mode = \'ambient\')');
+    expect(scene).toContain('cameraActionEndsAt = now + activeCameraPreset.durationMs;');
   });
 
-  it('uses distinct camera position, look target and FOV for each close angle', () => {
-    const signatures = TEMPLE_CAMERA_RITUAL_PRESETS.map((preset) =>
-      [preset.closePositionOffset.join(','), preset.closeLookAtOffset.join(','), preset.closeFov].join('|')
-    );
-    expect(new Set(signatures).size).toBe(5);
-    expect(TEMPLE_CAMERA_RITUAL_PRESETS.map((preset) => preset.closeFov)).toEqual([38.5, 38.5, 40, 40, 40]);
-    expect(scene).toContain("activeCameraShot = 'altar-close';");
+  it('runs the Buddha POV pan and the abbot portrait as different camera actions', () => {
+    const pov = TEMPLE_CAMERA_RITUAL_PRESETS.find((shot) => shot.action === 'buddha-pov-pan');
+    const abbot = TEMPLE_CAMERA_RITUAL_PRESETS.find((shot) => shot.action === 'abbot-bow-portrait');
+    const povFrame = getTempleCameraShotFrame(pov, pov.durationMs / 4);
+    const abbotFrame = getTempleCameraShotFrame(abbot, abbot.durationMs);
+    expect(povFrame.position).toEqual(pov.actionParams.camera);
+    expect(povFrame.lookAt[0]).toBeGreaterThan(0);
+    expect(abbotFrame.lookAt).toEqual(abbot.actionParams.target);
+    expect(abbotFrame.position).toEqual(abbot.actionParams.endPosition);
+  });
+
+  it('executes each shot only for its own duration before handing the camera to the next action', () => {
+    expect(scene).toContain('else if (now >= cameraActionEndsAt)');
+    expect(scene).toContain('beginCameraShot(getNextCameraPresetIndex(), now, \'ritual\');');
+    expect(scene).toContain('beginCameraShot(getNextCameraPresetIndex(), now, \'ambient\');');
+    expect(scene).toContain('camera.userData.shotAction = activeCameraAction;');
   });
 
   it('eases camera movement without cuts or a second camera', () => {
@@ -46,15 +59,5 @@ describe('3D temple camera shot sequence', () => {
     expect(threeDGuard).toContain("rig.style.transform = 'none';");
     expect(threeDGuard).toContain('} else {');
     expect(threeDGuard).not.toContain('return;');
-  });
-
-  it('returns to the fixed elevated master view after the active queue drains', () => {
-    const start = scene.indexOf('function restoreMainCamera()');
-    const end = scene.indexOf('function updateRitualCamera(dt, now', start);
-    const restore = scene.slice(start, end);
-    expect(restore).toContain("activeCameraShot = 'home';");
-    expect(restore).toContain('cameraTargetPosition.copy(cameraHomePosition);');
-    expect(restore).toContain('cameraTargetLookAt.copy(cameraHomeTarget);');
-    expect(restore).toContain('cameraTargetFov = cameraHomeFov;');
   });
 });
